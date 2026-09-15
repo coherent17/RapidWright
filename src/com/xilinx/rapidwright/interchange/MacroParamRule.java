@@ -47,7 +47,8 @@ public class MacroParamRule {
         return result;
     }
 
-    public static MacroParamRule table(String primParam, String instName, String instParam, MacroParamTableEntry[] table) {
+    public static MacroParamRule table(String primParam, String instName, String instParam,
+                                       MacroParamTableEntry[] table) {
         MacroParamRule result = new MacroParamRule(primParam, instName, instParam);
         result.tableLookup = table;
         return result;

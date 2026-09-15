@@ -50,22 +50,27 @@ import com.xilinx.rapidwright.edif.EDIFNet;
 import com.xilinx.rapidwright.edif.EDIFPortInst;
 
 public class BlockPlacer2Impls extends BlockPlacer2<ModuleImpls, ModuleImplsInst, ModulePlacement, ImplsPath> {
-
     private final List<ModuleImplsInst> moduleInstances;
 
     private final AbstractOverlapCache<ModulePlacement, ModuleImplsInst> overlaps;
 
     private final Map<ModuleImplsInst, Set<ImplsPath>> modulesToPaths = new HashMap<>();
 
-    public BlockPlacer2Impls(Design design, List<ModuleImplsInst> moduleInstances, boolean ignoreMostUsedNets, Path graphData, boolean denseDesign, float effort, boolean focusOnWorstModules, TileRectangle placementArea, AbstractOverlapCache<ModulePlacement, ModuleImplsInst> overlapCache) {
+    public BlockPlacer2Impls(Design design, List<ModuleImplsInst> moduleInstances, boolean ignoreMostUsedNets,
+                             Path graphData, boolean denseDesign, float effort, boolean focusOnWorstModules,
+                             TileRectangle placementArea,
+                             AbstractOverlapCache<ModulePlacement, ModuleImplsInst> overlapCache) {
         super(design, ignoreMostUsedNets, graphData, denseDesign, effort, focusOnWorstModules, placementArea);
 
         this.moduleInstances = moduleInstances;
         overlaps = overlapCache;
     }
 
-    public BlockPlacer2Impls(Design design, List<ModuleImplsInst> moduleInstances, boolean ignoreMostUsedNets, Path graphData, boolean denseDesign, float effort, boolean focusOnWorstModules, TileRectangle placementArea) {
-        this(design, moduleInstances, ignoreMostUsedNets, graphData, denseDesign, effort, focusOnWorstModules, placementArea, new RegionBasedOverlapCache<>(design.getDevice(), moduleInstances));
+    public BlockPlacer2Impls(Design design, List<ModuleImplsInst> moduleInstances, boolean ignoreMostUsedNets,
+                             Path graphData, boolean denseDesign, float effort, boolean focusOnWorstModules,
+                             TileRectangle placementArea) {
+        this(design, moduleInstances, ignoreMostUsedNets, graphData, denseDesign, effort, focusOnWorstModules,
+             placementArea, new RegionBasedOverlapCache<>(design.getDevice(), moduleInstances));
     }
 
     public BlockPlacer2Impls(Design design, List<ModuleImplsInst> moduleInstances) {
@@ -109,11 +114,13 @@ public class BlockPlacer2Impls extends BlockPlacer2<ModuleImpls, ModuleImplsInst
         hm.unplace();
     }
 
-    private ImplsInstancePort toImplsInstancePort(EDIFPortInst portInst, Map<EDIFCellInst, Cell> edifToPhysical, Map<EDIFCellInst, ModuleImplsInst> edifToModule) {
+    private ImplsInstancePort toImplsInstancePort(EDIFPortInst portInst, Map<EDIFCellInst, Cell> edifToPhysical,
+                                                  Map<EDIFCellInst, ModuleImplsInst> edifToModule) {
         if (portInst.getCellInst() != null) {
             EDIFCellInst cellInst = portInst.getCellInst();
 
-            //The EDIF cell can either be represented by a physical cell, or by a module. Checking both cases.
+            // The EDIF cell can either be represented by a physical cell, or by a module. Checking
+            // both cases.
             Cell cell = edifToPhysical.get(cellInst);
             ModuleImplsInst module = edifToModule.get(cellInst);
 
@@ -123,32 +130,33 @@ public class BlockPlacer2Impls extends BlockPlacer2<ModuleImpls, ModuleImplsInst
                 }
                 throw new RuntimeException("No physical representation of EDIF cellinst " + cellInst.getName());
             } else if (cell != null && module != null) {
-                throw new RuntimeException("Duplicate representation of EDIF cellinst "+cellInst.getName());
+                throw new RuntimeException("Duplicate representation of EDIF cellinst " + cellInst.getName());
             }
 
             if (cell != null) {
                 SitePinInst spi = cell.getSitePinFromPortInst(portInst, null);
                 if (spi == null) {
-                    throw new RuntimeException("while creating an ImplsInstancePort for " + portInst
-                            + ", could not find the port in cell " + cell
-                            + ". Are physical net names consistent? Consider using DesignTools.makePhysNetNamesConsistent before placement"
-                    );
+                    throw new RuntimeException("while creating an ImplsInstancePort for " + portInst +
+                                               ", could not find the port in cell " + cell +
+                                               (". Are physical net names consistent? Consider using "
+                                                + "DesignTools.makePhysNetNamesConsistent before placement"));
                 }
                 return new ImplsInstancePort.SitePinInstPort(spi);
             } else {
                 return module.getPort(portInst.getName());
             }
         } else {
-            //Toplevel IO without an IOB, ignoring this
+            // Toplevel IO without an IOB, ignoring this
             return null;
         }
     }
 
     @Override
     protected void populateAllPaths() {
-
-        Map<EDIFCellInst, Cell> edifToPhysical = design.getCells().stream().collect(Collectors.toMap(Cell::getEDIFCellInst, Function.identity()));
-        Map<EDIFCellInst, ModuleImplsInst> edifToModule = moduleInstances.stream().collect(Collectors.toMap(AbstractModuleInst::getCellInst, Function.identity()));
+        Map<EDIFCellInst, Cell> edifToPhysical =
+            design.getCells().stream().collect(Collectors.toMap(Cell::getEDIFCellInst, Function.identity()));
+        Map<EDIFCellInst, ModuleImplsInst> edifToModule =
+            moduleInstances.stream().collect(Collectors.toMap(AbstractModuleInst::getCellInst, Function.identity()));
         for (EDIFCellInst cellInst : design.getTopEDIFCell().getCellInsts()) {
             Cell cell = edifToPhysical.get(cellInst);
             ModuleImplsInst module = edifToModule.get(cellInst);
@@ -157,7 +165,7 @@ public class BlockPlacer2Impls extends BlockPlacer2<ModuleImpls, ModuleImplsInst
                     throw new RuntimeException("No physical representation of EDIF cellinst " + cellInst.getName());
                 }
             } else if (cell != null && module != null) {
-                throw new RuntimeException("Duplicate representation of EDIF cellinst "+cellInst.getName());
+                throw new RuntimeException("Duplicate representation of EDIF cellinst " + cellInst.getName());
             }
         }
 
@@ -172,18 +180,16 @@ public class BlockPlacer2Impls extends BlockPlacer2<ModuleImpls, ModuleImplsInst
             }
             if (path.getSize() > 1) {
                 allPaths.add(path);
-
             }
         }
         pruneSameConnectionPaths();
-
 
         for (ImplsPath path : allPaths) {
             for (ImplsInstancePort port : path.ports) {
                 if (!(port instanceof ImplsInstancePort.InstPort)) {
                     continue;
                 }
-                ModuleImplsInst instance = ((ImplsInstancePort.InstPort) port).getInstance();
+                ModuleImplsInst instance = ((ImplsInstancePort.InstPort)port).getInstance();
                 modulesToPaths.computeIfAbsent(instance, x -> new HashSet<>()).add(path);
             }
         }
@@ -248,7 +254,9 @@ public class BlockPlacer2Impls extends BlockPlacer2<ModuleImpls, ModuleImplsInst
 
     private void dumpDot(java.nio.file.Path path) {
         try (PrintWriter pw = new PrintWriter(Files.newBufferedWriter(path))) {
-            new DotModuleImplsDumper(false).doDump(new DotModuleImplsDumper.ModuleImplsDumpData(design, moduleInstances, allPaths, modulesToPaths), pw, null);
+            new DotModuleImplsDumper(false).doDump(
+                new DotModuleImplsDumper.ModuleImplsDumpData(design, moduleInstances, allPaths, modulesToPaths), pw,
+                null);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -257,7 +265,7 @@ public class BlockPlacer2Impls extends BlockPlacer2<ModuleImpls, ModuleImplsInst
     @Override
     protected void initialPlacement() {
         super.initialPlacement();
-        //dumpDot(Paths.get("/tmp/initial.dot"));
+        // dumpDot(Paths.get("/tmp/initial.dot"));
     }
 
     @Override

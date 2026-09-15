@@ -28,7 +28,6 @@ package com.xilinx.rapidwright.design;
  * Created on: Nov 22, 2017
  */
 public class PinSwap {
-
     private Cell cell;
 
     private Cell companionCell;
@@ -52,11 +51,12 @@ public class PinSwap {
      * @param logicalName The logical name of the pin
      * @param oldPhysicalName The previous physical pin mapping
      * @param newPhysicalName The new physical pin mapping
-     * @param depopulatedLogicalName The previous logical pin name that occupied the new physical pin
+     * @param depopulatedLogicalName The previous logical pin name that occupied the new physical
+     *     pin
      * @param newNetPinName The new SitePinInst name
      */
-    public PinSwap(Cell c, String logicalName, String oldPhysicalName, String newPhysicalName, String depopulatedLogicalName,
-            String newNetPinName) {
+    public PinSwap(Cell c, String logicalName, String oldPhysicalName, String newPhysicalName,
+                   String depopulatedLogicalName, String newNetPinName) {
         super();
         this.cell = c;
         this.logicalName = logicalName;
@@ -165,8 +165,10 @@ public class PinSwap {
      * @return Cell in the overlapping LUT BEL site.
      */
     public Cell checkForCompanionCell() {
-        if (companionCell != null) return companionCell;
-        String otherBEL = cell.getBELName().charAt(1) == '5' ? cell.getBELName().replace('5', '6') : cell.getBELName().replace('6', '5');
+        if (companionCell != null)
+            return companionCell;
+        String otherBEL = cell.getBELName().charAt(1) == '5' ? cell.getBELName().replace('5', '6')
+                                                             : cell.getBELName().replace('6', '5');
         return cell.getSiteInst().getCell(otherBEL);
     }
 
@@ -206,7 +208,7 @@ public class PinSwap {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        PinSwap other = (PinSwap) obj;
+        PinSwap other = (PinSwap)obj;
         if (logicalName == null) {
             if (other.logicalName != null)
                 return false;
@@ -226,6 +228,6 @@ public class PinSwap {
     }
 
     public String toString() {
-        return cell.getBELName().charAt(1) + "LUT/" + logicalName + ":" + oldPhysicalName +"->" + newPhysicalName;
+        return cell.getBELName().charAt(1) + "LUT/" + logicalName + ":" + oldPhysicalName + "->" + newPhysicalName;
     }
 }

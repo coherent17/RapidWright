@@ -40,7 +40,6 @@ import org.junit.jupiter.api.Test;
  * {@link EDIFPropertyObject} (optimization "A").
  */
 public class TestEDIFPropertyMap {
-
     private static EDIFPropertyValue v(String s) {
         return new EDIFPropertyValue(s, EDIFValueType.STRING);
     }

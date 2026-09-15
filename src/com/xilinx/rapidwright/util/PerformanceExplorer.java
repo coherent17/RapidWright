@@ -39,9 +39,8 @@ import com.xilinx.rapidwright.design.ConstraintGroup;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.NetTools;
 import com.xilinx.rapidwright.design.blocks.PBlock;
-
-import com.xilinx.rapidwright.design.tools.InlineFlopTools;
 import com.xilinx.rapidwright.design.blocks.PBlockSide;
+import com.xilinx.rapidwright.design.tools.InlineFlopTools;
 import com.xilinx.rapidwright.edif.EDIFPort;
 import com.xilinx.rapidwright.edif.EDIFTools;
 import joptsimple.OptionParser;
@@ -53,7 +52,6 @@ import joptsimple.OptionSet;
  * Created on: Mar 20, 2018
  */
 public class PerformanceExplorer {
-
     private static final String INITIAL_DCP_NAME = "initial.dcp";
     private static final String INITIAL_ENCRYPTED_TCL_NAME = "initial_load.tcl";
     private static final String PLACED_TIMING_RESULT = "place_timing.twr";
@@ -64,8 +62,10 @@ public class PerformanceExplorer {
     private static final double DEFAULT_MIN_CLK_UNCERT = -0.100;
     private static final double DEFAULT_MAX_CLK_UNCERT = 0.250;
     private static final double DEFAULT_STEP_CLK_UNCERT = 0.025;
-    private static final List<PlacerDirective> DEFAULT_PLACE_DIRECTIVES = Arrays.asList(PlacerDirective.Default, PlacerDirective.Explore);
-    private static final List<RouterDirective> DEFAULT_ROUTE_DIRECTIVES = Arrays.asList(RouterDirective.Default, RouterDirective.Explore);
+    private static final List<PlacerDirective> DEFAULT_PLACE_DIRECTIVES =
+        Arrays.asList(PlacerDirective.Default, PlacerDirective.Explore);
+    private static final List<RouterDirective> DEFAULT_ROUTE_DIRECTIVES =
+        Arrays.asList(RouterDirective.Default, RouterDirective.Explore);
     private static final String DEFAULT_VIVADO = "vivado";
     private static final boolean DEFAULT_CONTAIN_ROUTING = true;
     private static final boolean DEFAULT_ADD_EDIF_METADATA = true;
@@ -117,9 +117,9 @@ public class PerformanceExplorer {
         init(d, testDir, clkName, targetPeriod, null);
     }
 
-    public PerformanceExplorer(Design d, String testDir, String clkName, double targetPeriod, Map<PBlock, String> pblocks) {
+    public PerformanceExplorer(Design d, String testDir, String clkName, double targetPeriod,
+                               Map<PBlock, String> pblocks) {
         init(d, testDir, clkName, targetPeriod, pblocks);
-
     }
 
     private void init(Design d, String testDir, String clkName, double targetPeriod, Map<PBlock, String> pblocks) {
@@ -139,7 +139,7 @@ public class PerformanceExplorer {
 
     public void updateClockUncertaintyValues() {
         this.clockUncertaintyValues = new ArrayList<>();
-        for (double i=minClockUncertainty; i < maxClockUncertainty; i+=clockUncertaintyStep) {
+        for (double i = minClockUncertainty; i < maxClockUncertainty; i += clockUncertaintyStep) {
             clockUncertaintyValues.add(i);
         }
     }
@@ -175,7 +175,6 @@ public class PerformanceExplorer {
     public void setTargetPeriod(double targetPeriod) {
         this.targetPeriod = targetPeriod;
     }
-
 
     public Map<PBlock, String> getPBlocks() {
         return pblocks;
@@ -316,8 +315,8 @@ public class PerformanceExplorer {
         return reusePreviousResults;
     }
 
-    public ArrayList<String> createTclScript(String initialDcp, String instDirectory,
-                                             PlacerDirective p, RouterDirective r, String clockUncertainty,
+    public ArrayList<String> createTclScript(String initialDcp, String instDirectory, PlacerDirective p,
+                                             RouterDirective r, String clockUncertainty,
                                              Entry<PBlock, String> pblockEntry, String encryptedTcl) {
         PBlock pblock = pblockEntry.getKey();
         String pblockCells = pblockEntry.getValue();
@@ -327,15 +326,16 @@ public class PerformanceExplorer {
         } else {
             lines.add("source " + encryptedTcl);
         }
-        lines.add("set_clock_uncertainty -setup "+clockUncertainty+" [get_clocks "+clkName+"]");
+        lines.add("set_clock_uncertainty -setup " + clockUncertainty + " [get_clocks " + clkName + "]");
         if (pblock != null) {
             String pblockName = pblock.getName() == null ? "pe_pblock_1" : pblock.getName();
             lines.add("create_pblock " + pblockName);
-            lines.add("resize_pblock "+pblockName+" -add {"+pblock.toString()+"}");
-            lines.add("add_cells_to_pblock "+pblockName+" " + (pblockCells == null ? "-top" : "[get_cells {"+ pblockCells +"}]" ));
+            lines.add("resize_pblock " + pblockName + " -add {" + pblock.toString() + "}");
+            lines.add("add_cells_to_pblock " + pblockName + " " +
+                      (pblockCells == null ? "-top" : "[get_cells {" + pblockCells + "}]"));
             lines.add("set_property IS_SOFT 0 [get_pblocks " + pblockName + "]");
             if (isContainRouting()) {
-                lines.add("set_property CONTAIN_ROUTING 1 [get_pblocks "+ pblockName+"]");
+                lines.add("set_property CONTAIN_ROUTING 1 [get_pblocks " + pblockName + "]");
             }
         }
         if (ensureExternalRoutability()) {
@@ -346,17 +346,18 @@ public class PerformanceExplorer {
             lines.add("place_design -unplace");
         }
         lines.add("place_design -directive " + p.name());
-        lines.add("set_clock_uncertainty -setup 0.0 [get_clocks "+clkName+"]");
-        lines.add("report_timing -file "+instDirectory + File.separator+PLACED_TIMING_RESULT);
+        lines.add("set_clock_uncertainty -setup 0.0 [get_clocks " + clkName + "]");
+        lines.add("report_timing -file " + instDirectory + File.separator + PLACED_TIMING_RESULT);
         lines.add("route_design -directive " + r.name());
-        lines.add("report_timing -file "+instDirectory + File.separator+ROUTED_TIMING_RESULT);
+        lines.add("report_timing -file " + instDirectory + File.separator + ROUTED_TIMING_RESULT);
         lines.add("write_checkpoint -force " + instDirectory + File.separator + "routed.dcp");
         if (addEDIFAndMetadata) {
             lines.add("write_edif -force " + instDirectory + File.separator + "routed.edf");
-            lines.add("source " + FileTools.getRapidWrightPath() + File.separator + "tcl" + File.separator + "rapidwright.tcl");
-            lines.add("generate_metadata "+ instDirectory + File.separator + "routed.dcp false 0");
+            lines.add("source " + FileTools.getRapidWrightPath() + File.separator + "tcl" + File.separator +
+                      "rapidwright.tcl");
+            lines.add("generate_metadata " + instDirectory + File.separator + "routed.dcp false 0");
         }
-        for (int i = 0 ; i < lines.size(); i++) {
+        for (int i = 0; i < lines.size(); i++) {
             lines.set(i, lines.get(i).replace('\\', '/'));
         }
         return lines;
@@ -369,8 +370,8 @@ public class PerformanceExplorer {
             List<String> xdcList = design.getXDCConstraints(g);
             for (int i = 0; i < xdcList.size(); i++) {
                 String xdc = xdcList.get(i);
-                if (xdc.contains("create_clock")
-                        && (xdc.contains("-name " + clkName) || xdc.contains("[get_ports " + clkName + "]"))) {
+                if (xdc.contains("create_clock") &&
+                    (xdc.contains("-name " + clkName) || xdc.contains("[get_ports " + clkName + "]"))) {
                     // TODO This may overwrite other existing options
                     xdcList.set(i, "create_clock -period " + period + " [get_ports " + clkName + "]");
                     foundExistingConstraint = true;
@@ -385,7 +386,8 @@ public class PerformanceExplorer {
     public void explorePerformance() {
         if (vivadoPath.equals(DEFAULT_VIVADO) && !FileTools.isVivadoOnPath()) {
             throw new RuntimeException("ERROR: Couldn't find \n"
-                + "    vivado on PATH, please update PATH or specify path with option -" + VIVADO_PATH_OPT);
+                                       + "    vivado on PATH, please update PATH or specify path with option -" +
+                                       VIVADO_PATH_OPT);
         }
 
         FileTools.makeDirs(runDirectory);
@@ -404,8 +406,8 @@ public class PerformanceExplorer {
 
         int pb = 0;
         int jobsStarted = 0;
-        int maxConcurrentJobs = JobQueue.isLSFAvailable() ? JobQueue.MAX_LSF_CONCURRENT_JOBS
-                : JobQueue.MAX_LOCAL_CONCURRENT_JOBS;
+        int maxConcurrentJobs =
+            JobQueue.isLSFAvailable() ? JobQueue.MAX_LSF_CONCURRENT_JOBS : JobQueue.MAX_LOCAL_CONCURRENT_JOBS;
         pblockLookup = new PBlock[pblocks.size()];
         for (Entry<PBlock, String> e : pblocks.entrySet()) {
             PBlock pblock = e.getKey();
@@ -418,8 +420,7 @@ public class PerformanceExplorer {
                     InlineFlopTools.createAndPlaceFlopsInlineOnTopPortsArbitrarily(design, clkName, pblock);
                 } else {
                     Map<EDIFPort, PBlockSide> sideMap =
-                            InlineFlopTools.parseSideMap(design.getNetlist(),
-                                    getExternalRoutabilitySideFile());
+                        InlineFlopTools.parseSideMap(design.getNetlist(), getExternalRoutabilitySideFile());
                     InlineFlopTools.createAndPlacePortFlopsOnSide(design, clkName, pblock, sideMap);
                 }
                 EDIFTools.ensurePreservedInterfaceVivado(design.getNetlist());
@@ -441,10 +442,11 @@ public class PerformanceExplorer {
                         String encryptedTcl = null;
                         boolean encrypted = design.getNetlist().hasEncryptedCells();
                         if (encrypted) {
-                            encryptedTcl = runDirectory + File.separator + "pblock" + pb +
-                                           "_" + INITIAL_ENCRYPTED_TCL_NAME;
+                            encryptedTcl =
+                                runDirectory + File.separator + "pblock" + pb + "_" + INITIAL_ENCRYPTED_TCL_NAME;
                         }
-                        ArrayList<String> tcl = createTclScript(pblockDcpName, instDir, p, r, roundedC, e, encryptedTcl);
+                        ArrayList<String> tcl =
+                            createTclScript(pblockDcpName, instDir, p, r, roundedC, e, encryptedTcl);
                         String scriptName = instDir + File.separator + RUN_TCL_NAME;
 
                         if (!reusePreviousResults()) {
@@ -506,7 +508,7 @@ public class PerformanceExplorer {
                 Path routeTiming = dir.resolve("route_timing.twr");
                 if (Files.exists(routeTiming)) {
                     Float value = parseWNSFromTimingReport(routeTiming);
-                    Pair<Path,Float> bestFoundSoFar = results.get(pblockIdx);
+                    Pair<Path, Float> bestFoundSoFar = results.get(pblockIdx);
                     if (value > bestFoundSoFar.getSecond()) {
                         bestFoundSoFar.setFirst(dir);
                         bestFoundSoFar.setSecond(value);
@@ -570,27 +572,80 @@ public class PerformanceExplorer {
         // Defaults
         String placerDirectiveDefaults = DEFAULT_PLACE_DIRECTIVES.toString().replace("[", "").replace("]", "");
         String routerDirectiveDefaults = DEFAULT_ROUTE_DIRECTIVES.toString().replace("[", "").replace("]", "");
-        OptionParser p = new OptionParser() {{
-            accepts(INPUT_DCP_OPT).withRequiredArg().required().describedAs("Input DCP");
-            accepts(CLK_NAME_OPT).withRequiredArg().required().describedAs("Name of clock to optimize");
-            accepts(TARGET_PERIOD_OPT).withRequiredArg().ofType(Double.class).required().describedAs("Target clock period (ns)");
-            accepts(PLACER_DIRECTIVES_OPT).withOptionalArg().defaultsTo(placerDirectiveDefaults).describedAs("Comma separated list of place_design -directives");
-            accepts(ROUTER_DIRECTIVES_OPT).withOptionalArg().defaultsTo(routerDirectiveDefaults).describedAs("Comma separated list of route_design -directives");
-            accepts(CLK_UNCERTAINTY_OPT).withOptionalArg().describedAs("Comma separated list of clk uncertainty values (ns)");
-            accepts(PBLOCK_FILE_OPT).withRequiredArg().describedAs("PBlock file, one set of ranges per line with list of optional cell names to be constrained.  Use '|' after ranges to denote list of cell names separated by spaces, for example: 'SLICE_X0Y0:SLICE_X0Y1 DSP48E2_X0Y0:DSP48E2_X0Y1 | cell_name0 cell_name1'");
-            accepts(MIN_CLK_UNCERTAINTY_OPT).withOptionalArg().ofType(Double.class).defaultsTo(DEFAULT_MIN_CLK_UNCERT).describedAs("Min clk uncertainty (ns)");
-            accepts(MAX_CLK_UNCERTAINTY_OPT).withOptionalArg().ofType(Double.class).defaultsTo(DEFAULT_MAX_CLK_UNCERT).describedAs("Max clk uncertainty (ns)");
-            accepts(CLK_UNCERTAINTY_STEP_OPT).withOptionalArg().ofType(Double.class).defaultsTo(DEFAULT_STEP_CLK_UNCERT).describedAs("Clk uncertainty step (ns)");
-            accepts(ADD_EDIF_METADATA_OPT).withOptionalArg().ofType(Boolean.class).defaultsTo(DEFAULT_ADD_EDIF_METADATA).describedAs("Create EDIF and Metadata");
-            accepts(RUN_DIR_OPT).withOptionalArg().defaultsTo("<current directory>").describedAs("Run directory (jobs data location)");
-            accepts(VIVADO_PATH_OPT).withOptionalArg().defaultsTo(DEFAULT_VIVADO).describedAs("Specifies vivado path");
-            accepts(CONTAIN_ROUTING_OPT).withOptionalArg().ofType(Boolean.class).defaultsTo(DEFAULT_CONTAIN_ROUTING).describedAs("Sets attribute on pblock to contain routing");
-            accepts(MAX_CONCURRENT_JOBS_OPT).withOptionalArg().ofType(Integer.class).defaultsTo(JobQueue.MAX_LOCAL_CONCURRENT_JOBS).describedAs("Max number of concurrent job when run locally");
-            accepts(ENSURE_EXT_ROUTABILITY).withOptionalArg().describedAs("Ensure all I/O are routable outside the pblock. Optionally provide a text file specifying which side of the pblock each top-level port should route to.");
-            accepts(COLLECT_RESULTS_OPT,"Collect results into output csv");
-            accepts(REUSE_PREVIOUS_RESULTS, "Reuse previous results if they exist");
-            acceptsAll( Arrays.asList(HELP_OPT, "?"), "Print Help" ).forHelp();
-        }};
+        OptionParser p = new OptionParser() {
+            {
+                accepts(INPUT_DCP_OPT).withRequiredArg().required().describedAs("Input DCP");
+                accepts(CLK_NAME_OPT).withRequiredArg().required().describedAs("Name of clock to optimize");
+                accepts(TARGET_PERIOD_OPT)
+                    .withRequiredArg()
+                    .ofType(Double.class)
+                    .required()
+                    .describedAs("Target clock period (ns)");
+                accepts(PLACER_DIRECTIVES_OPT)
+                    .withOptionalArg()
+                    .defaultsTo(placerDirectiveDefaults)
+                    .describedAs("Comma separated list of place_design -directives");
+                accepts(ROUTER_DIRECTIVES_OPT)
+                    .withOptionalArg()
+                    .defaultsTo(routerDirectiveDefaults)
+                    .describedAs("Comma separated list of route_design -directives");
+                accepts(CLK_UNCERTAINTY_OPT)
+                    .withOptionalArg()
+                    .describedAs("Comma separated list of clk uncertainty values (ns)");
+                accepts(PBLOCK_FILE_OPT)
+                    .withRequiredArg()
+                    .describedAs("PBlock file, one set of ranges per line with list of optional cell "
+                                 + "names to be constrained.  Use '|' after ranges to denote list of cell "
+                                 + "names separated by spaces, for example: 'SLICE_X0Y0:SLICE_X0Y1 "
+                                 + "DSP48E2_X0Y0:DSP48E2_X0Y1 | cell_name0 cell_name1'");
+                accepts(MIN_CLK_UNCERTAINTY_OPT)
+                    .withOptionalArg()
+                    .ofType(Double.class)
+                    .defaultsTo(DEFAULT_MIN_CLK_UNCERT)
+                    .describedAs("Min clk uncertainty (ns)");
+                accepts(MAX_CLK_UNCERTAINTY_OPT)
+                    .withOptionalArg()
+                    .ofType(Double.class)
+                    .defaultsTo(DEFAULT_MAX_CLK_UNCERT)
+                    .describedAs("Max clk uncertainty (ns)");
+                accepts(CLK_UNCERTAINTY_STEP_OPT)
+                    .withOptionalArg()
+                    .ofType(Double.class)
+                    .defaultsTo(DEFAULT_STEP_CLK_UNCERT)
+                    .describedAs("Clk uncertainty step (ns)");
+                accepts(ADD_EDIF_METADATA_OPT)
+                    .withOptionalArg()
+                    .ofType(Boolean.class)
+                    .defaultsTo(DEFAULT_ADD_EDIF_METADATA)
+                    .describedAs("Create EDIF and Metadata");
+                accepts(RUN_DIR_OPT)
+                    .withOptionalArg()
+                    .defaultsTo("<current directory>")
+                    .describedAs("Run directory (jobs data location)");
+                accepts(VIVADO_PATH_OPT)
+                    .withOptionalArg()
+                    .defaultsTo(DEFAULT_VIVADO)
+                    .describedAs("Specifies vivado path");
+                accepts(CONTAIN_ROUTING_OPT)
+                    .withOptionalArg()
+                    .ofType(Boolean.class)
+                    .defaultsTo(DEFAULT_CONTAIN_ROUTING)
+                    .describedAs("Sets attribute on pblock to contain routing");
+                accepts(MAX_CONCURRENT_JOBS_OPT)
+                    .withOptionalArg()
+                    .ofType(Integer.class)
+                    .defaultsTo(JobQueue.MAX_LOCAL_CONCURRENT_JOBS)
+                    .describedAs("Max number of concurrent job when run locally");
+                accepts(ENSURE_EXT_ROUTABILITY)
+                    .withOptionalArg()
+                    .describedAs("Ensure all I/O are routable outside the pblock. Optionally "
+                                 + "provide a text file specifying which side of the pblock each "
+                                 + "top-level port should route to.");
+                accepts(COLLECT_RESULTS_OPT, "Collect results into output csv");
+                accepts(REUSE_PREVIOUS_RESULTS, "Reuse previous results if they exist");
+                acceptsAll(Arrays.asList(HELP_OPT, "?"), "Print Help").forHelp();
+            }
+        };
 
         return p;
     }
@@ -598,9 +653,9 @@ public class PerformanceExplorer {
     private static void printHelp(OptionParser p) {
         MessageGenerator.printHeader("DCP Performance Explorer");
         System.out.println("This RapidWright program will place and route the same DCP in a variety of \n"
-                         + "ways with the goal of achieving higher performance in timing closure. This \n"
-                         + "tool will launch parallel jobs with the cross product of:\n"
-                         + "   < placer directives x router directives x clk uncertainty settings > \n");
+                           + "ways with the goal of achieving higher performance in timing closure. This \n"
+                           + "tool will launch parallel jobs with the cross product of:\n"
+                           + "   < placer directives x router directives x clk uncertainty settings > \n");
         try {
             p.printHelpOn(System.out);
 
@@ -623,31 +678,32 @@ public class PerformanceExplorer {
             return;
         }
 
-        String dcpInputName = (String) opts.valueOf(INPUT_DCP_OPT);
-        String clkName = (String) opts.valueOf(CLK_NAME_OPT);
-        double targetPeriod = (double) opts.valueOf(TARGET_PERIOD_OPT);
-        String runDir = opts.hasArgument(RUN_DIR_OPT) ? (String) opts.valueOf(RUN_DIR_OPT) : System.getProperty("user.dir");
+        String dcpInputName = (String)opts.valueOf(INPUT_DCP_OPT);
+        String clkName = (String)opts.valueOf(CLK_NAME_OPT);
+        double targetPeriod = (double)opts.valueOf(TARGET_PERIOD_OPT);
+        String runDir =
+            opts.hasArgument(RUN_DIR_OPT) ? (String)opts.valueOf(RUN_DIR_OPT) : System.getProperty("user.dir");
 
         Design d = Design.readCheckpoint(dcpInputName);
         EDIFTools.ensurePreservedInterfaceVivado(d.getNetlist());
         PerformanceExplorer pe = new PerformanceExplorer(d, runDir, clkName, targetPeriod);
 
         if (opts.hasArgument(MAX_CONCURRENT_JOBS_OPT)) {
-            JobQueue.MAX_LOCAL_CONCURRENT_JOBS = (int) opts.valueOf(MAX_CONCURRENT_JOBS_OPT);
+            JobQueue.MAX_LOCAL_CONCURRENT_JOBS = (int)opts.valueOf(MAX_CONCURRENT_JOBS_OPT);
         }
 
         if (opts.hasArgument(CLK_UNCERTAINTY_OPT)) {
-            String clkUncertaintyValues = (String) opts.valueOf(CLK_UNCERTAINTY_OPT);
+            String clkUncertaintyValues = (String)opts.valueOf(CLK_UNCERTAINTY_OPT);
             pe.setClockUncertaintyValues(clkUncertaintyValues.split("[,]"));
         } else {
-            pe.setMinClockUncertainty((double) opts.valueOf(MIN_CLK_UNCERTAINTY_OPT));
-            pe.setMaxClockUncertainty((double) opts.valueOf(MAX_CLK_UNCERTAINTY_OPT));
-            pe.setClockUncertaintyStep((double) opts.valueOf(CLK_UNCERTAINTY_STEP_OPT));
+            pe.setMinClockUncertainty((double)opts.valueOf(MIN_CLK_UNCERTAINTY_OPT));
+            pe.setMaxClockUncertainty((double)opts.valueOf(MAX_CLK_UNCERTAINTY_OPT));
+            pe.setClockUncertaintyStep((double)opts.valueOf(CLK_UNCERTAINTY_STEP_OPT));
             pe.updateClockUncertaintyValues();
         }
-        String placerDirValues = (String) opts.valueOf(PLACER_DIRECTIVES_OPT);
+        String placerDirValues = (String)opts.valueOf(PLACER_DIRECTIVES_OPT);
         pe.setPlacerDirectives(placerDirValues.split(","));
-        String routerDirValues = (String) opts.valueOf(ROUTER_DIRECTIVES_OPT);
+        String routerDirValues = (String)opts.valueOf(ROUTER_DIRECTIVES_OPT);
         pe.setRouterDirectives(routerDirValues.split(","));
         pe.setVivadoPath((String)opts.valueOf(VIVADO_PATH_OPT));
         pe.setContainRouting((boolean)opts.valueOf(CONTAIN_ROUTING_OPT));
@@ -656,21 +712,23 @@ public class PerformanceExplorer {
         pe.setReusePreviousResults(opts.has(REUSE_PREVIOUS_RESULTS));
         pe.setEnsureExternalRoutability(opts.has(ENSURE_EXT_ROUTABILITY));
         if (opts.hasArgument(ENSURE_EXT_ROUTABILITY)) {
-            pe.setExternalRoutabilitySideFile((String) opts.valueOf(ENSURE_EXT_ROUTABILITY));
+            pe.setExternalRoutabilitySideFile((String)opts.valueOf(ENSURE_EXT_ROUTABILITY));
         }
 
         if (opts.hasArgument(PBLOCK_FILE_OPT)) {
-            String fileName = (String) opts.valueOf(PBLOCK_FILE_OPT);
-            Map<PBlock,String> pblocks = new LinkedHashMap<>();
+            String fileName = (String)opts.valueOf(PBLOCK_FILE_OPT);
+            Map<PBlock, String> pblocks = new LinkedHashMap<>();
             for (String line : FileTools.getLinesFromTextFile(fileName)) {
-                if (line.trim().startsWith("#")) continue;
-                if (line.trim().length()==0) continue;
+                if (line.trim().startsWith("#"))
+                    continue;
+                if (line.trim().length() == 0)
+                    continue;
                 String pblockRanges = null;
                 String cellNames = null;
                 int idx = line.indexOf('|');
                 if (idx >= 0) {
-                     pblockRanges = line.substring(0, idx).trim();
-                     cellNames = line.substring(idx+1).trim();
+                    pblockRanges = line.substring(0, idx).trim();
+                    cellNames = line.substring(idx + 1).trim();
                 } else {
                     pblockRanges = line.trim();
                 }

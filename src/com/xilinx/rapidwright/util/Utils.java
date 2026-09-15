@@ -24,19 +24,18 @@
 
 package com.xilinx.rapidwright.util;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import com.xilinx.rapidwright.design.SiteInst;
 import com.xilinx.rapidwright.device.SiteTypeEnum;
 import com.xilinx.rapidwright.device.TileTypeEnum;
-
-import java.util.EnumSet;
-import java.util.Set;
 
 /**
  * This is a helper class for creating PrimitiveTypes and TileTypes
  * as well as helping to categorize TileTypes.
  */
-public class Utils{
-
+public class Utils {
     private static Set<TileTypeEnum> clbs;
 
     private static Set<TileTypeEnum> clbms;
@@ -286,101 +285,46 @@ public class Utils{
         return nocTypes.contains(s);
     }
 
-    static{
-        clbs = EnumSet.of(
-            TileTypeEnum.CLBLL_L,
-            TileTypeEnum.CLBLL_R,
-            TileTypeEnum.CLBLM_L,
-            TileTypeEnum.CLBLM_R,
-            TileTypeEnum.CLEL_L,
-            TileTypeEnum.CLEL_R,
-            TileTypeEnum.CLE_M,
-            TileTypeEnum.CLE_M_R,
-            TileTypeEnum.CLEM,
-            TileTypeEnum.CLEM_R,
-            TileTypeEnum.CLE_E_CORE,
-            TileTypeEnum.CLE_W_CORE
+    static {
+        clbs = EnumSet.of(TileTypeEnum.CLBLL_L, TileTypeEnum.CLBLL_R, TileTypeEnum.CLBLM_L, TileTypeEnum.CLBLM_R,
+                          TileTypeEnum.CLEL_L, TileTypeEnum.CLEL_R, TileTypeEnum.CLE_M, TileTypeEnum.CLE_M_R,
+                          TileTypeEnum.CLEM, TileTypeEnum.CLEM_R, TileTypeEnum.CLE_E_CORE, TileTypeEnum.CLE_W_CORE);
+
+        clbms = EnumSet.of(TileTypeEnum.CLBLM_L, TileTypeEnum.CLBLM_R, TileTypeEnum.CLE_M, TileTypeEnum.CLE_M_R,
+                           TileTypeEnum.CLEM, TileTypeEnum.CLEM_R);
+
+        dsps = EnumSet.of(TileTypeEnum.DSP, TileTypeEnum.DSP_L, TileTypeEnum.DSP_R, TileTypeEnum.DSP_ROCF_B_TILE,
+                          TileTypeEnum.DSP_ROCF_T_TILE);
+
+        brams =
+            EnumSet.of(TileTypeEnum.BRAM, TileTypeEnum.BRAM_L, TileTypeEnum.BRAM_R, TileTypeEnum.BRAM_ROCF_BL_TILE,
+                       TileTypeEnum.BRAM_ROCF_BR_TILE, TileTypeEnum.BRAM_ROCF_TL_TILE, TileTypeEnum.BRAM_ROCF_TR_TILE);
+
+        ints = EnumSet.of(TileTypeEnum.INT, TileTypeEnum.INT_L, TileTypeEnum.INT_R, TileTypeEnum.INT_L_SLV,
+                          TileTypeEnum.INT_R_SLV, TileTypeEnum.INT_L_SLV_FLY, TileTypeEnum.INT_R_SLV_FLY,
+                          TileTypeEnum.INT_INTF_R, TileTypeEnum.INT_INTF_L);
+
+        gts = EnumSet.of(TileTypeEnum.GTZ_TOP, TileTypeEnum.GTZ_BOT, TileTypeEnum.GTX_CHANNEL_0,
+                         TileTypeEnum.GTX_CHANNEL_1, TileTypeEnum.GTX_CHANNEL_2, TileTypeEnum.GTX_CHANNEL_3,
+                         TileTypeEnum.GTX_COMMON, TileTypeEnum.GTH_CHANNEL_0, TileTypeEnum.GTH_CHANNEL_1,
+                         TileTypeEnum.GTH_CHANNEL_2, TileTypeEnum.GTH_CHANNEL_3, TileTypeEnum.GTH_COMMON);
+
+        interconnects = EnumSet.of(TileTypeEnum.INT, TileTypeEnum.INT_L,
+                                   // TileTypeEnum.INT_L_SLV,
+                                   // TileTypeEnum.INT_L_SLV_FLY,
+                                   TileTypeEnum.INT_R,
+                                   // TileTypeEnum.INT_R_SLV,
+                                   // TileTypeEnum.INT_R_SLV_FLY,
+                                   TileTypeEnum.SLL // Versal
         );
 
-        clbms = EnumSet.of(
-            TileTypeEnum.CLBLM_L,
-            TileTypeEnum.CLBLM_R,
-            TileTypeEnum.CLE_M,
-            TileTypeEnum.CLE_M_R,
-            TileTypeEnum.CLEM,
-            TileTypeEnum.CLEM_R
-        );
+        urams =
+            EnumSet.of(TileTypeEnum.URAM_URAM_FT, TileTypeEnum.URAM_URAM_DELAY_FT, TileTypeEnum.URAM_LOCF_TL_TILE,
+                       TileTypeEnum.URAM_LOCF_BL_TILE, TileTypeEnum.URAM_ROCF_TL_TILE, TileTypeEnum.URAM_ROCF_BL_TILE,
+                       TileTypeEnum.URAM_DELAY_LOCF_TL_TILE, TileTypeEnum.URAM_DELAY_ROCF_TL_TILE);
 
-        dsps = EnumSet.of(
-            TileTypeEnum.DSP,
-            TileTypeEnum.DSP_L,
-            TileTypeEnum.DSP_R,
-            TileTypeEnum.DSP_ROCF_B_TILE,
-            TileTypeEnum.DSP_ROCF_T_TILE
-        );
-
-        brams = EnumSet.of(
-            TileTypeEnum.BRAM,
-            TileTypeEnum.BRAM_L,
-            TileTypeEnum.BRAM_R,
-            TileTypeEnum.BRAM_ROCF_BL_TILE,
-            TileTypeEnum.BRAM_ROCF_BR_TILE,
-            TileTypeEnum.BRAM_ROCF_TL_TILE,
-            TileTypeEnum.BRAM_ROCF_TR_TILE
-        );
-
-        ints = EnumSet.of(
-            TileTypeEnum.INT,
-            TileTypeEnum.INT_L,
-            TileTypeEnum.INT_R,
-            TileTypeEnum.INT_L_SLV,
-            TileTypeEnum.INT_R_SLV,
-            TileTypeEnum.INT_L_SLV_FLY,
-            TileTypeEnum.INT_R_SLV_FLY,
-            TileTypeEnum.INT_INTF_R,
-            TileTypeEnum.INT_INTF_L
-        );
-
-        gts = EnumSet.of(
-            TileTypeEnum.GTZ_TOP,
-            TileTypeEnum.GTZ_BOT,
-            TileTypeEnum.GTX_CHANNEL_0,
-            TileTypeEnum.GTX_CHANNEL_1,
-            TileTypeEnum.GTX_CHANNEL_2,
-            TileTypeEnum.GTX_CHANNEL_3,
-            TileTypeEnum.GTX_COMMON,
-            TileTypeEnum.GTH_CHANNEL_0,
-            TileTypeEnum.GTH_CHANNEL_1,
-            TileTypeEnum.GTH_CHANNEL_2,
-            TileTypeEnum.GTH_CHANNEL_3,
-            TileTypeEnum.GTH_COMMON
-        );
-
-        interconnects = EnumSet.of(
-            TileTypeEnum.INT,
-            TileTypeEnum.INT_L,
-            //TileTypeEnum.INT_L_SLV,
-            //TileTypeEnum.INT_L_SLV_FLY,
-            TileTypeEnum.INT_R,
-            //TileTypeEnum.INT_R_SLV,
-            //TileTypeEnum.INT_R_SLV_FLY,
-            TileTypeEnum.SLL                // Versal
-        );
-
-        urams = EnumSet.of(
-            TileTypeEnum.URAM_URAM_FT,
-            TileTypeEnum.URAM_URAM_DELAY_FT,
-            TileTypeEnum.URAM_LOCF_TL_TILE,
-            TileTypeEnum.URAM_LOCF_BL_TILE,
-            TileTypeEnum.URAM_ROCF_TL_TILE,
-            TileTypeEnum.URAM_ROCF_BL_TILE,
-            TileTypeEnum.URAM_DELAY_LOCF_TL_TILE,
-            TileTypeEnum.URAM_DELAY_ROCF_TL_TILE
-        );
-
-        lagunas = EnumSet.of(
-                TileTypeEnum.LAG_LAG,       // UltraScale+
-                TileTypeEnum.LAGUNA_TILE    // UltraScale
+        lagunas = EnumSet.of(TileTypeEnum.LAG_LAG,    // UltraScale+
+                             TileTypeEnum.LAGUNA_TILE // UltraScale
         );
 
         clocking = EnumSet.noneOf(TileTypeEnum.class);
@@ -391,73 +335,27 @@ public class Utils{
             }
         }
 
-        lockedSiteTypes = EnumSet.of(
-            SiteTypeEnum.CONFIG_SITE,
-            SiteTypeEnum.BUFG,
-            SiteTypeEnum.BUFGCE 
-        );
+        lockedSiteTypes = EnumSet.of(SiteTypeEnum.CONFIG_SITE, SiteTypeEnum.BUFG, SiteTypeEnum.BUFGCE);
 
-        sliceTypes = EnumSet.of(
-            SiteTypeEnum.SLICEL,
-            SiteTypeEnum.SLICEM
-        );
+        sliceTypes = EnumSet.of(SiteTypeEnum.SLICEL, SiteTypeEnum.SLICEM);
 
-        dspTypes = EnumSet.of(
-            SiteTypeEnum.DSP48E1,
-            SiteTypeEnum.DSP48E2,
-            SiteTypeEnum.DSP58,
-            SiteTypeEnum.DSP58_CPLX,
-            SiteTypeEnum.DSPFP,
-            SiteTypeEnum.DSP58_PRIMARY
-        );
+        dspTypes = EnumSet.of(SiteTypeEnum.DSP48E1, SiteTypeEnum.DSP48E2, SiteTypeEnum.DSP58, SiteTypeEnum.DSP58_CPLX,
+                              SiteTypeEnum.DSPFP, SiteTypeEnum.DSP58_PRIMARY);
 
-        bramTypes = EnumSet.of(
-            SiteTypeEnum.FIFO18_0,
-            SiteTypeEnum.FIFO18E1,
-            SiteTypeEnum.FIFO36,
-            SiteTypeEnum.FIFO36E1,
-            SiteTypeEnum.RAMB180,
-            SiteTypeEnum.RAMB181,
-            SiteTypeEnum.RAMB18E1,
-            SiteTypeEnum.RAMB36,
-            SiteTypeEnum.RAMB36E1,
-            SiteTypeEnum.RAMBFIFO18,
-            SiteTypeEnum.RAMBFIFO36,
-            SiteTypeEnum.RAMBFIFO36E1,
-            SiteTypeEnum.RAMB18_L,
-            SiteTypeEnum.RAMB18_U
-        );
+        bramTypes = EnumSet.of(SiteTypeEnum.FIFO18_0, SiteTypeEnum.FIFO18E1, SiteTypeEnum.FIFO36, SiteTypeEnum.FIFO36E1,
+                               SiteTypeEnum.RAMB180, SiteTypeEnum.RAMB181, SiteTypeEnum.RAMB18E1, SiteTypeEnum.RAMB36,
+                               SiteTypeEnum.RAMB36E1, SiteTypeEnum.RAMBFIFO18, SiteTypeEnum.RAMBFIFO36,
+                               SiteTypeEnum.RAMBFIFO36E1, SiteTypeEnum.RAMB18_L, SiteTypeEnum.RAMB18_U);
 
-        iobTypes = EnumSet.of(
-            SiteTypeEnum.IOB18,
-            SiteTypeEnum.IOB18M,
-            SiteTypeEnum.IOB18S,
-            SiteTypeEnum.IOB33,
-            SiteTypeEnum.IOB33M,
-            SiteTypeEnum.IOB33S,
-            SiteTypeEnum.IOB,
-            SiteTypeEnum.IOBM,
-            SiteTypeEnum.IOBS,
-            SiteTypeEnum.HDIOB,
-            SiteTypeEnum.HDIOB_M,
-            SiteTypeEnum.HDIOB_S,
-            SiteTypeEnum.HPIOB,
-            SiteTypeEnum.HPIOB_M,
-            SiteTypeEnum.HPIOB_S,
-            SiteTypeEnum.HPIOB,
-            SiteTypeEnum.HPIOB_DCI_SNGL,
-            SiteTypeEnum.HPIOB_SNGL,
-            SiteTypeEnum.HPIOBDIFFINBUF,
-            SiteTypeEnum.HPIOBDIFFOUTBUF,
-            SiteTypeEnum.HRIO,
-            SiteTypeEnum.HRIODIFFINBUF,
-            SiteTypeEnum.HRIODIFFOUTBUF,
-            SiteTypeEnum.XPIOB
-        );
+        iobTypes =
+            EnumSet.of(SiteTypeEnum.IOB18, SiteTypeEnum.IOB18M, SiteTypeEnum.IOB18S, SiteTypeEnum.IOB33,
+                       SiteTypeEnum.IOB33M, SiteTypeEnum.IOB33S, SiteTypeEnum.IOB, SiteTypeEnum.IOBM, SiteTypeEnum.IOBS,
+                       SiteTypeEnum.HDIOB, SiteTypeEnum.HDIOB_M, SiteTypeEnum.HDIOB_S, SiteTypeEnum.HPIOB,
+                       SiteTypeEnum.HPIOB_M, SiteTypeEnum.HPIOB_S, SiteTypeEnum.HPIOB, SiteTypeEnum.HPIOB_DCI_SNGL,
+                       SiteTypeEnum.HPIOB_SNGL, SiteTypeEnum.HPIOBDIFFINBUF, SiteTypeEnum.HPIOBDIFFOUTBUF,
+                       SiteTypeEnum.HRIO, SiteTypeEnum.HRIODIFFINBUF, SiteTypeEnum.HRIODIFFOUTBUF, SiteTypeEnum.XPIOB);
 
-        uramTypes = EnumSet.of(
-            SiteTypeEnum.URAM288
-        );
+        uramTypes = EnumSet.of(SiteTypeEnum.URAM288);
 
         sliceDspBramUramTypes = EnumSet.noneOf(SiteTypeEnum.class);
         sliceDspBramUramTypes.addAll(sliceTypes);
@@ -465,10 +363,8 @@ public class Utils{
         sliceDspBramUramTypes.addAll(bramTypes);
         sliceDspBramUramTypes.addAll(uramTypes);
 
-        moduleSiteTypes = EnumSet.of(
-            SiteTypeEnum.LAGUNA,
-            SiteTypeEnum.BUFGCE
-            // SiteTypeEnum.PS7
+        moduleSiteTypes = EnumSet.of(SiteTypeEnum.LAGUNA, SiteTypeEnum.BUFGCE
+                                     // SiteTypeEnum.PS7
         );
         moduleSiteTypes.addAll(sliceDspBramUramTypes);
 
@@ -478,23 +374,10 @@ public class Utils{
         psTypes.add(SiteTypeEnum.PS9);
         psTypes.add(SiteTypeEnum.PS11);
 
-        nocTypes = EnumSet.of(
-            SiteTypeEnum.NOC_HBM_BLI_SCAN,
-            SiteTypeEnum.NOC_NCRB,
-            SiteTypeEnum.NOC_NCRB_SSIT,
-            SiteTypeEnum.NOC_NIDB,
-            SiteTypeEnum.NOC_NMU128,
-            SiteTypeEnum.NOC_NMU512,
-            SiteTypeEnum.NOC_NMU_HBM2E,
-            SiteTypeEnum.NOC_NPP_RPTR,
-            SiteTypeEnum.NOC_NPS4,
-            SiteTypeEnum.NOC_NPS5555,
-            SiteTypeEnum.NOC_NPS6,
-            SiteTypeEnum.NOC_NPS7575,
-            SiteTypeEnum.NOC_NPS_VNOC,
-            SiteTypeEnum.NOC_NSU128,
-            SiteTypeEnum.NOC_NSU512
-        );
+        nocTypes = EnumSet.of(SiteTypeEnum.NOC_HBM_BLI_SCAN, SiteTypeEnum.NOC_NCRB, SiteTypeEnum.NOC_NCRB_SSIT,
+                              SiteTypeEnum.NOC_NIDB, SiteTypeEnum.NOC_NMU128, SiteTypeEnum.NOC_NMU512,
+                              SiteTypeEnum.NOC_NMU_HBM2E, SiteTypeEnum.NOC_NPP_RPTR, SiteTypeEnum.NOC_NPS4,
+                              SiteTypeEnum.NOC_NPS5555, SiteTypeEnum.NOC_NPS6, SiteTypeEnum.NOC_NPS7575,
+                              SiteTypeEnum.NOC_NPS_VNOC, SiteTypeEnum.NOC_NSU128, SiteTypeEnum.NOC_NSU512);
     }
-
 }

@@ -22,6 +22,12 @@
 
 package com.xilinx.rapidwright.design.tools;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.Net;
@@ -37,18 +43,11 @@ import com.xilinx.rapidwright.support.RapidWrightDCP;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /**
  * Tests for {@link FlopTreeTools}, exercised against a real placed Versal (xcv80,
  * 3-SLR) design with a clock and cross-SLR nets.
  */
 public class TestFlopTreeTools {
-
     private static final String DCP = "versal_slr_crossing.dcp";
     private static final String CLK = "clk";
     private static final String CROSS_SLR_NET = "x[0].y[0].u_tile/x[2].y[3].u_pe/accum_outputs[2][3]";
@@ -73,7 +72,9 @@ public class TestFlopTreeTools {
         return flops;
     }
 
-    /** Each inserted flop must be placed and wired as a transparent register: R=GND, CE=VCC, C=clk. */
+    /**
+     * Each inserted flop must be placed and wired as a transparent register: R=GND, CE=VCC, C=clk.
+     */
     private static void assertBufferFlops(Design design, List<Cell> flops) {
         EDIFNet gnd = EDIFTools.getStaticNet(NetType.GND, design.getTopEDIFCell(), design.getNetlist());
         EDIFNet vcc = EDIFTools.getStaticNet(NetType.VCC, design.getTopEDIFCell(), design.getNetlist());
@@ -95,8 +96,7 @@ public class TestFlopTreeTools {
         Design design = RapidWrightDCP.loadDCP(DCP);
         SiteInst si = design.getSiteInstFromSiteName("SLICE_X90Y549");
         Assertions.assertNotNull(si);
-        Assertions.assertFalse(
-                FlopTreeTools.isControlSetCompatibleForInsertedFDRE(si, si.getBEL("AFF")));
+        Assertions.assertFalse(FlopTreeTools.isControlSetCompatibleForInsertedFDRE(si, si.getBEL("AFF")));
     }
 
     /** A SLICE with no conflicting CE/SR site pins is a valid FDRE host. */
@@ -105,8 +105,7 @@ public class TestFlopTreeTools {
         Design design = RapidWrightDCP.loadDCP(DCP);
         SiteInst si = design.getSiteInstFromSiteName("SLICE_X102Y329");
         Assertions.assertNotNull(si);
-        Assertions.assertTrue(
-                FlopTreeTools.isControlSetCompatibleForInsertedFDRE(si, si.getBEL("AFF")));
+        Assertions.assertTrue(FlopTreeTools.isControlSetCompatibleForInsertedFDRE(si, si.getBEL("AFF")));
     }
 
     /**
@@ -134,17 +133,19 @@ public class TestFlopTreeTools {
         // Rewire: the chain output drives the original sink and is sourced by an inserted flop...
         EDIFHierNet outNet = out.getLogicalHierNet();
         Assertions.assertTrue(
-                outNet.getLeafHierPortInsts(false, true).stream().anyMatch(p -> p.toString().equals(origSinkId)),
-                "original sink is not driven by the chain output");
+            outNet.getLeafHierPortInsts(false, true).stream().anyMatch(p -> p.toString().equals(origSinkId)),
+            "original sink is not driven by the chain output");
         Assertions.assertTrue(
-                insertedNames.contains(outNet.getSourcePortInsts(false).get(0).getFullHierarchicalInstName()),
-                "chain output is not sourced by an inserted flop");
+            insertedNames.contains(outNet.getSourcePortInsts(false).get(0).getFullHierarchicalInstName()),
+            "chain output is not sourced by an inserted flop");
         // ...and the original net now feeds the chain (drives an inserted flop's D).
-        Assertions.assertTrue(
-                net.getLogicalHierNet().getLeafHierPortInsts(false, true).stream().anyMatch(
-                        p -> insertedNames.contains(p.getFullHierarchicalInstName())
-                                && p.getPortInst().getName().equals("D")),
-                "original net does not feed the chain");
+        Assertions.assertTrue(net.getLogicalHierNet()
+                                  .getLeafHierPortInsts(false, true)
+                                  .stream()
+                                  .anyMatch(p
+                                            -> insertedNames.contains(p.getFullHierarchicalInstName()) &&
+                                                   p.getPortInst().getName().equals("D")),
+                              "original net does not feed the chain");
     }
 
     /**
@@ -160,9 +161,10 @@ public class TestFlopTreeTools {
         Set<String> before = cellNames(design);
         int depth = 3;
         FlopTreeTools.insertFlopChain(design, net, CLK, depth, sinks, new HashSet<>());
-        List<RelocatableTileRectangle> noGoBboxes = insertedFlops(design, before).stream()
-                .map(c -> new RelocatableTileRectangle(c.getTile()))
-                .collect(Collectors.toList());
+        List<RelocatableTileRectangle> noGoBboxes = insertedFlops(design, before)
+                                                        .stream()
+                                                        .map(c -> new RelocatableTileRectangle(c.getTile()))
+                                                        .collect(Collectors.toList());
         Assertions.assertFalse(noGoBboxes.isEmpty());
 
         design = RapidWrightDCP.loadDCP(DCP);
@@ -175,7 +177,7 @@ public class TestFlopTreeTools {
         Assertions.assertEquals(depth, inserted.size());
         for (Cell c : inserted) {
             Assertions.assertTrue(noGoBboxes.stream().noneMatch(bb -> bb.isInside(c.getTile())),
-                    c.getName() + " was placed at " + c.getTile() + " inside a no-go bbox");
+                                  c.getName() + " was placed at " + c.getTile() + " inside a no-go bbox");
         }
     }
 
@@ -199,14 +201,13 @@ public class TestFlopTreeTools {
         assertBufferFlops(design, inserted);
         Set<String> insertedNames = inserted.stream().map(Cell::getName).collect(Collectors.toSet());
 
-        // Rewire: the source net now feeds an inserted flop, and no longer drives the original sink.
+        // Rewire: the source net now feeds an inserted flop, and no longer drives the original
+        // sink.
         List<EDIFHierPortInst> newSinks =
-                design.getNet(CROSS_SLR_NET).getLogicalHierNet().getLeafHierPortInsts(false, true);
-        Assertions.assertTrue(
-                newSinks.stream().anyMatch(p -> insertedNames.contains(p.getFullHierarchicalInstName())),
-                "source net does not feed the tree");
-        Assertions.assertTrue(
-                newSinks.stream().noneMatch(p -> p.toString().equals(origSinkId)),
-                "original sink is still directly on the source net");
+            design.getNet(CROSS_SLR_NET).getLogicalHierNet().getLeafHierPortInsts(false, true);
+        Assertions.assertTrue(newSinks.stream().anyMatch(p -> insertedNames.contains(p.getFullHierarchicalInstName())),
+                              "source net does not feed the tree");
+        Assertions.assertTrue(newSinks.stream().noneMatch(p -> p.toString().equals(origSinkId)),
+                              "original sink is still directly on the source net");
     }
 }

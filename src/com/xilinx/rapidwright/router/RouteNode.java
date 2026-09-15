@@ -36,16 +36,14 @@ import com.xilinx.rapidwright.device.PIP;
 import com.xilinx.rapidwright.device.Tile;
 import com.xilinx.rapidwright.device.Wire;
 
-
 /**
  * This class represents the basic routing element, a node or wire.  A node is described as a
- * wire with a particular name in a particular tile.  When routing, it keeps track of the source node
- * by setting the parent variable.
+ * wire with a particular name in a particular tile.  When routing, it keeps track of the source
+ * node by setting the parent variable.
  * @author Chris Lavin
  *
  */
 public class RouteNode implements Comparable<RouteNode> {
-
     /** This is the tile where the node/wire resides */
     public Tile tile;
     /** This is the enumerated int that represents the name of the wire specified */
@@ -128,8 +126,9 @@ public class RouteNode implements Comparable<RouteNode> {
     public RouteNode(String nodeName, Device dev) {
         String tileName = nodeName.substring(0, nodeName.indexOf('/'));
         setTile(dev.getTile(tileName));
-        if (tile == null) throw new RuntimeException("ERROR: Tile '" + tileName + "' not found in device " + dev.getName() );
-        setWire(getTile().getWireIndex(nodeName.substring(nodeName.indexOf('/')+1)));
+        if (tile == null)
+            throw new RuntimeException("ERROR: Tile '" + tileName + "' not found in device " + dev.getName());
+        setWire(getTile().getWireIndex(nodeName.substring(nodeName.indexOf('/') + 1)));
         setParent(null);
         setLevel(0);
     }
@@ -247,14 +246,14 @@ public class RouteNode implements Comparable<RouteNode> {
      * The priority queue will use strictly the cost to evaluate priority
      */
     public int compareTo(RouteNode node) {
-       return this.cost - node.cost;
+        return this.cost - node.cost;
     }
 
     /**
      * Quick check to see if the tile/wire combination match this node.
      */
     public boolean matches(String tileName, String wireName) {
-         return getTile().getName().equals(tileName) && (getWireName().equals(wireName));
+        return getTile().getName().equals(tileName) && (getWireName().equals(wireName));
     }
 
     /* (non-Javadoc)
@@ -280,7 +279,7 @@ public class RouteNode implements Comparable<RouteNode> {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        RouteNode other = (RouteNode) obj;
+        RouteNode other = (RouteNode)obj;
         if (wire != other.wire)
             return false;
         if (tile == null) {
@@ -331,7 +330,7 @@ public class RouteNode implements Comparable<RouteNode> {
     }
 
     public RouteNode getBaseWire() {
-        Node n = Node.getNode(tile,wire);
+        Node n = Node.getNode(tile, wire);
         return new RouteNode(n);
     }
 
@@ -345,7 +344,8 @@ public class RouteNode implements Comparable<RouteNode> {
                 for (Wire w1 : curr.parent.tile.getWireConnections(currWire.getWireIndex())) {
                     if (w1.getWireIndex() == curr.parent.wire) {
                         if (w1.isEndPIPWire()) {
-                            pips.add(new PIP(curr.parent.tile, currWire.getWireIndex(), curr.parent.wire, w1.getPIPType()));
+                            pips.add(
+                                new PIP(curr.parent.tile, currWire.getWireIndex(), curr.parent.wire, w1.getPIPType()));
                             break;
                         }
                     }
@@ -382,7 +382,7 @@ public class RouteNode implements Comparable<RouteNode> {
     }
 
     public Wire[] getWiresInNode() {
-        return Node.getWiresInNode(getTile(),getWire());
+        return Node.getWiresInNode(getTile(), getWire());
     }
 
     /**
@@ -410,7 +410,6 @@ public class RouteNode implements Comparable<RouteNode> {
         n.setParent(parent);
         return n;
     }
-
 
     /**
      * Creates a new priority queue that sorts route nodes based on

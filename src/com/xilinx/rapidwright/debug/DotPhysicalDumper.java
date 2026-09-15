@@ -22,11 +22,6 @@
  */
 package com.xilinx.rapidwright.debug;
 
-import com.xilinx.rapidwright.design.Design;
-import com.xilinx.rapidwright.design.Net;
-import com.xilinx.rapidwright.design.SiteInst;
-import com.xilinx.rapidwright.design.SitePinInst;
-
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.function.BiPredicate;
@@ -35,11 +30,15 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.xilinx.rapidwright.design.Design;
+import com.xilinx.rapidwright.design.Net;
+import com.xilinx.rapidwright.design.SiteInst;
+import com.xilinx.rapidwright.design.SitePinInst;
+
 /**
  * Dump a Design's physical representation to a Graphviz Dot Graph
  */
 public class DotPhysicalDumper extends DotGraphDumper<SiteInst, SitePinInst, Void, Net, Design> {
-
     public DotPhysicalDumper() {
         super(true);
     }
@@ -65,7 +64,7 @@ public class DotPhysicalDumper extends DotGraphDumper<SiteInst, SitePinInst, Voi
 
     @Override
     protected Stream<Net> getNets(Design design) {
-        return design.getNets().stream().filter(n->n.getPins().size()>0);
+        return design.getNets().stream().filter(n -> n.getPins().size() > 0);
     }
 
     @Override
@@ -110,10 +109,8 @@ public class DotPhysicalDumper extends DotGraphDumper<SiteInst, SitePinInst, Voi
 
     @Override
     protected Map<?, ?> getInstanceProperties(SiteInst siteInst, Design design) {
-        return siteInst.getCells().stream().distinct().collect(Collectors.toMap(Function.identity(), x->""));
+        return siteInst.getCells().stream().distinct().collect(Collectors.toMap(Function.identity(), x -> ""));
     }
-
-
 
     /**
      * Dump a physical netlist to a file while filtering the SiteInsts that are shown
@@ -131,8 +128,8 @@ public class DotPhysicalDumper extends DotGraphDumper<SiteInst, SitePinInst, Voi
      * @param design the design to dump
      * @param filter A function that filters the instances that are shown
      */
-    public static void dump(Path to, Design design,Predicate<SiteInst> filter) {
-        dump(to, design, (i, d)->filter.test(i));
+    public static void dump(Path to, Design design, Predicate<SiteInst> filter) {
+        dump(to, design, (i, d) -> filter.test(i));
     }
 
     /**
@@ -141,7 +138,7 @@ public class DotPhysicalDumper extends DotGraphDumper<SiteInst, SitePinInst, Voi
      * @param design the design to dump
      */
     public static void dump(Path to, Design design) {
-        dump(to, design, (BiPredicate<SiteInst, Design>) null);
+        dump(to, design, (BiPredicate<SiteInst, Design>)null);
     }
 
     @Override

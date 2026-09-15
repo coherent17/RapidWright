@@ -22,12 +22,12 @@
 
 package com.xilinx.rapidwright.edif;
 
-import com.xilinx.rapidwright.util.FileTools;
-
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.xilinx.rapidwright.util.FileTools;
 
 public class YosysTools {
     public static final String yosysExec = "yosys";
@@ -107,8 +107,8 @@ public class YosysTools {
      * @return EDIFNetlist object of Yosys' result
      */
     public static EDIFNetlist synthXilinx(String flags, Path... paths) {
-        final Path workDir = FileSystems.getDefault()
-                .getPath("yosysToolsWorkdir" + FileTools.getUniqueProcessAndHostID());
+        final Path workDir =
+            FileSystems.getDefault().getPath("yosysToolsWorkdir" + FileTools.getUniqueProcessAndHostID());
         workDir.toFile().mkdirs();
 
         EDIFNetlist netlist = synthXilinxWithWorkDir(flags, workDir, paths);
@@ -124,8 +124,8 @@ public class YosysTools {
      * @return EDIFNetlist object of Yosys' result
      */
     public static EDIFNetlist synthXilinx(Path... paths) {
-        final Path workDir = FileSystems.getDefault()
-                .getPath("yosysToolsWorkdir" + FileTools.getUniqueProcessAndHostID());
+        final Path workDir =
+            FileSystems.getDefault().getPath("yosysToolsWorkdir" + FileTools.getUniqueProcessAndHostID());
         workDir.toFile().mkdirs();
 
         EDIFNetlist netlist = synthXilinxWithWorkDir(workDir, paths);

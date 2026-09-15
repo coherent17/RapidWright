@@ -56,21 +56,18 @@ import com.xilinx.rapidwright.router.RouteNode;
  * Created on: May 24, 2019
  */
 public class IsolateLeafClkBuffer {
-
     private static Set<Integer> topLCBIndices;
     private static Set<Integer> botLCBIndices;
     static {
-        Integer[] topIndices = {2,3,8,9,10,11,16,17,18,19,24,25,26,27,30,31};
-        Integer[] botIndices = {0,1,4,5,6,7,12,13,14,15,20,21,22,23,28,29};
+        Integer[] topIndices = {2, 3, 8, 9, 10, 11, 16, 17, 18, 19, 24, 25, 26, 27, 30, 31};
+        Integer[] botIndices = {0, 1, 4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29};
         topLCBIndices = new HashSet<>(Arrays.asList(topIndices));
         botLCBIndices = new HashSet<>(Arrays.asList(botIndices));
     }
 
     private static boolean isLCBPIPInTop(PIP pip) {
-        int lcbIndex = Integer.parseInt(pip.getEndWireName()
-                .replace("CLK_LEAF_SITES_", "")
-                .replace("_CLK_LEAF", "")
-                .replace("_CLK_IN", ""));
+        int lcbIndex = Integer.parseInt(
+            pip.getEndWireName().replace("CLK_LEAF_SITES_", "").replace("_CLK_LEAF", "").replace("_CLK_IN", ""));
         return topLCBIndices.contains(lcbIndex);
     }
 
@@ -87,9 +84,11 @@ public class IsolateLeafClkBuffer {
             }
             visited.add(curr);
             for (Wire w : curr.getConnections()) {
-                RouteNode nextNode = new RouteNode(w,curr);
-                if (visited.contains(nextNode)) continue;
-                if (used.contains(nextNode)) continue;
+                RouteNode nextNode = new RouteNode(w, curr);
+                if (visited.contains(nextNode))
+                    continue;
+                if (used.contains(nextNode))
+                    continue;
                 nextNode.setCost(nextNode.getManhattanDistance(snk) + curr.getLevel());
                 q.add(nextNode);
             }
@@ -106,7 +105,7 @@ public class IsolateLeafClkBuffer {
             reversePaths.put(p.getEndNode(), p);
         }
         Node curr = sink;
-        //RCLK_INT_L_X49Y449/RCLK_INT_L.CLK_LEAF_SITES_10_CLK_IN->>CLK_LEAF_SITES_10_CLK_LEAF
+        // RCLK_INT_L_X49Y449/RCLK_INT_L.CLK_LEAF_SITES_10_CLK_IN->>CLK_LEAF_SITES_10_CLK_LEAF
         while (!curr.getWireName().startsWith("CLK_LEAF_SITES")) {
             curr = reversePaths.get(curr).getStartNode();
         }
@@ -115,13 +114,10 @@ public class IsolateLeafClkBuffer {
 
         PIP drivingPIP = reversePaths.get(currLCB.getStartNode());
 
-
         Net clk = clkPin.getNet();
         if (!clk.removePin(clkPin, true)) {
-            throw new RuntimeException("ERROR: Couldn't disconnect clk pin " +
-                clkPin + " on site " + clkPin.getSite());
+            throw new RuntimeException("ERROR: Couldn't disconnect clk pin " + clkPin + " on site " + clkPin.getSite());
         }
-
 
         RouteNode src = drivingPIP.getStartRouteNode();
         RouteNode snk = new RouteNode(sink);
@@ -156,7 +152,7 @@ public class IsolateLeafClkBuffer {
 
         int idx = args[1].lastIndexOf('/');
         String cellName = args[1].substring(0, idx);
-        String logPinName = args[1].substring(idx+1);
+        String logPinName = args[1].substring(idx + 1);
         Cell c = d.getCell(cellName);
 
         SitePinInst clkPin = c.getSitePinFromLogicalPin(logPinName, null);
@@ -167,6 +163,5 @@ public class IsolateLeafClkBuffer {
         clk.addPin(clkPin);
 
         d.writeCheckpoint(args[2]);
-
     }
 }

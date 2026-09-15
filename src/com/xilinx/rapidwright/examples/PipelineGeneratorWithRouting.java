@@ -24,17 +24,6 @@
 
 package com.xilinx.rapidwright.examples;
 
-
-import static com.xilinx.rapidwright.timing.GroupDistance.FAR;
-import static com.xilinx.rapidwright.timing.GroupDistance.MID;
-import static com.xilinx.rapidwright.timing.GroupDistance.NEAR;
-import static com.xilinx.rapidwright.timing.GroupDistance.SAME;
-import static com.xilinx.rapidwright.timing.TimingDirection.EAST;
-import static com.xilinx.rapidwright.timing.TimingDirection.NORTH;
-import static com.xilinx.rapidwright.timing.TimingDirection.NULL;
-import static com.xilinx.rapidwright.timing.TimingDirection.SOUTH;
-import static com.xilinx.rapidwright.timing.TimingDirection.WEST;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -47,8 +36,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
-
-import org.jgrapht.GraphPath;
 
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.ConstraintGroup;
@@ -87,9 +74,18 @@ import com.xilinx.rapidwright.timing.TimingManager;
 import com.xilinx.rapidwright.timing.TimingModel;
 import com.xilinx.rapidwright.timing.TimingVertex;
 import com.xilinx.rapidwright.util.MessageGenerator;
-
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import org.jgrapht.GraphPath;
+import static com.xilinx.rapidwright.timing.GroupDistance.FAR;
+import static com.xilinx.rapidwright.timing.GroupDistance.MID;
+import static com.xilinx.rapidwright.timing.GroupDistance.NEAR;
+import static com.xilinx.rapidwright.timing.GroupDistance.SAME;
+import static com.xilinx.rapidwright.timing.TimingDirection.EAST;
+import static com.xilinx.rapidwright.timing.TimingDirection.NORTH;
+import static com.xilinx.rapidwright.timing.TimingDirection.NULL;
+import static com.xilinx.rapidwright.timing.TimingDirection.SOUTH;
+import static com.xilinx.rapidwright.timing.TimingDirection.WEST;
 
 /**
  * Generates a delay of "depth" cycles for a bus of "width" w
@@ -115,7 +111,7 @@ public class PipelineGeneratorWithRouting {
     public static String INPUT_NAME = "IN";
     public static String OUTPUT_NAME = "OUT";
 
-    enum direction {vertical, horizontal}
+    enum direction { vertical, horizontal }
 
     /**
      * Generates the circuit for the pipeline.
@@ -135,21 +131,19 @@ public class PipelineGeneratorWithRouting {
      * timing-driven router.
      * @return
      */
-    public static PBlock createPipeline(Design d, Site startingPoint, int width, int depth,
-                                        int distanceX, int distanceY, direction dir,
-                                        boolean route, boolean useDistanceBasedRouter) {
-
-        if (dir == direction.vertical && (distanceY < Math.ceil(width/8))) {
-            System.err.println("Error: the width (="+width+") and distance (="+distanceY+") "
-                    + "parameters conflict in a way "+
-                    "that would result in an overlap in the vertical direction.  "+
-                    "Please choose different parameters or modify this example.");
+    public static PBlock createPipeline(Design d, Site startingPoint, int width, int depth, int distanceX,
+                                        int distanceY, direction dir, boolean route, boolean useDistanceBasedRouter) {
+        if (dir == direction.vertical && (distanceY < Math.ceil(width / 8))) {
+            System.err.println("Error: the width (=" + width + ") and distance (=" + distanceY + ") "
+                               + "parameters conflict in a way "
+                               + "that would result in an overlap in the vertical direction.  "
+                               + "Please choose different parameters or modify this example.");
             return new PBlock();
         }
 
         EDIFCell top = d.getNetlist().getTopCell();
         Set<Site> used = new HashSet<>();
-        String bus = width > 1 ? "["+(width-1)+":0]" : "";
+        String bus = width > 1 ? "[" + (width - 1) + ":0]" : "";
 
         // Declare the I/O
         EDIFPort inputPort = top.createPort(INPUT_NAME + bus, EDIFDirection.INPUT, width);
@@ -158,10 +152,10 @@ public class PipelineGeneratorWithRouting {
         EDIFPort cePort;
         EDIFPort rstPort;
 
-        String filename = "pipeline_"+width+"w_"+depth+"d_dx"+
-                (distanceX >= 0 ?""+distanceX : "neg"+ Math.abs(distanceX))+"_dy"+
-                (distanceY >= 0 ?""+distanceY : "neg"+ Math.abs(distanceY))+"_org"+
-                startingPoint+".txt";
+        String filename = "pipeline_" + width + "w_" + depth + "d_dx" +
+                          (distanceX >= 0 ? "" + distanceX : "neg" + Math.abs(distanceX)) + "_dy" +
+                          (distanceY >= 0 ? "" + distanceY : "neg" + Math.abs(distanceY)) + "_org" + startingPoint +
+                          ".txt";
 
         EDIFPort test = top.getPort("clk");
         boolean alreadyHasClk = test != null;
@@ -214,20 +208,20 @@ public class PipelineGeneratorWithRouting {
         Net clkNet = d.createNet(clk.getName());
         Net rstNet = d.createNet(rst.getName());
         Net ceNet = d.createNet(ce.getName());
-        EDIFNet[][] ic = new EDIFNet[depth+1][width];
-        Net[][] icNet = new Net[depth+1][width];
+        EDIFNet[][] ic = new EDIFNet[depth + 1][width];
+        Net[][] icNet = new Net[depth + 1][width];
         Cell[][] ffs = new Cell[depth][width];
 
-        for (int j=0; j <= depth; j++) {
+        for (int j = 0; j <= depth; j++) {
             for (int i = width - 1; i >= 0; i--) {
                 String index = "[" + i + "]";
                 String ic_name;
                 if (j == 0) {
-                    ic_name = INPUT_NAME + (width > 1 ?  index : "");
+                    ic_name = INPUT_NAME + (width > 1 ? index : "");
                 } else if (j == depth) {
-                    ic_name = OUTPUT_NAME + (width > 1 ?  index : "");
+                    ic_name = OUTPUT_NAME + (width > 1 ? index : "");
                 } else {
-                    ic_name = "bus" + j + "_" + (width > 1 ?  index : "");
+                    ic_name = "bus" + j + "_" + (width > 1 ? index : "");
                 }
                 ic[j][i] = top.createNet(ic_name);
                 icNet[j][i] = d.createNet(ic_name);
@@ -240,7 +234,6 @@ public class PipelineGeneratorWithRouting {
         try (PrintStream ps = new PrintStream(filename)) {
             // Note: the outer loop replicates flops for having multiple cycles
             for (int j = 0; j < depth; j++) {
-
                 int newSiteRow = newSite.getTile().getRow();
                 int newSiteCol = newSite.getTile().getColumn();
 
@@ -263,25 +256,26 @@ public class PipelineGeneratorWithRouting {
 
                         testTile = d.getDevice().getTile(newSiteRow - tmpDistanceY, newSiteCol + tmpDistanceX);
 
-                        // here we are checking that we are selecting a valid site type containing flops.
+                        // here we are checking that we are selecting a valid site type containing
+                        // flops.
                         invalid = testTile.getSites().length == 0;
                         invalid = invalid || !(testTile.getSites()[0].isCompatibleSiteType(SiteTypeEnum.SLICEL) ||
-                                testTile.getSites()[0].isCompatibleSiteType(SiteTypeEnum.SLICEM));
+                                               testTile.getSites()[0].isCompatibleSiteType(SiteTypeEnum.SLICEM));
 
                         newDistanceX = tmpDistanceX;
                         newDistanceY = tmpDistanceY;
                     }
                     newSite = testTile.getSites()[0];
                     if (newDistanceX > distanceX) {
-                        ps.println("Info: please note the tile distance for row " + j +
-                                " was adjusted from " + distanceX + " to " + newDistanceX +
-                                " tiles from previous row.  This example did this to find the next "
-                                + "occurring slice.");
+                        ps.println("Info: please note the tile distance for row " + j + " was adjusted from " +
+                                   distanceX + " to " + newDistanceX +
+                                   " tiles from previous row.  This example did this to find the next "
+                                   + "occurring slice.");
                     }
-                    ps.println("Connecting prev<c" + prevSite.getTile().getColumn() +
-                            "r" + prevSite.getTile().getRow() + ">:" + prevSite.getSiteTypeEnum() +
-                            " with new<c" + newSite.getTile().getColumn() + "r" + newSite.getTile().getRow() +
-                            ">:" + newSite.getSiteTypeEnum());
+                    ps.println("Connecting prev<c" + prevSite.getTile().getColumn() + "r" +
+                               prevSite.getTile().getRow() + ">:" + prevSite.getSiteTypeEnum() + " with new<c" +
+                               newSite.getTile().getColumn() + "r" + newSite.getTile().getRow() +
+                               ">:" + newSite.getSiteTypeEnum());
                 }
                 prevSite = newSite;
 
@@ -290,31 +284,31 @@ public class PipelineGeneratorWithRouting {
                     EDIFNet inputNet = ic[j][i];
                     EDIFNet outputNet = ic[j + 1][i];
 
-                    // Note: as mentioned above, when we get the next "neighbor site", we pass it a dx
-                    // and dy each time.
+                    // Note: as mentioned above, when we get the next "neighbor site", we pass it a
+                    // dx and dy each time.
                     Site currSlice = prevSite.getNeighborSite(0, i / BITS_PER_CLE);
 
-                    // Below is a check in case we have reached some site type that doesn't contain flops
+                    // Below is a check in case we have reached some site type that doesn't contain
+                    // flops
                     int v = 0;
                     while (!currSlice.isCompatibleSiteType(SiteTypeEnum.SLICEL) &&
-                            !currSlice.isCompatibleSiteType(SiteTypeEnum.SLICEM)) {
+                           !currSlice.isCompatibleSiteType(SiteTypeEnum.SLICEM)) {
                         v++;
                         int dy = (i + v) / BITS_PER_CLE;
                         currSlice = prevSite.getNeighborSite(0, dy);
                         if (currSlice == null) {
                             ps.println("Unable to find a suitable site for placing flop "
-                                    + "[" + j + "][" + i + "] " +
-                                    "based on the current set of parameters with the starting "
-                                    + "location: " + startingPoint.toString() + ".");
+                                       + "[" + j + "][" + i + "] "
+                                       + "based on the current set of parameters with the starting "
+                                       + "location: " + startingPoint.toString() + ".");
                             return new PBlock();
-
                         }
                     }
                     used.add(currSlice);
 
                     // Below picks the letter site containing pairs of flops.
                     // The first flop is called "FF".  The second flop is called "FF2".
-                    String letter = Character.toString((char) ('A' + i % 8));
+                    String letter = Character.toString((char)('A' + i % 8));
                     BEL ff = currSlice.getBEL(letter + "FF");
                     char[] letter_char = new char[1];
                     letter.getChars(0, 1, letter_char, 0);
@@ -335,7 +329,8 @@ public class PipelineGeneratorWithRouting {
                     inputNet.createPortInst("D", ffCell);
                     outputNet.createPortInst("Q", ffCell);
 
-                    if (i == 0) prevSite = currSlice;
+                    if (i == 0)
+                        prevSite = currSlice;
 
                     if (j == 0) {
                         if (inputPort.isBus()) {
@@ -343,7 +338,6 @@ public class PipelineGeneratorWithRouting {
                         } else {
                             inputNet.createPortInst(inputPort);
                         }
-
                     }
                     if (j == depth - 1) {
                         if (outputPort.isBus()) {
@@ -351,7 +345,6 @@ public class PipelineGeneratorWithRouting {
                         } else {
                             outputNet.createPortInst(outputPort);
                         }
-
                     }
 
                     clkNet.getLogicalNet().createPortInst("C", ffCell);
@@ -388,7 +381,7 @@ public class PipelineGeneratorWithRouting {
         d.setDesignOutOfContext(true);
 
         // Find rectangular area consumed
-        PBlock footprint = new PBlock(d.getDevice(),used);
+        PBlock footprint = new PBlock(d.getDevice(), used);
 
         // Route intersites
         if (route) {
@@ -416,14 +409,13 @@ public class PipelineGeneratorWithRouting {
                         if (pList != null)
                             n.setPIPs(pList);
                         else
-                            System.err.println("Couldn't route net:"+n);
+                            System.err.println("Couldn't route net:" + n);
                     }
                 }
             }
         }
         return footprint;
     }
-
 
     private static float currDelayCost;
     private static TimingGroup currG;
@@ -441,7 +433,7 @@ public class PipelineGeneratorWithRouting {
         PriorityQueue<TimingGroup> solutions = new PriorityQueue<>();
 
         TimingGroup startG = new TimingGroup(source, model);
-        startG.cost = startG.delay + DISTANCE_WEIGHT*source.getTile().getManhattanDistance(sink.getTile());
+        startG.cost = startG.delay + DISTANCE_WEIGHT * source.getTile().getManhattanDistance(sink.getTile());
         queue.add(startG);
 
         // create a watchdog timer
@@ -462,44 +454,42 @@ public class PipelineGeneratorWithRouting {
 
             // check if we've reached our final sink destination
             Node currNode = currG.getLastNode();
-            Wire [] currNodeWires = currNode.getAllWiresInNode();
+            Wire[] currNodeWires = currNode.getAllWiresInNode();
             Wire currNodeStartWire = currNodeWires[0];
-            PIP currPIP = currG.hasPIPs()? currG.getLastPIP() : null;
+            PIP currPIP = currG.hasPIPs() ? currG.getLastPIP() : null;
             currDelayCost = delayCostTable.get(currG);
 
             int tileX1 = sink.getTile().getTileXCoordinate();
             int tileY1 = sink.getTile().getTileYCoordinate();
-            int tileX2 = currG.hasPIPs() ? currPIP.getTile().getTileXCoordinate() :
-                currNodeStartWire.getTile().getTileXCoordinate();
-            int tileY2 = currG.hasPIPs() ? currPIP.getTile().getTileYCoordinate() :
-                currNodeStartWire.getTile().getTileYCoordinate();
+            int tileX2 = currG.hasPIPs() ? currPIP.getTile().getTileXCoordinate()
+                                         : currNodeStartWire.getTile().getTileXCoordinate();
+            int tileY2 = currG.hasPIPs() ? currPIP.getTile().getTileYCoordinate()
+                                         : currNodeStartWire.getTile().getTileYCoordinate();
             int tileX3 = sink.getSite().getIntTile().getTileXCoordinate();
             int tileY3 = sink.getSite().getIntTile().getTileYCoordinate();
 
             int tileDx, tileDy, siteDx, siteDy;
-            tileDx =  tileX1 - tileX2;
+            tileDx = tileX1 - tileX2;
             tileDy = tileY1 - tileY2;
 
-            int tileDxb =  tileX3 - tileX2;
+            int tileDxb = tileX3 - tileX2;
             int tileDyb = tileY3 - tileY2;
 
             int siteX1 = sink.getSite().getInstanceX();
             int siteY1 = sink.getSite().getInstanceY();
-            int siteX2 = currNode.getSitePin() != null ?
-                    currNode.getSitePin().getSite().getInstanceX() :
-                    currNodeStartWire.getTile().getTileXCoordinate();
-            int siteY2 = currNode.getSitePin() != null ?
-                    currNode.getSitePin().getSite().getInstanceY() :
-                    currNodeStartWire.getTile().getTileYCoordinate();
+            int siteX2 = currNode.getSitePin() != null ? currNode.getSitePin().getSite().getInstanceX()
+                                                       : currNodeStartWire.getTile().getTileXCoordinate();
+            int siteY2 = currNode.getSitePin() != null ? currNode.getSitePin().getSite().getInstanceY()
+                                                       : currNodeStartWire.getTile().getTileYCoordinate();
             siteDx = siteX1 - siteX2;
             siteDy = siteY1 - siteY2;
-            tileDx *=2;
+            tileDx *= 2;
 
             findRouteHelperSetTileX2BY2B(currG);
             tileDx -= tileX2B;
             tileDy -= tileY2B;
 
-            if ((tileDx ==0 && tileDy == 0) || (siteDx ==0 && siteDy == 0) || (tileDxb == 0 && tileDyb == 0)) {
+            if ((tileDx == 0 && tileDy == 0) || (siteDx == 0 && siteDy == 0) || (tileDxb == 0 && tileDyb == 0)) {
                 Site checkSite = currNode.getSitePin() != null ? currNode.getSitePin().getSite() : null;
                 if (checkSite == sink.getSite()) {
                     String check = currNode.getWireName();
@@ -511,7 +501,7 @@ public class PipelineGeneratorWithRouting {
                         currG.cost = cost;
                         currGIsSolution = true;
                         solutions.add(currG);
-                        if (solutions.size()>10000)
+                        if (solutions.size() > 10000)
                             break;
                     }
                 }
@@ -527,7 +517,6 @@ public class PipelineGeneratorWithRouting {
             if (!currGIsSolution && currG.getDelayType() == GroupDelayType.PINFEED)
                 continue;
 
-
             findRouteCostFunction(tileDx, tileDy, model, sink);
         }
 
@@ -535,8 +524,8 @@ public class PipelineGeneratorWithRouting {
             TimingGroup currG = solutions.poll();
             List<TimingGroup> reverseTGOrder = new LinkedList<>();
             System.out.println("Visited Wire Count:" + visited.size());
-            System.out.println("Selected Delay is: " + delayCostTable.get(currG)+
-                                ", artificial cost is: "+currG.cost);
+            System.out.println("Selected Delay is: " + delayCostTable.get(currG) +
+                               ", artificial cost is: " + currG.cost);
 
             // We've found the sink, recover our trail of used PIPs
             TimingGroup tmpG = currG;
@@ -545,10 +534,10 @@ public class PipelineGeneratorWithRouting {
                 reverseTGOrder.add(tmpG);
                 tmpG = prevG.get(tmpG);
             }
-            for (int i=reverseTGOrder.size()-1; i>= 0; i--) {
+            for (int i = reverseTGOrder.size() - 1; i >= 0; i--) {
                 tmpG = reverseTGOrder.get(i);
-                System.out.println("\t" + tmpG + ", delay:" + tmpG.delay +", cost: "+
-                                    delayCostTable.get(tmpG)+", artificial cost: "+tmpG.cost);
+                System.out.println("\t" + tmpG + ", delay:" + tmpG.delay + ", cost: " + delayCostTable.get(tmpG) +
+                                   ", artificial cost: " + tmpG.cost);
                 for (Node n : tmpG.getNodes()) {
                     System.out.println("\t\t node:" + n);
                     for (Wire w : n.getAllWiresInNode()) {
@@ -570,14 +559,13 @@ public class PipelineGeneratorWithRouting {
         return result;
     }
 
-
     /**
      * This helper function checks the timing group and adds a wire length distance to tileX2B and
      * tileY2B member variables. The side effect is setting these variables.
      * @param tg
      */
     private static void findRouteHelperSetTileX2BY2B(TimingGroup tg) {
-        switch (tg.getDelayType() ) {
+        switch (tg.getDelayType()) {
             case SINGLE:
                 switch (tg.getDirection()) {
                     case EAST:
@@ -683,7 +671,6 @@ public class PipelineGeneratorWithRouting {
                 tileY2B = 0;
                 break;
         }
-
     }
 
     /**
@@ -702,7 +689,7 @@ public class PipelineGeneratorWithRouting {
             // select the direction with most distance to cover
             int distanceInChosenDirection;
 
-            if (Math.abs(tileDx)==0 && Math.abs(tileDy)==0) {
+            if (Math.abs(tileDx) == 0 && Math.abs(tileDy) == 0) {
                 direction = NULL;
                 distanceInChosenDirection = 0;
             } else if ((Math.abs(tileDx) > Math.abs(tileDy))) {
@@ -710,29 +697,31 @@ public class PipelineGeneratorWithRouting {
                     direction = EAST;
                 else
                     direction = WEST;
-                distanceInChosenDirection =  Math.abs(tileDx);
+                distanceInChosenDirection = Math.abs(tileDx);
             } else {
                 if ((Math.abs(tileDy) >= 0 && tileDy >= 0))
                     direction = NORTH;
                 else
                     direction = SOUTH;
-                distanceInChosenDirection =  Math.abs(tileDy);
+                distanceInChosenDirection = Math.abs(tileDy);
             }
 
             // select the filter for the next hop based on the magnitude
             if ((tileDx == 0 && tileDy == 0)) {
                 distanceBand = SAME;
             } else if ( // falls exactly within the chosen range:
-                    (distanceInChosenDirection >= model.NEAR_MIN && distanceInChosenDirection <= model.NEAR_MAX) ||
-                            // or closer to min than middle
-                            Math.abs(distanceInChosenDirection - model.NEAR_MAX) < Math.abs(distanceInChosenDirection - model.MID_MIN)) {
+                (distanceInChosenDirection >= model.NEAR_MIN && distanceInChosenDirection <= model.NEAR_MAX) ||
+                // or closer to min than middle
+                Math.abs(distanceInChosenDirection - model.NEAR_MAX) <
+                    Math.abs(distanceInChosenDirection - model.MID_MIN)) {
                 distanceBand = NEAR;
             } else if ( // falls exactly within the chosen range:
-                    (distanceInChosenDirection >= model.MID_MIN && distanceInChosenDirection <= model.MID_MAX) ||
-                            // or closer to min than middle
-                            Math.abs(distanceInChosenDirection - model.MID_MAX) <  Math.abs(distanceInChosenDirection - model.FAR_MIN)) {
+                (distanceInChosenDirection >= model.MID_MIN && distanceInChosenDirection <= model.MID_MAX) ||
+                // or closer to min than middle
+                Math.abs(distanceInChosenDirection - model.MID_MAX) <
+                    Math.abs(distanceInChosenDirection - model.FAR_MIN)) {
                 distanceBand = MID;
-            }  else {
+            } else {
                 if (currG.getDelayType() == GroupDelayType.QUAD || currG.getDelayType() == GroupDelayType.LONG)
                     distanceBand = FAR;
                 else
@@ -747,10 +736,9 @@ public class PipelineGeneratorWithRouting {
 
                 int mDist;
                 Node nextLastNode = nextG.getLastNode();
-                Wire [] nextLastNodeWires = nextLastNode.getAllWiresInNode();
-                Wire nextLastNodeEndWire = nextLastNodeWires[nextLastNodeWires.length-1];
-                PIP nextLastPIP = nextG.hasPIPs()? nextG.getLastPIP() : null;
-
+                Wire[] nextLastNodeWires = nextLastNode.getAllWiresInNode();
+                Wire nextLastNodeEndWire = nextLastNodeWires[nextLastNodeWires.length - 1];
+                PIP nextLastPIP = nextG.hasPIPs() ? nextG.getLastPIP() : null;
 
                 if (!nextG.hasPIPs()) {
                     mDist = sink.getTile().getTileManhattanDistance(nextLastNode.getTile());
@@ -759,29 +747,25 @@ public class PipelineGeneratorWithRouting {
                 }
 
                 TileTypeEnum checkType = nextLastNode.getTile().getTileTypeEnum();
-                if (
-                        checkType == TileTypeEnum.INT ||
-                                checkType == TileTypeEnum.CLEL_L ||
-                                checkType == TileTypeEnum.CLEL_R ||
-                                checkType == TileTypeEnum.CLEM ||
-                                checkType == TileTypeEnum.CLEM_R
-                ) {
+                if (checkType == TileTypeEnum.INT || checkType == TileTypeEnum.CLEL_L ||
+                    checkType == TileTypeEnum.CLEL_R || checkType == TileTypeEnum.CLEM ||
+                    checkType == TileTypeEnum.CLEM_R) {
                     findRouteHelperSetTileX2BY2B(nextG);
 
-                    if (nextG.dist ==0 && currG.dist == 0)
-                        nextG.sameSpotCounter = currG.sameSpotCounter+1;
+                    if (nextG.dist == 0 && currG.dist == 0)
+                        nextG.sameSpotCounter = currG.sameSpotCounter + 1;
 
                     boolean removeLastBounce = currG.getDelayType() == GroupDelayType.PIN_BOUNCE &&
-                                                nextG.getNodeType(0) == IntentCode.NODE_CLE_OUTPUT;
+                                               nextG.getNodeType(0) == IntentCode.NODE_CLE_OUTPUT;
 
-                    float nextCost = currDelayCost + nextG.delay +
-                            (removeLastBounce? -1*model.BOUNCE_DELAY:0)+
-                            (mDist > 1 ? DISTANCE_WEIGHT * (mDist-Math.abs(tileX2B)-Math.abs(tileY2B)) : 0) +
-                            ((nextG.getDelayType() == GroupDelayType.GLOBAL)? 200 : 0);
+                    float nextCost =
+                        currDelayCost + nextG.delay + (removeLastBounce ? -1 * model.BOUNCE_DELAY : 0) +
+                        (mDist > 1 ? DISTANCE_WEIGHT * (mDist - Math.abs(tileX2B) - Math.abs(tileY2B)) : 0) +
+                        ((nextG.getDelayType() == GroupDelayType.GLOBAL) ? 200 : 0);
                     nextG.cost = nextCost;
 
-                    delayCostTable.put(nextG, currDelayCost + nextG.delay +
-                                        (removeLastBounce? -1*model.BOUNCE_DELAY:0) );
+                    delayCostTable.put(nextG,
+                                       currDelayCost + nextG.delay + (removeLastBounce ? -1 * model.BOUNCE_DELAY : 0));
                     prevG.put(nextG, currG);
 
                     if (nextG.sameSpotCounter < 4)
@@ -791,13 +775,10 @@ public class PipelineGeneratorWithRouting {
         }
     }
 
-
-
     static String designName;
     static String outputDCPFileName;
 
     private static OptionParser createOptionParser() {
-
         // Defaults, please modify these to experiment
         String partName = "xcvu3p-ffvc1517-2-e";
         String clkName = "clk";
@@ -811,43 +792,72 @@ public class PipelineGeneratorWithRouting {
         int distanceY = 16;
         String sliceSite = "SLICE_X10Y4";
 
-        //int distanceX = 8;
-        //int distanceY = 0;
-        //String sliceSite = "SLICE_X84Y68";
+        // int distanceX = 8;
+        // int distanceY = 0;
+        // String sliceSite = "SLICE_X84Y68";
 
         boolean useDistanceBasedRouter = false;
         boolean verbose1 = true;
 
-        double clkPeriodConstraint = Math.pow(frequencyMHz, -1)*1000;
+        double clkPeriodConstraint = Math.pow(frequencyMHz, -1) * 1000;
 
         designName = "pipeline";
-        outputDCPFileName = System.getProperty("user.dir") + File.separator + designName +".dcp";
+        outputDCPFileName = System.getProperty("user.dir") + File.separator + designName + ".dcp";
 
         // example code for command
-        OptionParser p = new OptionParser() {{
-            accepts(PART_OPT).withOptionalArg().defaultsTo(partName).describedAs("Ultrascale/UltraScale+ Part Name");
-            accepts(DESIGN_NAME_OPT).withOptionalArg().defaultsTo(designName).describedAs("Design Name");
-            accepts(OUT_DCP_OPT).withOptionalArg().defaultsTo(outputDCPFileName).describedAs("Output DCP File Name");
-            accepts(CLK_NAME_OPT).withOptionalArg().defaultsTo(clkName).describedAs("Clk net name");
-            accepts(CLK_CONSTRAINT_OPT).withOptionalArg().ofType(Double.class).defaultsTo(clkPeriodConstraint).describedAs("Clk period constraint (ns)");
-            accepts(WIDTH_OPT).withOptionalArg().ofType(Integer.class).defaultsTo(width).describedAs("width");
-            accepts(DEPTH_OPT).withOptionalArg().ofType(Integer.class).defaultsTo(depth).describedAs("depth");
-            accepts(DISTANCE_X_OPT).withOptionalArg().ofType(Integer.class).defaultsTo(distanceX).describedAs("distance X");
-            accepts(DISTANCE_Y_OPT).withOptionalArg().ofType(Integer.class).defaultsTo(distanceY).describedAs("distance Y");
-            accepts(ROUTING_OPT).withOptionalArg().ofType(Boolean.class).defaultsTo(useDistanceBasedRouter)
-                                .describedAs("Use distance-based router (true) or timing-driven router (false)");
-            accepts(SLICE_SITES_OPT).withOptionalArg().defaultsTo(sliceSite).describedAs("Lower left slice to be used for pipeline");
-            accepts(VERBOSE_OPT).withOptionalArg().ofType(Boolean.class).defaultsTo(verbose1).describedAs("Print verbose output");
-            acceptsAll( Arrays.asList(HELP_OPT, "?"), "Print Help" ).forHelp();
-        }};
+        OptionParser p = new OptionParser() {
+            {
+                accepts(PART_OPT).withOptionalArg().defaultsTo(partName).describedAs(
+                    "Ultrascale/UltraScale+ Part Name");
+                accepts(DESIGN_NAME_OPT).withOptionalArg().defaultsTo(designName).describedAs("Design Name");
+                accepts(OUT_DCP_OPT)
+                    .withOptionalArg()
+                    .defaultsTo(outputDCPFileName)
+                    .describedAs("Output DCP File Name");
+                accepts(CLK_NAME_OPT).withOptionalArg().defaultsTo(clkName).describedAs("Clk net name");
+                accepts(CLK_CONSTRAINT_OPT)
+                    .withOptionalArg()
+                    .ofType(Double.class)
+                    .defaultsTo(clkPeriodConstraint)
+                    .describedAs("Clk period constraint (ns)");
+                accepts(WIDTH_OPT).withOptionalArg().ofType(Integer.class).defaultsTo(width).describedAs("width");
+                accepts(DEPTH_OPT).withOptionalArg().ofType(Integer.class).defaultsTo(depth).describedAs("depth");
+                accepts(DISTANCE_X_OPT)
+                    .withOptionalArg()
+                    .ofType(Integer.class)
+                    .defaultsTo(distanceX)
+                    .describedAs("distance X");
+                accepts(DISTANCE_Y_OPT)
+                    .withOptionalArg()
+                    .ofType(Integer.class)
+                    .defaultsTo(distanceY)
+                    .describedAs("distance Y");
+                accepts(ROUTING_OPT)
+                    .withOptionalArg()
+                    .ofType(Boolean.class)
+                    .defaultsTo(useDistanceBasedRouter)
+                    .describedAs("Use distance-based router (true) or timing-driven router (false)");
+                accepts(SLICE_SITES_OPT)
+                    .withOptionalArg()
+                    .defaultsTo(sliceSite)
+                    .describedAs("Lower left slice to be used for pipeline");
+                accepts(VERBOSE_OPT)
+                    .withOptionalArg()
+                    .ofType(Boolean.class)
+                    .defaultsTo(verbose1)
+                    .describedAs("Print verbose output");
+                acceptsAll(Arrays.asList(HELP_OPT, "?"), "Print Help").forHelp();
+            }
+        };
 
         return p;
     }
 
     private static void printHelp(OptionParser p) {
         MessageGenerator.printHeader("Pipeline Generator");
-        System.out.println("This RapidWright program creates an example pipelined bus as a placed and routed DCP. \n"
-            + "See the RapidWright documentation for more information.\n");
+        System.out.println("This RapidWright program creates an example pipelined bus as a "
+                           + "placed and routed DCP. \n"
+                           + "See the RapidWright documentation for more information.\n");
         try {
             p.accepts(OUT_DCP_OPT).withOptionalArg().defaultsTo("pipeline.dcp").describedAs("Output DCP File Name");
             p.printHelpOn(System.out);
@@ -857,67 +867,64 @@ public class PipelineGeneratorWithRouting {
         }
     }
 
-
-
     public static void main(String[] args) {
         // Extract program options
         OptionParser p = createOptionParser();
         OptionSet opts = p.parse(args);
-        boolean verbose1 = (boolean) opts.valueOf(VERBOSE_OPT);
-        boolean verbose2 = true;  // extra verbose messages, modify this to remove some messages
+        boolean verbose1 = (boolean)opts.valueOf(VERBOSE_OPT);
+        boolean verbose2 = true; // extra verbose messages, modify this to remove some messages
         if (opts.has(HELP_OPT)) {
             printHelp(p);
             return;
         }
         String className = PipelineGeneratorWithRouting.class.getSimpleName();
-        CodePerfTracker t = verbose1 ? new CodePerfTracker(className,true).start("Init") : null;
+        CodePerfTracker t = verbose1 ? new CodePerfTracker(className, true).start("Init") : null;
 
-        String partName = (String) opts.valueOf(PART_OPT);
-        String designName = (String) opts.valueOf(DESIGN_NAME_OPT);
-        String outputDCPFileName = (String) opts.valueOf(OUT_DCP_OPT);
-        String clkName = (String) opts.valueOf(CLK_NAME_OPT);
-        double clkPeriodConstraint = (double) opts.valueOf(CLK_CONSTRAINT_OPT);
-        boolean useDistanceBasedRouter = (boolean) opts.valueOf(ROUTING_OPT);
+        String partName = (String)opts.valueOf(PART_OPT);
+        String designName = (String)opts.valueOf(DESIGN_NAME_OPT);
+        String outputDCPFileName = (String)opts.valueOf(OUT_DCP_OPT);
+        String clkName = (String)opts.valueOf(CLK_NAME_OPT);
+        double clkPeriodConstraint = (double)opts.valueOf(CLK_CONSTRAINT_OPT);
+        boolean useDistanceBasedRouter = (boolean)opts.valueOf(ROUTING_OPT);
 
-        int width = (int) opts.valueOf(WIDTH_OPT);
-        int depth = (int) opts.valueOf(DEPTH_OPT);
-        int distanceX = (int) opts.valueOf(DISTANCE_X_OPT);
-        int distanceY = (int) opts.valueOf(DISTANCE_Y_OPT);
+        int width = (int)opts.valueOf(WIDTH_OPT);
+        int depth = (int)opts.valueOf(DEPTH_OPT);
+        int distanceX = (int)opts.valueOf(DISTANCE_X_OPT);
+        int distanceY = (int)opts.valueOf(DISTANCE_Y_OPT);
 
         /******** SET THE DIRECTION HERE ********/
         direction dir = direction.horizontal;
 
-        String sliceName = (String) opts.valueOf(SLICE_SITES_OPT);
+        String sliceName = (String)opts.valueOf(SLICE_SITES_OPT);
 
         // Perform some error checking on inputs
         Part part = PartNameTools.getPart(partName);
         if (part == null || part.isSeries7()) {
-            throw new RuntimeException("ERROR: Invalid/unsupported part " + partName +
-                                                ".  This example was coded "+
-                                                  "for UltraScale or UltraScale+ devices.");
+            throw new RuntimeException("ERROR: Invalid/unsupported part " + partName + ".  This example was coded "
+                                       + "for UltraScale or UltraScale+ devices.");
         }
 
-        Design d = new Design(designName,partName);
+        Design d = new Design(designName, partName);
         d.setAutoIOBuffers(false);
         Device dev = d.getDevice();
 
         t.stop().start("Create Pipeline");
         Site slice = dev.getSite(sliceName);
 
-        System.out.println ("DistanceX:"+distanceX);
-        System.out.println ("DistanceY:"+distanceY+"" +
-                "\n");
+        System.out.println("DistanceX:" + distanceX);
+        System.out.println("DistanceY:" + distanceY + ""
+                           + "\n");
 
         boolean shouldRoute = true;
         createPipeline(d, slice, width, depth, distanceX, distanceY, dir, shouldRoute, useDistanceBasedRouter);
 
         // Add a clock constraint
-        String tcl = "create_clock -name "+clkName+" -period "+clkPeriodConstraint+
-                     " [get_ports "+clkName+"]";
-        d.addXDCConstraint(ConstraintGroup.LATE,tcl);
+        String tcl =
+            "create_clock -name " + clkName + " -period " + clkPeriodConstraint + " [get_ports " + clkName + "]";
+        d.addXDCConstraint(ConstraintGroup.LATE, tcl);
         d.setAutoIOBuffers(false);
 
-        float clkPeriodPs = (float)clkPeriodConstraint*1000;
+        float clkPeriodPs = (float)clkPeriodConstraint * 1000;
 
         if (verbose1) {
             ///////////////////////
@@ -931,7 +938,7 @@ public class PipelineGeneratorWithRouting {
             tg.setTimingRequirement(clkPeriodPs);
 
             System.out.println("\nRequested frequency:" + Math.round(Math.pow(clkPeriodConstraint, -1) * 1000) +
-                    " MHz for a period of " + Math.round(clkPeriodPs) + " ps");
+                               " MHz for a period of " + Math.round(clkPeriodPs) + " ps");
 
             System.out.println("\nMax net delay:" + Math.round(maxDelay) + " ps");
 
@@ -945,15 +952,16 @@ public class PipelineGeneratorWithRouting {
                     dm1.verbose = true;
                     tg.debug = true;
 
-                    if (edge.getNet() != null) { // skip below if the net is null, e.g. edges from/to the timing graph's
+                    if (edge.getNet() != null) { // skip below if the net is null, e.g. edges
+                                                 // from/to the timing graph's
                         // "SuperSource" and "SuperSink"
                         dm1.calcDelay(edge.getNet().getSource(), edge.getNet().getSinkPins().get(0), edge.getNet());
 
                         System.out.println("Critical path TimingEdge/physical net name: " + edge.getNet() +
-                                "\n\t net_delay:" + Math.round(edge.getNetDelay()) + " ps," +
-                                "\n\t logic_delay:" + Math.round(edge.getLogicDelay()) + " ps," +
-                                "\n\t --------------------" +
-                                "\n\t total_delay:" + Math.round(edge.getDelay()) + " ps\n\n\n");
+                                           "\n\t net_delay:" + Math.round(edge.getNetDelay()) + " ps,"
+                                           + "\n\t logic_delay:" + Math.round(edge.getLogicDelay()) + " ps,"
+                                           + "\n\t --------------------"
+                                           + "\n\t total_delay:" + Math.round(edge.getDelay()) + " ps\n\n\n");
                     }
                 }
             }
@@ -964,7 +972,8 @@ public class PipelineGeneratorWithRouting {
         t.stop();
         if (!outputDCPFileName.equals("/dev/null")) {
             d.writeCheckpoint(outputDCPFileName, t);
-            if (verbose1) System.out.println("Wrote final DCP: " + outputDCPFileName);
+            if (verbose1)
+                System.out.println("Wrote final DCP: " + outputDCPFileName);
         }
     }
 }

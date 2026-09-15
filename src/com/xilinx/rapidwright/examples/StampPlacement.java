@@ -41,14 +41,13 @@ import com.xilinx.rapidwright.util.FileTools;
 import com.xilinx.rapidwright.util.StringTools;
 
 public class StampPlacement {
-
     public static Module[] loadStampDCPs(String stampDCPFilePrefix) {
         String stampFileDir = System.getProperty("user.dir");
         String filePrefix = stampDCPFilePrefix;
         if (stampDCPFilePrefix.contains(File.separator)) {
             int sep = stampDCPFilePrefix.lastIndexOf(File.separator);
             stampFileDir = stampDCPFilePrefix.substring(0, sep);
-            filePrefix = stampDCPFilePrefix.substring(sep+1);
+            filePrefix = stampDCPFilePrefix.substring(sep + 1);
         }
         ArrayList<String> dcpFileNames = new ArrayList<>();
         for (File f : new File(stampFileDir).listFiles(FileTools.getDCPFilenameFilter())) {
@@ -57,7 +56,7 @@ public class StampPlacement {
             }
         }
 
-        int i=0;
+        int i = 0;
         Module[] stamps = new Module[dcpFileNames.size()];
         for (String fileName : StringTools.naturalSort(dcpFileNames)) {
             String fullDCPFileName = stampFileDir + File.separator + fileName;
@@ -68,13 +67,15 @@ public class StampPlacement {
         return stamps;
     }
 
-    public static Map<Integer,HashMap<String,Site>> loadPlacementDirectives(Device device, Map<Integer,Module> stamps, String placementDirectionFile) {
-        Map<Integer, HashMap<String,Site>> placementDirectives = new HashMap<Integer,HashMap<String,Site>>();
+    public static Map<Integer, HashMap<String, Site>>
+    loadPlacementDirectives(Device device, Map<Integer, Module> stamps, String placementDirectionFile) {
+        Map<Integer, HashMap<String, Site>> placementDirectives = new HashMap<Integer, HashMap<String, Site>>();
         // Parse the stamp direction file
         int lineNum = 0;
         for (String line : FileTools.getLinesFromTextFile(placementDirectionFile)) {
             lineNum++;
-            if (line.trim().startsWith("#")) continue;
+            if (line.trim().startsWith("#"))
+                continue;
             String[] tokens = line.split("\\s+");
             if (line.trim().startsWith("STAMP")) {
                 int idx = Integer.parseInt(tokens[1]);
@@ -84,10 +85,12 @@ public class StampPlacement {
                 }
                 String fullDCPFileName = tokens[3];
                 String metadataFileName = tokens[4];
-                stamps.put(idx, new Module(Design.readCheckpoint(fullDCPFileName, CodePerfTracker.SILENT), metadataFileName));
+                stamps.put(
+                    idx, new Module(Design.readCheckpoint(fullDCPFileName, CodePerfTracker.SILENT), metadataFileName));
                 stamps.get(idx).setAnchor(anchor);
                 if (stamps.get(idx).getAnchor() == null) {
-                    throw new RuntimeException("ERROR: No site used in " + fullDCPFileName + " at proposed anchor " + anchor + " on line " + lineNum);
+                    throw new RuntimeException("ERROR: No site used in " + fullDCPFileName + " at proposed anchor " +
+                                               anchor + " on line " + lineNum);
                 }
                 placementDirectives.put(idx, new HashMap<>());
                 continue;
@@ -108,8 +111,10 @@ public class StampPlacement {
         if (args.length != 3) {
             System.out.println("USAGE: <input.dcp> <stamp_direction_file> <output.dcp>\n");
             System.out.println("  Format for the stamp_direction_file is: ");
-            System.out.println("    STAMP <define_stamp_index> <anchor_site> <stamp_dcp_file_name> <dcp_metadata_file_name>");
-            System.out.println("    <stamp_index> <set anchor site> <desired anchor site placement> <hierarchical cell instance name>");
+            System.out.println("    STAMP <define_stamp_index> <anchor_site> "
+                               + "<stamp_dcp_file_name> <dcp_metadata_file_name>");
+            System.out.println("    <stamp_index> <set anchor site> <desired anchor site "
+                               + "placement> <hierarchical cell instance name>");
             return;
         }
 
@@ -121,24 +126,25 @@ public class StampPlacement {
         Device device = design.getDevice();
 
         for (Net net : design.getNets()) {
-            if (net.isClockNet()) net.unroute();
+            if (net.isClockNet())
+                net.unroute();
         }
 
         t.stop().start("Load stamp DCPs");
 
-        Map<Integer,Module> stamps = new HashMap<>();
-        Map<Integer, HashMap<String,Site>> placementDirectives = loadPlacementDirectives(device, stamps, args[1]);
+        Map<Integer, Module> stamps = new HashMap<>();
+        Map<Integer, HashMap<String, Site>> placementDirectives = loadPlacementDirectives(device, stamps, args[1]);
         t.stop().start("Stamp placement");
 
         // Perform the actual placements for each stamp type
-        for (Entry<Integer,Module> e : stamps.entrySet()) {
+        for (Entry<Integer, Module> e : stamps.entrySet()) {
             DesignTools.stampPlacement(design, e.getValue(), placementDirectives.get(e.getKey()));
         }
 
         t.stop().start("Writing stamped design");
 
         // Unlock cells by default
-        for (Cell c: design.getCells()) {
+        for (Cell c : design.getCells()) {
             c.setBELFixed(false);
             c.setSiteFixed(false);
         }

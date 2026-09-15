@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
  * Created on: Jan 26, 2018
  */
 public class JobQueue {
-
     public static int MAX_LOCAL_CONCURRENT_JOBS = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
 
     public static int MAX_LSF_CONCURRENT_JOBS = 120;
@@ -60,7 +59,6 @@ public class JobQueue {
     public static final String LSF_AVAILABLE_OPTION = "-lsf_available";
     public static final String LSF_RESOURCE_OPTION = "-lsf_resource";
     public static final String LSF_QUEUE_OPTION = "-lsf_queue";
-
 
     public JobQueue(boolean printJobStart) {
         waitingToRun = new LinkedList<>();
@@ -81,20 +79,21 @@ public class JobQueue {
     }
 
     public boolean runAllToCompletion() {
-        return runAllToCompletion(isLSFAvailable() ? JobQueue.MAX_LSF_CONCURRENT_JOBS : JobQueue.MAX_LOCAL_CONCURRENT_JOBS);
+        return runAllToCompletion(isLSFAvailable() ? JobQueue.MAX_LSF_CONCURRENT_JOBS
+                                                   : JobQueue.MAX_LOCAL_CONCURRENT_JOBS);
     }
 
     public boolean runAllToCompletion(int maxNumRunningJobs) {
         while (!waitingToRun.isEmpty() || !running.isEmpty()) {
-
-            final Map<JobState, List<Job>> jobsByState = running.stream().collect(Collectors.groupingBy(Job::getJobState, ()->new EnumMap<>(JobState.class), Collectors.toList()));
+            final Map<JobState, List<Job>> jobsByState = running.stream().collect(
+                Collectors.groupingBy(Job::getJobState, () -> new EnumMap<>(JobState.class), Collectors.toList()));
             final List<Job> exited = jobsByState.get(JobState.EXITED);
             if (exited != null) {
                 for (Job job : exited) {
                     running.remove(job);
                     finished.add(job);
                 }
-                //Removing from map so they don't show up in our printout
+                // Removing from map so they don't show up in our printout
                 jobsByState.remove(JobState.EXITED);
             }
             boolean launched = false;
@@ -110,10 +109,8 @@ public class JobQueue {
 
             if (!launched || !printJobStart) {
                 System.out.print("Waiting on ");
-                jobsByState.forEach((state, jobs) -> {
-                    System.out.print(jobs.size()+" "+state.getName()+", ");
-                });
-                System.out.println(waitingToRun.size()+" not yet started...");
+                jobsByState.forEach((state, jobs) -> { System.out.print(jobs.size() + " " + state.getName() + ", "); });
+                System.out.println(waitingToRun.size() + " not yet started...");
             }
 
             try {
@@ -131,26 +128,27 @@ public class JobQueue {
                 if (failedCount == 0) {
                     // Let's just print the first error output
                     j.getLastLogLines().ifPresent(lastLogLines -> {
-                        System.err.println("***************************************************************************");
+                        System.err.println("*****************************************************"
+                                           + "**********************");
                         System.err.println("* ERROR: Job " + j.getJobNumber() + " failed");
                         System.err.println("* LOG FILE: " + j.getLogFilename());
                         System.err.println("*  Here are the last few lines of the log:");
                         for (String l : lastLogLines) {
                             System.err.println(l);
                         }
-                        System.err.println("***************************************************************************");
+                        System.err.println("*****************************************************"
+                                           + "**********************");
                     });
                 }
                 failedCount++;
             }
             success &= curr;
         }
-        if (failedCount > 0)  {
+        if (failedCount > 0) {
             System.err.println("Failed Job Count: " + failedCount);
         }
         return success;
     }
-
 
     public boolean killAllRunningJobs() {
         for (Job j : running) {
@@ -160,10 +158,15 @@ public class JobQueue {
         long watchdog = System.currentTimeMillis();
         while (!running.isEmpty() && (System.currentTimeMillis() - watchdog < 5000)) {
             Job j = running.poll();
-            if (j.isFinished()) finished.add(j);
+            if (j.isFinished())
+                finished.add(j);
             else {
                 running.add(j);
-                try {Thread.sleep(200);} catch (InterruptedException e) {break;}
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    break;
+                }
             }
         }
         if (!running.isEmpty()) {
@@ -202,8 +205,8 @@ public class JobQueue {
 
         // Run a test if no arguments
         if (args.length == 0) {
-            String mainDir = System.getenv("HOME") + File.separator+ "JobQueueTest" + File.separator;
-            for (int i=0; i < 10; i++) {
+            String mainDir = System.getenv("HOME") + File.separator + "JobQueueTest" + File.separator;
+            for (int i = 0; i < 10; i++) {
                 Job job = createJob();
                 job.setCommand("vivado -version");
                 job.setRunDir(mainDir + i);
@@ -220,8 +223,8 @@ public class JobQueue {
                 System.out.println(LSFJob.LSF_QUEUE);
                 return;
             }
-            // Read a file in where each line is a job, command is first token, run directory is second
-            // separated by '#'
+            // Read a file in where each line is a job, command is first token, run directory is
+            // second separated by '#'
             for (String line : FileTools.getLinesFromTextFile(args[0])) {
                 String[] parts = line.split("#");
                 Job j = createJob();
@@ -231,8 +234,10 @@ public class JobQueue {
             }
         }
         boolean success = q.runAllToCompletion();
-        if (success) System.out.println("Runs completed successfully");
-        else System.err.println("One or more runs failed");
+        if (success)
+            System.out.println("Runs completed successfully");
+        else
+            System.err.println("One or more runs failed");
     }
 
     public int getCount() {

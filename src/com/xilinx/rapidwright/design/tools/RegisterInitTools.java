@@ -23,35 +23,38 @@
 
 package com.xilinx.rapidwright.design.tools;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.Arrays;
+
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.edif.EDIFCellInst;
 import com.xilinx.rapidwright.edif.EDIFPropertyValue;
-
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.Arrays;
 
 /**
  * Utility methods for updating flip-flop initial values after place and route.
  * This is useful to change the INIT value of registers without re-running implementation.
  */
 public class RegisterInitTools {
-
     public static final String INIT_PROPERTY = "INIT";
 
     private static Boolean getInitValue(Cell cell) {
-        if (cell == null) return null;
+        if (cell == null)
+            return null;
         EDIFCellInst cellInst = cell.getEDIFCellInst();
-        if (cellInst == null) return null;
+        if (cellInst == null)
+            return null;
         EDIFPropertyValue prop = cellInst.getProperty(INIT_PROPERTY);
-        if (prop == null) return null;
+        if (prop == null)
+            return null;
         String value = prop.getValue();
-        if (value.contains("1'b1")) return true;
-        if (value.contains("1'b0")) return false;
+        if (value.contains("1'b1"))
+            return true;
+        if (value.contains("1'b0"))
+            return false;
         return null;
     }
 
@@ -69,7 +72,8 @@ public class RegisterInitTools {
 
     /**
      * Updates the INIT values of a multi-bit register given a long value.
-     * Assumes register bits are named with bus notation, e.g., "my_reg_reg[0]", "my_reg_reg[1]", etc.
+     * Assumes register bits are named with bus notation, e.g., "my_reg_reg[0]", "my_reg_reg[1]",
+     * etc.
      *
      * @param design The design containing the register
      * @param registerBaseName The base name of the register without bus index (e.g., "my_reg_reg")
@@ -83,7 +87,8 @@ public class RegisterInitTools {
 
     /**
      * Updates the INIT values of a multi-bit register given a BigInteger value.
-     * Assumes register bits are named with bus notation, e.g., "my_reg_reg[0]", "my_reg_reg[1]", etc.
+     * Assumes register bits are named with bus notation, e.g., "my_reg_reg[0]", "my_reg_reg[1]",
+     * etc.
      *
      * @param design The design containing the register
      * @param registerBaseName The base name of the register without bus index (e.g., "my_reg_reg")
@@ -117,7 +122,8 @@ public class RegisterInitTools {
      * @param design The design containing the register
      * @param registerBaseName The base name of the register without bus index
      * @param width The width of the register in bits
-     * @return The current value as a BigInteger, or throws a runtime exception if register not found
+     * @return The current value as a BigInteger, or throws a runtime exception if register not
+     *     found
      */
     public static BigInteger getRegisterValue(Design design, String registerBaseName, int width) {
         BigInteger value = BigInteger.ZERO;
@@ -151,15 +157,17 @@ public class RegisterInitTools {
     private static final String HELP_OPT = "help";
 
     private static OptionParser createOptionParser() {
-        OptionParser p = new OptionParser() {{
-            accepts(INPUT_DCP_OPT, "Input DCP file").withRequiredArg().required();
-            accepts(OUTPUT_DCP_OPT, "Output DCP file").withRequiredArg();
-            accepts(REGISTER_OPT, "Register base name (e.g., 'my_reg_reg')").withRequiredArg().required();
-            accepts(WIDTH_OPT, "Register width in bits").withRequiredArg().ofType(Integer.class).required();
-            accepts(VALUE_OPT, "New value (decimal or 0x hex)").withRequiredArg();
-            accepts(READ_OPT, "Read and print current value only (no modification)");
-            acceptsAll(Arrays.asList(HELP_OPT, "?"), "Print help").forHelp();
-        }};
+        OptionParser p = new OptionParser() {
+            {
+                accepts(INPUT_DCP_OPT, "Input DCP file").withRequiredArg().required();
+                accepts(OUTPUT_DCP_OPT, "Output DCP file").withRequiredArg();
+                accepts(REGISTER_OPT, "Register base name (e.g., 'my_reg_reg')").withRequiredArg().required();
+                accepts(WIDTH_OPT, "Register width in bits").withRequiredArg().ofType(Integer.class).required();
+                accepts(VALUE_OPT, "New value (decimal or 0x hex)").withRequiredArg();
+                accepts(READ_OPT, "Read and print current value only (no modification)");
+                acceptsAll(Arrays.asList(HELP_OPT, "?"), "Print help").forHelp();
+            }
+        };
         return p;
     }
 
@@ -168,7 +176,8 @@ public class RegisterInitTools {
         System.out.println();
         System.out.println("Usage:");
         System.out.println("  Read:  RegisterInitTools -input <dcp> -register <name> -width <n> -read");
-        System.out.println("  Write: RegisterInitTools -input <dcp> -output <dcp> -register <name> -width <n> -value <val>");
+        System.out.println("  Write: RegisterInitTools -input <dcp> -output <dcp> -register "
+                           + "<name> -width <n> -value <val>");
         System.out.println();
         try {
             p.printHelpOn(System.out);
@@ -199,9 +208,9 @@ public class RegisterInitTools {
             return;
         }
 
-        String inputDcp = (String) opts.valueOf(INPUT_DCP_OPT);
-        String registerName = (String) opts.valueOf(REGISTER_OPT);
-        int width = (int) opts.valueOf(WIDTH_OPT);
+        String inputDcp = (String)opts.valueOf(INPUT_DCP_OPT);
+        String registerName = (String)opts.valueOf(REGISTER_OPT);
+        int width = (int)opts.valueOf(WIDTH_OPT);
         boolean readOnly = opts.has(READ_OPT);
 
         if (!readOnly) {
@@ -229,7 +238,7 @@ public class RegisterInitTools {
             return;
         }
 
-        String valueStr = (String) opts.valueOf(VALUE_OPT);
+        String valueStr = (String)opts.valueOf(VALUE_OPT);
         BigInteger value;
         try {
             if (valueStr.startsWith("0x") || valueStr.startsWith("0X")) {
@@ -256,7 +265,7 @@ public class RegisterInitTools {
             System.out.println("New value: 0x" + newValue.toString(16) + " (" + newValue + ")");
         }
 
-        String outputDcp = (String) opts.valueOf(OUTPUT_DCP_OPT);
+        String outputDcp = (String)opts.valueOf(OUTPUT_DCP_OPT);
         System.out.println("Writing design: " + outputDcp);
         design.writeCheckpoint(outputDcp);
         System.out.println("Done.");

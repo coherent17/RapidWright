@@ -24,6 +24,12 @@
 
 package com.xilinx.rapidwright.rwroute;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.xilinx.rapidwright.design.Net;
 import com.xilinx.rapidwright.device.IntentCode;
 import com.xilinx.rapidwright.device.Node;
@@ -32,16 +38,11 @@ import com.xilinx.rapidwright.device.Tile;
 import com.xilinx.rapidwright.device.TileTypeEnum;
 import com.xilinx.rapidwright.util.RuntimeTracker;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * A RouteNode Object corresponds to a vertex of the routing resource graph.
  * Each RouteNode instance is associated with a {@link Node} instance. It is denoted as "rnode".
- * The routing resource graph is built "lazily", i.e., RouteNode Objects (rnodes) are created when needed.
+ * The routing resource graph is built "lazily", i.e., RouteNode Objects (rnodes) are created when
+ * needed.
  */
 public class RouteNode extends Node implements Comparable<RouteNode> {
     /** Each RouteNode Object can be legally used by one net only */
@@ -90,7 +91,7 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
     protected RouteNode(RouteNodeGraph routingGraph, Node node, RouteNodeType type) {
         super(node);
         RouteNodeInfo nodeInfo = RouteNodeInfo.get(node, routingGraph);
-        this.type = (byte) ((type == null) ? nodeInfo.type : type).ordinal();
+        this.type = (byte)((type == null) ? nodeInfo.type : type).ordinal();
         endTileXCoordinate = nodeInfo.endTileXCoordinate;
         endTileYCoordinate = nodeInfo.endTileYCoordinate;
         length = nodeInfo.length;
@@ -99,15 +100,15 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
         historicalCongestionCost = initialHistoricalCongestionCost;
         usersConnectionCounts = null;
         visited = 0;
-        assert(prev == null);
-        assert(!isTarget);
+        assert (prev == null);
+        assert (!isTarget);
     }
 
     @Override
     public int compareTo(RouteNode that) {
         // Do not use Float.compare() since it also compares NaN, which we'll assume is unreachable
         // return Float.compare(this.lowerBoundTotalPathCost, that.lowerBoundTotalPathCost);
-        return (int) Math.signum(this.lowerBoundTotalPathCost - that.lowerBoundTotalPathCost);
+        return (int)Math.signum(this.lowerBoundTotalPathCost - that.lowerBoundTotalPathCost);
     }
 
     private void setBaseCost(RouteNodeGraph routingGraph) {
@@ -115,49 +116,48 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
         baseCost = 0.4f;
         switch (getType()) {
             case EXCLUSIVE_SOURCE:
-                assert(length == 0 ||
-                        (length <= 3 && (getIntentCode() == IntentCode.NODE_INTF2 || getIntentCode() == IntentCode.NODE_INTF4)));
+                assert (length == 0 || (length <= 3 && (getIntentCode() == IntentCode.NODE_INTF2 ||
+                                                        getIntentCode() == IntentCode.NODE_INTF4)));
                 break;
             case EXCLUSIVE_SINK_BOTH:
             case EXCLUSIVE_SINK_EAST:
             case EXCLUSIVE_SINK_WEST:
-                assert(length == 0 ||
-                       (length == 1 && (series == Series.UltraScalePlus || series == Series.UltraScale) && getIntentCode() == IntentCode.NODE_PINBOUNCE));
+                assert (length == 0 ||
+                        (length == 1 && (series == Series.UltraScalePlus || series == Series.UltraScale) &&
+                         getIntentCode() == IntentCode.NODE_PINBOUNCE));
                 break;
             case LOCAL_BOTH:
-                assert(length == 0);
+                assert (length == 0);
                 break;
             case LOCAL_EAST:
             case LOCAL_WEST:
             case LOCAL_RESERVED:
-                assert(length == 0 ||
-                       (length == 1 && (
-                               ((series == Series.UltraScalePlus || series == Series.UltraScale) && getIntentCode() == IntentCode.NODE_PINBOUNCE) ||
-                               (series == Series.UltraScalePlus && getWireName().matches("INODE_[EW]_\\d+_FT[01]")) ||
-                               (series == Series.UltraScale && getWireName().matches("INODE_[12]_[EW]_\\d+_FT[NS]")) ||
-                               (series == Series.Versal && EnumSet.of(IntentCode.NODE_CLE_BNODE, IntentCode.NODE_CLE_CNODE).contains(getIntentCode()))
-                       ))
-                   );
+                assert (
+                    length == 0 ||
+                    (length == 1 &&
+                     (((series == Series.UltraScalePlus || series == Series.UltraScale) &&
+                       getIntentCode() == IntentCode.NODE_PINBOUNCE) ||
+                      (series == Series.UltraScalePlus && getWireName().matches("INODE_[EW]_\\d+_FT[01]")) ||
+                      (series == Series.UltraScale && getWireName().matches("INODE_[12]_[EW]_\\d+_FT[NS]")) ||
+                      (series == Series.Versal &&
+                       EnumSet.of(IntentCode.NODE_CLE_BNODE, IntentCode.NODE_CLE_CNODE).contains(getIntentCode())))));
                 break;
             case LOCAL_EAST_LEADING_TO_NORTHBOUND_LAGUNA:
             case LOCAL_WEST_LEADING_TO_NORTHBOUND_LAGUNA:
             case LOCAL_EAST_LEADING_TO_SOUTHBOUND_LAGUNA:
             case LOCAL_WEST_LEADING_TO_SOUTHBOUND_LAGUNA:
-                assert(length == 0 ||
-                        (length == 1 && (
-                                (series == Series.UltraScalePlus && getWireName().matches("INODE_[EW]_\\d+_FT[01]")) ||
-                                (series == Series.UltraScale && getWireName().matches("INODE_[12]_[EW]_\\d+_FT[NS]"))
-                        ))
-                );
+                assert (length == 0 ||
+                        (length == 1 &&
+                         ((series == Series.UltraScalePlus && getWireName().matches("INODE_[EW]_\\d+_FT[01]")) ||
+                          (series == Series.UltraScale && getWireName().matches("INODE_[12]_[EW]_\\d+_FT[NS]")))));
                 break;
             case SUPER_LONG_LINE:
-                assert(length == 0 ||
-                       length == routingGraph.SUPER_LONG_LINE_LENGTH_IN_TILES);
+                assert (length == 0 || length == routingGraph.SUPER_LONG_LINE_LENGTH_IN_TILES);
                 baseCost = 0.3f * routingGraph.SUPER_LONG_LINE_LENGTH_IN_TILES;
                 break;
             case NON_LOCAL_LEADING_TO_NORTHBOUND_LAGUNA:
             case NON_LOCAL_LEADING_TO_SOUTHBOUND_LAGUNA:
-                assert(length == 0 ||
+                assert (length == 0 ||
                         (length == 1 && series == Series.UltraScale && getWireName().matches("SDND[NS]W_E_15_FTN")) ||
                         (length == 1 && series == Series.UltraScalePlus && getWireName().equals("WW1_E_7_FT0")));
                 // Fall-through
@@ -165,102 +165,111 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
                 short length = getLength();
                 // NOTE: IntentCode is device-dependent
                 IntentCode ic = getIntentCode();
-                switch(ic) {
+                switch (ic) {
                     case NODE_OUTPUT:        // CLE/LAGUNA_TILE/BRAM/etc. outputs (US)
                                              // LAG_LAG.LAG_LAGUNA_SITE_*_{T,R}XQ* (US+)
                     case NODE_CLE_OUTPUT:    // CLE outputs (US+ and Versal)
                     case NODE_LAGUNA_OUTPUT: // LAG_LAG.{LAG_MUX_ATOM_*_TXOUT,RXD*} (US+)
-                    case NODE_LAGUNA_DATA:   // LAG_LAG.UBUMP* super long lines for u-turns at the boundary of the device (US+)
+                    case NODE_LAGUNA_DATA:   // LAG_LAG.UBUMP* super long lines for u-turns at the
+                                             // boundary of the device (US+)
                     case NODE_SLL_INPUT:     // Versal only
                     case NODE_SLL_OUTPUT:    // Versal only
                     case INTENT_DEFAULT:     // INT.VCC_WIRE
-                        assert(length == 0);
+                        assert (length == 0);
                         break;
                     case NODE_LOCAL: // US and US+
-                        assert(length <= 1);
+                        assert (length <= 1);
                         break;
                     case NODE_VSINGLE: // Versal-only
                     case NODE_HSINGLE: // Versal-only
                         if (length == 0 && getAllWiresInNode().length == 1) {
-                            assert(getAllDownhillPIPs().isEmpty() || // e.g. INT_X3Y383/OUT_NN1_E_BEG6 and INT_X19Y384/OUT_EE1_E_BEG8 on vp1002
+                            assert (getAllDownhillPIPs().isEmpty() || // e.g. INT_X3Y383/OUT_NN1_E_BEG6 and
+                                                                      // INT_X19Y384/OUT_EE1_E_BEG8 on vp1002
                                     (ic == IntentCode.NODE_HSINGLE && getWireName().startsWith("INT_SDQ_")));
-                            // HSINGLE nodes that have a wirename INT_SDQ_* do not travel to any other
-                            // tiles but still have downhill PIPs (and thus we cannot mark as being
-                            // inaccessible without checking getAllDownhillPIPs() or getWireName())
+                            // HSINGLE nodes that have a wirename INT_SDQ_* do not travel to any
+                            // other tiles but still have downhill PIPs (and thus we cannot mark as
+                            // being inaccessible without checking getAllDownhillPIPs() or
+                            // getWireName())
                             break;
                         }
                         // Fall through
-                    case NODE_SINGLE:  // US and US+
-                        assert(!getAllDownhillPIPs().isEmpty());
+                    case NODE_SINGLE: // US and US+
+                        assert (!getAllDownhillPIPs().isEmpty());
                         if (length == 0) {
                             // U-turns and intra-tile INT_INT_SDQ_\\d+_INT_OUT[01]
                         } else {
-                            assert(length <= 2); // 2 for feedthrough e.g. WW1_W_BEG7
+                            assert (length <= 2); // 2 for feedthrough e.g. WW1_W_BEG7
                             baseCost *= length;
                             if (getBeginTileXCoordinate() != getEndTileXCoordinate()) {
                                 // Horizontal
                             } else {
                                 // Vertical
-                                assert(getBeginTileYCoordinate() != getEndTileYCoordinate());
+                                assert (getBeginTileYCoordinate() != getEndTileYCoordinate());
                             }
                         }
                         break;
                     case NODE_VDOUBLE: // Versal only
                     case NODE_HDOUBLE: // Versal only
                         if (length == 0 && getAllWiresInNode().length == 1) {
-                            // e.g. INT_X2Y382/OUT_NN2_W_BEG2 and INT_X18Y384/OUT_WW2_W_BEG4 on vp1002
-                            assert(getAllDownhillPIPs().isEmpty());
-                            // This node has no downhill PIPs, mark these as inaccessible so that it will never be queued
-                            type = (byte) RouteNodeType.INACCESSIBLE.ordinal();
+                            // e.g. INT_X2Y382/OUT_NN2_W_BEG2 and INT_X18Y384/OUT_WW2_W_BEG4 on
+                            // vp1002
+                            assert (getAllDownhillPIPs().isEmpty());
+                            // This node has no downhill PIPs, mark these as inaccessible so that it
+                            // will never be queued
+                            type = (byte)RouteNodeType.INACCESSIBLE.ordinal();
                             break;
                         }
                         // Fall through
-                    case NODE_DOUBLE:  // US and US+
+                    case NODE_DOUBLE: // US and US+
                         if (length == 0) {
                             // U-turn nodes
                             String wireName = getWireName();
                             if (series == Series.UltraScalePlus || series == Series.UltraScale) {
                                 if (wireName.charAt(0) == 'E' || wireName.charAt(0) == 'W') {
                                     // Horizontal doubles can U-turn to get length 0
-                                    assert(!enableComprehensiveAssertions || wireName.matches("(EE|WW)2_[EW]_BEG[0-7]"));
+                                    assert (!enableComprehensiveAssertions ||
+                                            wireName.matches("(EE|WW)2_[EW]_BEG[0-7]"));
                                 } else {
                                     // Two specific vertical doubles have an extra PIP
-                                    assert(!enableComprehensiveAssertions || wireName.matches("(NN|SS)2_[EW]_BEG0"));
+                                    assert (!enableComprehensiveAssertions || wireName.matches("(NN|SS)2_[EW]_BEG0"));
                                 }
                             }
-                            assert(!getAllDownhillPIPs().isEmpty());
+                            assert (!getAllDownhillPIPs().isEmpty());
                         } else {
                             if (getBeginTileXCoordinate() != getEndTileXCoordinate()) {
                                 // Horizontal
-                                assert(series != Series.UltraScalePlus || getBeginTileYCoordinate() == getEndTileYCoordinate());
+                                assert (series != Series.UltraScalePlus ||
+                                        getBeginTileYCoordinate() == getEndTileYCoordinate());
                                 if (length == 1) {
                                     // Nominally length = 1 (since tile X is not equal)
                                 } else {
-                                    // e.g. VU440's INT_X171Y827/EE2_E_BEG7 which feeds through to above
-                                    assert(series == Series.UltraScale && length == 2);
+                                    // e.g. VU440's INT_X171Y827/EE2_E_BEG7 which feeds through to
+                                    // above
+                                    assert (series == Series.UltraScale && length == 2);
                                     baseCost *= length;
                                 }
                             } else {
                                 // Vertical
-                                assert(getBeginTileYCoordinate() != getEndTileYCoordinate());
+                                assert (getBeginTileYCoordinate() != getEndTileYCoordinate());
                                 if (length == 2) {
                                     // Nominally length = 2
                                 } else if (length == 3) {
-                                    // e.g. VU440's INT_X171Y827/NN2_E_BEG7 which feeds through to above
-                                    assert(series == Series.UltraScale);
+                                    // e.g. VU440's INT_X171Y827/NN2_E_BEG7 which feeds through to
+                                    // above
+                                    assert (series == Series.UltraScale);
                                 } else {
                                     // U-turn
-                                    assert(length == 1);
+                                    assert (length == 1);
                                 }
                             }
                         }
                         break;
                     case NODE_HQUAD: // US/US+/Versal
                         if (length == 0) {
-                            // Since this node has zero length (and asserted to have no downhill PIPs)
-                            // mark it as being inacccessible so that it will never be queued
-                            assert(getAllDownhillPIPs().isEmpty());
-                            type = (byte) RouteNodeType.INACCESSIBLE.ordinal();
+                            // Since this node has zero length (and asserted to have no downhill
+                            // PIPs) mark it as being inacccessible so that it will never be queued
+                            assert (getAllDownhillPIPs().isEmpty());
+                            type = (byte)RouteNodeType.INACCESSIBLE.ordinal();
                         } else {
                             // HQUADs are nominally length 2
                             baseCost = 0.35f * length;
@@ -269,7 +278,7 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
                     case NODE_VQUAD: // US/US+/Versal
                         if (length == 0) {
                             // On Versal, INT_X1Y380/OUT_NN4_W_BEG6 on vp1002 has no downhill PIPs
-                            assert((series == Series.Versal && getAllWiresInNode().length == 1) ||
+                            assert ((series == Series.Versal && getAllWiresInNode().length == 1) ||
                                     !getAllDownhillPIPs().isEmpty());
                         } else {
                             // VQUADs are nominally length 4
@@ -283,10 +292,10 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
                         break;
                     case NODE_HLONG: // US/US+
                         if (length == 0) {
-                            // Since this node has zero length (and asserted to have no downhill PIPs)
-                            // mark it as being inacccessible so that it will never be queued
-                            assert(getAllDownhillPIPs().isEmpty());
-                            type = (byte) RouteNodeType.INACCESSIBLE.ordinal();
+                            // Since this node has zero length (and asserted to have no downhill
+                            // PIPs) mark it as being inacccessible so that it will never be queued
+                            assert (getAllDownhillPIPs().isEmpty());
+                            type = (byte)RouteNodeType.INACCESSIBLE.ordinal();
                         } else {
                             // HLONGs are nominally length 6
                             baseCost = 0.15f * length;
@@ -296,10 +305,10 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
                     case NODE_VLONG12: // Versal only
                         baseCost = 0.15f * (length == 0 ? 1 : length);
                         break;
-                    case NODE_VLONG:   // US/US+
+                    case NODE_VLONG: // US/US+
                         if (length == 0) {
                             // e.g. INT_X167Y608/SS16_BEG0 in VU440
-                            assert(!getAllDownhillPIPs().isEmpty());
+                            assert (!getAllDownhillPIPs().isEmpty());
                         } else {
                             // VLONGs are nominally length 12 in US+ and 12/16 in US
                         }
@@ -307,11 +316,11 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
                         break;
 
                     // Versal only
-                    case NODE_SDQNODE:      // INT.INT_NODE_SDQ_ATOM_*_OUT[01]
-                                            // INT.OUT_[NESW]NODE_[EW]_*
-                        assert(length == 0 ||
-                               // Feedthrough nodes to reach tiles immediately above/below
-                               (length == 1 && getWireName().matches("OUT_[NESW]NODE_[EW]_\\d+")));
+                    case NODE_SDQNODE: // INT.INT_NODE_SDQ_ATOM_*_OUT[01]
+                                       // INT.OUT_[NESW]NODE_[EW]_*
+                        assert (length == 0 ||
+                                // Feedthrough nodes to reach tiles immediately above/below
+                                (length == 1 && getWireName().matches("OUT_[NESW]NODE_[EW]_\\d+")));
                         break;
                     default:
                         throw new RuntimeException(ic.toString());
@@ -320,7 +329,7 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
             default:
                 throw new RuntimeException(getType().toString());
         }
-        assert(baseCost > 0);
+        assert (baseCost > 0);
     }
 
     /**
@@ -372,7 +381,7 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
      */
     public boolean isInConnectionBoundingBox(Connection connection) {
         return endTileXCoordinate > connection.getXMinBB() && endTileXCoordinate < connection.getXMaxBB() &&
-               endTileYCoordinate > connection.getYMinBB() && endTileYCoordinate < connection.getYMaxBB();
+            endTileYCoordinate > connection.getYMinBB() && endTileYCoordinate < connection.getYMaxBB();
     }
 
     /**
@@ -404,7 +413,7 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
      * Clears the target state on this node.
      */
     public void clearTarget() {
-        assert(isTarget);
+        assert (isTarget);
         isTarget = false;
     }
 
@@ -421,22 +430,25 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
      * @param type New RouteNodeType value.
      */
     public void setType(RouteNodeType type) {
-        assert(this.type == type.ordinal() ||
+        assert (this.type == type.ordinal() ||
                 // Support demotion from EXCLUSIVE_SINK to LOCAL since they have the same base cost
                 (RouteNodeType.isAnyExclusiveSink(this.type) && type.isAnyLocal()) ||
-                // Or promotion from LOCAL to EXCLUSIVE_SINK (by PartialRouter when NODE_PINBOUNCE on
-                // a newly unpreserved net becomes a sink)
+                // Or promotion from LOCAL to EXCLUSIVE_SINK (by PartialRouter when NODE_PINBOUNCE
+                // on a newly unpreserved net becomes a sink)
                 (RouteNodeType.isAnyLocal(this.type) && type.isAnyExclusiveSink()) ||
-                // Or promotion for any LOCAL to a LOCAL_RESERVED (by determineRoutingTargets() for uphills of CTRL
-                // sinks, before any routing)
+                // Or promotion for any LOCAL to a LOCAL_RESERVED (by determineRoutingTargets() for
+                // uphills of CTRL sinks, before any routing)
                 (RouteNodeType.isAnyLocal(this.type) && type == RouteNodeType.LOCAL_RESERVED && visited == 0) ||
-                // Or promotions to EXCLUSIVE_SINK_NON_LOCAL from NON_LOCAL (by PartialRouter.determineRoutingTargets()
-                // for the begin node of a locked path to sinks, before any routing)
-                (this.type == RouteNodeType.NON_LOCAL.ordinal() && type == RouteNodeType.EXCLUSIVE_SINK_NON_LOCAL && visited == 0) ||
-                // Or demotion from LOCAL_{EAST,WEST} for a now-unpreserved PINFEED routethru to being INACCESSIBLE
-                ((this.type == RouteNodeType.LOCAL_EAST.ordinal() || this.type == RouteNodeType.LOCAL_WEST.ordinal()) && type == RouteNodeType.INACCESSIBLE && visited == 0)
-        );
-        this.type = (byte) type.ordinal();
+                // Or promotions to EXCLUSIVE_SINK_NON_LOCAL from NON_LOCAL (by
+                // PartialRouter.determineRoutingTargets() for the begin node of a locked path to
+                // sinks, before any routing)
+                (this.type == RouteNodeType.NON_LOCAL.ordinal() && type == RouteNodeType.EXCLUSIVE_SINK_NON_LOCAL &&
+                 visited == 0) ||
+                // Or demotion from LOCAL_{EAST,WEST} for a now-unpreserved PINFEED routethru to
+                // being INACCESSIBLE
+                ((this.type == RouteNodeType.LOCAL_EAST.ordinal() || this.type == RouteNodeType.LOCAL_WEST.ordinal()) &&
+                 type == RouteNodeType.INACCESSIBLE && visited == 0));
+        this.type = (byte)type.ordinal();
     }
 
     /**
@@ -452,17 +464,18 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
         // (see RouteNodeInfo.getEndTileXCoordinate())
         Tile tile = getTile();
         return (tile.getTileTypeEnum() == TileTypeEnum.LAG_LAG) ? getEndTileXCoordinate()
-                : (short) tile.getTileXCoordinate();
+                                                                : (short)tile.getTileXCoordinate();
     }
 
     public short getBeginTileYCoordinate() {
-        return (short) getTile().getTileYCoordinate();
+        return (short)getTile().getTileYCoordinate();
     }
 
     /**
      * Gets the x coordinate of the INT {@link Tile} instance
      * that the associated {@link Node} instance stops at.
-     * @return The tileXCoordinate of the INT tile that the associated {@link Node} instance stops at.
+     * @return The tileXCoordinate of the INT tile that the associated {@link Node} instance stops
+     *     at.
      */
     public short getEndTileXCoordinate() {
         return endTileXCoordinate;
@@ -472,13 +485,13 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
      * Gets the Y coordinate of the INT {@link Tile} instance
      * that the associated {@link Node} instance stops at.
      * For bidirectional nodes, the prev member is used to determine the end node.
-     * @return The tileYCoordinate of the INT tile that the associated {@link Node} instance stops at.
+     * @return The tileYCoordinate of the INT tile that the associated {@link Node} instance stops
+     *     at.
      */
     public short getEndTileYCoordinate() {
-        boolean reverseSLL = (getType() == RouteNodeType.SUPER_LONG_LINE &&
-                prev != null &&
-                prev.endTileYCoordinate == endTileYCoordinate);
-        return reverseSLL ? (short) getTile().getTileYCoordinate() : endTileYCoordinate;
+        boolean reverseSLL = (getType() == RouteNodeType.SUPER_LONG_LINE && prev != null &&
+                              prev.endTileYCoordinate == endTileYCoordinate);
+        return reverseSLL ? (short)getTile().getTileYCoordinate() : endTileYCoordinate;
     }
 
     /**
@@ -486,7 +499,7 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
      * @return The base cost of a RouteNode Object.
      */
     public float getBaseCost() {
-        assert(getType() != RouteNodeType.EXCLUSIVE_SOURCE);
+        assert (getType() != RouteNodeType.EXCLUSIVE_SOURCE);
         return baseCost;
     }
 
@@ -518,7 +531,6 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
             routingGraph.addCreateRnodeTime(time);
         }
         return children;
-
     }
 
     /**
@@ -530,7 +542,8 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
 
     /**
      * Gets the wirelength.
-     * @return The wirelength, i.e. the number of INT tiles that the associated {@link Node} instance spans.
+     * @return The wirelength, i.e. the number of INT tiles that the associated {@link Node}
+     *     instance spans.
      */
     public short getLength() {
         return length;
@@ -569,11 +582,12 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
     }
 
     /**
-     * Gets a map that records users of a {@link RouteNode} instance based on all routed connections.
-     * Each user is a {@link NetWrapper} instance representing a {@link Net} instance.
+     * Gets a map that records users of a {@link RouteNode} instance based on all routed
+     * connections. Each user is a {@link NetWrapper} instance representing a {@link Net} instance.
      * It is often the case that multiple connections of a net are using a same rnode.
      * So we count connections of each user to facilitate the sharing mechanism of RWRoute.
-     * @return A map between users, i.e., {@link NetWrapper} instances representing by {@link Net} instances,
+     * @return A map between users, i.e., {@link NetWrapper} instances representing by {@link Net}
+     *     instances,
      *  and numbers of connections from different users.
      */
     public Map<NetWrapper, Integer> getUsersConnectionCounts() {
@@ -581,10 +595,10 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
     }
 
     /**
-     * Adds an user {@link NetWrapper} instance to the user map, of which a key is a {@link NetWrapper} instance and
-     * the value is the number of connections that are using a rnode.
-     * If the user is already stored in the map, increment the connection count of the user by 1. Otherwise, put the user
-     * into the map and initialize the connection count as 1.
+     * Adds an user {@link NetWrapper} instance to the user map, of which a key is a {@link
+     * NetWrapper} instance and the value is the number of connections that are using a rnode. If
+     * the user is already stored in the map, increment the connection count of the user by 1.
+     * Otherwise, put the user into the map and initialize the connection count as 1.
      * @param user The user net in question.
      */
     public void incrementUser(NetWrapper user) {
@@ -596,7 +610,8 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
 
     /**
      * Gets the number of unique users.
-     * @return The number of unique {@link NetWrapper} instances in the user map, i.e, the key set size of the user map.
+     * @return The number of unique {@link NetWrapper} instances in the user map, i.e, the key set
+     *     size of the user map.
      */
     public int uniqueUserCount() {
         if (usersConnectionCounts == null) {
@@ -608,12 +623,12 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
     /**
      * Decrements the connection count of a user that is represented by a
      * {@link NetWrapper} instance corresponding to a {@link Net} instance.
-     * If there is only one connection of the user that is using a RouteNode instance, remove the user from the map.
-     * Otherwise, decrement the connection count by 1.
+     * If there is only one connection of the user that is using a RouteNode instance, remove the
+     * user from the map. Otherwise, decrement the connection count by 1.
      * @param user The user to be decremented from the user map.
      */
     public void decrementUser(NetWrapper user) {
-        usersConnectionCounts.compute(user, (k,v) -> (v == 1) ? null : v - 1);
+        usersConnectionCounts.compute(user, (k, v) -> (v == 1) ? null : v - 1);
     }
 
     /**
@@ -649,7 +664,7 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
      * @param prev The driving RouteNode instance to set. Cannot be null.
      */
     public void setPrev(RouteNode prev) {
-        assert(prev != null);
+        assert (prev != null);
         this.prev = prev;
     }
 
@@ -707,7 +722,7 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
      * @param seq Integer identifier.
      */
     public void setVisited(int seq) {
-        assert(seq > 0);
+        assert (seq > 0);
         visited = seq;
     }
 
@@ -717,7 +732,7 @@ public class RouteNode extends Node implements Comparable<RouteNode> {
      * @return true, if the node is a S/D/Q/L node or a local node with a GLOBAL and CTRL wire
      */
     public static boolean isExitNode(Node node) {
-        switch(node.getIntentCode()) {
+        switch (node.getIntentCode()) {
             case NODE_SINGLE:
             case NODE_DOUBLE:
             case NODE_HQUAD:

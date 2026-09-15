@@ -34,12 +34,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.eco.ECOTools;
@@ -47,14 +41,19 @@ import com.xilinx.rapidwright.support.RapidWrightDCP;
 import com.xilinx.rapidwright.util.FileTools;
 import com.xilinx.rapidwright.util.Params;
 import com.xilinx.rapidwright.util.VivadoToolsHelper;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class TestEDIFTools {
-
     public static final String UNIQUE_SUFFIX = "TestEDIFToolsWasHere";
 
-    public static final String TEST_SRC = "base_mb_i/microblaze_0/U0/"
-            + "MicroBlaze_Core_I/Performance.Core/Data_Flow_I/Data_Flow_Logic_I/Gen_Bits[22]."
-            + "MEM_EX_Result_Inst/Using_FPGA.Native/Q";
+    public static final String TEST_SRC =
+        "base_mb_i/microblaze_0/U0/"
+        + "MicroBlaze_Core_I/Performance.Core/Data_Flow_I/Data_Flow_Logic_I/Gen_Bits[22]."
+        + "MEM_EX_Result_Inst/Using_FPGA.Native/Q";
     public static final String TEST_SNK = "u_ila_0/inst/PROBE_PIPE.shift_probes_reg[0][7]/D";
     public static final String TEST_SNK2 = "u_ila_0/inst/PROBE_PIPE.shift_probes_reg[0][8]/D";
 
@@ -78,7 +77,6 @@ public class TestEDIFTools {
 
         netlist.resetParentNetMap();
 
-
         List<EDIFHierNet> netAliases = netlist.getNetAliases(srcPortInst.getHierarchicalNet());
         Assertions.assertEquals(netAliases.size(), 16);
         boolean containsSnkNet = false;
@@ -88,7 +86,6 @@ public class TestEDIFTools {
             }
         }
         Assertions.assertTrue(containsSnkNet);
-
 
         List<EDIFHierPortInst> portInsts = netlist.getPhysicalPins(srcPortInst.getHierarchicalNet());
         Assertions.assertEquals(portInsts.size(), 6);
@@ -115,8 +112,7 @@ public class TestEDIFTools {
         }
 
         if (netToPin) {
-            EDIFTools.connectPortInstsThruHier(srcPortInst.getHierarchicalNet(), snkPortInst2,
-                    UNIQUE_SUFFIX);
+            EDIFTools.connectPortInstsThruHier(srcPortInst.getHierarchicalNet(), snkPortInst2, UNIQUE_SUFFIX);
         } else {
             EDIFTools.connectPortInstsThruHier(srcPortInst, snkPortInst2, UNIQUE_SUFFIX);
         }
@@ -138,7 +134,7 @@ public class TestEDIFTools {
         boolean includeSnks = false;
 
         // Test connecting a source in a low hierarchical cell to a unconnected net in at the root
-        //   [pin] 'bd_0_i/hls_inst/inst/add_ln180_1_reg_1471_reg[5]/Q' --> 
+        //   [pin] 'bd_0_i/hls_inst/inst/add_ln180_1_reg_1471_reg[5]/Q' -->
         //   [net] 'test_net'
         String netName = "test_net";
         d.getTopEDIFCell().createNet(netName);
@@ -153,16 +149,16 @@ public class TestEDIFTools {
         // Needed to punch a new port ...
         Assertions.assertEquals(3, pin.getNet().getPortInsts().size());
         Assertions.assertTrue(pin.getHierarchicalNet().getPortInsts().stream().anyMatch(
-                // ... upwards from the pin
-                ehpi -> ehpi.toString().equals("bd_0_i/hls_inst/inst/test_connect")
-        ));
+            // ... upwards from the pin
+            ehpi -> ehpi.toString().equals("bd_0_i/hls_inst/inst/test_connect")));
 
-
-        // Test connecting a source in a low hierarchical cell to an unconnected net in another (separate) low hierarchical cell
+        // Test connecting a source in a low hierarchical cell to an unconnected net in another
+        // (separate) low hierarchical cell
         //   [pin] 'bd_0_i/hls_inst/inst/grp_bin_dense_fu_523/ram_reg_bram_0_i_6__4/O' -->
         //   [net] 'bd_0_i/hls_inst/inst/wt_mem_V_U/top_wt_mem_V_ram_U/test_net2'
         netName = "test_net2";
-        EDIFHierCellInst targetInst = netlist.getHierCellInstFromName("bd_0_i/hls_inst/inst/wt_mem_V_U/top_wt_mem_V_ram_U");
+        EDIFHierCellInst targetInst =
+            netlist.getHierCellInstFromName("bd_0_i/hls_inst/inst/wt_mem_V_U/top_wt_mem_V_ram_U");
         targetInst.getCellType().createNet(netName);
         net = targetInst.getNet(netName);
         pin = netlist.getHierPortInstFromName("bd_0_i/hls_inst/inst/grp_bin_dense_fu_523/ram_reg_bram_0_i_6__4/O");
@@ -193,10 +189,8 @@ public class TestEDIFTools {
         // Needed to punch a new port
         Assertions.assertEquals(1, net.getNet().getPortInsts().size());
         Assertions.assertTrue(net.getPortInsts().stream().anyMatch(
-                // ... downwards from the net
-                ehpi -> ehpi.toString().equals("bd_0_i/test_connect3")
-        ));
-
+            // ... downwards from the net
+            ehpi -> ehpi.toString().equals("bd_0_i/test_connect3")));
 
         leafPins = net.getLeafHierPortInsts(includeSrcs, includeSnks);
         Assertions.assertEquals(1, leafPins.size());
@@ -205,9 +199,8 @@ public class TestEDIFTools {
         // Needed to punch a new port
         Assertions.assertEquals(2, pin.getNet().getPortInsts().size());
         Assertions.assertTrue(pin.getHierarchicalNet().getPortInsts().stream().anyMatch(
-                // ... upwards from the pin
-                ehpi -> ehpi.toString().equals("bd_0_i/hls_inst/inst/test_connect3")
-        ));
+            // ... upwards from the pin
+            ehpi -> ehpi.toString().equals("bd_0_i/hls_inst/inst/test_connect3")));
 
         // Test connecting a sink in a low hierarchical cell to an unconnected net in
         // another (separate) low hierarchical cell
@@ -225,9 +218,8 @@ public class TestEDIFTools {
         // Needed to punch a new port
         Assertions.assertEquals(1, net.getNet().getPortInsts().size());
         Assertions.assertTrue(net.getPortInsts().stream().anyMatch(
-                // ... upwards from the net
-                ehpi -> ehpi.toString().equals("bd_0_i/hls_inst/inst/wt_mem_V_U/top_wt_mem_V_ram_U/test_connect4")
-        ));
+            // ... upwards from the net
+            ehpi -> ehpi.toString().equals("bd_0_i/hls_inst/inst/wt_mem_V_U/top_wt_mem_V_ram_U/test_connect4")));
 
         leafPins = net.getLeafHierPortInsts(includeSrcs, includeSnks);
         Assertions.assertEquals(1, leafPins.size());
@@ -236,12 +228,10 @@ public class TestEDIFTools {
         // Needed to punch a new port
         Assertions.assertEquals(2, pin.getNet().getPortInsts().size());
         Assertions.assertTrue(pin.getHierarchicalNet().getPortInsts().stream().anyMatch(
-                // ... downwards from the pin
-                ehpi -> ehpi.toString().equals("bd_0_i/hls_inst/inst/wt_mem_V_U/test_connect4")
-        ));
+            // ... downwards from the pin
+            ehpi -> ehpi.toString().equals("bd_0_i/hls_inst/inst/wt_mem_V_U/test_connect4")));
     }
-    
-    
+
     @Test
     public void testCreateNewNetlist() {
         Design d = Design.readCheckpoint(RapidWrightDCP.getPath("bnn.dcp"), true);
@@ -261,13 +251,11 @@ public class TestEDIFTools {
 
     @Test
     void testRename() {
-        //This test string contains multi-byte characters. We cannot encode it directly as a string here, because
-        //source code encoding varies between platforms.
-        byte[] special = new byte[]{
-                (byte)0x65, (byte)0x6d, (byte)0x6f, (byte)0x6a, (byte)0x69, (byte)0x5f, (byte)0xf0,
-                (byte)0x9f, (byte)0x98, (byte)0x8b, (byte)0xf0, (byte)0x9f, (byte)0x8e, (byte)0x9b,
-                (byte)0xef, (byte)0xb8, (byte)0x8f
-        };
+        // This test string contains multi-byte characters. We cannot encode it directly as a string
+        // here, because source code encoding varies between platforms.
+        byte[] special = new byte[] {(byte)0x65, (byte)0x6d, (byte)0x6f, (byte)0x6a, (byte)0x69, (byte)0x5f,
+                                     (byte)0xf0, (byte)0x9f, (byte)0x98, (byte)0x8b, (byte)0xf0, (byte)0x9f,
+                                     (byte)0x8e, (byte)0x9b, (byte)0xef, (byte)0xb8, (byte)0x8f};
         String unicodeStr = new String(special, StandardCharsets.UTF_8);
         Assertions.assertEquals("emoji______", EDIFTools.makeNameEDIFCompatible(unicodeStr));
         Assertions.assertEquals("&_", EDIFTools.makeNameEDIFCompatible(" "));
@@ -296,8 +284,9 @@ public class TestEDIFTools {
         Assertions.assertTrue(EDIFTools.uniqueifyNetlist(design));
 
         for (Entry<EDIFLibrary, Map<EDIFCell, List<EDIFHierCellInst>>> e :
-                                            EDIFTools.createCellInstanceMap(netlist).entrySet()) {
-            if (e.getKey().isHDIPrimitivesLibrary()) continue;
+             EDIFTools.createCellInstanceMap(netlist).entrySet()) {
+            if (e.getKey().isHDIPrimitivesLibrary())
+                continue;
             for (Entry<EDIFCell, List<EDIFHierCellInst>> e2 : e.getValue().entrySet()) {
                 Assertions.assertEquals(e2.getValue().size(), 1);
             }
@@ -328,7 +317,8 @@ public class TestEDIFTools {
         top.createPort(portName, EDIFDirection.INPUT, 1);
         Assertions.assertEquals(portName, EDIFTools.createUniqueNet(top, portName).getName());
 
-        // Canary to check that creating a net with the same name as the root name of an existing bus net
+        // Canary to check that creating a net with the same name as the root name of an existing
+        // bus net
         // -- designating by the existence of at least one bus[\d+] -- is allowed.
         // (Even though doing so may cause Vivado an issue.)
         String busNetName = "baz";
@@ -349,18 +339,21 @@ public class TestEDIFTools {
         // Multi-bit bus port
         int busPortWidth = 16;
         String busPortBaseName = "bar";
-        String busPortName = busPortBaseName + "[" + (busPortWidth-1) + ":0]";
-        Assertions.assertEquals(busPortName, EDIFTools.createUniquePort(top, busPortName, EDIFDirection.INPUT, 16).getName());
+        String busPortName = busPortBaseName + "[" + (busPortWidth - 1) + ":0]";
+        Assertions.assertEquals(busPortName,
+                                EDIFTools.createUniquePort(top, busPortName, EDIFDirection.INPUT, 16).getName());
 
         // Check that creating a new port with the same basename as a port gets uniquified
         String slicedPortName = busPortBaseName + "[17]";
         String newPort1 = EDIFTools.createUniquePort(top, slicedPortName, EDIFDirection.INPUT, 1).getName();
         Assertions.assertNotEquals(newPort1, slicedPortName);
-        Assertions.assertTrue(newPort1.matches(Pattern.quote(slicedPortName) + "_rw_created\\d+"));
+        Assertions.assertTrue(newPort1.matches(Pattern.quote(slicedPortName) + ("_rw_"
+                                                                                + "created\\d+")));
         String newPort2 = EDIFTools.createUniquePort(top, slicedPortName, EDIFDirection.OUTPUT, 1).getName();
         Assertions.assertNotEquals(newPort2, slicedPortName);
         Assertions.assertNotEquals(newPort2, newPort1);
-        Assertions.assertTrue(newPort2.matches(Pattern.quote(slicedPortName) + "_rw_created\\d+"));
+        Assertions.assertTrue(newPort2.matches(Pattern.quote(slicedPortName) + ("_rw_"
+                                                                                + "created\\d+")));
     }
 
     @Test
@@ -379,7 +372,7 @@ public class TestEDIFTools {
      * In the provided directory, it will create 3 files: (1) <name>.dcp, (2)
      * <name>.edf, (3) dummy.edn. This is to simulate a DCP that contains encrypted
      * cells.
-     * 
+     *
      * @param dir         Destination directory to write the three files
      * @param testDCPName Name of the test DCP to read from the RapidWrightDCP
      *                    directory.
@@ -416,8 +409,7 @@ public class TestEDIFTools {
         d.writeCheckpoint(dir.resolve(dcp.getFileName()));
         Assertions.assertTrue(Files.exists(dir.resolve(edn.getFileName())));
 
-        Path tclLoadScript = dir
-                .resolve(dcp.getFileName().toString().replace(".dcp", EDIFTools.LOAD_TCL_SUFFIX));
+        Path tclLoadScript = dir.resolve(dcp.getFileName().toString().replace(".dcp", EDIFTools.LOAD_TCL_SUFFIX));
         Assertions.assertTrue(Files.exists(tclLoadScript));
 
         boolean hasDummyEDN = false;
@@ -428,7 +420,6 @@ public class TestEDIFTools {
             }
         }
         Assertions.assertTrue(hasDummyEDN);
-
     }
 
     @Test
@@ -453,8 +444,10 @@ public class TestEDIFTools {
         EDIFCell topCell = netlist.getTopCell();
 
         topCell.renamePort("dmem_i_V_ce0", EDIFTools.VIVADO_PRESERVE_PORT_INTERFACE + "test_port[0]");
-        topCell.renamePort("kh_i_V_ce0", EDIFTools.VIVADO_PRESERVE_PORT_INTERFACE + "test_port[1]");
-        topCell.renamePort("wt_i_V_ce0", EDIFTools.VIVADO_PRESERVE_PORT_INTERFACE + "test_port[2]");
+        topCell.renamePort("kh_i_V_ce0", EDIFTools.VIVADO_PRESERVE_PORT_INTERFACE + ("test_port["
+                                                                                     + "1]"));
+        topCell.renamePort("wt_i_V_ce0", EDIFTools.VIVADO_PRESERVE_PORT_INTERFACE + ("test_port["
+                                                                                     + "2]"));
 
         EDIFTools.removeVivadoBusPreventionAnnotations(design.getNetlist());
         EDIFPort testPort0 = topCell.getPort("test_port[0]");
@@ -471,8 +464,7 @@ public class TestEDIFTools {
     @SuppressWarnings("unchecked")
     @Test
     public void testWriteEDIFFilterUnrelatedEDNFiles(@TempDir Path dir)
-            throws NoSuchFieldException, SecurityException, IllegalArgumentException,
-            IllegalAccessException {
+        throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
         String name = "picoblaze_ooc_X10Y235.dcp";
         Path dcp = dir.resolve(name);
         Path edf = dir.resolve(name.replace(".dcp", ".edf"));
@@ -485,14 +477,14 @@ public class TestEDIFTools {
         FileTools.writeStringToTextFile("Fake EDIF", edn.toString());
 
         // We need to read an external EDIF in order to trigger the .edn search
-        // When provided with an external EDIF, RapidWright will look for encrypted cells in the same directory as the 
-        // .edn file, keeping a record of possible encrypted cells as it goes.  
+        // When provided with an external EDIF, RapidWright will look for encrypted cells in the
+        // same directory as the .edn file, keeping a record of possible encrypted cells as it goes.
         d = Design.readCheckpoint(dcp, edf);
 
         {
             Field encCellsList = EDIFNetlist.class.getDeclaredField("encryptedCells");
             encCellsList.setAccessible(true);
-            Assertions.assertEquals(1, ((List<String>) encCellsList.get(d.getNetlist())).size());
+            Assertions.assertEquals(1, ((List<String>)encCellsList.get(d.getNetlist())).size());
         }
 
         String outputName = "test";

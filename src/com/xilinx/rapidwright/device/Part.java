@@ -25,9 +25,10 @@
  */
 package com.xilinx.rapidwright.device;
 
-import com.xilinx.rapidwright.device.FamilyType;
 import java.util.Arrays;
 import java.util.HashSet;
+
+import com.xilinx.rapidwright.device.FamilyType;
 
 /**
  * Generated on: Thu Jun 11 14:46:47 MDT 2026
@@ -73,7 +74,10 @@ public class Part {
     /** Vivado part attribute SERIES */
     Series series;
 
-    public Part(String name, FamilyType architecture, String architectureFullName, FamilyType family, String device, String pkg, String speed, String temperatureGradeLetter, String revision, int availableIobs, int blockRams, int dsp, int flipflops, int gbTransceivers, int lutElements, int mmcm, int ultraRams, Series series) {
+    public Part(String name, FamilyType architecture, String architectureFullName, FamilyType family, String device,
+                String pkg, String speed, String temperatureGradeLetter, String revision, int availableIobs,
+                int blockRams, int dsp, int flipflops, int gbTransceivers, int lutElements, int mmcm, int ultraRams,
+                Series series) {
         this.name = name;
         this.architecture = architecture;
         this.architectureFullName = architectureFullName;
@@ -215,67 +219,31 @@ public class Part {
     private static FamilyType[] versalTypes;
     static {
         series7Types = new FamilyType[] {
-                FamilyType.AARTIX7,
-                FamilyType.AKINTEX7,
-                FamilyType.ARTIX7,
-                FamilyType.ARTIX7L,
-                FamilyType.ASPARTAN7,
-                FamilyType.AZYNQ,
-                FamilyType.KINTEX7,
-                FamilyType.KINTEX7L,
-                FamilyType.QARTIX7,
-                FamilyType.QKINTEX7,
-                FamilyType.QKINTEX7L,
-                FamilyType.QVIRTEX7,
-                FamilyType.QZYNQ,
-                FamilyType.SPARTAN7,
-                FamilyType.VIRTEX7,
-                FamilyType.ZYNQ,
+            FamilyType.AARTIX7,   FamilyType.AKINTEX7, FamilyType.ARTIX7,    FamilyType.ARTIX7L,
+            FamilyType.ASPARTAN7, FamilyType.AZYNQ,    FamilyType.KINTEX7,   FamilyType.KINTEX7L,
+            FamilyType.QARTIX7,   FamilyType.QKINTEX7, FamilyType.QKINTEX7L, FamilyType.QVIRTEX7,
+            FamilyType.QZYNQ,     FamilyType.SPARTAN7, FamilyType.VIRTEX7,   FamilyType.ZYNQ,
         };
         series7 = new HashSet<FamilyType>(Arrays.asList(series7Types));
         ultraScaleTypes = new FamilyType[] {
-                FamilyType.KINTEXU,
-                FamilyType.QKINTEXU,
-                FamilyType.QRKINTEXU,
-                FamilyType.VIRTEXU,
+            FamilyType.KINTEXU,
+            FamilyType.QKINTEXU,
+            FamilyType.QRKINTEXU,
+            FamilyType.VIRTEXU,
         };
         ultraScale = new HashSet<FamilyType>(Arrays.asList(ultraScaleTypes));
         ultraScalePlusTypes = new FamilyType[] {
-                FamilyType.AARTIXUPLUS,
-                FamilyType.ARTIXUPLUS,
-                FamilyType.ASPARTANUPLUS,
-                FamilyType.AZYNQUPLUS,
-                FamilyType.KINTEXUPLUS,
-                FamilyType.QKINTEXUPLUS,
-                FamilyType.QVIRTEXUPLUS,
-                FamilyType.QVIRTEXUPLUSHBM,
-                FamilyType.QZYNQUPLUS,
-                FamilyType.QZYNQUPLUSRFSOC,
-                FamilyType.SPARTANUPLUS,
-                FamilyType.VIRTEXUPLUS,
-                FamilyType.VIRTEXUPLUS58G,
-                FamilyType.VIRTEXUPLUSHBM,
-                FamilyType.ZYNQUPLUS,
-                FamilyType.ZYNQUPLUSRFSOC,
+            FamilyType.AARTIXUPLUS,    FamilyType.ARTIXUPLUS,      FamilyType.ASPARTANUPLUS, FamilyType.AZYNQUPLUS,
+            FamilyType.KINTEXUPLUS,    FamilyType.QKINTEXUPLUS,    FamilyType.QVIRTEXUPLUS,  FamilyType.QVIRTEXUPLUSHBM,
+            FamilyType.QZYNQUPLUS,     FamilyType.QZYNQUPLUSRFSOC, FamilyType.SPARTANUPLUS,  FamilyType.VIRTEXUPLUS,
+            FamilyType.VIRTEXUPLUS58G, FamilyType.VIRTEXUPLUSHBM,  FamilyType.ZYNQUPLUS,     FamilyType.ZYNQUPLUSRFSOC,
         };
         ultraScalePlus = new HashSet<FamilyType>(Arrays.asList(ultraScalePlusTypes));
         versalTypes = new FamilyType[] {
-                FamilyType.AVERSALAIEDGE,
-                FamilyType.QRVERSALAICORE,
-                FamilyType.QRVERSALAIEDGE,
-                FamilyType.QVERSALAICORE,
-                FamilyType.QVERSALAIEDGE,
-                FamilyType.QVERSALPREMIUM,
-                FamilyType.QVERSALPRIME,
-                FamilyType.VERSAL,
-                FamilyType.VERSALAICORE,
-                FamilyType.VERSALAIEDGE,
-                FamilyType.VERSALAIEDGE2,
-                FamilyType.VERSALHBM,
-                FamilyType.VERSALPREMIUM,
-                FamilyType.VERSALPRIME,
-                FamilyType.VERSALPRIME2,
-                FamilyType.VERSALRF,
+            FamilyType.AVERSALAIEDGE, FamilyType.QRVERSALAICORE, FamilyType.QRVERSALAIEDGE, FamilyType.QVERSALAICORE,
+            FamilyType.QVERSALAIEDGE, FamilyType.QVERSALPREMIUM, FamilyType.QVERSALPRIME,   FamilyType.VERSAL,
+            FamilyType.VERSALAICORE,  FamilyType.VERSALAIEDGE,   FamilyType.VERSALAIEDGE2,  FamilyType.VERSALHBM,
+            FamilyType.VERSALPREMIUM, FamilyType.VERSALPRIME,    FamilyType.VERSALPRIME2,   FamilyType.VERSALRF,
         };
         versal = new HashSet<FamilyType>(Arrays.asList(versalTypes));
     }
@@ -299,5 +267,4 @@ public class Part {
     public String toString() {
         return name;
     }
-
 }

@@ -41,8 +41,6 @@ import com.xilinx.rapidwright.edif.EDIFTools;
  * Created on: Aug 3, 2015
  */
 public class PrintEDIFInstances {
-
-
     public static void printEDIFInstancesToFile(EDIFNetlist ee, String fileName) {
         try {
             PrintWriter pw = new PrintWriter(fileName);
@@ -58,7 +56,6 @@ public class PrintEDIFInstances {
                     queue.add(p.getChild(i2));
                 }
             }
-
 
             pw.close();
         } catch (FileNotFoundException e) {

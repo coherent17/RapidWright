@@ -28,12 +28,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class StringEnumerator extends ArrayList<String> {
-
     private static final long serialVersionUID = 5235125492429382642L;
 
     protected final Map<String, Integer> map;
 
-    protected StringEnumerator(Map<String,Integer> map) {
+    protected StringEnumerator(Map<String, Integer> map) {
         this.map = map;
     }
 
@@ -79,7 +78,8 @@ public class StringEnumerator extends ArrayList<String> {
 
     @Override
     public String get(int index) {
-        if (size() -1 < index) return null;
+        if (size() - 1 < index)
+            return null;
         return super.get(index);
     }
 
@@ -89,4 +89,3 @@ public class StringEnumerator extends ArrayList<String> {
         map.clear();
     }
 }
-

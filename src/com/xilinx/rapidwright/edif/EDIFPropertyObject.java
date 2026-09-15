@@ -41,7 +41,6 @@ import java.util.Objects;
  * Created on: May 12, 2017
  */
 public class EDIFPropertyObject extends EDIFName {
-
     /**
      * Maximum number of entries kept in the compact array representation before
      * the backing store is promoted to a {@link HashMap}. Chosen comfortably
@@ -84,12 +83,11 @@ public class EDIFPropertyObject extends EDIFName {
     }
 
     protected EDIFPropertyObject() {
-
     }
 
     @SuppressWarnings("unchecked")
     private static HashMap<String, EDIFPropertyValue> asMap(Object d) {
-        return (HashMap<String, EDIFPropertyValue>) d;
+        return (HashMap<String, EDIFPropertyValue>)d;
     }
 
     /**
@@ -132,7 +130,7 @@ public class EDIFPropertyObject extends EDIFName {
      */
     public EDIFPropertyValue addProperty(String key, String value) {
         EDIFPropertyValue p = new EDIFPropertyValue(value, EDIFValueType.STRING);
-        return addProperty(key,p);
+        return addProperty(key, p);
     }
 
     /**
@@ -164,14 +162,15 @@ public class EDIFPropertyObject extends EDIFName {
      */
     public EDIFPropertyValue removeProperty(String key) {
         Object d = propertyData;
-        if (d == null) return null;
+        if (d == null)
+            return null;
         if (d instanceof HashMap) {
             return asMap(d).remove(key);
         }
-        Object[] a = (Object[]) d;
+        Object[] a = (Object[])d;
         for (int i = 0; i < a.length; i += 2) {
             if (a[i].equals(key)) {
-                EDIFPropertyValue old = (EDIFPropertyValue) a[i + 1];
+                EDIFPropertyValue old = (EDIFPropertyValue)a[i + 1];
                 if (a.length == 2) {
                     propertyData = null;
                 } else {
@@ -196,16 +195,16 @@ public class EDIFPropertyObject extends EDIFName {
         Objects.requireNonNull(key, "EDIF property key cannot be null");
         Object d = propertyData;
         if (d == null) {
-            propertyData = new Object[] { key, value };
+            propertyData = new Object[] {key, value};
             return null;
         }
         if (d instanceof HashMap) {
             return asMap(d).put(key, value);
         }
-        Object[] a = (Object[]) d;
+        Object[] a = (Object[])d;
         for (int i = 0; i < a.length; i += 2) {
             if (a[i].equals(key)) {
-                EDIFPropertyValue old = (EDIFPropertyValue) a[i + 1];
+                EDIFPropertyValue old = (EDIFPropertyValue)a[i + 1];
                 a[i + 1] = value;
                 return old;
             }
@@ -214,7 +213,7 @@ public class EDIFPropertyObject extends EDIFName {
         if ((a.length >> 1) >= PROMOTE_THRESHOLD) {
             HashMap<String, EDIFPropertyValue> m = new HashMap<>(a.length);
             for (int i = 0; i < a.length; i += 2) {
-                m.put((String) a[i], (EDIFPropertyValue) a[i + 1]);
+                m.put((String)a[i], (EDIFPropertyValue)a[i + 1]);
             }
             m.put(key, value);
             propertyData = m;
@@ -230,14 +229,15 @@ public class EDIFPropertyObject extends EDIFName {
 
     public EDIFPropertyValue getProperty(String key) {
         Object d = propertyData;
-        if (d == null) return null;
+        if (d == null)
+            return null;
         if (d instanceof HashMap) {
             return asMap(d).get(key);
         }
-        Object[] a = (Object[]) d;
+        Object[] a = (Object[])d;
         for (int i = 0; i < a.length; i += 2) {
             if (a[i].equals(key)) {
-                return (EDIFPropertyValue) a[i + 1];
+                return (EDIFPropertyValue)a[i + 1];
             }
         }
         return null;
@@ -249,9 +249,11 @@ public class EDIFPropertyObject extends EDIFName {
      */
     public int getPropertyCount() {
         Object d = propertyData;
-        if (d == null) return 0;
-        if (d instanceof HashMap) return asMap(d).size();
-        return ((Object[]) d).length >> 1;
+        if (d == null)
+            return 0;
+        if (d instanceof HashMap)
+            return asMap(d).size();
+        return ((Object[])d).length >> 1;
     }
 
     /**
@@ -276,16 +278,17 @@ public class EDIFPropertyObject extends EDIFName {
      */
     public Map<String, EDIFPropertyValue> createDuplicatePropertiesMap() {
         Object d = propertyData;
-        if (d == null) return null;
+        if (d == null)
+            return null;
         Map<String, EDIFPropertyValue> newMap = new HashMap<>(getPropertyCount() * 2);
         if (d instanceof HashMap) {
             for (Entry<String, EDIFPropertyValue> e : asMap(d).entrySet()) {
                 newMap.put(e.getKey(), new EDIFPropertyValue(e.getValue()));
             }
         } else {
-            Object[] a = (Object[]) d;
+            Object[] a = (Object[])d;
             for (int i = 0; i < a.length; i += 2) {
-                newMap.put((String) a[i], new EDIFPropertyValue((EDIFPropertyValue) a[i + 1]));
+                newMap.put((String)a[i], new EDIFPropertyValue((EDIFPropertyValue)a[i + 1]));
             }
         }
         return newMap;
@@ -293,15 +296,16 @@ public class EDIFPropertyObject extends EDIFName {
 
     private void copyPropertiesFrom(EDIFPropertyObject obj) {
         Object d = obj.propertyData;
-        if (d == null) return;
+        if (d == null)
+            return;
         if (d instanceof HashMap) {
             for (Entry<String, EDIFPropertyValue> e : asMap(d).entrySet()) {
                 addProperty(e.getKey(), new EDIFPropertyValue(e.getValue()));
             }
         } else {
-            Object[] a = (Object[]) d;
+            Object[] a = (Object[])d;
             for (int i = 0; i < a.length; i += 2) {
-                addProperty((String) a[i], new EDIFPropertyValue((EDIFPropertyValue) a[i + 1]));
+                addProperty((String)a[i], new EDIFPropertyValue((EDIFPropertyValue)a[i + 1]));
             }
         }
     }
@@ -330,7 +334,7 @@ public class EDIFPropertyObject extends EDIFName {
      */
     public void setPropertiesMap(Map<String, EDIFPropertyValue> properties) {
         // Passing this object's own live view is a no-op (the data is already ours).
-        if (properties instanceof EDIFPropertyMap && ((EDIFPropertyMap) properties).isViewOf(this)) {
+        if (properties instanceof EDIFPropertyMap && ((EDIFPropertyMap)properties).isViewOf(this)) {
             return;
         }
         if (properties == null || properties.isEmpty()) {
@@ -362,8 +366,10 @@ public class EDIFPropertyObject extends EDIFName {
     public static final byte[] EXPORT_CONST_OWNER_END = "\")".getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_PROP_END = ")\n".getBytes(StandardCharsets.UTF_8);
 
-    public void exportEDIFProperties(OutputStream os, byte[] indent, EDIFWriteLegalNameCache<?> cache, boolean stable) throws IOException{
-        if (propertyData == null) return;
+    public void exportEDIFProperties(OutputStream os, byte[] indent, EDIFWriteLegalNameCache<?> cache, boolean stable)
+        throws IOException {
+        if (propertyData == null)
+            return;
         for (Entry<String, EDIFPropertyValue> e : EDIFTools.sortIfStable(getPropertiesMap(), stable)) {
             try {
                 os.write(indent);

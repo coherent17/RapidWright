@@ -21,15 +21,14 @@
  *
  */
 
- package com.xilinx.rapidwright.design;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+package com.xilinx.rapidwright.design;
 
 import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.device.SiteTypeEnum;
 import com.xilinx.rapidwright.router.RouteNode;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestSitePinInst {
     // https://github.com/Xilinx/RapidWright/issues/454
@@ -100,5 +99,4 @@ public class TestSitePinInst {
 
         Assertions.assertTrue(n.removePin(spi));
     }
-
 }

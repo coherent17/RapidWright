@@ -50,20 +50,19 @@ import org.junit.jupiter.engine.config.JupiterConfiguration;
  * Only works on Linux. On other OSes it cannot detect errors and will fail silently.
  */
 public class CheckOpenFilesExtension implements BeforeTestExecutionCallback, AfterTestExecutionCallback {
-
     private String getOwnPid() {
         final RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
         String name = runtimeBean.getName();
         int atPosition = name.indexOf("@");
-        if (atPosition<=1) {
+        if (atPosition <= 1) {
             return name;
         }
-        return name.substring(0,atPosition);
+        return name.substring(0, atPosition);
     }
     private List<String> getOpenFiles() {
         final Path fdList = Paths.get("/proc/" + getOwnPid() + "/fd");
         if (!Files.exists(fdList)) {
-            //We are probably not on Linux, fail silently
+            // We are probably not on Linux, fail silently
             return Collections.emptyList();
         }
         try (final Stream<Path> list = Files.list(fdList)) {
@@ -71,32 +70,34 @@ public class CheckOpenFilesExtension implements BeforeTestExecutionCallback, Aft
             // (or may not) reflect updates to the directory that occur after returning from
             // this method.'
             return list.filter((p) -> Files.exists(p, LinkOption.NOFOLLOW_LINKS))
-                    .flatMap(p -> {
-                        try {
-                            final Path linkTarget = Files.readSymbolicLink(p);
-                            return Stream.of(linkTarget.toString());
-                        } catch (IOException e) {
-                            System.err.println("Ignoring file descriptor "+p+", could not resolve to actual file: "+e.getMessage());
-                            return Stream.empty();
-                        }})
-                    .filter(this::checkIgnore)
-                    .sorted()
-                    .collect(Collectors.toList());
+                .flatMap(p -> {
+                    try {
+                        final Path linkTarget = Files.readSymbolicLink(p);
+                        return Stream.of(linkTarget.toString());
+                    } catch (IOException e) {
+                        System.err.println("Ignoring file descriptor " + p +
+                                           ", could not resolve to actual file: " + e.getMessage());
+                        return Stream.empty();
+                    }
+                })
+                .filter(this::checkIgnore)
+                .sorted()
+                .collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     private boolean checkIgnore(String path) {
-        //Ignore Random Device
+        // Ignore Random Device
         if (path.equals("/dev/random") || path.equals("/dev/urandom")) {
             return false;
         }
-        //Socket for debugging should be ignored
+        // Socket for debugging should be ignored
         if (path.startsWith("socket:")) {
             return false;
         }
-        //Ignore JDK internals (may need to load new code during execution)
+        // Ignore JDK internals (may need to load new code during execution)
         if (path.startsWith(System.getProperty("java.home"))) {
             return false;
         }
@@ -107,7 +108,8 @@ public class CheckOpenFilesExtension implements BeforeTestExecutionCallback, Aft
         return true;
     }
 
-    private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create("com", "xilinx", "rapidwright", "checker");
+    private static final ExtensionContext.Namespace NAMESPACE =
+        ExtensionContext.Namespace.create("com", "xilinx", "rapidwright", "checker");
     private static final String OPEN_FILES = "openFiles";
 
     @Override
@@ -115,13 +117,14 @@ public class CheckOpenFilesExtension implements BeforeTestExecutionCallback, Aft
         final List<String> afterList = getOpenFiles();
         List<String> beforeList = getBeforeList(extensionContext);
 
-
         if (!beforeList.equals(afterList)) {
-            final Stream<String> newlyOpened = afterList.stream().filter(s -> !beforeList.contains(s)).map(s -> "Newly opened: " + s);
-            final Stream<String> closed = beforeList.stream().filter(s -> !afterList.contains(s)).map(s -> "Closed: " + s);
+            final Stream<String> newlyOpened =
+                afterList.stream().filter(s -> !beforeList.contains(s)).map(s -> "Newly opened: " + s);
+            final Stream<String> closed =
+                beforeList.stream().filter(s -> !afterList.contains(s)).map(s -> "Closed: " + s);
 
             final String res = Stream.concat(newlyOpened, closed)
-                    .collect(Collectors.joining("\n","List of open Files changed: \n", ""));
+                                   .collect(Collectors.joining("\n", "List of open Files changed: \n", ""));
             Assertions.fail(res);
         }
     }
@@ -138,7 +141,8 @@ public class CheckOpenFilesExtension implements BeforeTestExecutionCallback, Aft
     }
 
     public static void assertExtensionInstalled(ExtensionContext extensionContext) {
-        Assertions.assertNotNull(getBeforeList(extensionContext), "Open Files Checker Extension does not seem to be running");
+        Assertions.assertNotNull(getBeforeList(extensionContext),
+                                 "Open Files Checker Extension does not seem to be running");
     }
 
     public static class CheckOpenFilesWorkingExtension implements AfterTestExecutionCallback, ExecutionCondition {
@@ -152,10 +156,13 @@ public class CheckOpenFilesExtension implements BeforeTestExecutionCallback, Aft
             // Only run this extension (used by TestCheckOpenFilesInstalled) when extensions
             // are enabled which should be the case when invoked by through Gradle, but not
             // necessarily through an IDE
-            Optional<String> extensions = context.getConfigurationParameter(JupiterConfiguration.EXTENSIONS_AUTODETECTION_ENABLED_PROPERTY_NAME);
+            Optional<String> extensions =
+                context.getConfigurationParameter(JupiterConfiguration.EXTENSIONS_AUTODETECTION_ENABLED_PROPERTY_NAME);
             if ("true".equals(extensions.orElse("false")))
-                return ConditionEvaluationResult.enabled(JupiterConfiguration.EXTENSIONS_AUTODETECTION_ENABLED_PROPERTY_NAME + " == true");
-            return ConditionEvaluationResult.disabled(JupiterConfiguration.EXTENSIONS_AUTODETECTION_ENABLED_PROPERTY_NAME + " != true");
+                return ConditionEvaluationResult.enabled(
+                    JupiterConfiguration.EXTENSIONS_AUTODETECTION_ENABLED_PROPERTY_NAME + " == true");
+            return ConditionEvaluationResult.disabled(
+                JupiterConfiguration.EXTENSIONS_AUTODETECTION_ENABLED_PROPERTY_NAME + " != true");
         }
     }
 }

@@ -30,7 +30,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class TestModule {
-
     private static final String TEST_PART = Device.AWS_F1;
 
     private Module getAdderModule(String name, String siteOrigin) {
@@ -61,7 +60,8 @@ public class TestModule {
     public void testGetCorrespondingTile() {
         Device v80 = Device.getDevice("xcv80");
 
-        // Testing for SLL to SLL_1 special case because they have the same tile type but overlapping X,Y grids
+        // Testing for SLL to SLL_1 special case because they have the same tile type but
+        // overlapping X,Y grids
         Tile templateTile = v80.getTile("SLL_X23Y886");
         Tile originalAnchor = v80.getTile("CLE_W_CORE_X22Y886");
         Tile newAnchorTile = v80.getTile("CLE_W_CORE_X23Y900");

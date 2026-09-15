@@ -21,9 +21,6 @@
  */
 package com.xilinx.rapidwright.design.compare;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.Net;
@@ -35,20 +32,20 @@ import com.xilinx.rapidwright.device.Site;
 import com.xilinx.rapidwright.device.SitePIP;
 import com.xilinx.rapidwright.device.SiteTypeEnum;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests various design diffs using DesignComparator.
  *
  */
 public class TestDesignComparator {
-
-    private void compareDesign(int expectedTotalDiffs, int specificDiff, DesignDiffType type, 
-            DesignComparator dc, Design gold, Design test) {
+    private void compareDesign(int expectedTotalDiffs, int specificDiff, DesignDiffType type, DesignComparator dc,
+                               Design gold, Design test) {
         int diffs = dc.compareDesigns(gold, test);
         Assertions.assertEquals(expectedTotalDiffs, diffs);
         Assertions.assertEquals(specificDiff, dc.getDiffList(type).size());
     }
-
 
     @Test
     public void testDesignComparator() {
@@ -80,11 +77,11 @@ public class TestDesignComparator {
         }
 
         compareDesign(1, 1, DesignDiffType.DESIGN_PARTNAME, dc, gold, test2);
-        
+
         test2.removeSiteInst(siteInst, true);
 
         compareDesign(2, 1, DesignDiffType.SITEINST_MISSING, dc, gold, test2);
-        
+
         Site s = device.getSite("SLICE_X56Y0");
         new SiteInst(s.getName(), test2, SiteTypeEnum.SLICEL, s);
 

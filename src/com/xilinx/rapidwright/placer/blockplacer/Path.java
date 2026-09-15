@@ -39,7 +39,7 @@ import com.xilinx.rapidwright.device.Tile;
  * @author clavin
  *
  */
-public class Path extends AbstractPath<PathPort, HardMacro>{
+public class Path extends AbstractPath<PathPort, HardMacro> {
     private final String name;
 
     protected int hpwl;
@@ -74,7 +74,6 @@ public class Path extends AbstractPath<PathPort, HardMacro>{
         return maxDelay;
     }
 
-
     public void setDelay(ArrayList<Integer> estimatedDelay) {
         delay = estimatedDelay;
     }
@@ -93,17 +92,14 @@ public class Path extends AbstractPath<PathPort, HardMacro>{
     }
 
     private void rectToHpwl() {
-
-
-        int fanOutPenalty  = 1;
+        int fanOutPenalty = 1;
         if (getSize() > 30) {
             fanOutPenalty = 3;
         }
-        hpwl = current.hpwl()*fanOutPenalty*weight;
+        hpwl = current.hpwl() * fanOutPenalty * weight;
     }
 
     public void calculateHPWL() {
-
         current = new SimpleTileRectangle();
         for (PathPort port : ports) {
             current.extendTo(port.getPortTile());
@@ -116,9 +112,7 @@ public class Path extends AbstractPath<PathPort, HardMacro>{
         undoHpwl = hpwl;
     }
 
-
     public void restoreUndo() {
-
         if (undoCache == null) {
             throw new RuntimeException("No cached undo value present");
         }
@@ -154,6 +148,9 @@ public class Path extends AbstractPath<PathPort, HardMacro>{
 
     @Override
     public Set<?> getPathConnections() {
-        return getPorts().stream().map(port -> port.getBlock() + "." + port.getTemplateTile()).collect(Collectors.toSet());
+        return getPorts()
+            .stream()
+            .map(port -> port.getBlock() + "." + port.getTemplateTile())
+            .collect(Collectors.toSet());
     }
 }

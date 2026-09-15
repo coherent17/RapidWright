@@ -36,7 +36,6 @@ import com.xilinx.rapidwright.placer.blockplacer.Point;
  * Simple KMeans implementation to be used for partitioning sinks of a net.
  */
 public class KMeans {
-
     private static Point[] initializeCentroids(Collection<Point> points, int k) {
         Point[] centroids = new Point[k];
         // Randomly initialize centroids to points within the min/max range of the data
@@ -97,7 +96,7 @@ public class KMeans {
     /**
      * Given a collection of points, this will partition the point set into k
      * clusters.
-     * 
+     *
      * @param points   The set of points to partition.
      * @param k        The number of desired clusters
      * @param maxIters The maximum number of iterations to run before achieving

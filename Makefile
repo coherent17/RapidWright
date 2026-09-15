@@ -12,7 +12,7 @@ CURR_YEAR = $(shell date +%Y)
 TMP_HEADER = TMP_HEADER_TXT
 
 
-.PHONY: compile update_jars ensure_headers check_headers pre_commit enable_pre_commit_hook
+.PHONY: compile update_jars ensure_headers check_headers format check_imports pre_commit enable_pre_commit_hook
 compile: $(CLASSES)
 $(CLASSES): $(SOURCES) $(JARFILES)
 	rm -rf $(BIN)/com
@@ -70,7 +70,23 @@ check_new_line:
 
 
 
-pre_commit: check_headers check_tabs check_new_line
+pre_commit: format check_imports check_headers check_tabs check_new_line
+
+format:
+	@ which clang-format > /dev/null 2>&1 || { echo "Error: clang-format not found. Install it first."; exit 1; }
+	@ JAVA_FILES=$$(find src test -name '*.java'); \
+	if [ -z "$$JAVA_FILES" ]; then \
+		echo "No Java files found to format."; \
+	else \
+		echo "Formatting Java files with clang-format..."; \
+		echo "$$JAVA_FILES" | xargs clang-format -i; \
+		echo "Reordering JDK imports first..."; \
+		python3 scripts/java_import_sorter.py src test; \
+		echo "Formatted $$(echo "$$JAVA_FILES" | wc -l) files."; \
+	fi
+
+check_imports:
+	@ python3 scripts/java_import_sorter.py --check src test
 
 enable_pre_commit_hook:
 	@ hook_file=$$(git rev-parse --git-path hooks/pre-commit) && \
@@ -78,3 +94,5 @@ enable_pre_commit_hook:
 	echo "make pre_commit" >> $$hook_file && \
 	chmod +x $$hook_file && \
 	echo "Enabled pre-commit hook at $$hook_file"
+
+

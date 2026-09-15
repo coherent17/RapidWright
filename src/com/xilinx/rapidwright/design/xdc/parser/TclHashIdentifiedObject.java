@@ -41,8 +41,8 @@ public class TclHashIdentifiedObject {
         String customRefID = NAME_START + ReflectObject.getHashString(clazz, obj) + NAME_END;
         TclObject tclObject = ReflectObject.newInstance(interp, clazz, obj, customRefID);
         // Normally, Tcl objects are removed from internal table once no variable refers to them.
-        // We want to keep them around till the end of life of the interpreter (since a stringified reference may still exist)
-        // Therefore, increase reference count by 1
+        // We want to keep them around till the end of life of the interpreter (since a stringified
+        // reference may still exist) Therefore, increase reference count by 1
         tclObject.preserve();
         return tclObject;
     }
@@ -51,23 +51,24 @@ public class TclHashIdentifiedObject {
         int offset = 0;
         while (offset < s.length()) {
             int objStart = s.indexOf(NAME_START, offset);
-            if (objStart==-1) {
+            if (objStart == -1) {
                 outputString.accept(s.substring(offset, s.length()));
                 break;
             }
-            if (objStart>offset) {
+            if (objStart > offset) {
                 outputString.accept(s.substring(offset, objStart));
             }
             int objEnd = s.indexOf(NAME_END, objStart);
 
-            String objName = s.substring(objStart+NAME_START.length(), objEnd);
+            String objName = s.substring(objStart + NAME_START.length(), objEnd);
             Object obj = ReflectObject.findObjectByHash(interp, objName);
-            if (obj==null) {
-                throw new RuntimeException("Did not find hash identified object "+objName+". Was this mistakenly freed?");
+            if (obj == null) {
+                throw new RuntimeException("Did not find hash identified object " + objName +
+                                           ". Was this mistakenly freed?");
             }
             outputObject.accept(obj);
 
-            offset = objEnd+NAME_END.length();
+            offset = objEnd + NAME_END.length();
         }
     }
 
@@ -76,7 +77,7 @@ public class TclHashIdentifiedObject {
     }
 
     public static boolean containsStringifiedObject(TclObject[] args) {
-        return Arrays.stream(args).anyMatch(o->containsStringifiedObject(o.toString()));
+        return Arrays.stream(args).anyMatch(o -> containsStringifiedObject(o.toString()));
     }
 
     public static <T> String unpackAsString(Interp interp, String s, EdifCellLookup<T> lookup) {

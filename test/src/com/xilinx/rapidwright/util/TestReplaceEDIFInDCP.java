@@ -25,14 +25,12 @@ package com.xilinx.rapidwright.util;
 
 import java.nio.file.Path;
 
+import com.xilinx.rapidwright.design.Design;
+import com.xilinx.rapidwright.support.RapidWrightDCP;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.xilinx.rapidwright.design.Design;
-import com.xilinx.rapidwright.support.RapidWrightDCP;
-
 public class TestReplaceEDIFInDCP {
-
     @Test
     public void testReplaceEDIFInDCP(@TempDir Path tempDir) {
         Design.setAutoGenerateReadableEdif(false);
@@ -44,13 +42,13 @@ public class TestReplaceEDIFInDCP {
         Path readableDCP = tempDir.resolve("picoblaze_ooc_X10Y235.dcp");
 
         // Replace for new DCP
-        ReplaceEDIFInDCP.main(new String[] { unreadableDCP.toString(), readableEDIF.toString(), readableDCP.toString() });
+        ReplaceEDIFInDCP.main(new String[] {unreadableDCP.toString(), readableEDIF.toString(), readableDCP.toString()});
         Design.readCheckpoint(readableDCP);
 
         // Replace in-place
         Path unreadableDCPCopy = tempDir.resolve(unreadableDCP.getFileName());
         FileTools.copyFile(unreadableDCP.toString(), unreadableDCPCopy.toString());
-        ReplaceEDIFInDCP.main(new String[] { unreadableDCPCopy.toString(), readableEDIF.toString() });
+        ReplaceEDIFInDCP.main(new String[] {unreadableDCPCopy.toString(), readableEDIF.toString()});
         Design.readCheckpoint(unreadableDCPCopy);
     }
 }

@@ -31,11 +31,11 @@ import com.xilinx.rapidwright.debug.DotGraphDumper;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.ModuleImplsInst;
 
-
 /**
  * Dump a Design's {@link ModuleImplsInst} representation to a Graphviz Dot Graph
  */
-public class DotModuleImplsDumper extends DotGraphDumper<ModuleImplsInst, ImplsInstancePort, Void, ImplsPath, DotModuleImplsDumper.ModuleImplsDumpData> {
+public class DotModuleImplsDumper extends DotGraphDumper<ModuleImplsInst, ImplsInstancePort, Void, ImplsPath,
+                                                         DotModuleImplsDumper.ModuleImplsDumpData> {
     public DotModuleImplsDumper(boolean makeNetNode) {
         super(makeNetNode);
     }
@@ -49,7 +49,6 @@ public class DotModuleImplsDumper extends DotGraphDumper<ModuleImplsInst, ImplsI
     protected Stream<ModuleImplsInst> getInstances(ModuleImplsDumpData design) {
         return design.modules.stream();
     }
-
 
     @Override
     protected Stream<ImplsInstancePort.InstPort> getPorts(ModuleImplsInst instance) {
@@ -98,7 +97,9 @@ public class DotModuleImplsDumper extends DotGraphDumper<ModuleImplsInst, ImplsI
 
     @Override
     protected Stream<ImplsInstancePort> getRootPorts(ModuleImplsDumpData design) {
-        return design.paths.stream().flatMap(path->path.ports.stream()).filter(port->port instanceof ImplsInstancePort.SitePinInstPort);
+        return design.paths.stream()
+            .flatMap(path -> path.ports.stream())
+            .filter(port -> port instanceof ImplsInstancePort.SitePinInstPort);
     }
 
     @Override
@@ -114,7 +115,7 @@ public class DotModuleImplsDumper extends DotGraphDumper<ModuleImplsInst, ImplsI
     @Override
     protected ModuleImplsInst getPortInstance(ImplsInstancePort port) {
         if (port instanceof ImplsInstancePort.InstPort) {
-            return ((ImplsInstancePort.InstPort) port).getInstance();
+            return ((ImplsInstancePort.InstPort)port).getInstance();
         }
         return null;
     }
@@ -125,8 +126,8 @@ public class DotModuleImplsDumper extends DotGraphDumper<ModuleImplsInst, ImplsI
         final Collection<ImplsPath> paths;
         final Map<ModuleImplsInst, Set<ImplsPath>> modulesToPaths;
 
-
-        public ModuleImplsDumpData(Design design, Collection<ModuleImplsInst> modules, Collection<ImplsPath> paths, Map<ModuleImplsInst, Set<ImplsPath>> modulesToPaths) {
+        public ModuleImplsDumpData(Design design, Collection<ModuleImplsInst> modules, Collection<ImplsPath> paths,
+                                   Map<ModuleImplsInst, Set<ImplsPath>> modulesToPaths) {
             this.design = design;
             this.modules = modules;
             this.paths = paths;

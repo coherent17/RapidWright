@@ -28,11 +28,11 @@ import java.util.List;
 import com.xilinx.rapidwright.design.AbstractModuleInst;
 
 /**
- * Manages overlap detection inside a Block Placer. This gets called to check if a moved module overlaps any other
- * modules. It has callbacks to get notified of accepted/rejected moves.
+ * Manages overlap detection inside a Block Placer. This gets called to check if a moved module
+ * overlaps any other modules. It has callbacks to get notified of accepted/rejected moves.
  */
-public abstract class AbstractOverlapCache<PlacementT, ModuleInstT extends AbstractModuleInst<?,PlacementT,? super ModuleInstT>> {
-
+public abstract class AbstractOverlapCache<PlacementT, ModuleInstT
+                                               extends AbstractModuleInst<?, PlacementT, ? super ModuleInstT>> {
     public abstract void unplace(ModuleInstT mii);
 
     public abstract void place(ModuleInstT mii);
@@ -43,7 +43,7 @@ public abstract class AbstractOverlapCache<PlacementT, ModuleInstT extends Abstr
 
     protected void enterOverlaps(ModuleInstT mii, Collection<ModuleInstT> l, List<ModuleInstT> overlaps) {
         if (mii.getPlacement() == null) {
-            throw new RuntimeException(mii+" is not placed!");
+            throw new RuntimeException(mii + " is not placed!");
         }
         for (ModuleInstT other : l) {
             if (other == mii) {

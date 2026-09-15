@@ -40,14 +40,13 @@ import com.xilinx.rapidwright.util.MessageGenerator;
 import com.xilinx.rapidwright.util.StringTools;
 
 public class BlockUpdater {
-
     public static void runVivadoTasks(String dcpName, int implIndex) {
         ArrayList<String> tclLines = new ArrayList<>();
         tclLines.add("open_checkpoint " + dcpName);
 
-        String rootDCPName = dcpName.replace("_" + implIndex+ "_routed.dcp", ".dcp");
-        tclLines.add("generate_metadata "+rootDCPName+" false " + implIndex);
-        tclLines.add("report_timing -file route_timing"+implIndex+".twr");
+        String rootDCPName = dcpName.replace("_" + implIndex + "_routed.dcp", ".dcp");
+        tclLines.add("generate_metadata " + rootDCPName + " false " + implIndex);
+        tclLines.add("report_timing -file route_timing" + implIndex + ".twr");
 
         String dirName = new File(dcpName).getParent();
         String tclScriptName = dirName + File.separator + "run.tcl";
@@ -64,13 +63,13 @@ public class BlockUpdater {
                 e.printStackTrace();
             }
         }
-        System.out.println("Vivado run " + (j.jobWasSuccessful() ? "successful"  : "failed"));
+        System.out.println("Vivado run " + (j.jobWasSuccessful() ? "successful" : "failed"));
     }
 
     public static void main(String[] args) {
         if (args.length != 3 && args.length != 4) {
             System.out.println("USAGE: <path to cache entry> <new DCP> <implementation index> "
-                    + "[impl guide file]");
+                               + "[impl guide file]");
             return;
         }
         String cacheEntryPath = null;
@@ -78,7 +77,7 @@ public class BlockUpdater {
             cacheEntryPath = new File(args[0]).getCanonicalPath();
         } catch (IOException e1) {
             throw new RuntimeException("ERROR: The cache entry " + cacheEntryPath +
-                    " does not exist.  Cannot update an entry that has not been created yet.");
+                                       " does not exist.  Cannot update an entry that has not been created yet.");
         }
         String newDCPPath = null;
         try {
@@ -90,13 +89,13 @@ public class BlockUpdater {
 
         if (!FileTools.isVivadoOnPath()) {
             throw new RuntimeException("ERROR: Vivado executable could not be found on PATH,"
-                    + " please set environment variable accordingly.");
+                                       + " please set environment variable accordingly.");
         }
 
         // Find existing routed DCP
         File dir = new File(cacheEntryPath);
         String existingDCP = null;
-        String suffix = "_"+implementationIdx +"_routed.dcp";
+        String suffix = "_" + implementationIdx + "_routed.dcp";
         String doneFileName = null;
         int count = 0;
         for (String fileName : dir.list()) {
@@ -105,8 +104,7 @@ public class BlockUpdater {
             }
             if (fileName.endsWith(suffix)) {
                 existingDCP = fileName;
-            }
-            else if (fileName.startsWith(BlockCreator.DONE_FILE_PREFIX)) {
+            } else if (fileName.startsWith(BlockCreator.DONE_FILE_PREFIX)) {
                 doneFileName = dir + File.separator + fileName;
             }
         }
@@ -115,9 +113,9 @@ public class BlockUpdater {
         }
 
         String cacheID = StringTools.removeLastSeparator(cacheEntryPath);
-        cacheID = cacheID.substring(cacheID.lastIndexOf(File.separator)+1);
+        cacheID = cacheID.substring(cacheID.lastIndexOf(File.separator) + 1);
 
-        BlockGuide bg =  null;
+        BlockGuide bg = null;
         if (args.length == 4) {
             String implGuideFile = args[3];
             ImplGuide ig = ImplGuide.readImplGuide(implGuideFile);
@@ -127,7 +125,8 @@ public class BlockUpdater {
         // Move old file to .old
         String fullExistingDCPName = dir.getAbsolutePath() + File.separator + existingDCP;
         try {
-            Files.move(Paths.get(fullExistingDCPName), Paths.get(fullExistingDCPName + ".old"),StandardCopyOption.REPLACE_EXISTING);
+            Files.move(Paths.get(fullExistingDCPName), Paths.get(fullExistingDCPName + ".old"),
+                       StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException("ERROR: Couldn't move existing file " + fullExistingDCPName);
         }

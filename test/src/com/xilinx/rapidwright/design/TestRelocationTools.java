@@ -56,9 +56,9 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class TestRelocationTools {
-
-    private void relocateModuleInstsAndCompare(int colOffset, int rowOffset, boolean expectSuccess, Design design1, Collection<ModuleInst> moduleInsts) {
-        List<Pair<ModuleInst,Site>> newSite = new ArrayList<>();
+    private void relocateModuleInstsAndCompare(int colOffset, int rowOffset, boolean expectSuccess, Design design1,
+                                               Collection<ModuleInst> moduleInsts) {
+        List<Pair<ModuleInst, Site>> newSite = new ArrayList<>();
         for (ModuleInst mi : moduleInsts) {
             Assertions.assertTrue(mi.isPlaced());
 
@@ -75,7 +75,7 @@ public class TestRelocationTools {
         }
 
         EDIFNetlist netlist1 = design1.getNetlist();
-        for (Pair<ModuleInst,Site> e : newSite) {
+        for (Pair<ModuleInst, Site> e : newSite) {
             ModuleInst mi = e.getFirst();
             Site ds = e.getSecond();
 
@@ -140,8 +140,7 @@ public class TestRelocationTools {
         String dcpPath = RapidWrightDCP.getString("picoblaze_ooc_X10Y235.dcp");
         Design design1 = Design.readCheckpoint(dcpPath, CodePerfTracker.SILENT);
 
-        Assertions.assertEquals(RelocationTools.relocate(design1, instanceName, colOffset, rowOffset),
-                expectSuccess);
+        Assertions.assertEquals(RelocationTools.relocate(design1, instanceName, colOffset, rowOffset), expectSuccess);
 
         String metaPath = RapidWrightDCP.getString("picoblaze_ooc_X10Y235.metadata");
         if (instanceName.isEmpty()) {
@@ -156,33 +155,32 @@ public class TestRelocationTools {
     }
 
     public static Stream<Arguments> testPicoblazeOOC() {
-        return Stream.of(
-                Arguments.of("", 0, 5, true)
-                , Arguments.of("", 0, -5, true)
-                , Arguments.of("", 9, -5, true)
-                , Arguments.of("", 0, 0, true)
-                , Arguments.of("", 1, 0, false)     // Incompatible tile
-                , Arguments.of("", 0, 1, false)     // Incompatible tile
-                , Arguments.of("", -100, 0, false)  // Out of X range
-                , Arguments.of("", 0, 200, false)   // Out of Y range
-                , Arguments.of("processor", 9, 0, false) // SiteInsts contains matching and non-matching cells
+        return Stream.of(Arguments.of("", 0, 5, true), Arguments.of("", 0, -5, true), Arguments.of("", 9, -5, true),
+                         Arguments.of("", 0, 0, true), Arguments.of("", 1, 0, false) // Incompatible tile
+                         ,
+                         Arguments.of("", 0, 1, false) // Incompatible tile
+                         ,
+                         Arguments.of("", -100, 0, false) // Out of X range
+                         ,
+                         Arguments.of("", 0, 200, false) // Out of Y range
+                         ,
+                         Arguments.of("processor", 9, 0,
+                                      false) // SiteInsts contains matching and non-matching cells
         );
     }
 
-
-    private static final String Picoblaze4OOCdcp = RapidWrightDCP.getString("picoblaze4_ooc_X6Y60_X6Y65_X10Y60_X10Y65.dcp");
+    private static final String Picoblaze4OOCdcp =
+        RapidWrightDCP.getString("picoblaze4_ooc_X6Y60_X6Y65_X10Y60_X10Y65.dcp");
 
     @ParameterizedTest(name = "Relocate PicoBlaze4 OOC ''{0}'' ({1},{2})")
     @MethodSource()
     public void testPicoblaze4OOC(String instanceName, int colOffset, int rowOffset, boolean expectSuccess) {
-
         // NOTE: Picoblaze4OOC, unlike PicoblazeOOC, has already had its static nets
         //       unrouted on creation.
 
         Design design1 = Design.readCheckpoint(Picoblaze4OOCdcp, CodePerfTracker.SILENT);
 
-        Assertions.assertEquals(RelocationTools.relocate(design1, instanceName, colOffset, rowOffset),
-                expectSuccess);
+        Assertions.assertEquals(RelocationTools.relocate(design1, instanceName, colOffset, rowOffset), expectSuccess);
 
         Design design2 = Design.readCheckpoint(Picoblaze4OOCdcp, CodePerfTracker.SILENT);
         Collection<ModuleInst> moduleInsts;
@@ -198,10 +196,8 @@ public class TestRelocationTools {
     }
 
     public static Stream<Arguments> testPicoblaze4OOC() {
-        return Stream.of(
-                  Arguments.of("", 0, 5, true)
-                , Arguments.of("picoblaze_0_13", 0, 5, true)
-                , Arguments.of("picoblaze_0_12", 0, 5, false) // placement conflict
+        return Stream.of(Arguments.of("", 0, 5, true), Arguments.of("picoblaze_0_13", 0, 5, true),
+                         Arguments.of("picoblaze_0_12", 0, 5, false) // placement conflict
         );
     }
 
@@ -210,8 +206,7 @@ public class TestRelocationTools {
     public void testPicoblaze4OOC_PBlock(PBlock pblock, int colOffset, int rowOffset, boolean expectSuccess) {
         Design design1 = Design.readCheckpoint(Picoblaze4OOCdcp, CodePerfTracker.SILENT);
 
-        Assertions.assertEquals(RelocationTools.relocate(design1, pblock, colOffset, rowOffset),
-                expectSuccess);
+        Assertions.assertEquals(RelocationTools.relocate(design1, pblock, colOffset, rowOffset), expectSuccess);
 
         Design design2 = Design.readCheckpoint(Picoblaze4OOCdcp, CodePerfTracker.SILENT);
 
@@ -227,30 +222,33 @@ public class TestRelocationTools {
             }
         }
 
-        Collection<ModuleInst> moduleInsts2 = moduleInsts1.stream().map((mi) -> design2.getModuleInst(mi.getName()))
-                .collect(Collectors.toList());
+        Collection<ModuleInst> moduleInsts2 =
+            moduleInsts1.stream().map((mi) -> design2.getModuleInst(mi.getName())).collect(Collectors.toList());
         relocateModuleInstsAndCompare(colOffset, rowOffset, expectSuccess, design1, moduleInsts2);
     }
 
     public static Stream<Arguments> testPicoblaze4OOC_PBlock() {
         final String partName = Design.getPartNameFromDCP(Picoblaze4OOCdcp);
         return Stream.of(
-                  Arguments.of(new PBlock(Device.getDevice(partName), "SLICE_X8Y65:SLICE_X11Y69 RAMB18_X0Y26:RAMB18_X0Y27 RAMB36_X0Y13:RAMB36_X0Y13"),
-                        0, 5, true)
-                , Arguments.of(new PBlock(Device.getDevice(partName), "SLICE_X8Y60:SLICE_X11Y64 RAMB18_X0Y24:RAMB18_X0Y25 RAMB36_X0Y12:RAMB36_X0Y12"),
-                        0, 5, false) // placement conflict
+            Arguments.of(new PBlock(Device.getDevice(partName),
+                                    "SLICE_X8Y65:SLICE_X11Y69 RAMB18_X0Y26:RAMB18_X0Y27 RAMB36_X0Y13:RAMB36_X0Y13"),
+                         0, 5, true),
+            Arguments.of(new PBlock(Device.getDevice(partName),
+                                    "SLICE_X8Y60:SLICE_X11Y64 RAMB18_X0Y24:RAMB18_X0Y25 RAMB36_X0Y12:RAMB36_X0Y12"),
+                         0, 5,
+                         false) // placement conflict
         );
     }
 
     @ParameterizedTest(name = "Relocate MicroBlazeAndILA ''{0}'' ({1},{2})")
     @MethodSource()
-    public void testMicroBlazeAndILA(String instanceName, int colOffset, int rowOffset, boolean expectSuccess, int expectedNetsWithRoutingErrors) {
+    public void testMicroBlazeAndILA(String instanceName, int colOffset, int rowOffset, boolean expectSuccess,
+                                     int expectedNetsWithRoutingErrors) {
         String dcpPath = RapidWrightDCP.getString("microblazeAndILA_3pblocks.dcp");
 
         Design design1 = Design.readCheckpoint(dcpPath, CodePerfTracker.SILENT);
 
-        Assertions.assertEquals(RelocationTools.relocate(design1, instanceName, colOffset, rowOffset),
-                expectSuccess);
+        Assertions.assertEquals(RelocationTools.relocate(design1, instanceName, colOffset, rowOffset), expectSuccess);
 
         if (expectSuccess && FileTools.isVivadoOnPath()) {
             ReportRouteStatusResult rrs = VivadoTools.reportRouteStatus(design1);
@@ -259,13 +257,11 @@ public class TestRelocationTools {
     }
 
     public static Stream<Arguments> testMicroBlazeAndILA() {
-        return Stream.of(
-                  Arguments.of("", 0, 5, true, 0)
-                , Arguments.of("", 0, 60, true, 0)
-                , Arguments.of("base_mb_i", 0, 10, true, 26 /* unrouted pins and resource conflicts */ )
-                , Arguments.of("dbg_hub", 0, 20, true, 19 /* unrouted pins */)
-                , Arguments.of("u_ila_0", 0, 30, true, 0)
-                , Arguments.of("dbg_hub", 16, 0, false, -1) // placement conflict
+        return Stream.of(Arguments.of("", 0, 5, true, 0), Arguments.of("", 0, 60, true, 0),
+                         Arguments.of("base_mb_i", 0, 10, true, 26 /* unrouted pins and resource conflicts */),
+                         Arguments.of("dbg_hub", 0, 20, true, 19 /* unrouted pins */),
+                         Arguments.of("u_ila_0", 0, 30, true, 0),
+                         Arguments.of("dbg_hub", 16, 0, false, -1) // placement conflict
         );
     }
 
@@ -275,20 +271,20 @@ public class TestRelocationTools {
         d.getNet("clk").unroute();
         Path dcpName = dir.resolve("picoblaze_unrouted_clk.dcp");
         d.writeCheckpoint(dcpName);
-        
+
         int xOffset = 0;
         int yOffset = 5;
-        
+
         Path outputDCP = dir.resolve("output.dcp");
 
         // Smoke test for valid location report mode
-        RelocationTools.main(new String[] { dcpName.toString() });
+        RelocationTools.main(new String[] {dcpName.toString()});
 
-        RelocationTools.main(new String[] {dcpName.toString(), outputDCP.toString(), 
-                        Integer.toString(xOffset), Integer.toString(yOffset)});
-        
+        RelocationTools.main(new String[] {dcpName.toString(), outputDCP.toString(), Integer.toString(xOffset),
+                                           Integer.toString(yOffset)});
+
         Design testOutput = Design.readCheckpoint(outputDCP);
-        
+
         for (SiteInst s : d.getSiteInsts()) {
             Tile origin = s.getTile();
             Tile relocated = origin.getTileXYNeighbor(xOffset, yOffset);
@@ -303,7 +299,7 @@ public class TestRelocationTools {
     public void testGetValidRelocationOptions() {
         Design d = RapidWrightDCP.loadDCP("picoblaze_ooc_X10Y235_2022_1.dcp");
         d.getNet("clk").unroute();
-        
+
         Pair<Site, Map<Integer, Site>> relocOptions = RelocationTools.getValidRelocationOptions(d);
 
         Assertions.assertNotNull(relocOptions);

@@ -33,7 +33,6 @@ package com.xilinx.rapidwright.edif;
  * Created on: May 12, 2017
  */
 public class EDIFDesign extends EDIFPropertyObject {
-
     private EDIFCell topCell;
 
     public EDIFDesign(String name) {
@@ -41,7 +40,6 @@ public class EDIFDesign extends EDIFPropertyObject {
     }
 
     protected EDIFDesign() {
-
     }
 
     /**
@@ -57,7 +55,4 @@ public class EDIFDesign extends EDIFPropertyObject {
     public void setTopCell(EDIFCell topCell) {
         this.topCell = topCell;
     }
-
-
-
 }

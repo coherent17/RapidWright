@@ -22,13 +22,6 @@
  */
 package com.xilinx.rapidwright.debug;
 
-import com.xilinx.rapidwright.design.Cell;
-import com.xilinx.rapidwright.design.SiteInst;
-import com.xilinx.rapidwright.device.BEL;
-import com.xilinx.rapidwright.device.BELPin;
-import com.xilinx.rapidwright.device.Site;
-import com.xilinx.rapidwright.util.Pair;
-
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,11 +32,17 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.xilinx.rapidwright.design.Cell;
+import com.xilinx.rapidwright.design.SiteInst;
+import com.xilinx.rapidwright.device.BEL;
+import com.xilinx.rapidwright.device.BELPin;
+import com.xilinx.rapidwright.device.Site;
+import com.xilinx.rapidwright.util.Pair;
+
 /**
  * Dump BELs and connections from a single Site or SiteInst to a Graphviz Dot Graph
  */
-public class DotSiteDumper extends DotGraphDumper<BEL, BELPin, BELPin, List<BELPin>, SiteInst>{
-
+public class DotSiteDumper extends DotGraphDumper<BEL, BELPin, BELPin, List<BELPin>, SiteInst> {
     private static class SiteNets {
         private final List<List<BELPin>> nets;
         private final Map<BELPin, List<BELPin>> pinToNet;
@@ -57,18 +56,20 @@ public class DotSiteDumper extends DotGraphDumper<BEL, BELPin, BELPin, List<BELP
             if (!pin.isOutput()) {
                 return Stream.empty();
             }
-            final List<BELPin> net = Stream.concat(Stream.of(pin), pin.getSiteConns().stream()).collect(Collectors.toList());
+            final List<BELPin> net =
+                Stream.concat(Stream.of(pin), pin.getSiteConns().stream()).collect(Collectors.toList());
             return Stream.of(net);
         }
 
         public static SiteNets computeSiteNets(Site site) {
             final List<List<BELPin>> nets = Arrays.stream(site.getBELs())
-                    .flatMap(b -> Arrays.stream(b.getPins()))
-                    .flatMap(SiteNets::toConnections)
-                    .filter(n -> n.size() > 1)
-                    .collect(Collectors.toList());
+                                                .flatMap(b -> Arrays.stream(b.getPins()))
+                                                .flatMap(SiteNets::toConnections)
+                                                .filter(n -> n.size() > 1)
+                                                .collect(Collectors.toList());
 
-            final Map<BELPin, List<BELPin>> pinToNet = nets.stream()
+            final Map<BELPin, List<BELPin>> pinToNet =
+                nets.stream()
                     .flatMap(net -> net.stream().map(pin -> new Pair<>(pin, net)))
                     .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
             return new SiteNets(nets, pinToNet);
@@ -84,7 +85,6 @@ public class DotSiteDumper extends DotGraphDumper<BEL, BELPin, BELPin, List<BELP
     }
 
     private final Map<Site, SiteNets> netCache = new HashMap<>();
-
 
     private SiteNets getSiteInfo(Site site) {
         return netCache.computeIfAbsent(site, SiteNets::computeSiteNets);
@@ -165,7 +165,6 @@ public class DotSiteDumper extends DotGraphDumper<BEL, BELPin, BELPin, List<BELP
         return dummy;
     }
 
-
     /**
      * Dump a SiteInst to a file while filtering the cellInsts that are shown
      * @param to the target file
@@ -190,7 +189,7 @@ public class DotSiteDumper extends DotGraphDumper<BEL, BELPin, BELPin, List<BELP
      * @param siteInst the siteInst to dump
      */
     public static void dump(Path to, SiteInst siteInst) {
-        dump(to, siteInst, (BiPredicate<BEL, SiteInst>) null);
+        dump(to, siteInst, (BiPredicate<BEL, SiteInst>)null);
     }
 
     /**
@@ -217,7 +216,7 @@ public class DotSiteDumper extends DotGraphDumper<BEL, BELPin, BELPin, List<BELP
      * @param site the Site to dump
      */
     public static void dump(Path to, Site site) {
-        dump(to, site, (BiPredicate<BEL, SiteInst>) null);
+        dump(to, site, (BiPredicate<BEL, SiteInst>)null);
     }
 
     @Override

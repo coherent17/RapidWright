@@ -29,15 +29,12 @@ package com.xilinx.rapidwright.util;
 import java.io.File;
 import java.io.IOException;
 
-
-
 /**
  * A batch job to be run locally on the current host.
  *
  * Created on: Jan 26, 2018
  */
 public class LocalJob extends Job {
-
     private Process p;
 
     private static int jobCount = 0;
@@ -47,7 +44,7 @@ public class LocalJob extends Job {
      */
     @Override
     public long launchJob() {
-        Pair<String,String> launchScriptNames = createLaunchScript();
+        Pair<String, String> launchScriptNames = createLaunchScript();
 
         try {
             ProcessBuilder pb = new ProcessBuilder();
@@ -78,7 +75,6 @@ public class LocalJob extends Job {
         return p.exitValue() == 0;
     }
 
-
     public long getProcessID() {
         /* -- This technique uses reflective access to private members of protected JDK classes
          * -- and causes warnings and potentially future errors.  We will just use a running
@@ -92,13 +88,10 @@ public class LocalJob extends Job {
             } catch (Exception e) {
                 return -1;
             }
-        } else if (className.equals("java.lang.ProcessImpl") || className.equals("java.lang.Win32Process")) {
-            try {
-                Field f = p.getClass().getDeclaredField("handle");
-                f.setAccessible(true);
-                return (int)f.getLong(p);
-            } catch (Exception e) {
-                return -1;
+        } else if (className.equals("java.lang.ProcessImpl") ||
+        className.equals("java.lang.Win32Process")) { try { Field f =
+        p.getClass().getDeclaredField("handle"); f.setAccessible(true); return (int)f.getLong(p); }
+        catch (Exception e) { return -1;
             }
         }
         */

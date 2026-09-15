@@ -43,7 +43,6 @@ import com.trolltech.qt.gui.QResizeEvent;
 import com.trolltech.qt.gui.QWheelEvent;
 
 public class SchematicView extends QGraphicsView {
-
     private boolean rightPressed;
     private QPoint lastPan;
     private static final int PAN_THRESHOLD = 5;
@@ -74,12 +73,11 @@ public class SchematicView extends QGraphicsView {
      */
     private double minimumZoom() {
         QRectF sceneRect = scene() == null ? null : scene().sceneRect();
-        if (sceneRect == null || sceneRect.width() <= 0 || sceneRect.height() <= 0
-                || viewport().width() <= 0 || viewport().height() <= 0) {
+        if (sceneRect == null || sceneRect.width() <= 0 || sceneRect.height() <= 0 || viewport().width() <= 0 ||
+            viewport().height() <= 0) {
             return zoomMin;
         }
-        double fit = Math.min(viewport().width() / sceneRect.width(),
-                viewport().height() / sceneRect.height());
+        double fit = Math.min(viewport().width() / sceneRect.width(), viewport().height() / sceneRect.height());
         // Never tighter than zoomMin, so small schematics keep behaving as they always have
         return Math.min(zoomMin, fit * ZOOM_OUT_PAST_FIT);
     }
@@ -90,7 +88,7 @@ public class SchematicView extends QGraphicsView {
      */
     private void viewportChanged() {
         if (scene() instanceof SchematicScene) {
-            ((SchematicScene) scene()).viewportChanged();
+            ((SchematicScene)scene()).viewportChanged();
         }
     }
 
@@ -127,7 +125,7 @@ public class SchematicView extends QGraphicsView {
         if (event.button().equals(Qt.MouseButton.RightButton)) {
             rightPressed = false;
             setCursor(new QCursor(CursorShape.ArrowCursor));
-            
+
             // Show context menu if the mouse didn't move significantly (not panning)
             int dx = Math.abs(event.pos().x() - lastPan.x());
             int dy = Math.abs(event.pos().y() - lastPan.y());
@@ -143,13 +141,13 @@ public class SchematicView extends QGraphicsView {
      */
     private void showContextMenu(QPoint globalPos) {
         QMenu menu = new QMenu(this);
-        
+
         QAction exportSvgAction = menu.addAction("Export to SVG...");
         exportSvgAction.triggered.connect(this, "exportToSvg()");
-        
+
         QAction exportPdfAction = menu.addAction("Export to PDF...");
         exportPdfAction.triggered.connect(this, "exportToPdf()");
-        
+
         menu.exec(globalPos);
     }
 
@@ -157,8 +155,8 @@ public class SchematicView extends QGraphicsView {
      * Exports the schematic scene to an SVG file (vector graphics).
      */
     public void exportToSvg() {
-        String fileName = QFileDialog.getSaveFileName(this, "Export to SVG", "", 
-                new QFileDialog.Filter("SVG Files (*.svg)"));
+        String fileName =
+            QFileDialog.getSaveFileName(this, "Export to SVG", "", new QFileDialog.Filter("SVG Files (*.svg)"));
         if (fileName != null && !fileName.isEmpty()) {
             if (!fileName.toLowerCase().endsWith(".svg")) {
                 fileName += ".svg";
@@ -173,8 +171,8 @@ public class SchematicView extends QGraphicsView {
      * Exports the schematic scene to a PDF file.
      */
     public void exportToPdf() {
-        String fileName = QFileDialog.getSaveFileName(this, "Export to PDF", "", 
-                new QFileDialog.Filter("PDF Files (*.pdf)"));
+        String fileName =
+            QFileDialog.getSaveFileName(this, "Export to PDF", "", new QFileDialog.Filter("PDF Files (*.pdf)"));
         if (fileName != null && !fileName.isEmpty()) {
             if (!fileName.toLowerCase().endsWith(".pdf")) {
                 fileName += ".pdf";
@@ -191,7 +189,7 @@ public class SchematicView extends QGraphicsView {
      */
     private void renderWholeScene() {
         if (scene() instanceof SchematicScene) {
-            ((SchematicScene) scene()).renderAll();
+            ((SchematicScene)scene()).renderAll();
         }
     }
 
@@ -203,14 +201,14 @@ public class SchematicView extends QGraphicsView {
         if (rightPressed) {
             if (lastPan != null && !lastPan.isNull()) {
                 // Get how much we panned
-                QPointF s1 = mapToScene(new QPoint((int) lastPan.x(), (int) lastPan.y()));
-                QPointF s2 = mapToScene(new QPoint((int) event.pos().x(), (int) event.pos().y()));
+                QPointF s1 = mapToScene(new QPoint((int)lastPan.x(), (int)lastPan.y()));
+                QPointF s2 = mapToScene(new QPoint((int)event.pos().x(), (int)event.pos().y()));
                 QPointF delta = new QPointF(s1.x() - s2.x(), s1.y() - s2.y());
                 lastPan = event.pos();
                 // Scroll the scrollbars ie. do the pan
                 double zoom = this.matrix().m11();
-                this.horizontalScrollBar().setValue((int) (this.horizontalScrollBar().value() + zoom * delta.x()));
-                this.verticalScrollBar().setValue((int) (this.verticalScrollBar().value() + zoom * delta.y()));
+                this.horizontalScrollBar().setValue((int)(this.horizontalScrollBar().value() + zoom * delta.x()));
+                this.verticalScrollBar().setValue((int)(this.verticalScrollBar().value() + zoom * delta.y()));
             }
         }
         super.mouseMoveEvent(event);
@@ -243,10 +241,10 @@ public class SchematicView extends QGraphicsView {
         QPointF pointAfterScale = mapToScene(event.pos());
 
         // Get the offset of how the screen moved
-        QPointF offset = new QPointF(pointBeforeScale.x() - pointAfterScale.x(),
-                pointBeforeScale.y() - pointAfterScale.y());
-        this.horizontalScrollBar().setValue((int) (this.horizontalScrollBar().value() + zoom * offset.x()));
-        this.verticalScrollBar().setValue((int) (this.verticalScrollBar().value() + zoom * offset.y()));
+        QPointF offset =
+            new QPointF(pointBeforeScale.x() - pointAfterScale.x(), pointBeforeScale.y() - pointAfterScale.y());
+        this.horizontalScrollBar().setValue((int)(this.horizontalScrollBar().value() + zoom * offset.x()));
+        this.verticalScrollBar().setValue((int)(this.verticalScrollBar().value() + zoom * offset.y()));
         viewportChanged();
     }
 
@@ -260,7 +258,7 @@ public class SchematicView extends QGraphicsView {
         if (event.key() == Key.Key_Escape.value()) {
             // Give up on a schematic that is taking too long to lay out
             if (scene() instanceof SchematicScene) {
-                ((SchematicScene) scene()).cancelLayout();
+                ((SchematicScene)scene()).cancelLayout();
             }
             return;
         }

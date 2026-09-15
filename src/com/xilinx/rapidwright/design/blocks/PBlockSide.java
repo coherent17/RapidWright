@@ -23,9 +23,4 @@
 
 package com.xilinx.rapidwright.design.blocks;
 
-public enum PBlockSide {
-    LEFT,
-    RIGHT,
-    TOP,
-    BOTTOM
-}
+public enum PBlockSide { LEFT, RIGHT, TOP, BOTTOM }

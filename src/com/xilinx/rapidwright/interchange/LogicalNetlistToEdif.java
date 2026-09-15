@@ -28,13 +28,11 @@ import com.xilinx.rapidwright.edif.EDIFNetlist;
 import com.xilinx.rapidwright.edif.EDIFTools;
 import com.xilinx.rapidwright.tests.CodePerfTracker;
 
-
 /**
  * Example code that performs conversion from a LogicalNetlist to EDIF.
  *
  */
 public class LogicalNetlistToEdif {
-
     public static void main(String[] args) throws IOException {
         if (args.length < 1) {
             System.out.println("USAGE: <input>.netlist [<output.edif>]");
@@ -52,8 +50,7 @@ public class LogicalNetlistToEdif {
         String fname;
         if (args.length < 2) {
             fname = args[0] + ".edif";
-        }
-        else {
+        } else {
             fname = args[1];
         }
         netlist.exportEDIF(fname);

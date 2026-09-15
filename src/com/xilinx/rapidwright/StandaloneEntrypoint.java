@@ -24,16 +24,15 @@
 
 package com.xilinx.rapidwright;
 
-
-import com.xilinx.rapidwright.util.FileTools;
-import com.xilinx.rapidwright.util.Jython;
-import com.xilinx.rapidwright.util.MessageGenerator;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.security.CodeSource;
+
+import com.xilinx.rapidwright.util.FileTools;
+import com.xilinx.rapidwright.util.Jython;
+import com.xilinx.rapidwright.util.MessageGenerator;
 
 /**
  * Main entry point for the RapidWright executable stand-alone jar
@@ -48,7 +47,8 @@ public class StandaloneEntrypoint {
     public static final String HELP_OPTION_NAME = "--help";
     public static final String JUPYTER_KERNEL_FILENAME = "kernel.json";
     public static final String JUPYTER_JYTHON_KERNEL_NAME = "jython27";
-    public static final String[] RAPIDWRIGHT_OPTIONS = new String[]{CREATE_JUPYTER_KERNEL, HELP_OPTION_NAME, UNPACK_OPTION_NAME};
+    public static final String[] RAPIDWRIGHT_OPTIONS =
+        new String[] {CREATE_JUPYTER_KERNEL, HELP_OPTION_NAME, UNPACK_OPTION_NAME};
 
     private static String toWindowsPath(String linuxPath) {
         linuxPath = linuxPath.startsWith("/") ? linuxPath.substring(1) : linuxPath;
@@ -67,17 +67,18 @@ public class StandaloneEntrypoint {
             CodeSource src = StandaloneEntrypoint.class.getProtectionDomain().getCodeSource();
             if (src == null) {
                 MessageGenerator.briefError("Couldn't identify classpath for running RapidWright.  "
-                        + "Either set the CLASSPATH correctly, or modify " + f.getAbsolutePath() + " "
-                        + "to include classpath information");
+                                            + "Either set the CLASSPATH correctly, or modify " + f.getAbsolutePath() +
+                                            " "
+                                            + "to include classpath information");
             }
             bw.write("          \"-classpath\",\n");
             boolean isWindows = FileTools.isWindows();
             String location = src.getLocation().getPath();
             location = isWindows ? toWindowsPath(location) : location;
             if (location.toLowerCase().endsWith(".jar")) {
-                bw.write("          \""+location+"\",\n");
+                bw.write("          \"" + location + "\",\n");
             } else {
-                bw.write("          \""+location+ "");
+                bw.write("          \"" + location + "");
                 File binFolder = new File(location);
                 if (binFolder.isDirectory() && binFolder.getName().equals("bin")) {
                     location = binFolder.getParentFile().getAbsolutePath();
@@ -85,9 +86,12 @@ public class StandaloneEntrypoint {
                 File jarDir = new File(location + File.separator + FileTools.JARS_FOLDER_NAME);
                 if (jarDir != null && jarDir.isDirectory()) {
                     for (String jar : jarDir.list()) {
-                        if (isWindows && jar.contains("-linux64-")) continue;
-                        if (!isWindows && jar.contains("-win64-")) continue;
-                        if (jar.contains("javadoc")) continue;
+                        if (isWindows && jar.contains("-linux64-"))
+                            continue;
+                        if (!isWindows && jar.contains("-win64-"))
+                            continue;
+                        if (jar.contains("javadoc"))
+                            continue;
                         String jarPath = jarDir.getAbsolutePath() + File.separator;
                         if (isWindows) {
                             jarPath = jarPath.replace("\\", "\\\\");
@@ -95,7 +99,8 @@ public class StandaloneEntrypoint {
                         bw.write(File.pathSeparator + jarPath + jar);
                     }
                 } else {
-                    MessageGenerator.briefError("ERROR: Couldn't read "+jarDir.getAbsolutePath()+" directory, please check RapidWright installation.");
+                    MessageGenerator.briefError("ERROR: Couldn't read " + jarDir.getAbsolutePath() +
+                                                " directory, please check RapidWright installation.");
                 }
 
                 bw.write("\",\n");
@@ -109,7 +114,8 @@ public class StandaloneEntrypoint {
             bw.close();
             System.out.println("Wrote Jupyter Notebook Kernel File: '" + f.getAbsolutePath() + "'\n");
             System.out.println("You can install the RapidWright (Jython 2.7) kernel by running:");
-            System.out.println("    $ jupyter kernelspec install " + f.getAbsolutePath().replace(File.separator + JUPYTER_KERNEL_FILENAME, ""));
+            System.out.println("    $ jupyter kernelspec install " +
+                               f.getAbsolutePath().replace(File.separator + JUPYTER_KERNEL_FILENAME, ""));
             System.out.println("and list currently installed kernels with:");
             System.out.println("    $ jupyter kernelspec list");
         } catch (IOException e) {
@@ -123,14 +129,13 @@ public class StandaloneEntrypoint {
                 boolean success = FileTools.unPackSupportingJarData();
                 if (success) {
                     System.out.println("Successfully unpacked "
-                            + " RapidWright jar data to "+FileTools.getExecJarStoragePath()+". "
-                            + "To override, please set the environment variable RAPIDWRIGHT_PATH to"
-                            + " point to the desired data location.");
+                                       + " RapidWright jar data to " + FileTools.getExecJarStoragePath() + ". "
+                                       + "To override, please set the environment variable RAPIDWRIGHT_PATH to"
+                                       + " point to the desired data location.");
                     return;
-                }
-                else {
+                } else {
                     throw new RuntimeException("ERROR: Couldn't unpack ./data directory "
-                            + "from RapidWright jar.");
+                                               + "from RapidWright jar.");
                 }
             } else if (s.equals(CREATE_JUPYTER_KERNEL)) {
                 createJupyterKernelFile();
@@ -141,7 +146,6 @@ public class StandaloneEntrypoint {
                     System.out.println("\t" + option);
                 }
                 System.out.println("*** Jython --help output: ***");
-
             }
         }
 

@@ -33,14 +33,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-
 /**
  * A parent class for all task jobs types.
  *
  * Created on: Jan 26, 2018
  */
 public abstract class Job {
-
     private String command;
 
     private String runDir;
@@ -71,12 +69,11 @@ public abstract class Job {
 
     public abstract void killJob();
 
-
-    public Pair<String,String> createLaunchScript() {
+    public Pair<String, String> createLaunchScript() {
         List<String> startupScript = new ArrayList<>();
 
         String scriptExt = FileTools.isWindows() ? ".bat" : ".sh";
-        String dir = getRunDir()==null? System.getProperty("user.dir") : getRunDir();
+        String dir = getRunDir() == null ? System.getProperty("user.dir") : getRunDir();
         FileTools.makeDirs(dir);
 
         startupScript.add("cd " + dir);
@@ -86,7 +83,7 @@ public abstract class Job {
         FileTools.writeLinesToTextFile(startupScript, startupScriptName);
         new File(startupScriptName).setExecutable(true);
         String startupScriptLog = dir + File.separator + DEFAULT_SCRIPT_LOG_FILE;
-        return new Pair<String,String>(startupScriptName,startupScriptLog);
+        return new Pair<String, String>(startupScriptName, startupScriptLog);
     }
     /**
      * @return the command
@@ -94,8 +91,6 @@ public abstract class Job {
     public String getCommand() {
         return command;
     }
-
-
 
     /**
      * @param command the command to set
@@ -110,11 +105,11 @@ public abstract class Job {
      * @param memoryLimitMB maximum memory in MB
      * @param arguments command arguments as single string
      */
-    public void setRapidWrightCommand(Class<?> mainClass, int memoryLimitMB, boolean enableAssertions, String arguments) {
-        command = System.getProperty("java.home")+"/bin/java -cp "
-                + System.getProperty("java.class.path") + " -Xmx"+memoryLimitMB+"m "
-                + (enableAssertions ? "-ea " : "")
-                + mainClass.getCanonicalName()+" "+arguments;
+    public void setRapidWrightCommand(Class<?> mainClass, int memoryLimitMB, boolean enableAssertions,
+                                      String arguments) {
+        command = System.getProperty("java.home") + "/bin/java -cp " + System.getProperty("java.class.path") + " -Xmx" +
+                  memoryLimitMB + "m " + (enableAssertions ? "-ea " : "") + mainClass.getCanonicalName() + " " +
+                  arguments;
     }
 
     /**
@@ -153,7 +148,7 @@ public abstract class Job {
         String logFileName = getLogFilename();
         if (new File(logFileName).exists()) {
             ArrayList<String> lines = FileTools.getLinesFromTextFile(logFileName);
-            int start = lines.size() >= DEFAULT_LOG_LINES ? lines.size()-DEFAULT_LOG_LINES : 0;
+            int start = lines.size() >= DEFAULT_LOG_LINES ? lines.size() - DEFAULT_LOG_LINES : 0;
             return Optional.of(IntStream.range(start, lines.size()).mapToObj(lines::get).collect(Collectors.toList()));
         }
         return Optional.empty();

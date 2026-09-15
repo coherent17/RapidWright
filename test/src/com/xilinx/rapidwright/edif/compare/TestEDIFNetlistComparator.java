@@ -22,9 +22,6 @@
 
 package com.xilinx.rapidwright.edif.compare;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.edif.EDIFCell;
 import com.xilinx.rapidwright.edif.EDIFCellInst;
@@ -36,25 +33,25 @@ import com.xilinx.rapidwright.edif.EDIFPort;
 import com.xilinx.rapidwright.edif.EDIFPortInst;
 import com.xilinx.rapidwright.edif.EDIFPropertyValue;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestEDIFNetlistComparator {
-
     private void checkSingleDiffType(EDIFNetlist gold, EDIFNetlist test, EDIFDiffType type,
-            EDIFNetlistComparator comparator) {
+                                     EDIFNetlistComparator comparator) {
         int diffs = comparator.compareNetlists(gold, test);
         Assertions.assertEquals(1, diffs);
         Assertions.assertEquals(1, comparator.getDiffMap().size());
         Assertions.assertEquals(type, comparator.getDiffMap().keySet().iterator().next());
     }
 
-    private void checkNetlistMatch(EDIFNetlist gold, EDIFNetlist test,
-            EDIFNetlistComparator comparator) {
+    private void checkNetlistMatch(EDIFNetlist gold, EDIFNetlist test, EDIFNetlistComparator comparator) {
         int diffs = comparator.compareNetlists(gold, test);
         Assertions.assertEquals(0, diffs);
     }
 
-    private void checkSinglePropertyType(EDIFNetlist gold, EDIFNetlist test,
-            EDIFNetlistComparator comparator, String expectedKey) {
+    private void checkSinglePropertyType(EDIFNetlist gold, EDIFNetlist test, EDIFNetlistComparator comparator,
+                                         String expectedKey) {
         int diffs = comparator.compareNetlists(gold, test);
         Assertions.assertEquals(1, diffs);
         Assertions.assertEquals(1, comparator.getDiffMap().size());
@@ -64,11 +61,11 @@ public class TestEDIFNetlistComparator {
         Assertions.assertEquals(expectedKey, diff.getPropertyKey());
     }
 
-    private void checkSingleCellName(EDIFNetlist gold, EDIFNetlist test,
-            EDIFNetlistComparator comparator, String expectedCellName) {
+    private void checkSingleCellName(EDIFNetlist gold, EDIFNetlist test, EDIFNetlistComparator comparator,
+                                     String expectedCellName) {
         int diffs = comparator.compareNetlists(gold, test);
         Assertions.assertEquals(1, diffs);
-    
+
         EDIFDiff diff = comparator.getDiffMap().values().iterator().next().get(0);
         Assertions.assertNotNull(diff.getSourceInst());
         Assertions.assertEquals(expectedCellName, diff.getSourceInst().getName());
@@ -87,7 +84,8 @@ public class TestEDIFNetlistComparator {
         checkNetlistMatch(gold, test, comparator);
 
         EDIFHierPortInst portInst = test.getHierPortInstFromName(
-                "processor/data_path_loop[0].lsb_arith_logical.arith_logical_muxcy_CARRY4_CARRY8_LUT6CY_0/I4");
+            "processor/"
+            + "data_path_loop[0].lsb_arith_logical.arith_logical_muxcy_CARRY4_CARRY8_LUT6CY_0/I4");
         EDIFNet net = portInst.getNet();
         net.removePortInst(portInst.getPortInst());
         checkSingleDiffType(gold, test, EDIFDiffType.NET_PORT_INST_MISSING, comparator);
@@ -131,8 +129,7 @@ public class TestEDIFNetlistComparator {
         testTop.addCellInst(inst);
         checkNetlistMatch(gold, test, comparator);
 
-        EDIFCellInst extraInst = test.getHDIPrimitivesLibrary().getCell("LUT6")
-                .createCellInst("extraLUTInst", testTop);
+        EDIFCellInst extraInst = test.getHDIPrimitivesLibrary().getCell("LUT6").createCellInst("extraLUTInst", testTop);
         checkSingleDiffType(gold, test, EDIFDiffType.INST_EXTRA, comparator);
 
         testTop.removeCellInst(extraInst);
@@ -183,5 +180,4 @@ public class TestEDIFNetlistComparator {
         comparator.filterVivadoChanges = true;
         checkNetlistMatch(gold, test, comparator);
     }
-
 }

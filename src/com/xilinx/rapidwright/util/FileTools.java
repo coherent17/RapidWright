@@ -73,8 +73,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
-import org.apache.commons.io.input.ProxyInputStream;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
@@ -89,18 +87,18 @@ import com.xilinx.rapidwright.device.Part;
 import com.xilinx.rapidwright.device.PartNameTools;
 import com.xilinx.rapidwright.router.RouteThruHelper;
 import com.xilinx.rapidwright.timing.TimingModel;
+import org.apache.commons.io.input.ProxyInputStream;
 
 /**
- * This class is specifically written to allow for efficient file import/export of different semi-primitive
- * data types and structures.  The read and write functions of this class are only guaranteed to work with
- * those specified in this class and none else.  The goal of this class is to load faster than Serialized
- * Java and produce smaller files as well.
+ * This class is specifically written to allow for efficient file import/export of different
+ * semi-primitive data types and structures.  The read and write functions of this class are only
+ * guaranteed to work with those specified in this class and none else.  The goal of this class is
+ * to load faster than Serialized Java and produce smaller files as well.
  *
  * @author Chris Lavin
  * Created on: Apr 22, 2010
  */
 public class FileTools {
-
     /** Environment Variable Name which points to the RapidWright project on disk */
     public static final String RAPIDWRIGHT_VARIABLE_NAME = "RAPIDWRIGHT_PATH";
     /** Suffix of the device part files */
@@ -119,23 +117,28 @@ public class FileTools {
     public static final String PYTHON_FOLDER_NAME = "python";
     /** Folder where device files are kept */
     public static final String DEVICE_FOLDER_NAME = DATA_FOLDER_NAME + File.separator + "devices";
-    /** File name of the UnisimManager initialization data file (replaced HDI_PRIMITIVES_FILE_NAME and VALID_CELL_PLACEMENTS_FILE_NAME) */
+    /**
+     * File name of the UnisimManager initialization data file (replaced HDI_PRIMITIVES_FILE_NAME
+     * and VALID_CELL_PLACEMENTS_FILE_NAME)
+     */
     public static final String UNISIM_DATA_FILE_NAME = DATA_FOLDER_NAME + File.separator + "unisim_data.dat";
     /** File name created from Vivado for all supported parts for RapidWright */
     public static final String PART_DUMP_FILE_NAME = DATA_FOLDER_NAME + File.separator + "partdump.csv";
     /** Location of the main parts database file */
     public static final String PART_DB_PATH = DATA_FOLDER_NAME + File.separator + "parts.db";
     /** Location of the cell pins default data file */
-    public static final String CELL_PIN_DEFAULTS_FILE_NAME = DATA_FOLDER_NAME + File.separator + "cell_pin_defaults.dat";
+    public static final String CELL_PIN_DEFAULTS_FILE_NAME =
+        DATA_FOLDER_NAME + File.separator + "cell_pin_defaults.dat";
     /** Location of the Versal VDISTR Tree paths for clock routing */
-    public static final String VERSAL_VDISTR_TREES_FILE_NAME = DATA_FOLDER_NAME + File.separator + "versal_vdistr_trees.dat";
+    public static final String VERSAL_VDISTR_TREES_FILE_NAME =
+        DATA_FOLDER_NAME + File.separator + "versal_vdistr_trees.dat";
     /** Location of cached routethru helper files */
     public static final String ROUTETHRU_FOLDER_NAME = DATA_FOLDER_NAME + File.separator + "routeThrus";
     /** Common instance of the Kryo class for serialization purposes */
     private static Kryo kryo;
     /** Supporting data folders packed in standalone jars of RapidWright */
-    public static final String[] UNPACK_FOLDERS = new String[]{DATA_FOLDER_NAME, TCL_FOLDER_NAME,
-            IMAGES_FOLDER_NAME, TimingModel.TIMING_DATA_DIR};
+    public static final String[] UNPACK_FOLDERS =
+        new String[] {DATA_FOLDER_NAME, TCL_FOLDER_NAME, IMAGES_FOLDER_NAME, TimingModel.TIMING_DATA_DIR};
     /** Static empty array to save on memory */
     public static int[] emptyIntArray = new int[0];
     /** Static empty array to save on memory */
@@ -175,15 +178,13 @@ public class FileTools {
         }
     }
 
-
-
     //===================================================================================//
     /* Get Streams                                                                       */
     //===================================================================================//
     /**
      * Creates a Kryo output stream that instantiates a Zstandard compression stream
      * to an output file.
-     * 
+     *
      * @param fileName Name of the file to target.
      * @return The created kryo-zstd output file stream.
      */
@@ -194,7 +195,7 @@ public class FileTools {
     /**
      * Creates a Kryo output stream that instantiates a Zstandard compression stream
      * from an output stream.
-     * 
+     *
      * @param os The existing output stream to wrap.
      * @return The created kryo-zstd output file stream.
      */
@@ -204,7 +205,7 @@ public class FileTools {
 
     /**
      * Creates a Zstandard compression stream to an output file.
-     * 
+     *
      * @param fileName Name of the file to target.
      * @return The created zstd output file stream.
      */
@@ -218,7 +219,7 @@ public class FileTools {
 
     /**
      * Wraps the provided output stream with a Zstandard compression stream.
-     * 
+     *
      * @param os The existing output stream.
      * @return The new output stream that will use Zstandard compression.
      */
@@ -233,7 +234,7 @@ public class FileTools {
     /**
      * Creates a Kryo output stream that instantiates a gzip compression stream to
      * an output file.
-     * 
+     *
      * @param fileName Name of the file to target.
      * @return The created kryo-gzip output file stream.
      */
@@ -248,7 +249,7 @@ public class FileTools {
     /**
      * Creates a Kryo output stream that instantiates a gzip compression stream to
      * an output stream.
-     * 
+     *
      * @param os The output stream to wrap.
      * @return The created kryo-gzip output file stream.
      */
@@ -259,19 +260,18 @@ public class FileTools {
     /**
      * Wraps the provided output stream with a kryo stream. Will call
      * {@link #useUnsafeStreams()} to decide on using unsafe or not.
-     * 
+     *
      * @param os The output stream to wrap.
      * @return The created kryo stream.
      */
     public static Output getKryoOutputStreamWithoutDeflater(OutputStream os) {
-        return useUnsafeStreams() ? new UnsafeOutput(os)
-                                  : new Output(os);
+        return useUnsafeStreams() ? new UnsafeOutput(os) : new Output(os);
     }
 
     /**
      * Creates a Kryo input stream from decompressing Zstandard compressed input
      * file.
-     * 
+     *
      * @param fileName Name of the file to read from.
      * @return The created kryo-zstd input file stream.
      */
@@ -282,7 +282,7 @@ public class FileTools {
     /**
      * Creates a Kryo input stream from decompressing a Zstandard compressed input
      * stream.
-     * 
+     *
      * @param input The input stream to read from.
      * @return The created kryo-zstd input file stream.
      */
@@ -296,7 +296,7 @@ public class FileTools {
 
     /**
      * Creates an input stream that decompresses a Zstandard compressed input file.
-     * 
+     *
      * @param fileName Name of the file to read from.
      * @return The created zstd input file stream.
      */
@@ -310,7 +310,7 @@ public class FileTools {
 
     /**
      * Creates a Kryo input stream that decompresses a gzip compressed input file.
-     * 
+     *
      * @param fileName Name of the file read from.
      * @return The created kryo-gzip input file stream.
      */
@@ -324,7 +324,7 @@ public class FileTools {
 
     /**
      * Creates a Kryo input stream that decompresses a gzip compressed input stream.
-     * 
+     *
      * @param is The gzip compressed input stream to read from.
      * @return The created kryo-gzip input file stream.
      */
@@ -335,13 +335,12 @@ public class FileTools {
     /**
      * Wraps the provided input stream with a kryo stream. Will call
      * {@link #useUnsafeStreams()} to decide on using unsafe or not.
-     * 
+     *
      * @param in The input stream to wrap.
      * @return The created kryo stream.
      */
     public static Input getKryoInputStreamWithoutInflater(InputStream in) {
-        return useUnsafeStreams() ? new UnsafeInput(in)
-                                  : new Input(in);
+        return useUnsafeStreams() ? new UnsafeInput(in) : new Input(in);
     }
 
     /**
@@ -359,15 +358,12 @@ public class FileTools {
         pis.read(magic);
         pis.unread(magic);
         is = pis;
-        if (Byte.toUnsignedInt(magic[3]) == 0xfd &&
-                Byte.toUnsignedInt(magic[2]) == 0x2f &&
-                Byte.toUnsignedInt(magic[1]) == 0xb5 &&
-                Byte.toUnsignedInt(magic[0]) == 0x28) {
+        if (Byte.toUnsignedInt(magic[3]) == 0xfd && Byte.toUnsignedInt(magic[2]) == 0x2f &&
+            Byte.toUnsignedInt(magic[1]) == 0xb5 && Byte.toUnsignedInt(magic[0]) == 0x28) {
             is = new ZstdInputStream(is);
         }
         return new BufferedInputStream(is);
     }
-
 
     /**
      * Checks if Kryo Unsafe Streams can/should be used.  They provide a performance advantage
@@ -417,11 +413,9 @@ public class FileTools {
             } else {
                 in = new BufferedReader(new FileReader(fileName));
             }
-        }
-        catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             throw new UncheckedIOException("ERROR: Could not find file: " + fileName, e);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new UncheckedIOException("ERROR: Problem reading file: " + fileName, e);
         }
 
@@ -444,11 +438,9 @@ public class FileTools {
             } else {
                 out = new BufferedWriter(new FileWriter(fileName));
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
-
 
         return out;
     }
@@ -456,23 +448,23 @@ public class FileTools {
     //===================================================================================//
     /* Custom Read/Write File Functions for Device/WireEnumeration Class                 */
     //===================================================================================//
-    public static HashMap<String,Integer> readHashMap(Input dis, Integer[] allInts) {
+    public static HashMap<String, Integer> readHashMap(Input dis, Integer[] allInts) {
         int count;
-        HashMap<String,Integer> tileMap = null;
+        HashMap<String, Integer> tileMap = null;
         String[] keys;
         count = dis.readInt();
-        tileMap = new HashMap<String,Integer>(count);
+        tileMap = new HashMap<String, Integer>(count);
         keys = new String[count];
         for (int i = 0; i < keys.length; i++) {
             keys[i] = dis.readString();
         }
-        for (int i=0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             tileMap.put(keys[i], allInts[dis.readInt()]);
         }
         return tileMap;
     }
 
-    public static boolean writeHashMap(Output dos, HashMap<String,Integer> map) {
+    public static boolean writeHashMap(Output dos, HashMap<String, Integer> map) {
         int size = map.size();
         dos.writeInt(size);
         ArrayList<Integer> values = new ArrayList<Integer>(map.size());
@@ -488,7 +480,7 @@ public class FileTools {
 
     public static boolean writeStringArray(Output dos, String[] stringArray) {
         dos.writeInt(stringArray.length);
-        for (int i=0; i<stringArray.length; i++) {
+        for (int i = 0; i < stringArray.length; i++) {
             dos.writeString(stringArray[i]);
         }
         return true;
@@ -530,13 +522,15 @@ public class FileTools {
 
     public static int[] readIntArray(Input dis) {
         int length = dis.readInt();
-        if (length == 0) return emptyIntArray;
+        if (length == 0)
+            return emptyIntArray;
         return dis.readInts(length);
     }
 
     public static short[] readShortArray(Input dis) {
         int length = dis.readShort();
-        if (length == 0) return emptyShortArray;
+        if (length == 0)
+            return emptyShortArray;
         return dis.readShorts(length);
     }
 
@@ -574,26 +568,22 @@ public class FileTools {
         File inputFile = new File(fileName);
 
         try (FileInputStream fis = new FileInputStream(inputFile);
-            BufferedInputStream bis = new BufferedInputStream(fis);
-            ObjectInputStream ois  = new ObjectInputStream(bis)) {
+             BufferedInputStream bis = new BufferedInputStream(fis);
+             ObjectInputStream ois = new ObjectInputStream(bis)) {
             return ois.readObject();
-        }
-        catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             MessageGenerator.briefError("Could not open file: " + fileName + " , does it exist?");
 
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             MessageGenerator.briefError("Trouble reading from file: " + fileName);
 
-        }
-        catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             MessageGenerator.briefError("Improper file found: ");
 
-        }
-        catch (OutOfMemoryError e) {
-            MessageGenerator.briefError("The JVM ran out of memory trying to load the object in " +
-                fileName + ". Try using the JVM switch to increase the heap space (" +
-                        "ex: java -Xmx1600M).");
+        } catch (OutOfMemoryError e) {
+            MessageGenerator.briefError("The JVM ran out of memory trying to load the object in " + fileName +
+                                        ". Try using the JVM switch to increase the heap space ("
+                                        + "ex: java -Xmx1600M).");
         }
         return null;
     }
@@ -607,8 +597,8 @@ public class FileTools {
     public static boolean saveToFile(Object o, String fileName) {
         File objectFile = new File(fileName);
         try (FileOutputStream fos = new FileOutputStream(objectFile);
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
-            ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+             BufferedOutputStream bos = new BufferedOutputStream(fos);
+             ObjectOutputStream oos = new ObjectOutputStream(bos)) {
             oos.writeObject(o);
             return true;
         } catch (IOException e) {
@@ -624,15 +614,12 @@ public class FileTools {
      */
     public static void writeLinesToTextFile(List<String> lines, String fileName) {
         String nl = System.getProperty("line.separator");
-        try (FileWriter fw = new FileWriter(fileName);
-            BufferedWriter bw = new BufferedWriter(fw)) {
+        try (FileWriter fw = new FileWriter(fileName); BufferedWriter bw = new BufferedWriter(fw)) {
             for (String line : lines) {
                 bw.write(line + nl);
             }
-        }
-        catch (IOException e) {
-            throw new UncheckedIOException("Error writing file: " +
-                fileName + File.separator + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Error writing file: " + fileName + File.separator + e.getMessage(), e);
         }
     }
 
@@ -643,13 +630,10 @@ public class FileTools {
      */
     public static void writeStringToTextFile(String text, String fileName) {
         String nl = System.getProperty("line.separator");
-        try (FileWriter fw = new FileWriter(fileName);
-            BufferedWriter bw = new BufferedWriter(fw)) {
+        try (FileWriter fw = new FileWriter(fileName); BufferedWriter bw = new BufferedWriter(fw)) {
             bw.write(text + nl);
-        }
-        catch (IOException e) {
-            throw new UncheckedIOException("Error writing file: " +
-                fileName + File.separator + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Error writing file: " + fileName + File.separator + e.getMessage(), e);
         }
     }
 
@@ -664,16 +648,13 @@ public class FileTools {
         String line;
 
         ArrayList<String> lines = new ArrayList<String>();
-        try (FileReader fr = new FileReader(fileName);
-            BufferedReader br = new BufferedReader(fr)) {
+        try (FileReader fr = new FileReader(fileName); BufferedReader br = new BufferedReader(fr)) {
             while ((line = br.readLine()) != null) {
                 lines.add(line);
             }
-        }
-        catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             throw new UncheckedIOException("ERROR: Could not find file: " + fileName, e);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new UncheckedIOException("ERROR: Could not read from file: " + fileName, e);
         }
 
@@ -688,13 +669,14 @@ public class FileTools {
      * to n lines in the file, it returns all lines in the file.
      */
     public static List<String> getLastNLinesFromTextFile(String fileName, int n) {
-        if (n <= 0) return Collections.emptyList();
+        if (n <= 0)
+            return Collections.emptyList();
         ArrayList<String> lines = getLinesFromTextFile(fileName);
         if (lines.size() <= n) {
             return lines;
         }
         ArrayList<String> toReturn = new ArrayList<>();
-        for (int i=(lines.size()-(n+1)); i < lines.size(); i++) {
+        for (int i = (lines.size() - (n + 1)); i < lines.size(); i++) {
             toReturn.add(lines.get(i));
         }
         return toReturn;
@@ -728,8 +710,7 @@ public class FileTools {
         int endIndex = fileName.lastIndexOf('.');
         if (endIndex != -1) {
             return fileName.substring(0, endIndex);
-        }
-        else {
+        } else {
             return fileName;
         }
     }
@@ -781,22 +762,20 @@ public class FileTools {
         }
 
         if (!f.canWrite())
-          throw new IllegalArgumentException("Delete: write protected: "
-              + fileName);
+            throw new IllegalArgumentException("Delete: write protected: " + fileName);
 
         // If it is a directory, make sure it is empty
         if (f.isDirectory()) {
-          String[] files = f.list();
-          if (files.length > 0)
-            throw new IllegalArgumentException(
-                "Delete: directory not empty: " + fileName);
+            String[] files = f.list();
+            if (files.length > 0)
+                throw new IllegalArgumentException("Delete: directory not empty: " + fileName);
         }
 
         // Attempt to delete it
         boolean success = f.delete();
 
         if (!success)
-          throw new IllegalArgumentException("Delete: deletion failed");
+            throw new IllegalArgumentException("Delete: deletion failed");
 
         return success;
     }
@@ -816,15 +795,13 @@ public class FileTools {
                         if (!deleteFolder(file.getCanonicalPath())) {
                             return false;
                         }
-                    }
-                    else {
+                    } else {
                         if (!deleteFile(file.getCanonicalPath())) {
                             return false;
                         }
                     }
                 }
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 return false;
             }
             return true;
@@ -846,7 +823,7 @@ public class FileTools {
             return false;
         }
 
-        for (File i: f.listFiles()) {
+        for (File i : f.listFiles()) {
             if (i.isDirectory()) {
                 deleteFolder(i.getAbsolutePath());
             } else if (i.isFile()) {
@@ -864,30 +841,26 @@ public class FileTools {
     }
 
     /**
-     * Copies a file from one location (src) to another (dst).  This implementation uses the java.nio
-     * channels (because supposedly it is faster).
+     * Copies a file from one location (src) to another (dst).  This implementation uses the
+     * java.nio channels (because supposedly it is faster).
      * @param src Source file to read from
      * @param dst Destination file to write to
      * @return True if operation was successful, false otherwise.
      */
     public static boolean copyFile(String src, String dst) {
         File srcFile = new File(src);
-        try (FileInputStream fis = new FileInputStream(srcFile);
-            FileChannel inChannel = fis.getChannel()) {
+        try (FileInputStream fis = new FileInputStream(srcFile); FileChannel inChannel = fis.getChannel()) {
             if (new File(dst).isDirectory()) {
                 dst = dst + File.separator + srcFile.getName();
             }
-            try (FileOutputStream fos = new FileOutputStream(dst);
-                FileChannel outChannel = fos.getChannel()) {
+            try (FileOutputStream fos = new FileOutputStream(dst); FileChannel outChannel = fos.getChannel()) {
                 inChannel.transferTo(0, inChannel.size(), outChannel);
             }
-        }
-        catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
             MessageGenerator.briefError("ERROR could not find/access file(s): " + src + " and/or " + dst);
             return false;
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             MessageGenerator.briefError("ERROR copying file: " + src + " to " + dst);
             return false;
         }
@@ -912,16 +885,15 @@ public class FileTools {
             }
             for (File file : srcDirectory.listFiles()) {
                 if (!file.isDirectory()) {
-                    if (!copyFile(file.getAbsolutePath(), dstDirectory.getAbsolutePath() + File.separator + file.getName())) {
+                    if (!copyFile(file.getAbsolutePath(),
+                                  dstDirectory.getAbsolutePath() + File.separator + file.getName())) {
                         return false;
                     }
-                }
-                else if (file.isDirectory() && recursive) {
+                } else if (file.isDirectory() && recursive) {
                     if (!copyFolder(file.getAbsolutePath(), dstDirectory.getAbsolutePath(), true)) {
                         return false;
                     }
                 }
-
             }
             return true;
         }
@@ -930,9 +902,9 @@ public class FileTools {
     }
 
     /**
-     * Copies the folder contents of the folder specified by src to folder specified as dst.  It will
-     * copy all files in it to the new location.  If the recursive
-     * flag is set, it will copy everything recursively in the folder src to dst.
+     * Copies the folder contents of the folder specified by src to folder specified as dst.  It
+     * will copy all files in it to the new location.  If the recursive flag is set, it will copy
+     * everything recursively in the folder src to dst.
      * @param src The source folder to copy.
      * @param dst The location of where the copy of the contents of src will be located.
      * @param recursive A flag indicating if sub folders and their contents should be
@@ -944,18 +916,19 @@ public class FileTools {
         File dstDirectory = new File(dst);
         if (srcDirectory.exists() && srcDirectory.isDirectory()) {
             if (!dstDirectory.exists()) {
-                MessageGenerator.briefError("ERROR: Could find destination directory " + dstDirectory.getAbsolutePath());
+                MessageGenerator.briefError("ERROR: Could find destination directory " +
+                                            dstDirectory.getAbsolutePath());
             }
             for (File file : srcDirectory.listFiles()) {
                 if (!file.isDirectory()) {
-                    if (!copyFile(file.getAbsolutePath(), dstDirectory.getAbsolutePath() + File.separator + file.getName())) {
+                    if (!copyFile(file.getAbsolutePath(),
+                                  dstDirectory.getAbsolutePath() + File.separator + file.getName())) {
                         return false;
                     }
-                }
-                else if (file.isDirectory() && recursive) {
+                } else if (file.isDirectory() && recursive) {
                     if (!copyFolder(file.getAbsolutePath(), dst, true)) {
-                        MessageGenerator.briefError("ERROR: While copying folder " + file.getAbsolutePath() +
-                                " to " + dst + File.separator + file.getName());
+                        MessageGenerator.briefError("ERROR: While copying folder " + file.getAbsolutePath() + " to " +
+                                                    dst + File.separator + file.getName());
                         return false;
                     }
                 }
@@ -974,7 +947,7 @@ public class FileTools {
         File f = new File(fileName);
         if (!f.exists())
             MessageGenerator.generalErrorAndExit("ERROR: Couldn't find file '" + fileName +
-                    "'. Did it get mispelled or deleted?");
+                                                 "'. Did it get mispelled or deleted?");
     }
 
     //===================================================================================//
@@ -1005,7 +978,7 @@ public class FileTools {
             return getExecJarStoragePath();
         }
         if (path.endsWith(File.separator)) {
-            path.substring(0, path.length()-1);
+            path.substring(0, path.length() - 1);
         }
         return path;
     }
@@ -1043,12 +1016,12 @@ public class FileTools {
      */
     public static void forceUpdateAllDataFiles() {
         System.out.println("Force update of all RapidWright data files "
-                + "(this may take several minutes)...");
+                           + "(this may take several minutes)...");
         int size = DataVersions.dataVersionMap.keySet().size();
-        int i=0;
+        int i = 0;
         for (String fileName : DataVersions.dataVersionMap.keySet()) {
             downloadDataFile(fileName);
-            System.out.println("  Downloaded ["+i+"/"+size+"] " + fileName);
+            System.out.println("  Downloaded [" + i + "/" + size + "] " + fileName);
             i++;
         }
         System.out.println("COMPLETED!");
@@ -1061,7 +1034,7 @@ public class FileTools {
      * This is useful when a single RapidWright installation will be used by
      * multiple processes simultaneously and/or when RapidWright needs to reside in
      * a read-only space.
-     * 
+     *
      * @param devices The set of devices intended to be used for this installation
      *                (this simply saves download and generation time).
      */
@@ -1069,10 +1042,11 @@ public class FileTools {
         System.out.println("Download data files to " + getRapidWrightPath());
         // Download all non-device data files
         for (String fileName : DataVersions.dataVersionMap.keySet()) {
-            if (fileName.contains("data/devices")) continue;
+            if (fileName.contains("data/devices"))
+                continue;
             downloadDataFile(fileName);
         }
-        
+
         // Download all requested device data files and generate associated cache files
         for (String deviceName : devices) {
             Device device = Device.getDevice(deviceName);
@@ -1102,7 +1076,7 @@ public class FileTools {
     /**
      * Gets the list of all relative dependent data files given the set of devices
      * provided.
-     * 
+     *
      * @param devices The list of devices to be used to compile the list of needed
      *                data files.
      * @return The list of all necessary data files to operate RapidWright
@@ -1110,8 +1084,8 @@ public class FileTools {
      */
     public static List<String> getAllDependentDataFiles(String... devices) {
         List<String> expectedFiles = new ArrayList<>();
-        for (String dataFile : new String[] { CELL_PIN_DEFAULTS_FILE_NAME, PART_DUMP_FILE_NAME, 
-                                              PART_DB_PATH, UNISIM_DATA_FILE_NAME }) {
+        for (String dataFile :
+             new String[] {CELL_PIN_DEFAULTS_FILE_NAME, PART_DUMP_FILE_NAME, PART_DB_PATH, UNISIM_DATA_FILE_NAME}) {
             expectedFiles.add(dataFile);
             expectedFiles.add(dataFile + MD5_DATA_FILE_SUFFIX);
         }
@@ -1133,14 +1107,13 @@ public class FileTools {
      * the same name. This also validates the download is correct by calculating the
      * md5sum of the downloaded file and comparing it to the expected one in
      * {@link #DATA_VERSION_FILE}.
-     * 
+     *
      * @param fileName Name of the data file to download
      * @return The md5 checksum of the downloaded file
      */
     private static String downloadDataFile(String fileName) {
         String md5 = getCurrentDataVersion(fileName);
-        String url = RAPIDWRIGHT_DATA_URL + getContainerName(fileName) + "/" +
-                    md5;
+        String url = RAPIDWRIGHT_DATA_URL + getContainerName(fileName) + "/" + md5;
         String dstFileName = getRapidWrightPath() + File.separator + fileName;
         String downloadedMD5 = _downloadDataFile(url, dstFileName);
         if (!md5.equals(downloadedMD5)) {
@@ -1167,7 +1140,8 @@ public class FileTools {
      * @return The MD5 hash of a downloaded file, null if the file present is the correct version
      */
     public static String ensureCorrectDataFile(String name) {
-        if (overrideDataFileDownload()) return null;
+        if (overrideDataFileDownload())
+            return null;
         String rwPath = getRapidWrightPath();
         String fileName = rwPath + File.separator + name;
         Path resourceFile = Paths.get(fileName);
@@ -1191,8 +1165,7 @@ public class FileTools {
         // .md5 file is missing
         String currMD5 = Installer.calculateMD5OfFile(resourceFile);
         if (expectedMD5.equals(currMD5)) {
-            FileTools.writeStringToTextFile(currMD5, resourceFile.toString()
-                    + MD5_DATA_FILE_SUFFIX);
+            FileTools.writeStringToTextFile(currMD5, resourceFile.toString() + MD5_DATA_FILE_SUFFIX);
             // File matches expected md5
             return true;
         }
@@ -1229,8 +1202,9 @@ public class FileTools {
         try {
             return new FileInputStream(resourceFile);
         } catch (FileNotFoundException e) {
-            throw new UncheckedIOException("ERROR: Attempted to load RapidWright resource file: "
-                    + resourceFile.getAbsolutePath() + " but it does not exist.", e);
+            throw new UncheckedIOException("ERROR: Attempted to load RapidWright resource file: " +
+                                               resourceFile.getAbsolutePath() + " but it does not exist.",
+                                           e);
         }
     }
 
@@ -1265,7 +1239,6 @@ public class FileTools {
         return getRapidWrightResourceInputStream(PART_DUMP_FILE_NAME);
     }
 
-
     /**
      * Gets and returns the path of the folder where the part files resides for deviceName.
      * @param part The part to get its corresponding folder path.
@@ -1273,10 +1246,7 @@ public class FileTools {
      */
     public static String getPartFolderResourceName(Part part) {
         FamilyType ft = part.getRevision().isEmpty() ? part.getArchitecture() : part.getFamily();
-        return     DEVICE_FOLDER_NAME +
-                File.separator +
-                ft.toString().toLowerCase() +
-                File.separator;
+        return DEVICE_FOLDER_NAME + File.separator + ft.toString().toLowerCase() + File.separator;
     }
 
     /**
@@ -1286,10 +1256,7 @@ public class FileTools {
      */
     public static String getPartFolderResourceName(FamilyType familyType) {
         familyType = PartNameTools.getArchitectureFromFamilyType(familyType);
-        return     DEVICE_FOLDER_NAME +
-                File.separator +
-                familyType.toString().toLowerCase() +
-                File.separator;
+        return DEVICE_FOLDER_NAME + File.separator + familyType.toString().toLowerCase() + File.separator;
     }
 
     public static String getDeviceFolderResourceName() {
@@ -1310,7 +1277,7 @@ public class FileTools {
 
     /**
      * Gets the relative routethru file name for the given device.
-     * 
+     *
      * @param deviceName Name of the device
      * @return Relative routethru data file name for the given device.
      */
@@ -1320,7 +1287,8 @@ public class FileTools {
 
     /**
      * Checks for all device files present in the current RapidWright family path and returns
-     * a list of strings of those part names available to be used by the tool within the specified family.
+     * a list of strings of those part names available to be used by the tool within the specified
+     * family.
      * @param type The specified family type.
      * @return A list of available Xilinx parts for the given family type
      */
@@ -1330,7 +1298,7 @@ public class FileTools {
         File dir = new File(FileTools.getDeviceFolderResourceName() + File.separator + type.toString().toLowerCase());
         if (!dir.exists()) {
             MessageGenerator.briefError("ERROR: No part files exist.  Please download "
-                    + "see RapidWright installation instructions for help.");
+                                        + "see RapidWright installation instructions for help.");
             return Collections.emptyList();
         }
         for (String part : dir.list()) {
@@ -1350,13 +1318,15 @@ public class FileTools {
         File dir = new File(FileTools.getDeviceFolderResourceName());
         if (!dir.exists()) {
             MessageGenerator.briefError("ERROR: No part files exist.  Please download "
-                    + "see RapidWright installation instructions for help.");
+                                        + "see RapidWright installation instructions for help.");
             return Collections.emptyList();
         }
         for (String partFamily : dir.list()) {
-            if (PART_DB_PATH.endsWith(partFamily)) continue;
+            if (PART_DB_PATH.endsWith(partFamily))
+                continue;
             FamilyType type = FamilyType.valueOf(partFamily.toUpperCase());
-            if (type != null) allFamilies.add(type);
+            if (type != null)
+                allFamilies.add(type);
         }
 
         return allFamilies;
@@ -1367,7 +1337,7 @@ public class FileTools {
      * same way used in most Xilinx report and XDL files. The format used in the
      * using the same syntax as SimpleDateFormat which is "EEE MMM dd HH:mm:ss z
      * yyyy".
-     * 
+     *
      * @return Current date and time as a formatted string.
      */
     public static String getTimeString() {
@@ -1377,7 +1347,7 @@ public class FileTools {
 
     /**
      * Creates a formatted string of the current time in a sortable format ("yyyy mm dd HH mm ss").
-     * 
+     *
      * @return The time stamp as a sortable string.
      */
     public static String getTimeStamp() {
@@ -1391,8 +1361,7 @@ public class FileTools {
     public static String getDirectorySeparator() {
         if (FileTools.cygwinInstalled()) {
             return "/";
-        }
-        else {
+        } else {
             return File.separator;
         }
     }
@@ -1411,7 +1380,6 @@ public class FileTools {
     public static void writeObjectToKryoFile(String fileName, Object o) {
         writeObjectToKryoFile(Paths.get(fileName), o);
     }
-
 
     public static void writeObjectToKryoFile(Path fileName, Object o, boolean writeClass) {
         Kryo kryo = getKryoInstance();
@@ -1501,23 +1469,23 @@ public class FileTools {
         return isFileNewer(Paths.get(fileName1), Paths.get(fileName2));
     }
 
-    public static Pair<InputStream,Long> getInputStreamFromZipFile(String zipFileName, String fileEndsWith) {
+    public static Pair<InputStream, Long> getInputStreamFromZipFile(String zipFileName, String fileEndsWith) {
         try {
-            @SuppressWarnings("resource")
-            final ZipFile zip = new ZipFile(zipFileName);
+            @SuppressWarnings("resource") final ZipFile zip = new ZipFile(zipFileName);
             Enumeration<? extends ZipEntry> entries = zip.entries();
             ZipEntry match = null;
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 if (entry.getName().endsWith(fileEndsWith)) {
                     if (match != null) {
-                        throw new RuntimeException("ERROR: Found 2 or more matching files in zip file: " +
-                                zipFileName + " with ending: '" + fileEndsWith + "'");
+                        throw new RuntimeException("ERROR: Found 2 or more matching files in zip file: " + zipFileName +
+                                                   " with ending: '" + fileEndsWith + "'");
                     }
                     match = entry;
                 }
             }
-            if (match == null) return null;
+            if (match == null)
+                return null;
             InputStream i = zip.getInputStream(match);
             return new Pair<>(new ProxyInputStream(i) {
                 @Override
@@ -1533,7 +1501,8 @@ public class FileTools {
 
     public static void close(InputStream is) {
         try {
-            if (is != null) is.close();
+            if (is != null)
+                is.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -1541,14 +1510,16 @@ public class FileTools {
 
     public static void close(ZipFile zip) {
         try {
-            if (zip != null) zip.close();
+            if (zip != null)
+                zip.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     /**
-     * Generic method to run a command in the current shell and return its standard output and standard error
+     * Generic method to run a command in the current shell and return its standard output and
+     * standard error
      * @param command The command to run
      * @return A list of standard output lines followed by the standard error lines
      */
@@ -1560,13 +1531,12 @@ public class FileTools {
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
             BufferedReader readerErr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 
-
             String line = "";
             ArrayList<String> lines = new ArrayList<String>();
-            while ((line = reader.readLine())!= null) {
+            while ((line = reader.readLine()) != null) {
                 lines.add(line);
             }
-            while ((line = readerErr.readLine())!= null) {
+            while ((line = readerErr.readLine()) != null) {
                 lines.add(line);
             }
 
@@ -1599,7 +1569,7 @@ public class FileTools {
 
     /**
      * A generic method to run a command from the system command line.
-     * 
+     *
      * @param command The command to execute. This method blocks until the command
      *                finishes.
      * @param verbose When true, it will first print to std.out the command and also
@@ -1616,7 +1586,8 @@ public class FileTools {
      *         problem it returns null.
      */
     public static Integer runCommand(String command, boolean verbose, String[] environ, File runDir) {
-        if (verbose) System.out.println(command);
+        if (verbose)
+            System.out.println(command);
         int returnValue = 0;
         Process p = null;
         try {
@@ -1635,7 +1606,8 @@ public class FileTools {
             MessageGenerator.briefError("ERROR: The command was interrupted: \"" + command + "\"");
             return null;
         } finally {
-            if (p != null) p.destroyForcibly();
+            if (p != null)
+                p.destroyForcibly();
         }
         return returnValue;
     }
@@ -1702,7 +1674,8 @@ public class FileTools {
             MessageGenerator.briefError("ERROR: The command was interrupted: \"" + command + "\"");
             return null;
         } finally {
-            if (p != null) p.destroyForcibly();
+            if (p != null)
+                p.destroyForcibly();
         }
         return returnValue;
     }
@@ -1711,7 +1684,8 @@ public class FileTools {
      * A generic method to run a command from the system command line.
      * @param command The command to execute.  This method blocks until the command finishes.
      * @param logFileName Name of the log file to produce that will capture stderr and stdout.
-     * @return The return value of the process if it terminated, if there was a problem it returns null.
+     * @return The return value of the process if it terminated, if there was a problem it returns
+     *     null.
      */
     public static Integer runCommand(List<String> command, String logFileName) {
         System.out.println("External Command: " + command);
@@ -1727,7 +1701,8 @@ public class FileTools {
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         } finally {
-            if (p != null) p.destroyForcibly();
+            if (p != null)
+                p.destroyForcibly();
         }
         return returnVal;
     }
@@ -1774,9 +1749,9 @@ public class FileTools {
         }
         boolean isBinary = false;
         try {
-            is.mark(BINARY_CHECK_LENGTH+1);
+            is.mark(BINARY_CHECK_LENGTH + 1);
             int count = is.read(binaryCheckData);
-            for (int i=0; i < count; i++) {
+            for (int i = 0; i < count; i++) {
                 if (binaryCheckData[i] == 0x00) {
                     isBinary = true;
                     break;
@@ -1787,18 +1762,15 @@ public class FileTools {
             e.printStackTrace();
         }
         // Extra check to not mistake encrypted EDIF as unencrypted
-        if (!isBinary
-                && binaryCheckData[0] == 'X'
-                && binaryCheckData[1] == 'l'
-                && binaryCheckData[2] == 'x'
-                && binaryCheckData[3] == 'V') {
+        if (!isBinary && binaryCheckData[0] == 'X' && binaryCheckData[1] == 'l' && binaryCheckData[2] == 'x' &&
+            binaryCheckData[3] == 'V') {
             isBinary = true;
         }
         return isBinary;
     }
 
     public static final int[] GZIP_START_BYTES = {0x78, 0x9c};
-        
+
     public static boolean isFileGzipped(Path path) {
         try (InputStream in = Files.newInputStream(path)) {
             return in.read() == GZIP_START_BYTES[0] && in.read() == GZIP_START_BYTES[1];
@@ -1806,7 +1778,7 @@ public class FileTools {
             throw new RuntimeException("ERROR: Trying to read file " + path + " and it errored.", e);
         }
     }
-    
+
     /**
      * Runs the provided command (arguments must be separate) and gathers the
      * standard output followed by the standard error.
@@ -1823,7 +1795,7 @@ public class FileTools {
 
         try {
             p = pb.start();
-            p.waitFor();  // wait for process to finish then continue.
+            p.waitFor(); // wait for process to finish then continue.
             try (BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
                 while ((line = bri.readLine()) != null) {
                     output.add(line);
@@ -1841,7 +1813,8 @@ public class FileTools {
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
-            if (p != null) p.destroyForcibly();
+            if (p != null)
+                p.destroyForcibly();
         }
 
         return output;
@@ -1853,11 +1826,14 @@ public class FileTools {
      * @return True if the executable is available in the current path, false otherwise.
      */
     public static boolean isExecutableOnPath(String execName) {
-        List<String> lines = execCommandGetOutput(true, isWindows() ? "where" : "which",execName);
+        List<String> lines = execCommandGetOutput(true, isWindows() ? "where" : "which", execName);
         for (String line : lines) {
-            if (line.startsWith("which:")) return false;
-            if (line.contains("INFO: Could not find files")) return false;
-            if (line.contains(File.separator + execName)) return true;
+            if (line.startsWith("which:"))
+                return false;
+            if (line.contains("INFO: Could not find files"))
+                return false;
+            if (line.contains(File.separator + execName))
+                return true;
         }
         return false;
     }
@@ -1881,8 +1857,8 @@ public class FileTools {
             for (String line : lines) {
                 if (line.startsWith("Vivado ")) {
                     int dot = line.indexOf('.');
-                    int year = Integer.parseInt(line.substring(line.indexOf(" v")+2,dot));
-                    int quarter = Integer.parseInt(line.substring(dot+1, dot+2));
+                    int year = Integer.parseInt(line.substring(line.indexOf(" v") + 2, dot));
+                    int quarter = Integer.parseInt(line.substring(dot + 1, dot + 2));
                     if (year > Device.RAPIDWRIGHT_YEAR_VERSION) {
                         return false;
                     }
@@ -1899,7 +1875,7 @@ public class FileTools {
     /**
      * Checks if Vivado is available and if it is available if it is at least of the
      * version major.minor or later.
-     * 
+     *
      * @param major The major Vivado version (generally the year)
      * @param minor The minor Vivado version
      * @return True if Vivado is available and meets the version requirements, false
@@ -1945,7 +1921,7 @@ public class FileTools {
      * @return Full path to executable, or throws RuntimeException if not found.
      */
     public static String getExecutablePath(String exe) {
-        String[] cmd = new String[]{isWindows() ? "where" : "which", exe};
+        String[] cmd = new String[] {isWindows() ? "where" : "which", exe};
         final List<String> fullOutput = execCommandGetOutput(true, cmd);
         if (fullOutput.isEmpty() || fullOutput.get(0).contains("INFO:") || fullOutput.get(0).contains("which: no")) {
             throw new RuntimeException("ERROR: Couldn't find " + exe + " on PATH");
@@ -1977,12 +1953,11 @@ public class FileTools {
 
     public static void unzipFile(String zipFileName, String destDirectory) {
         File destDir = new File(destDirectory);
-        byte[] buffer = new byte[1024*16];
+        byte[] buffer = new byte[1024 * 16];
         if (!destDir.exists()) {
             destDir.mkdirs();
         }
-        try (FileInputStream fis = new FileInputStream(zipFileName);
-            ZipInputStream zin = new ZipInputStream(fis)) {
+        try (FileInputStream fis = new FileInputStream(zipFileName); ZipInputStream zin = new ZipInputStream(fis)) {
             ZipEntry e;
             while ((e = zin.getNextEntry()) != null) {
                 String destFilePath = destDirectory + File.separator + e.getName();
@@ -1993,10 +1968,10 @@ public class FileTools {
                     String parentName = currFile.getParentFile().getAbsolutePath();
                     makeDirs(parentName);
                     try (FileOutputStream fos = new FileOutputStream(destFilePath);
-                        BufferedOutputStream bos = new BufferedOutputStream(fos)) {
+                         BufferedOutputStream bos = new BufferedOutputStream(fos)) {
                         int read;
-                        while ( (read = zin.read(buffer)) != -1) {
-                            bos.write(buffer,0,read);
+                        while ((read = zin.read(buffer)) != -1) {
+                            bos.write(buffer, 0, read);
                         }
                     }
                 }
@@ -2052,7 +2027,6 @@ public class FileTools {
         return filter;
     }
 
-
     /**
      * Used for unpacking data files inside a standalone jar to be used
      * for regular use by RapidWright.
@@ -2061,7 +2035,8 @@ public class FileTools {
     public static boolean unPackSupportingJarData() {
         String outputPath = getExecJarStoragePath();
         for (String folderName : FileTools.UNPACK_FOLDERS) {
-            if (new File(outputPath + File.separator + folderName).exists()) continue;
+            if (new File(outputPath + File.separator + folderName).exists())
+                continue;
             try {
                 CodeSource src = Device.class.getProtectionDomain().getCodeSource();
                 if (src == null) {
@@ -2069,8 +2044,7 @@ public class FileTools {
                     return false;
                 }
                 URL jar = src.getLocation();
-                try (InputStream is = jar.openStream();
-                    ZipInputStream zip = new ZipInputStream(is)) {
+                try (InputStream is = jar.openStream(); ZipInputStream zip = new ZipInputStream(is)) {
                     ZipEntry e;
                     byte[] buffer = new byte[1024];
                     while ((e = zip.getNextEntry()) != null) {
@@ -2100,20 +2074,21 @@ public class FileTools {
     }
 
     /**
-     * Appends an extension to the file. if there is already an extension, the result will have two extensions.
+     * Appends an extension to the file. if there is already an extension, the result will have two
+     * extensions.
      * @param path
      * @param extension
      * @return
      */
     public static Path appendExtension(Path path, String extension) {
-        return path.resolveSibling(path.getFileName().toString()+extension);
+        return path.resolveSibling(path.getFileName().toString() + extension);
     }
 
     /**
      * Replaces the file extension of the provided file name. The current extension
      * includes the final period '.' and all characters following it. If the file
      * has no extension, it will add it as a suffix to the filename.
-     * 
+     *
      * @param path         Name of the file to receive the updated extension.
      * @param newExtension The new extension (should include starting period '.')
      * @return The newly updated file path.
@@ -2133,7 +2108,7 @@ public class FileTools {
      * @return Azure blob container name for the provided RapidWright data file
      */
     public static String getContainerName(String fileName) {
-        String containerName = fileName.substring(fileName.lastIndexOf("/")+1);
+        String containerName = fileName.substring(fileName.lastIndexOf("/") + 1);
         return containerName.replace("_", "-").replace(".", "-").toLowerCase();
     }
 
@@ -2145,10 +2120,10 @@ public class FileTools {
      */
     public static String getCurrentDataVersion(String dataFileName) {
         if (File.separator.equals("\\")) {
-            dataFileName = dataFileName.replace(File.separator,"/");
+            dataFileName = dataFileName.replace(File.separator, "/");
         }
 
-        Pair<String,String> result = DataVersions.dataVersionMap.get(dataFileName);
+        Pair<String, String> result = DataVersions.dataVersionMap.get(dataFileName);
         return result != null ? result.getSecond() : null;
     }
 
@@ -2163,7 +2138,7 @@ public class FileTools {
     /**
      * Gets all files (Path objects) recursively (including all sub-directories)
      * starting at a root directory of a particular extension (or file name suffix).
-     * 
+     *
      * @param root   The root directory from which to start the query
      * @param suffix The file name extension (or suffix pattern) of the files to get
      * @return A list of all files found in the directory and all sub-directories
@@ -2173,7 +2148,7 @@ public class FileTools {
         assert (Files.isDirectory(root));
         try (Stream<Path> stream = Files.walk(root, Integer.MAX_VALUE)) {
             return stream.filter(p -> Files.isRegularFile(p) && p.toString().endsWith(suffix))
-                    .collect(Collectors.toList());
+                .collect(Collectors.toList());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -2181,11 +2156,11 @@ public class FileTools {
 
     /**
      * Gets all files (Path objects) recursively (including all sub-directories)
-     * starting at a root directory of a particular extension (or file name suffix). 
-     * This tries to use the native Linux 'find' command if available as it is 4-5X 
-     * faster than the Java Files.walk() method.  Otherwise it defaults to using the 
+     * starting at a root directory of a particular extension (or file name suffix).
+     * This tries to use the native Linux 'find' command if available as it is 4-5X
+     * faster than the Java Files.walk() method.  Otherwise it defaults to using the
      * conventional Files.walk() approach.
-     * 
+     *
      * @param root   The root directory from which to start the query
      * @param suffix The file name extension (or suffix pattern) of the files to get
      * @return A list of all files found in the directory and all sub-directories
@@ -2194,15 +2169,13 @@ public class FileTools {
     public static List<Path> getAllFilesWithSuffix(Path root, String suffix) {
         // Calling find externally is 4-5X faster for most operations than Files.walk()
         if (!isWindows() && isExecutableOnPath("find")) {
-            ProcessBuilder pb = new ProcessBuilder("find", root.toString(), "-type", "f", "-name",
-                    "*" + suffix);
+            ProcessBuilder pb = new ProcessBuilder("find", root.toString(), "-type", "f", "-name", "*" + suffix);
             pb.redirectErrorStream();
             Process p = null;
             List<Path> paths = new ArrayList<>();
             try {
                 p = pb.start();
-                try (BufferedReader br = new BufferedReader(
-                        new InputStreamReader(p.getInputStream()))) {
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
                     String line = null;
                     while ((line = br.readLine()) != null) {
                         paths.add(Paths.get(line));
@@ -2238,7 +2211,7 @@ public class FileTools {
      * Decompresses a gzipped file to a file with the '.gz' extension removed. Does
      * not delete the original file and overwrites any existing file with the same
      * file name as the original with the '.gz' extension removed.
-     * 
+     *
      * @param gzipFile Path to the original gzipped file
      * @return Path to the decompressed file (same as
      *         {@link FileTools#getDecompressedGZIPFileName(Path)}) or null if the provided
@@ -2246,7 +2219,8 @@ public class FileTools {
      */
     public static Path decompressGZIPFile(Path gzipFile) {
         String fileNameStr = gzipFile.toString();
-        if (!fileNameStr.endsWith(".gz")) return null;
+        if (!fileNameStr.endsWith(".gz"))
+            return null;
         Path target = FileTools.getDecompressedGZIPFileName(gzipFile);
         // Using a larger buffer size for GZIPInputStream improved runtime 5-10%
         try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(fileNameStr), 65536)) {
@@ -2256,9 +2230,9 @@ public class FileTools {
         }
         return target;
     }
-    
+
     /**
-     * Compresses the provided file using GZIP (adds '.gz' extension) 
+     * Compresses the provided file using GZIP (adds '.gz' extension)
      * @param uncompressedFile The path to the uncompressed file
      * @return The path to the compressed file which has a '.gz' extension
      */
@@ -2275,7 +2249,7 @@ public class FileTools {
     /**
      * Gets a Path to the corresponding uncompressed name of the provided path. If
      * the path does not have a '.gz' extension, it returns the provided path.
-     * 
+     *
      * @param gzipFile The path to the gzipped file.
      * @return The path to the corresponding uncompressed file if the provided path
      *         is a gzipped file. If the provided path doesn't have the '.gz'
@@ -2283,7 +2257,8 @@ public class FileTools {
      */
     public static Path getDecompressedGZIPFileName(Path gzipFile) {
         String fileName = gzipFile.toString();
-        if (!fileName.endsWith(".gz")) return gzipFile;
+        if (!fileName.endsWith(".gz"))
+            return gzipFile;
         return Paths.get(fileName.substring(0, fileName.length() - 3));
     }
 
@@ -2292,4 +2267,3 @@ public class FileTools {
         return newDir.resolve(fn);
     }
 }
-

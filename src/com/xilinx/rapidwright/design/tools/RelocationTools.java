@@ -58,16 +58,12 @@ import com.xilinx.rapidwright.util.Utils;
  *
  */
 public class RelocationTools {
-
     public static final Set<SiteTypeEnum> defaultSiteTypes;
     static {
         defaultSiteTypes = Utils.sliceDspBramUramTypes;
     }
 
-    public static boolean relocate(Design design,
-                                   String instanceName,
-                                   int tileColOffset,
-                                   int tileRowOffset) {
+    public static boolean relocate(Design design, String instanceName, int tileColOffset, int tileRowOffset) {
         return relocate(design, instanceName, tileColOffset, tileRowOffset, defaultSiteTypes);
     }
 
@@ -88,13 +84,11 @@ public class RelocationTools {
      *                      defaulting to RelocationTools.defaultSiteTypes)
      * @return True if successful, false otherwise.
      */
-    public static boolean relocate(Design design,
-                                   String instanceName,
-                                   int tileColOffset,
-                                   int tileRowOffset,
+    public static boolean relocate(Design design, String instanceName, int tileColOffset, int tileRowOffset,
                                    Set<SiteTypeEnum> siteTypes) {
         EDIFNetlist netlist = design.getNetlist();
-        EDIFHierCellInst instanceCell = instanceName.length()==0 ? netlist.getTopHierCellInst() : netlist.getHierCellInstFromName(instanceName);
+        EDIFHierCellInst instanceCell =
+            instanceName.length() == 0 ? netlist.getTopHierCellInst() : netlist.getHierCellInstFromName(instanceName);
         if (instanceCell == null) {
             System.out.println("ERROR: Logical cell with instance name '" + instanceName + "' not found");
             return false;
@@ -111,7 +105,7 @@ public class RelocationTools {
             Cell c = design.getCell(leaf.getFullHierarchicalInstName());
             if (c == null) {
                 System.out.println("WARNING: Could not find physical cell corresponding to logical cell '" +
-                        leaf.getFullHierarchicalInstName() + "'; ignoring");
+                                   leaf.getFullHierarchicalInstName() + "'; ignoring");
                 continue;
             }
             cells.add(c);
@@ -123,7 +117,7 @@ public class RelocationTools {
 
             if (!siteTypes.contains(si.getSiteTypeEnum())) {
                 System.out.println("WARNING: Skipping cell '" + leaf.getFullHierarchicalInstName() +
-                        "' as it is placed onto a SiteInst type '" + si.getSiteTypeEnum() + "'");
+                                   "' as it is placed onto a SiteInst type '" + si.getSiteTypeEnum() + "'");
                 continue;
             }
 
@@ -134,10 +128,9 @@ public class RelocationTools {
         boolean error = false;
         for (SiteInst si : siteInsts) {
             for (Cell c : si.getCells()) {
-                if (!c.isLocked() && !c.isRoutethru() && !cells.contains(c)
-                        && !c.isPortCell()) {
-                    System.out.println("ERROR: Failed to relocate SiteInst '" + si.getName()
-                            + "' as it contains Cells both inside and outside of '" + instanceName + "'");
+                if (!c.isLocked() && !c.isRoutethru() && !cells.contains(c) && !c.isPortCell()) {
+                    System.out.println("ERROR: Failed to relocate SiteInst '" + si.getName() +
+                                       "' as it contains Cells both inside and outside of '" + instanceName + "'");
                     error = true;
                 }
             }
@@ -147,7 +140,8 @@ public class RelocationTools {
     }
 
     /**
-     * Relocate all SiteInsts (and PIPs) within the Pblock in-place by tileColOffset/tileRowOffset tiles.
+     * Relocate all SiteInsts (and PIPs) within the Pblock in-place by tileColOffset/tileRowOffset
+     * tiles.
      *
      * @param design Parent design
      * @param pblock PBlock
@@ -155,10 +149,7 @@ public class RelocationTools {
      * @param tileRowOffset Relocate this number of tile rows (Y axis)
      * @return True if successful, false otherwise.
      */
-    public static boolean relocate(Design design,
-                                   PBlock pblock,
-                                   int tileColOffset,
-                                   int tileRowOffset) {
+    public static boolean relocate(Design design, PBlock pblock, int tileColOffset, int tileRowOffset) {
         Collection<SiteInst> siteInsts = new ArrayList<>();
         for (Site s : pblock.getAllSites(null)) {
             SiteInst si = design.getSiteInstFromSite(s);
@@ -187,9 +178,7 @@ public class RelocationTools {
      * @param tileRowOffset Relocate this number of tile rows (Y axis)
      * @return True if successful, false otherwise.
      */
-    public static boolean relocate(Design design,
-                                   Collection<SiteInst> siteInsts,
-                                   int tileColOffset,
+    public static boolean relocate(Design design, Collection<SiteInst> siteInsts, int tileColOffset,
                                    int tileRowOffset) {
         if (siteInsts.isEmpty())
             return true;
@@ -199,7 +188,7 @@ public class RelocationTools {
 
         Map<SiteInst, Site> oldSite = new HashMap<>();
         for (SiteInst si : siteInsts) {
-            assert(si.isPlaced());
+            assert (si.isPlaced());
             oldSite.put(si, si.getSite());
             si.unPlace();
         }
@@ -211,12 +200,12 @@ public class RelocationTools {
             Tile destTile = srcTile.getTileXYNeighbor(tileColOffset, tileRowOffset);
             Site destSite = srcSite.getCorrespondingSite(srcSite.getSiteTypeEnum(), destTile);
             SiteInst srcSiteInst = e.getKey();
-            assert(destSite != srcSite);
+            assert (destSite != srcSite);
             if (destTile == null || destSite == null) {
-                String destTileName = srcTile.getRootName() + "_X" + (srcTile.getTileXCoordinate() + tileColOffset)
-                        + "Y" + (srcTile.getTileYCoordinate() + tileRowOffset);
-                System.out.println("ERROR: Failed to move SiteInst '" + srcSiteInst.getName() + "' from Tile '" + srcTile.getName()
-                        + "' to Tile '" + destTileName + "'");
+                String destTileName = srcTile.getRootName() + "_X" + (srcTile.getTileXCoordinate() + tileColOffset) +
+                                      "Y" + (srcTile.getTileYCoordinate() + tileRowOffset);
+                System.out.println("ERROR: Failed to move SiteInst '" + srcSiteInst.getName() + "' from Tile '" +
+                                   srcTile.getName() + "' to Tile '" + destTileName + "'");
                 revertPlacement = true;
                 continue;
             }
@@ -225,8 +214,9 @@ public class RelocationTools {
                 if (destSiteInst.getName().startsWith("STATIC_SOURCE")) {
                     destSiteInst.unPlace();
                 } else {
-                    System.out.println("ERROR: Failed to move SiteInst '" + srcSiteInst.getName() + "' from Tile '" + srcTile.getName()
-                            + "' to Tile '" + destTile.getName() + "' as it is already occupied");
+                    System.out.println("ERROR: Failed to move SiteInst '" + srcSiteInst.getName() + "' from Tile '" +
+                                       srcTile.getName() + "' to Tile '" + destTile.getName() +
+                                       "' as it is already occupied");
                     revertPlacement = true;
                     continue;
                 }
@@ -253,9 +243,10 @@ public class RelocationTools {
             if (src != null && !oldSite.containsKey(src.getSiteInst())) {
                 for (SitePinInst spi : pins) {
                     if (oldSite.containsKey(spi.getSiteInst())) {
-                        // Source is not relocated, but at least one pin inside site insts to be relocated
+                        // Source is not relocated, but at least one pin inside site insts to be
+                        // relocated
                         System.out.println("INFO: Unrouting Net '" + n.getName() + "' since output SiteInstPin '" +
-                                src + "' does not belong to SiteInsts to be relocated");
+                                           src + "' does not belong to SiteInsts to be relocated");
                         n.unroute();
                     }
                 }
@@ -263,24 +254,25 @@ public class RelocationTools {
             }
 
             Collection<SitePinInst> nonMatchingPins = pins.stream()
-                    .filter((spi) -> !oldSite.containsKey(spi.getSiteInst()))
-                    // Filter out SPIs on a "STATIC_SOURCE" SiteInst that would have been unplaced above
-                    .filter((spi) -> spi.getSiteInst().isPlaced())
-                    .collect(Collectors.toList());
+                                                          .filter((spi) -> !oldSite.containsKey(spi.getSiteInst()))
+                                                          // Filter out SPIs on a "STATIC_SOURCE" SiteInst that would
+                                                          // have been unplaced above
+                                                          .filter((spi) -> spi.getSiteInst().isPlaced())
+                                                          .collect(Collectors.toList());
             if (nonMatchingPins.size() == pins.size()) {
                 continue;
             }
 
             if (!nonMatchingPins.isEmpty()) {
                 if (n.isStaticNet()) {
-                    // Since static nets are global if there are any pins on SiteInsts that are not to be relocated,
-                    // unroute the whole net as it's not obvious how to relocate the relevant subset of its PIPs
-                    // instead of all of them
+                    // Since static nets are global if there are any pins on SiteInsts that are not
+                    // to be relocated, unroute the whole net as it's not obvious how to relocate
+                    // the relevant subset of its PIPs instead of all of them
                     n.unroute();
                 } else {
                     for (SitePinInst spi : nonMatchingPins) {
                         System.out.println("INFO: Unrouting SitePinInst '" + spi + "' branch of Net '" + n.getName() +
-                                "' since it does not belong to SiteInsts to be relocated");
+                                           "' since it does not belong to SiteInsts to be relocated");
                     }
                     DesignTools.unroutePins(n, nonMatchingPins);
                 }
@@ -294,15 +286,15 @@ public class RelocationTools {
                     if (isClockNet) {
                         System.out.println("INFO: Skipping clock net PIP '" + sp + "' (Net '" + n.getName() + "')");
                     } else {
-                        String destTileName = st.getRootName() + "_X" + (st.getTileXCoordinate() + tileColOffset)
-                                + "Y" + (st.getTileYCoordinate() + tileRowOffset);
+                        String destTileName = st.getRootName() + "_X" + (st.getTileXCoordinate() + tileColOffset) +
+                                              "Y" + (st.getTileYCoordinate() + tileRowOffset);
                         if (sp.isStub()) {
-                            System.out.println("INFO: Removing stub PIP '" + sp + "' that failed to move to Tile '" + destTileName +
-                                    "' (Net '" + n.getName() + "')");
+                            System.out.println("INFO: Removing stub PIP '" + sp + "' that failed to move to Tile '" +
+                                               destTileName + "' (Net '" + n.getName() + "')");
                             return true;
                         } else {
-                            throw new RuntimeException("ERROR: Failed to move PIP '" + sp + "' to Tile '" + destTileName +
-                                    "' (Net '" + n.getName() + "')");
+                            throw new RuntimeException("ERROR: Failed to move PIP '" + sp + "' to Tile '" +
+                                                       destTileName + "' (Net '" + n.getName() + "')");
                         }
                     }
                 } else {
@@ -316,7 +308,6 @@ public class RelocationTools {
         return true;
     }
 
-
     private static void revertPlacement(Map<SiteInst, Site> oldSite) {
         for (Map.Entry<SiteInst, Site> e : oldSite.entrySet()) {
             e.getKey().unPlace();
@@ -327,7 +318,7 @@ public class RelocationTools {
     /**
      * Based on the provided design, calculates all of the valid locations that the
      * implemented component could be relocated to on the currently targeted device.
-     * 
+     *
      * @param design The design to evaluate for relocation options.
      * @return A pair, where the first element is the anchor site selected in the
      *         design and the second element is a sorted map of placement options
@@ -342,7 +333,7 @@ public class RelocationTools {
         Module m = new Module(design);
         anchor = m.getAnchor();
         validLocs = m.calculateAllValidPlacements(m.getDevice());
-        
+
         if (validLocs == null || validLocs.size() < 2) {
             return null;
         }
@@ -362,7 +353,7 @@ public class RelocationTools {
     /**
      * Prints out valid relocation options produced by
      * {@link #getValidRelocationOptions(Design)}.
-     * 
+     *
      * @param options The relocation options.
      * @param limit   Limit the number of printed options to this value.
      */
@@ -373,7 +364,7 @@ public class RelocationTools {
             int validXOffset = e.getValue().getTile().getTileXCoordinate() - anchor.getTile().getTileXCoordinate();
             int validYOffset = e.getValue().getTile().getTileYCoordinate() - anchor.getTile().getTileYCoordinate();
             ps.printf("  tileXOffset=%4d, tileYOffset=%4d anchorSite=%s/%s, newAnchorSite=%s/%s\n", validXOffset,
-                    validYOffset, anchor.getTile(), anchor, e.getValue().getTile(), e.getValue());
+                      validYOffset, anchor.getTile(), anchor, e.getValue().getTile(), e.getValue());
             if (limit-- == 0) {
                 break;
             }
@@ -387,8 +378,8 @@ public class RelocationTools {
      * best effort relocation (relocating as much as possible and
      * unplacing/unrouting incompatible cells/routes) when provided a DCP, output
      * location and set of offsets.
-     * 
-     * @param args Two modes, for listing relocation options {@literal args[0]==<input.dcp>;} 
+     *
+     * @param args Two modes, for listing relocation options {@literal args[0]==<input.dcp>;}
      *             for relocation (full or best effort partial)
      *             {@literal args[0]==<input.dcp>, args[1]==<output.dcp>,
      *             args[2]==<tile_x_offset>, args[3]==<tile_y_offset>}.
@@ -397,7 +388,7 @@ public class RelocationTools {
         if (args.length != 4 && args.length != 1) {
             System.out.println("USAGE (query valid relocation options): <input.dcp>");
             System.out.println("USAGE (design relocation (full or partial): "
-                    + "<input.dcp> <output.dcp> <tile_x_offset> <tile_y_offset>");
+                               + "<input.dcp> <output.dcp> <tile_x_offset> <tile_y_offset>");
             return;
         }
         String inputDCPName = args[0];
@@ -425,18 +416,17 @@ public class RelocationTools {
             } catch (Exception e) {
                 // Failed to identify any valid options, skip to throwing the error below
             }
-            
+
             if (options != null && options.getSecond().size() > 1) {
-                System.err.println("Could not relocate to tileXOffset=" + tileXOffset + ", tileYOffset="
-                        + tileYOffset + ", here are some other valid options:");
+                System.err.println("Could not relocate to tileXOffset=" + tileXOffset + ", tileYOffset=" + tileYOffset +
+                                   ", here are some other valid options:");
                 int numOfValidSuggestions = 6;
                 printValidRelocationOptions(options, numOfValidSuggestions, System.err);
                 System.exit(1);
             } else {
-                throw new RuntimeException("ERROR: Relocation of DCP '" + inputDCPName
-                        + "' has failed.  It is possible that the tile X and Y offsets "
-                    + "are incompatible with the target device ("
-                    + d.getPartName() + ").");
+                throw new RuntimeException("ERROR: Relocation of DCP '" + inputDCPName +
+                                           "' has failed.  It is possible that the tile X and Y offsets "
+                                           + "are incompatible with the target device (" + d.getPartName() + ").");
             }
         }
 

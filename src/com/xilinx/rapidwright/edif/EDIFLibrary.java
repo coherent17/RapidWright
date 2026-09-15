@@ -50,10 +50,9 @@ import com.xilinx.rapidwright.util.ParallelismTools;
  * Created on: May 11, 2017
  */
 public class EDIFLibrary extends EDIFName {
-
     private EDIFNetlist netlist;
 
-    private Map<String,EDIFCell> cells;
+    private Map<String, EDIFCell> cells;
 
     public EDIFLibrary(String name) {
         super(name);
@@ -68,13 +67,12 @@ public class EDIFLibrary extends EDIFName {
     public EDIFLibrary(EDIFLibrary copy) {
         super(copy.getName());
 
-        for (Map.Entry<String,EDIFCell> e : copy.getCellMap().entrySet()) {
+        for (Map.Entry<String, EDIFCell> e : copy.getCellMap().entrySet()) {
             addCell(e.getValue());
         }
     }
 
     protected EDIFLibrary() {
-
     }
 
     /**
@@ -84,8 +82,9 @@ public class EDIFLibrary extends EDIFName {
      * @return The cell that has been added.
      */
     public EDIFCell addCell(EDIFCell cell) {
-        if (cells == null) cells = getNewMap();
-        return cells.compute(cell.getName(), (k,v) -> {
+        if (cells == null)
+            cells = getNewMap();
+        return cells.compute(cell.getName(), (k, v) -> {
             if (v == null) {
                 v = (cell.getLibrary() != null) ? new EDIFCell(cell) : cell;
                 v.setLibrary(this);
@@ -94,45 +93,47 @@ public class EDIFLibrary extends EDIFName {
             if (v == cell) {
                 return v;
             }
-            throw new RuntimeException("ERROR: Failed to add cell " +
-                    cell.getName() + " to library " + getName()+". The library "
-                    + "already contains a cell with the same name.");
+            throw new RuntimeException("ERROR: Failed to add cell " + cell.getName() + " to library " + getName() +
+                                       ". The library "
+                                       + "already contains a cell with the same name.");
         });
     }
 
     private String findUniqueCellName(String name) {
         int counter = 0;
-        String counterName = name; //First try without suffix
+        String counterName = name; // First try without suffix
         while (cells.containsKey(counterName)) {
             counter++;
-            counterName = name+"_"+counter;
+            counterName = name + "_" + counter;
         }
         return counterName;
     }
 
     /**
-     * Adds the provided cell to the library. If a cell by this name already exists, append a suffix to uniqueify the
-     * name.
+     * Adds the provided cell to the library. If a cell by this name already exists, append a suffix
+     * to uniqueify the name.
      * @param cell The cell to add to the library.
      * @param preferredSuffix If a suffix needs to be appended for uniquification, use this one
      * @return The cell that has been added.
      */
     public EDIFCell addCellRenameDuplicates(EDIFCell cell, String preferredSuffix) {
-        if (cells == null) cells = getNewMap();
+        if (cells == null)
+            cells = getNewMap();
         cell.setLibrary(this);
 
         EDIFCell collision = cells.put(cell.getName(), cell);
         if (collision == null) {
             return cell;
         }
-        //Restore the old mapping
+        // Restore the old mapping
         cells.put(cell.getName(), collision);
 
         if (preferredSuffix == null) {
             preferredSuffix = "collisionRename";
         }
-        String newName = findUniqueCellName(cell.getName()+"_RW_"+preferredSuffix);
-        System.err.println("EDIF library "+getName()+" contains cells with same name \""+cell.getName()+"\". Changing name of one of those instances to "+newName);
+        String newName = findUniqueCellName(cell.getName() + "_RW_" + preferredSuffix);
+        System.err.println("EDIF library " + getName() + " contains cells with same name \"" + cell.getName() +
+                           "\". Changing name of one of those instances to " + newName);
         cell.setName(newName);
 
         cells.put(newName, cell);
@@ -173,7 +174,8 @@ public class EDIFLibrary extends EDIFName {
             throw new RuntimeException("ERROR: netlist argument cannot be null.");
         }
         if (this.netlist != null && this.netlist != netlist) {
-            throw new RuntimeException("ERROR: EDIFLibrary is already attached to a netlist. Call EDIFNetlist.removeLibrary() first.");
+            throw new RuntimeException("ERROR: EDIFLibrary is already attached to a netlist. "
+                                       + "Call EDIFNetlist.removeLibrary() first.");
         }
 
         this.netlist = netlist;
@@ -229,7 +231,7 @@ public class EDIFLibrary extends EDIFName {
      * are keyed by the legal EDIF name of the cell.
      * @return The map containing the cells for this library.
      */
-    public Map<String,EDIFCell> getCellMap() {
+    public Map<String, EDIFCell> getCellMap() {
         return cells == null ? Collections.emptyMap() : cells;
     }
 
@@ -311,10 +313,12 @@ public class EDIFLibrary extends EDIFName {
     }
 
     private static final byte[] EXPORT_CONST_LIBRARY_START = "  (Library ".getBytes(StandardCharsets.UTF_8);
-    private static final byte[] EXPORT_CONST_TECHNOLOGY = "\n    (edifLevel 0)\n    (technology (numberDefinition ))\n".getBytes(StandardCharsets.UTF_8);
+    private static final byte[] EXPORT_CONST_TECHNOLOGY =
+        "\n    (edifLevel 0)\n    (technology (numberDefinition ))\n".getBytes(StandardCharsets.UTF_8);
     private static final byte[] EXPORT_CONST_LIBRARY_END = "  )\n".getBytes(StandardCharsets.UTF_8);
 
-    void exportEDIF(List<EDIFCell> cells, OutputStream os, boolean writeHeader, boolean writeFooter, EDIFWriteLegalNameCache<?> cache, boolean stable) throws IOException {
+    void exportEDIF(List<EDIFCell> cells, OutputStream os, boolean writeHeader, boolean writeFooter,
+                    EDIFWriteLegalNameCache<?> cache, boolean stable) throws IOException {
         if (writeHeader) {
             os.write(EXPORT_CONST_LIBRARY_START);
             exportEDIFName(os, cache);
@@ -335,7 +339,7 @@ public class EDIFLibrary extends EDIFName {
         exportEDIF(os, cache, false);
     }
 
-    public List<Future<ParallelDCPInput>> exportEDIF(EDIFWriteLegalNameCache<?> cache) throws IOException{
+    public List<Future<ParallelDCPInput>> exportEDIF(EDIFWriteLegalNameCache<?> cache) throws IOException {
         if (!ParallelismTools.getParallel()) {
             throw new RuntimeException();
         }
@@ -347,17 +351,16 @@ public class EDIFLibrary extends EDIFName {
         for (long i = 0; i < validCellOrder.size(); i += chunkSize) {
             final boolean firstChunk = (i == 0);
             final boolean lastChunk = (i + chunkSize >= validCellOrder.size());
-            List<EDIFCell> chunk = validCellOrder.subList((int) i, (int) (lastChunk ? validCellOrder.size() : i + chunkSize));
+            List<EDIFCell> chunk =
+                validCellOrder.subList((int)i, (int)(lastChunk ? validCellOrder.size() : i + chunkSize));
 
-            streamFutures.add(ParallelismTools.submit(
-                    () -> ParallelDCPOutput.newStream((os) -> {
-                        try (BufferedOutputStream bs = new BufferedOutputStream(new NoCloseOutputStream(os))) {
-                            exportEDIF(chunk, bs, firstChunk, lastChunk, cache, false);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    })
-            ));
+            streamFutures.add(ParallelismTools.submit(() -> ParallelDCPOutput.newStream((os) -> {
+                try (BufferedOutputStream bs = new BufferedOutputStream(new NoCloseOutputStream(os))) {
+                    exportEDIF(chunk, bs, firstChunk, lastChunk, cache, false);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            })));
         }
 
         return streamFutures;

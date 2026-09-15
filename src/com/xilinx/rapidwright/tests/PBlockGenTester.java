@@ -45,7 +45,8 @@ public class PBlockGenTester {
         File dir = new File(args[0]);
         if (dir.exists() && dir.isDirectory()) {
             for (File child : dir.listFiles()) {
-                if (!child.isDirectory()) continue;
+                if (!child.isDirectory())
+                    continue;
                 String shapeFile = null;
                 String utilReportFile = null;
                 for (File file : child.listFiles()) {
@@ -57,13 +58,11 @@ public class PBlockGenTester {
                 }
                 if (shapeFile != null && utilReportFile != null) {
                     System.out.println(child.getName() + " " + utilReportFile + " " + shapeFile);
-                    PBlockGenerator.main(new String[]{
-                            "-u", utilReportFile,
-                            "-s", shapeFile,
-                            "-c", "1",
+                    PBlockGenerator.main(new String[] {
+                        "-u", utilReportFile, "-s", shapeFile, "-c", "1",
                         //    "-a", "0.25",
                         //    "-o", "1.5",
-                            });
+                    });
                 }
             }
         }

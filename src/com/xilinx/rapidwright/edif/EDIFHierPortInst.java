@@ -35,7 +35,6 @@ import com.xilinx.rapidwright.design.SiteInst;
 import com.xilinx.rapidwright.design.SitePinInst;
 import com.xilinx.rapidwright.device.BELPin;
 import com.xilinx.rapidwright.util.Pair;
-
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -45,12 +44,9 @@ import org.jetbrains.annotations.NotNull;
  * Created on: Sep 12, 2017
  */
 public class EDIFHierPortInst implements Comparable<EDIFHierPortInst> {
+    @NotNull private final EDIFHierCellInst hierarchicalInst;
 
-    @NotNull
-    private final EDIFHierCellInst hierarchicalInst;
-
-    @NotNull
-    private final EDIFPortInst portInst;
+    @NotNull private final EDIFPortInst portInst;
 
     /**
      * Constructor
@@ -69,12 +65,11 @@ public class EDIFHierPortInst implements Comparable<EDIFHierPortInst> {
      */
     public String getHierarchicalInstName() {
         return hierarchicalInst.getFullHierarchicalInstName();
-
     }
 
     /**
      * Gets the full instance, including the instance of the EDIFPortInst.
-     * 
+     *
      * @return
      */
     public EDIFHierCellInst getFullHierarchicalInst() {
@@ -124,10 +119,10 @@ public class EDIFHierPortInst implements Comparable<EDIFHierPortInst> {
     }
 
     public EDIFCell getCellType() {
-        if (portInst.getCellInst() == null) return null;
+        if (portInst.getCellInst() == null)
+            return null;
         return portInst.getCellInst().getCellType();
     }
-
 
     /* (non-Javadoc)
      * @see java.lang.Object#hashCode()
@@ -152,7 +147,7 @@ public class EDIFHierPortInst implements Comparable<EDIFHierPortInst> {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        EDIFHierPortInst other = (EDIFHierPortInst) obj;
+        EDIFHierPortInst other = (EDIFHierPortInst)obj;
         if (hierarchicalInst == null) {
             if (other.hierarchicalInst != null)
                 return false;
@@ -171,7 +166,8 @@ public class EDIFHierPortInst implements Comparable<EDIFHierPortInst> {
      */
     @Override
     public String toString() {
-        if (hierarchicalInst.isTopLevelInst()) return portInst.getFullName();
+        if (hierarchicalInst.isTopLevelInst())
+            return portInst.getFullName();
         return hierarchicalInst + "/" + portInst.getFullName();
     }
 
@@ -204,7 +200,8 @@ public class EDIFHierPortInst implements Comparable<EDIFHierPortInst> {
      */
     public SitePinInst getRoutedSitePinInst(Design design) {
         Cell cell = getPhysicalCell(design);
-        if (cell == null) return null;
+        if (cell == null)
+            return null;
         return cell.getSitePinFromPortInst(getPortInst(), null);
     }
 
@@ -215,7 +212,8 @@ public class EDIFHierPortInst implements Comparable<EDIFHierPortInst> {
      */
     public SitePinInst getRoutedSitePinInst(Module module) {
         Cell cell = getPhysicalCell(module);
-        if (cell == null) return null;
+        if (cell == null)
+            return null;
         return cell.getSitePinFromPortInst(getPortInst(), null);
     }
 
@@ -248,21 +246,23 @@ public class EDIFHierPortInst implements Comparable<EDIFHierPortInst> {
      */
     public Pair<SiteInst, BELPin> getRoutedBELPin(Design design) {
         Cell cell = getPhysicalCell(design);
-        if (cell == null) return null;
+        if (cell == null)
+            return null;
         BELPin belPin = cell.getBELPin(this);
         return new Pair<>(cell.getSiteInst(), belPin);
     }
-    
+
     /**
      * If the site wire adjacent to the belpin occupied by the port instance is
      * populated with a physical net, this method will return it.
-     * 
+     *
      * @param design The current design.
      * @return The physical net if the bel pin is routed.
      */
     public Net getRoutedPhysicalNet(Design design) {
         Cell cell = getPhysicalCell(design);
-        if (cell == null) return null;
+        if (cell == null)
+            return null;
         BELPin belPin = cell.getBELPin(this);
         SiteInst si = cell.getSiteInst();
         return si != null ? si.getNetFromSiteWire(belPin.getSiteWireName()) : null;
@@ -276,7 +276,8 @@ public class EDIFHierPortInst implements Comparable<EDIFHierPortInst> {
     public List<SitePinInst> getAllRoutedSitePinInsts(Design design) {
         String cellName = getFullHierarchicalInstName();
         Cell cell = design.getCell(cellName);
-        if (cell == null) return null;
+        if (cell == null)
+            return null;
         return cell.getAllSitePinsFromPortInst(getPortInst(), null);
     }
 
@@ -285,35 +286,36 @@ public class EDIFHierPortInst implements Comparable<EDIFHierPortInst> {
     }
 
     /**
-     * For Ports that represent connections to the parent (portInst.getCellInst()==null), get the parent's portInst
-     * that connects to this port.
+     * For Ports that represent connections to the parent (portInst.getCellInst()==null), get the
+     * parent's portInst that connects to this port.
      */
     public EDIFHierPortInst getPortInParent() {
         if (portInst.getCellInst() != null) {
-            throw new IllegalStateException("This method is only valid for PortInsts that represent connections to the parent");
+            throw new IllegalStateException(
+                "This method is only valid for PortInsts that represent connections to the parent");
         }
         if (hierarchicalInst.isTopLevelInst()) {
-            throw new IllegalStateException("Cannot get Port in Parent of Root Port "+this);
+            throw new IllegalStateException("Cannot get Port in Parent of Root Port " + this);
         }
         final EDIFPortInst portInst = hierarchicalInst.getInst().getPortInst(this.portInst.getPortInstNameFromPort());
         if (portInst == null) {
-            //throw new IllegalStateException("Trying to find port "+this+" in parent but got null!");
+            // throw new IllegalStateException("Trying to find port "+this+" in parent but got
+            // null!");
             return null;
         }
         return new EDIFHierPortInst(hierarchicalInst.getParent(), portInst);
     }
 
     /**
-     * For ports that represent connections to inner cells, get the connected Net that is connected within the cell
+     * For ports that represent connections to inner cells, get the connected Net that is connected
+     * within the cell
      */
     public EDIFHierNet getInternalNet() {
-
         final EDIFNet internalNet = portInst.getInternalNet();
         if (internalNet == null) {
             return null;
         }
         return new EDIFHierNet(hierarchicalInst.getChild(portInst.getCellInst()), internalNet);
-
     }
 
     public EDIFCell getParentCell() {

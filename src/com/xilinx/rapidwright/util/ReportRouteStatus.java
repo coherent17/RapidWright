@@ -22,6 +22,12 @@
 
 package com.xilinx.rapidwright.util;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.DesignTools;
 import com.xilinx.rapidwright.design.Net;
@@ -31,21 +37,15 @@ import com.xilinx.rapidwright.device.PIP;
 import com.xilinx.rapidwright.edif.EDIFNetlist;
 import com.xilinx.rapidwright.rwroute.RouterHelper;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 public class ReportRouteStatus {
     /**
      * Compute the route status of given Design's physical nets by examining the
-     * {@link SitePinInst#isRouted()} state of each net's pins, as well as to discovering node conflicts
-     * between each net's PIPs.
-     * Freshly loaded designs, as well as designs that are not up-to-date, can call
-     * {@link DesignTools#updatePinsIsRouted(Design)} for recomputing the SitePinInst.isRouted() state.
-     * Note that currently this method does not check the Design's logical netlist nor its physical
-     * placement --- these are assumed to be correct.
+     * {@link SitePinInst#isRouted()} state of each net's pins, as well as to discovering node
+     * conflicts between each net's PIPs. Freshly loaded designs, as well as designs that are not
+     * up-to-date, can call
+     * {@link DesignTools#updatePinsIsRouted(Design)} for recomputing the SitePinInst.isRouted()
+     * state. Note that currently this method does not check the Design's logical netlist nor its
+     * physical placement --- these are assumed to be correct.
      * @param design Design to examine.
      * @return ReportRouteStatusResult object.
      */

@@ -23,6 +23,15 @@
 
 package com.xilinx.rapidwright.design.tools;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.google.ortools.Loader;
 import com.google.ortools.sat.CpModel;
 import com.google.ortools.sat.CpSolver;
@@ -46,19 +55,10 @@ import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /**
  * A graph providing an abstract representation of a netlist comprised of blackbox cells.
- * Used by ArrayBuilder to calculate an ideal placement for a netlist that minimizes distanced between
- * nearest neighbors.
+ * Used by ArrayBuilder to calculate an ideal placement for a netlist that minimizes distanced
+ * between nearest neighbors.
  */
 public class ArrayNetlistGraph {
     /**
@@ -123,11 +123,11 @@ public class ArrayNetlistGraph {
                         if (!netPortInst.equals(portInst) && netPortInst.getCellType() != null) {
                             EDIFHierCellInst destCellInst = netPortInst.getFullHierarchicalInst();
                             if (destCellInst != null && containsNode(destCellInst.getFullHierarchicalInstName())) {
-                                PBlockSide pBlockSide = sideMap == null ? null : sideMap.get(portInst.getPortInst().getPort());
+                                PBlockSide pBlockSide =
+                                    sideMap == null ? null : sideMap.get(portInst.getPortInst().getPort());
 
                                 addEdge(cellInst.getFullHierarchicalInstName(),
-                                        destCellInst.getFullHierarchicalInstName(),
-                                        pBlockSide);
+                                        destCellInst.getFullHierarchicalInstName(), pBlockSide);
                             }
                         }
                     }
@@ -191,17 +191,20 @@ public class ArrayNetlistGraph {
             }
         }
         while (!candidateMap.isEmpty()) {
-            List<String> sortedCandidates = candidateMap.entrySet().stream()
+            List<String> sortedCandidates =
+                candidateMap.entrySet()
+                    .stream()
                     .sorted((e1, e2) -> {
-                      if (e1.getValue() == e2.getValue()) {
-                          // Tie-break of shorted path distance
-                          GraphPath<String, NetlistEdge> shortestPathE1 = dsp.getPath(topLeftNode, e1.getKey());
-                          GraphPath<String, NetlistEdge> shortestPathE2 = dsp.getPath(topLeftNode, e2.getKey());
-                          return shortestPathE1.getLength() - shortestPathE2.getLength();
-                      }
-                      return e2.getValue().compareTo(e1.getValue());
+                        if (e1.getValue() == e2.getValue()) {
+                            // Tie-break of shorted path distance
+                            GraphPath<String, NetlistEdge> shortestPathE1 = dsp.getPath(topLeftNode, e1.getKey());
+                            GraphPath<String, NetlistEdge> shortestPathE2 = dsp.getPath(topLeftNode, e2.getKey());
+                            return shortestPathE1.getLength() - shortestPathE2.getLength();
+                        }
+                        return e2.getValue().compareTo(e1.getValue());
                     })
-                    .map(Map.Entry::getKey).collect(Collectors.toList());
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
             String node = sortedCandidates.get(0);
             candidateMap.remove(node);
             for (NetlistEdge edge : graph.outgoingEdgesOf(node)) {
@@ -221,13 +224,14 @@ public class ArrayNetlistGraph {
             for (String inNeighbor : inNeighbors) {
                 inNeighborPlacements.add(reversePlacementMap.get(inNeighbor));
             }
-            inNeighborPlacements = inNeighborPlacements.stream().sorted(
-                    (p1, p2) -> {
-                        if (p1.getSecond().equals(p2.getSecond())) {
-                            return p1.getFirst() - p2.getFirst();
-                        }
-                        return p1.getSecond() - p2.getSecond();
-                    }).collect(Collectors.toList());
+            inNeighborPlacements = inNeighborPlacements.stream()
+                                       .sorted((p1, p2) -> {
+                                           if (p1.getSecond().equals(p2.getSecond())) {
+                                               return p1.getFirst() - p2.getFirst();
+                                           }
+                                           return p1.getSecond() - p2.getSecond();
+                                       })
+                                       .collect(Collectors.toList());
             List<Pair<Integer, Integer>> validPlacements = new ArrayList<>();
             if (inNeighbors.size() == 1) {
                 Pair<Integer, Integer> neighborPlacement = inNeighborPlacements.get(0);
@@ -337,12 +341,14 @@ public class ArrayNetlistGraph {
                 int targetNum = nameToNumMap.get(edgeTarget);
 
                 // x distance variable
-                IntVar xDistVar = model.newIntVar(0, width, "x_dist_" + v + "_n" + sourceNum + "_to_" + edgeTarget + "_n" + targetNum);
+                IntVar xDistVar = model.newIntVar(
+                    0, width, "x_dist_" + v + "_n" + sourceNum + "_to_" + edgeTarget + "_n" + targetNum);
                 xDistVars.add(xDistVar);
                 IntVar sourceXVar = xPlacement[sourceNum];
                 IntVar targetXVar = xPlacement[targetNum];
 
-                // Adding both of these constraints is equivalent to xDistVar = abs(sourceX - targetX)
+                // Adding both of these constraints is equivalent to xDistVar = abs(sourceX -
+                // targetX)
                 LinearExprBuilder sourceMinusTargetX = LinearExpr.newBuilder();
                 sourceMinusTargetX.addTerm(sourceXVar, 1);
                 sourceMinusTargetX.addTerm(targetXVar, -1);
@@ -354,12 +360,14 @@ public class ArrayNetlistGraph {
                 model.addGreaterOrEqual(xDistVar, targetMinusSourceX);
 
                 // y distance variable
-                IntVar yDistVar = model.newIntVar(0, width, "y_dist_" + v + "_n" + sourceNum + "_to_" + edgeTarget + "_n" + targetNum);
+                IntVar yDistVar = model.newIntVar(
+                    0, width, "y_dist_" + v + "_n" + sourceNum + "_to_" + edgeTarget + "_n" + targetNum);
                 yDistVars.add(yDistVar);
                 IntVar sourceYVar = yPlacement[sourceNum];
                 IntVar targetYVar = yPlacement[targetNum];
 
-                // Adding both of these constraints is equivalent to xDistVar = abs(sourceX - targetX)
+                // Adding both of these constraints is equivalent to xDistVar = abs(sourceX -
+                // targetX)
                 LinearExprBuilder sourceMinusTargetY = LinearExpr.newBuilder();
                 sourceMinusTargetY.addTerm(sourceYVar, 1);
                 sourceMinusTargetY.addTerm(targetYVar, -1);
@@ -372,7 +380,7 @@ public class ArrayNetlistGraph {
 
                 // Neighbors must be adjacent
                 LinearExprBuilder xDistPlusYDist = LinearExpr.newBuilder();
-                xDistPlusYDist.addSum(new IntVar[]{xDistVar, yDistVar});
+                xDistPlusYDist.addSum(new IntVar[] {xDistVar, yDistVar});
                 model.addLessOrEqual(xDistPlusYDist, 1);
                 model.addLessOrEqual(xDistVar, 3);
                 model.addLessOrEqual(yDistVar, 3);

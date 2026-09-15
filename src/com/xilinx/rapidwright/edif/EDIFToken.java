@@ -36,9 +36,11 @@ class EDIFToken {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        EDIFToken edifToken = (EDIFToken) o;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        EDIFToken edifToken = (EDIFToken)o;
         return byteOffset == edifToken.byteOffset && text.equals(edifToken.text);
     }
 
@@ -50,10 +52,9 @@ class EDIFToken {
     @Override
     public String toString() {
         String displayText = text;
-        if (text.length()>120) {
-            displayText = text.substring(0,100)+"[shortened, length is "+text.length()+"]";
+        if (text.length() > 120) {
+            displayText = text.substring(0, 100) + "[shortened, length is " + text.length() + "]";
         }
-        return displayText +"@"+byteOffset;
+        return displayText + "@" + byteOffset;
     }
-
 }

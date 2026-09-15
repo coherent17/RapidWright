@@ -51,10 +51,11 @@ public class PBlockConstraint implements Constraint<PBlockConstraint> {
 
     public Stream<String> asXdc() {
         List<String> res = getPblock().getTclConstraints();
-        if (cells.size()==1 && cells.get(0).isEmpty()) {
-            res.add("add_cells_to_pblock [get_pblocks "+pblock.getName()+"] -top");
+        if (cells.size() == 1 && cells.get(0).isEmpty()) {
+            res.add("add_cells_to_pblock [get_pblocks " + pblock.getName() + "] -top");
         } else if (!cells.isEmpty()) {
-            res.add("add_cells_to_pblock [get_pblocks "+pblock.getName()+"] [get_cells {"+String.join(" ", cells)+"}]");
+            res.add("add_cells_to_pblock [get_pblocks " + pblock.getName() + "] [get_cells {" +
+                    String.join(" ", cells) + "}]");
         }
         return res.stream();
     }

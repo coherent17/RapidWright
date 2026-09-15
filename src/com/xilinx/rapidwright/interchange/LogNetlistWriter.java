@@ -23,6 +23,14 @@
 
 package com.xilinx.rapidwright.interchange;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Supplier;
+
 import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.edif.EDIFCell;
 import com.xilinx.rapidwright.edif.EDIFCellInst;
@@ -50,16 +58,7 @@ import org.capnproto.Text;
 import org.capnproto.TextList;
 import org.capnproto.Void;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.function.Supplier;
-
 public class LogNetlistWriter {
-
     // Name of the libraries used in DeviceResources primLibs
     public static final String DEVICE_PRIMITIVES_LIB = "primitives";
     public static final String DEVICE_MACROS_LIB = "macros";
@@ -106,7 +105,8 @@ public class LogNetlistWriter {
 
     /**
      * Takes an EDIF property map and serializes (writes) it using the Cap'n Proto schema.  The
-     * opposite is {@link LogNetlistReader#extractPropertyMap(PropertyMap.Reader, EDIFPropertyObject)}
+     * opposite is {@link LogNetlistReader#extractPropertyMap(PropertyMap.Reader,
+     * EDIFPropertyObject)}
      * @param getBuilder Supplier lambda returning the Cap'n Proto property map builder.
      *                   A lambda is used to avoid serializing an empty property map object when no
      *                   EDIF properties exist as this still occupies space. In this case, it is
@@ -119,22 +119,21 @@ public class LogNetlistWriter {
             return;
 
         PropertyMap.Builder builder = getBuilder.get();
-        StructList.Builder<PropertyMap.Entry.Builder> entries =
-                builder.initEntries(propMap.size());
+        StructList.Builder<PropertyMap.Entry.Builder> entries = builder.initEntries(propMap.size());
         int i = 0;
         for (Entry<String, EDIFPropertyValue> e : propMap.entrySet()) {
             PropertyMap.Entry.Builder entry = entries.get(i);
             entry.setKey(allStrings.getIndex(e.getKey()));
             switch (e.getValue().getType()) {
-            case BOOLEAN:
-                entry.setBoolValue(e.getValue().getValue().equalsIgnoreCase("true")
-                        || e.getValue().getValue().equalsIgnoreCase("1"));
-                break;
-            case INTEGER:
-                entry.setIntValue(e.getValue().getIntValue());
-                break;
-            default:
-                entry.setTextValue(allStrings.getIndex(e.getValue().getValue()));
+                case BOOLEAN:
+                    entry.setBoolValue(e.getValue().getValue().equalsIgnoreCase("true") ||
+                                       e.getValue().getValue().equalsIgnoreCase("1"));
+                    break;
+                case INTEGER:
+                    entry.setIntValue(e.getValue().getIntValue());
+                    break;
+                default:
+                    entry.setTextValue(allStrings.getIndex(e.getValue().getValue()));
             }
             i++;
         }
@@ -250,8 +249,8 @@ public class LogNetlistWriter {
                 Net.Builder netBuilder = nets.get(j);
                 netBuilder.setName(allStrings.getIndex(net.getName()));
                 populatePropertyMap(netBuilder::getPropMap, net);
-                StructList.Builder<PortInstance.Builder> portInsts = netBuilder
-                        .initPortInsts(net.getPortInsts().size());
+                StructList.Builder<PortInstance.Builder> portInsts =
+                    netBuilder.initPortInsts(net.getPortInsts().size());
                 int k = 0;
                 for (EDIFPortInst portInst : net.getPortInsts()) {
                     PortInstance.Builder piBuilder = portInsts.get(k);
@@ -310,7 +309,7 @@ public class LogNetlistWriter {
     public static void writeStrings(Netlist.Builder netlist, List<String> strings) {
         int stringCount = strings.size();
         TextList.Builder strList = netlist.initStrList(stringCount);
-        for (int i=0; i < stringCount; i++) {
+        for (int i = 0; i < stringCount; i++) {
             strList.set(i, new Text.Reader(strings.get(i)));
         }
     }
@@ -342,7 +341,7 @@ public class LogNetlistWriter {
                 n.collapseMacroUnisims(device.getSeries());
             } else {
                 System.err.println("WARNING: Could not collapse macros in netlist as part target device"
-                        + " could not be identified.");
+                                   + " could not be identified.");
             }
         }
         t.stop().start("Initialize");

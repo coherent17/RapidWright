@@ -39,7 +39,7 @@ import com.xilinx.rapidwright.timing.delayestimator.DelayEstimatorBase;
  * A graph-based tool based on Depth-first Search to fix illegal routes,
  * i.e. routed nets with path cycles or multi-driver nodes.
  */
-public class RouteFixer{
+public class RouteFixer {
     private NetWrapper netp;
     private Map<Node, NodeWithDelay> nodeMap;
     private Set<NodeWithDelay> sources;
@@ -54,7 +54,7 @@ public class RouteFixer{
     }
 
     private void buildGraph(NetWrapper netWrapper, RouteNodeGraph routingGraph) {
-        for (Connection connection:netWrapper.getConnections()) {
+        for (Connection connection : netWrapper.getConnections()) {
             List<Node> nodes = connection.getNodes();
             // nodes of connections are in the order from sink to source
             int vertexSize = nodes.size();
@@ -64,11 +64,12 @@ public class RouteFixer{
 
                 RouteNode currRnode = routingGraph.getNode(cur);
                 RouteNode nextRnode = routingGraph.getNode(next);
-                float currDly = currRnode == null? 0f : currRnode.getDelay();
-                float nextDly = nextRnode == null? 0f : nextRnode.getDelay();
+                float currDly = currRnode == null ? 0f : currRnode.getDelay();
+                float nextDly = nextRnode == null ? 0f : nextRnode.getDelay();
 
                 NodeWithDelay newCur = nodeMap.computeIfAbsent(cur, (k) -> new NodeWithDelay(vertexId++, cur, currDly));
-                NodeWithDelay newNext = nodeMap.computeIfAbsent(next, (k) -> new NodeWithDelay(vertexId++, next, nextDly));
+                NodeWithDelay newNext =
+                    nodeMap.computeIfAbsent(next, (k) -> new NodeWithDelay(vertexId++, next, nextDly));
                 if (i == 1) {
                     newNext.setSink(true);
                 }
@@ -115,13 +116,16 @@ public class RouteFixer{
         while (!queue.isEmpty()) {
             NodeWithDelay cur = queue.poll();
             Set<NodeWithDelay> nexts = cur.children;
-            if (nexts == null || nexts.isEmpty()) continue;
+            if (nexts == null || nexts.isEmpty())
+                continue;
             for (NodeWithDelay next : nexts) {
-                float newCost = cur.cost + next.getDelay()
-                        + DelayEstimatorBase.getExtraDelay(next.getNode(), DelayEstimatorBase.isLong(cur.getNode()));
+                float newCost =
+                    cur.cost + next.getDelay() +
+                    DelayEstimatorBase.getExtraDelay(next.getNode(), DelayEstimatorBase.isLong(cur.getNode()));
                 if (!next.isVisited() || (next.isVisited() && newCost < next.cost)) {
                     // The second condition is necessary,
-                    // because a smaller path delay from the source to the current "next" could be achieved later.
+                    // because a smaller path delay from the source to the current "next" could be
+                    // achieved later.
                     next.cost = newCost;
                     next.setPrev(cur);
                     next.setVisited(true);
@@ -131,9 +135,10 @@ public class RouteFixer{
         }
     }
 
-    private static final Comparator<NodeWithDelay> NodeWithDelayComparator = (a, b) -> Float.compare(a.getDelay(), b.getDelay());
+    private static final Comparator<NodeWithDelay> NodeWithDelayComparator =
+        (a, b) -> Float.compare(a.getDelay(), b.getDelay());
 
-    static class NodeWithDelay{
+    static class NodeWithDelay {
         private int id;
         private Node node;
         private float delay;
@@ -208,5 +213,4 @@ public class RouteFixer{
             return id + ", " + node.toString() + ", delay = " + delay + ", sink? " + isSink;
         }
     }
-
 }

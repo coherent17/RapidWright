@@ -27,8 +27,8 @@ import java.util.Objects;
 import com.xilinx.rapidwright.device.Site;
 
 /**
- * A placement of a {@link ModuleImplsInst}. This consists of implementation index (indexes into the list
- * of implementations of the corresponding {@link ModuleImpls}) as well as an anchor Site.
+ * A placement of a {@link ModuleImplsInst}. This consists of implementation index (indexes into the
+ * list of implementations of the corresponding {@link ModuleImpls}) as well as an anchor Site.
  */
 public class ModulePlacement {
     public final int implementationIndex;
@@ -41,14 +41,16 @@ public class ModulePlacement {
 
     @Override
     public String toString() {
-        return "impl "+implementationIndex+" at "+placement;
+        return "impl " + implementationIndex + " at " + placement;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ModulePlacement that = (ModulePlacement) o;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        ModulePlacement that = (ModulePlacement)o;
         return implementationIndex == that.implementationIndex && placement.equals(that.placement);
     }
 

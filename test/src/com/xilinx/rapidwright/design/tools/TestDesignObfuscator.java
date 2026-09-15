@@ -26,18 +26,16 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.edif.EDIFHierCellInst;
 import com.xilinx.rapidwright.edif.EDIFHierNet;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
 import com.xilinx.rapidwright.util.VivadoToolsHelper;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 public class TestDesignObfuscator {
-
     @Test
     public void testDesignObfuscator(@TempDir Path path) {
         Design design = RapidWrightDCP.loadDCP("microblazeAndILA_3pblocks.dcp");
@@ -66,5 +64,4 @@ public class TestDesignObfuscator {
 
         VivadoToolsHelper.assertFullyRouted(design);
     }
-
 }

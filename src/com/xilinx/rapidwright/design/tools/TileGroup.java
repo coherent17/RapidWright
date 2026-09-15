@@ -34,7 +34,6 @@ import com.xilinx.rapidwright.device.Tile;
  * left and lower right corner tiles.
  */
 public class TileGroup {
-
     private Tile upperLeft;
 
     private Tile lowerRight;
@@ -96,11 +95,11 @@ public class TileGroup {
         int row = tile.getRow();
         int col = tile.getColumn();
         return northRow <= row && row <= southRow && westColumn <= col && col <= eastColumn;
-
     }
 
     public String toString() {
-        return "[" + upperLeft + " (" + upperLeft.getColumn() + ", " + upperLeft.getRow() + ")" + ":"
-                + lowerRight + " (" + lowerRight.getColumn() + ", " + lowerRight.getRow() + ")" + "]";
+        return "[" + upperLeft + " (" + upperLeft.getColumn() + ", " + upperLeft.getRow() + ")"
+            + ":" + lowerRight + " (" + lowerRight.getColumn() + ", " + lowerRight.getRow() + ")"
+            + "]";
     }
 }

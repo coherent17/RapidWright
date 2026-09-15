@@ -30,18 +30,23 @@ import com.xilinx.rapidwright.edif.EDIFTools;
  * @author Chris Lavin
  * Created on: Jun 22, 2010
  */
-public enum NetType{
+public enum NetType {
     WIRE,
     GND,
     VCC,
     UNKNOWN;
 
     public static NetType getNetTypeFromNetName(String name) {
-        if (name == null || name.isEmpty()) return UNKNOWN;
-        if (name.equals(Net.GND_NET)) return GND;
-        if (name.equals(Net.VCC_NET)) return VCC;
-        if (name.endsWith(EDIFTools.LOGICAL_GND_NET_NAME)) return GND;
-        if (name.endsWith(EDIFTools.LOGICAL_VCC_NET_NAME)) return VCC;
+        if (name == null || name.isEmpty())
+            return UNKNOWN;
+        if (name.equals(Net.GND_NET))
+            return GND;
+        if (name.equals(Net.VCC_NET))
+            return VCC;
+        if (name.endsWith(EDIFTools.LOGICAL_GND_NET_NAME))
+            return GND;
+        if (name.endsWith(EDIFTools.LOGICAL_VCC_NET_NAME))
+            return VCC;
         return WIRE;
     }
 

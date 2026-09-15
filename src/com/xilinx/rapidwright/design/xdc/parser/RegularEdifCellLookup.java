@@ -32,11 +32,10 @@ import com.xilinx.rapidwright.edif.EDIFPropertyValue;
 /**
  * Default cell lookup for normal designs.
  * <p>
- * This assumes that the EDIFNetlist matches what a regular synthesis run would produce. No rewriting of cell names
- * is performed.
+ * This assumes that the EDIFNetlist matches what a regular synthesis run would produce. No
+ * rewriting of cell names is performed.
  */
 public class RegularEdifCellLookup extends EdifCellLookup<EDIFHierCellInst> {
-
     private final EDIFNetlist netlist;
 
     public RegularEdifCellLookup(EDIFNetlist netlist) {
@@ -51,7 +50,7 @@ public class RegularEdifCellLookup extends EdifCellLookup<EDIFHierCellInst> {
     @Override
     public EDIFHierCellInst getChild(EDIFHierCellInst cell, String name) {
         EDIFCellInst child = cell.getCellType().getCellInst(name);
-        if (child==null) {
+        if (child == null) {
             return null;
         }
         return cell.getChild(child);
@@ -61,7 +60,6 @@ public class RegularEdifCellLookup extends EdifCellLookup<EDIFHierCellInst> {
     public EDIFHierCellInst toEdifHierCellInst(EDIFHierCellInst cell) {
         return cell;
     }
-
 
     @Override
     public EDIFHierCellInst getRoot() {

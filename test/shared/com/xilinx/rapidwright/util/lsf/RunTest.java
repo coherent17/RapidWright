@@ -48,7 +48,8 @@ import org.junit.platform.launcher.listeners.TestExecutionSummary;
 import org.junit.platform.reporting.legacy.xml.LegacyXmlReportGeneratingListener;
 
 /**
- * JUnit test runner that runs a specific subset of tests. Output is written to the current directory.
+ * JUnit test runner that runs a specific subset of tests. Output is written to the current
+ * directory.
  *
  * If called with no parameters: Runs all tests not tagged as LSF
  * If called with one parameter: Run that specific test identified by unique ID
@@ -62,40 +63,39 @@ public class RunTest {
         if (isLsfTest(ti.getTags())) {
             return true;
         }
-        return ti.getParentId().map(p-> isLsfTest(idToTest.get(p), idToTest)).orElse(false);
+        return ti.getParentId().map(p -> isLsfTest(idToTest.get(p), idToTest)).orElse(false);
     }
 
-
-
-    private void executeTests(PrintWriter out, Predicate<TestDescriptor> discoveryFilter, UniqueId filterName, Path testsJar) {
+    private void executeTests(PrintWriter out, Predicate<TestDescriptor> discoveryFilter, UniqueId filterName,
+                              Path testsJar) {
         Launcher launcher = LauncherFactory.create();
         SummaryGeneratingListener summaryListener = registerListeners(out, launcher, filterName);
 
         LauncherDiscoveryRequest discoveryRequest = LaunchTestsOnLsf.getLauncherDiscoveryRequestBuilder(testsJar)
-                        .filters((PostDiscoveryFilter) descriptor -> {
-                            if (!discoveryFilter.test(descriptor)) {
-                                return FilterResult.excluded("not our test");
-                            }
-                            return FilterResult.included("");
-                        }).build();
+                                                        .filters((PostDiscoveryFilter)descriptor -> {
+                                                            if (!discoveryFilter.test(descriptor)) {
+                                                                return FilterResult.excluded("not our test");
+                                                            }
+                                                            return FilterResult.included("");
+                                                        })
+                                                        .build();
         launcher.execute(discoveryRequest);
 
         TestExecutionSummary summary = summaryListener.getSummary();
-        if (summary.getTotalFailureCount() > 0 ) {
+        if (summary.getTotalFailureCount() > 0) {
             printSummary(summary, out);
         }
     }
 
     private SummaryGeneratingListener registerListeners(PrintWriter out, Launcher launcher, UniqueId filter) {
         SummaryGeneratingListener summaryListener = new SummaryGeneratingListener();
-        TestExecutionListener[] listeners = new TestExecutionListener[]{
-                summaryListener,
-                createXmlWritingListener(out)
-        };
+        TestExecutionListener[] listeners =
+            new TestExecutionListener[] {summaryListener, createXmlWritingListener(out)};
         if (filter == null) {
             launcher.registerTestExecutionListeners(listeners);
         } else {
-            launcher.registerTestExecutionListeners(new ModifyingExecutionListener(filter, Arrays.asList(listeners), ModifyingExecutionListener::modifyLegacyName));
+            launcher.registerTestExecutionListeners(new ModifyingExecutionListener(
+                filter, Arrays.asList(listeners), ModifyingExecutionListener::modifyLegacyName));
         }
         return summaryListener;
     }
@@ -117,8 +117,9 @@ public class RunTest {
             discoveryFilter = (TestDescriptor descriptor) -> !RunTest.isLsfTest(descriptor.getTags());
         } else {
             discoveryFilter = (TestDescriptor descriptor) -> filterArg.hasPrefix(descriptor.getUniqueId());
-            //Filtering tests in discovery only works on method level.
-            //We want finer control of dynamic tests and test templates, so intercept actual test runs
+            // Filtering tests in discovery only works on method level.
+            // We want finer control of dynamic tests and test templates, so intercept actual test
+            // runs
             LsfInterceptor.ENABLED = true;
             LsfInterceptor.allowedId = filterArg.toString();
         }
@@ -126,8 +127,4 @@ public class RunTest {
 
         XmlReportPatcher.fixOutputXmls(Paths.get("."));
     }
-
-
-
 }
-

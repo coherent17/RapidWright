@@ -29,19 +29,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.edif.EDIFHierCellInst;
 import com.xilinx.rapidwright.edif.EDIFHierPortInst;
 import com.xilinx.rapidwright.edif.EDIFNetlist;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
 import com.xilinx.rapidwright.util.FileTools;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 public class TestRegroupInstances {
-
     @Test
     public void testRegroupInstances(@TempDir Path dir) {
         Design design = RapidWrightDCP.loadDCP("microblazeAndILA_3pblocks_2024.1.dcp");
@@ -56,31 +54,29 @@ public class TestRegroupInstances {
         FileTools.writeLinesToTextFile(lines, regroupFile.toString());
 
         Map<String, String> mappings = RegroupInstances.parseRegroupMappingsFile(regroupFile.toString());
-        
-        // Create a reference map of each pin count on nets connected to each port inst on a regroup'd cell
+
+        // Create a reference map of each pin count on nets connected to each port inst on a
+        // regroup'd cell
         Map<String, Integer> portInstPinCountRef = new HashMap<>();
         for (String inst : mappings.keySet()) {
             EDIFHierCellInst i = design.getNetlist().getHierCellInstFromName(inst);
-            for (EDIFHierPortInst pi : i.getHierPortInsts()) {                
+            for (EDIFHierPortInst pi : i.getHierPortInsts()) {
                 int pinCount = pi.getHierarchicalNet().getLeafHierPortInsts().size();
                 portInstPinCountRef.put(pi.getPortInst().getFullName(), pinCount);
             }
         }
-        
-        
+
         RegroupInstances.regroupInstances(design, mappings);
         EDIFNetlist n = design.getNetlist();
-        
-        String[] expectedInstances = new String[] {
-                                "partition2/Performance.Core", 
-                                "partition2/microblaze_0_local_memory_2/dlmb_v10", 
-                                "partition2/microblaze_0_local_memory_2/ilmb_v10"
-                                };
-        
+
+        String[] expectedInstances =
+            new String[] {"partition2/Performance.Core", "partition2/microblaze_0_local_memory_2/dlmb_v10",
+                          "partition2/microblaze_0_local_memory_2/ilmb_v10"};
+
         for (String expectedInst : expectedInstances) {
             EDIFHierCellInst hierInst = n.getHierCellInstFromName(expectedInst);
             Assertions.assertNotNull(hierInst);
-            for (EDIFHierPortInst pi : hierInst.getHierPortInsts()) {                
+            for (EDIFHierPortInst pi : hierInst.getHierPortInsts()) {
                 int pinCount = pi.getHierarchicalNet().getLeafHierPortInsts().size();
                 Assertions.assertEquals(pinCount, portInstPinCountRef.get(pi.getPortInst().getFullName()));
             }

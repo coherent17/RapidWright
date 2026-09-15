@@ -30,7 +30,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class TestEDIFParseCellNames {
-
     private void verifyNetlist(EDIFNetlist netlist) {
         final EDIFCell cellA = netlist.getTopCell().getCellInst("instA").getCellType();
         final EDIFCell cellB = netlist.getTopCell().getCellInst("instB").getCellType();
@@ -54,7 +53,8 @@ public class TestEDIFParseCellNames {
     }
     @Test
     public void parseDuplicateCellsParallel() throws IOException {
-        try (final ParallelEDIFParser parallelEDIFParser = new ParallelEDIFParser(RapidWrightDCP.getPath("duplicateCellNames.edf"))) {
+        try (final ParallelEDIFParser parallelEDIFParser =
+                 new ParallelEDIFParser(RapidWrightDCP.getPath("duplicateCellNames.edf"))) {
             final EDIFNetlist netlist = parallelEDIFParser.parseEDIFNetlist();
             verifyNetlist(netlist);
         }

@@ -35,28 +35,21 @@ import com.xilinx.rapidwright.device.Tile;
 /**
  * A Rectangle of tiles, i.e. a Bounding Box around some Set of Tiles.
  *
- * The tiles at the edge of the rectangle (e.g. at minX/minY and maxX/maxY) are all assumed to be inside the rectangle.
- * For both X and Y: {@code min <= Tiles <= max}
+ * The tiles at the edge of the rectangle (e.g. at minX/minY and maxX/maxY) are all assumed to be
+ * inside the rectangle. For both X and Y: {@code min <= Tiles <= max}
  *
- * The way to store tiles is set by subclasses. Depending on the storage method, they may or may not be relocatable
+ * The way to store tiles is set by subclasses. Depending on the storage method, they may or may not
+ * be relocatable
  */
 public abstract class TileRectangle {
-
     /**
      * Base Collector implementation to be used by subclasses
      */
     static <T extends TileRectangle> Collector<Tile, ?, T> collector(Supplier<T> factory, BiConsumer<T, T> extendTo) {
-        return Collector.of(
-                factory,
-                TileRectangle::extendTo,
-                (a, b) -> {
-                    extendTo.accept(a, b);
-                    return a;
-                },
-                Function.identity(),
-                Collector.Characteristics.UNORDERED,
-                Collector.Characteristics.IDENTITY_FINISH
-        );
+        return Collector.of(factory, TileRectangle::extendTo, (a, b) -> {
+            extendTo.accept(a, b);
+            return a;
+        }, Function.identity(), Collector.Characteristics.UNORDERED, Collector.Characteristics.IDENTITY_FINISH);
     }
 
     public abstract int getMinRow();
@@ -66,7 +59,6 @@ public abstract class TileRectangle {
     public abstract int getMinColumn();
 
     public abstract int getMaxColumn();
-
 
     public abstract boolean isEmpty();
 
@@ -83,11 +75,9 @@ public abstract class TileRectangle {
                 tile.getRow() >= getMinRow() && tile.getRow() <= getMaxRow());
     }
 
-
     public int hpwl() {
         return getMaxColumn() - getMinColumn() + getMaxRow() - getMinRow();
     }
-
 
     private static boolean intervalOverlaps(int minA, int maxA, int minB, int maxB) {
         return minA <= maxB && minB <= maxA;
@@ -100,10 +90,9 @@ public abstract class TileRectangle {
      * @return true if there is any overlap
      */
     public boolean overlaps(TileRectangle other) {
-        return intervalOverlaps(getMinColumn(), getMaxColumn(), other.getMinColumn(), other.getMaxColumn())
-                && intervalOverlaps(getMinRow(), getMaxRow(), other.getMinRow(), other.getMaxRow());
+        return intervalOverlaps(getMinColumn(), getMaxColumn(), other.getMinColumn(), other.getMaxColumn()) &&
+            intervalOverlaps(getMinRow(), getMaxRow(), other.getMinRow(), other.getMaxRow());
     }
-
 
     public int getWidth() {
         return getMaxColumn() - getMinColumn();
@@ -118,21 +107,21 @@ public abstract class TileRectangle {
     }
 
     /**
-     * Extend the Rectangle so that a shifted rectangle is inside. The Rectangle is assumed to be located relative to some anchor.
-     * The anchor is shifted from {@code templateAnchor} to {@code currentAnchor}. This location relative to the new
-     * anchor is then included in the Rectangle.
+     * Extend the Rectangle so that a shifted rectangle is inside. The Rectangle is assumed to be
+     * located relative to some anchor. The anchor is shifted from {@code templateAnchor} to {@code
+     * currentAnchor}. This location relative to the new anchor is then included in the Rectangle.
      *
      * @param rect           Rectangle to include after shifting
      * @param currentAnchor  target anchor
      * @param templateAnchor source anchor
      */
-    public abstract void extendToCorresponding(RelocatableTileRectangle rect, Site currentAnchor, SiteInst templateAnchor);
-
+    public abstract void extendToCorresponding(RelocatableTileRectangle rect, Site currentAnchor,
+                                               SiteInst templateAnchor);
 
     /**
-     * Extend the Rectangle so that a shifted tile is inside. The Tile is assumed to be located relative to some anchor.
-     * The anchor is shifted from {@code templateAnchor} to {@code currentAnchor}. This location relative to the new
-     * anchor is then included in the Rectangle.
+     * Extend the Rectangle so that a shifted tile is inside. The Tile is assumed to be located
+     * relative to some anchor. The anchor is shifted from {@code templateAnchor} to {@code
+     * currentAnchor}. This location relative to the new anchor is then included in the Rectangle.
      *
      * @param tile           tile to include after shifting
      * @param currentAnchor  target anchor
@@ -142,7 +131,6 @@ public abstract class TileRectangle {
         Tile corresponding = Module.getCorrespondingTile(tile, currentAnchor.getTile(), templateAnchor.getTile());
         extendTo(corresponding);
     }
-
 
     /**
      * Extend the Rectangle so that the specified Rectangle is inside
@@ -155,9 +143,6 @@ public abstract class TileRectangle {
         if (isEmpty()) {
             throw new RuntimeException("Cannot get center of empty tile rectangle");
         }
-        return device.getTile(
-                (getMaxColumn()+getMinColumn())/2,
-                (getMaxRow()+getMinRow())/2
-        );
+        return device.getTile((getMaxColumn() + getMinColumn()) / 2, (getMaxRow() + getMinRow()) / 2);
     }
 }

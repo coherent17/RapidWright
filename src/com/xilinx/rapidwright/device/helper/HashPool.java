@@ -27,25 +27,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- * This class is a special data structure used for Xilinx FPGA devices to help reduce memory footprint
- * of objects.  It keeps exactly one copy of an object of type E and maintains a unique integer enumeration
- * of each object.  It depends on the type E's equals() and hashCode() function to determine uniqueness.
+ * This class is a special data structure used for Xilinx FPGA devices to help reduce memory
+ * footprint of objects.  It keeps exactly one copy of an object of type E and maintains a unique
+ * integer enumeration of each object.  It depends on the type E's equals() and hashCode() function
+ * to determine uniqueness.
  * @author Chris Lavin
  * Created on: Apr 30, 2010
  * @param <E> The type of object to use.
  */
-public class HashPool<E> extends HashMap<Integer,ArrayList<E>> {
-
+public class HashPool<E> extends HashMap<Integer, ArrayList<E>> {
     private static final long serialVersionUID = -7643508400771696765L;
 
     private ArrayList<E> enumerations;
 
-    private HashMap<E,ArrayList<Integer>> enumerationMap;
+    private HashMap<E, ArrayList<Integer>> enumerationMap;
 
     public HashPool() {
         super();
         enumerations = new ArrayList<E>();
-        enumerationMap = new HashMap<E,ArrayList<Integer>>();
+        enumerationMap = new HashMap<E, ArrayList<Integer>>();
     }
 
     private void addToEnumerationMap(E obj, Integer enumeration) {
@@ -54,8 +54,7 @@ public class HashPool<E> extends HashMap<Integer,ArrayList<E>> {
             enumerationMatches = new ArrayList<Integer>();
             enumerationMatches.add(enumeration);
             enumerationMap.put(obj, enumerationMatches);
-        }
-        else {
+        } else {
             enumerationMatches.add(enumeration);
         }
     }
@@ -68,11 +67,11 @@ public class HashPool<E> extends HashMap<Integer,ArrayList<E>> {
     public Integer getEnumerationValue(E obj) {
         ArrayList<Integer> enumerationMatches = enumerationMap.get(obj);
         if (enumerationMatches == null) {
-            System.out.println("Object does not have enumeration value: " + obj.toString() + " in class: " + this.getClass().getCanonicalName());
+            System.out.println("Object does not have enumeration value: " + obj.toString() +
+                               " in class: " + this.getClass().getCanonicalName());
             throw new IllegalArgumentException();
-            //return -1;
-        }
-        else {
+            // return -1;
+        } else {
             for (Integer i : enumerationMatches) {
                 if (enumerations.get(i) == null && obj == null) {
                     return i;
@@ -83,9 +82,10 @@ public class HashPool<E> extends HashMap<Integer,ArrayList<E>> {
                 }
             }
         }
-        System.out.println("Object does not have enumeration value: " + obj.toString() + " in class: " + this.getClass().getCanonicalName());
+        System.out.println("Object does not have enumeration value: " + obj.toString() +
+                           " in class: " + this.getClass().getCanonicalName());
         throw new IllegalArgumentException();
-        //return -1;
+        // return -1;
     }
 
     /**
@@ -100,19 +100,18 @@ public class HashPool<E> extends HashMap<Integer,ArrayList<E>> {
             hashMatches = new ArrayList<E>();
             hashMatches.add(obj);
             put(hash, hashMatches);
-            addToEnumerationMap(obj,enumerations.size());
+            addToEnumerationMap(obj, enumerations.size());
             enumerations.add(obj);
             return obj;
-        }
-        else {
-            for (E e :hashMatches) {
+        } else {
+            for (E e : hashMatches) {
                 if (e.equals(obj)) {
                     return e;
                 }
             }
             hashMatches.add(obj);
             put(hash, hashMatches);
-            addToEnumerationMap(obj,enumerations.size());
+            addToEnumerationMap(obj, enumerations.size());
             enumerations.add(obj);
             return obj;
         }
@@ -128,7 +127,7 @@ public class HashPool<E> extends HashMap<Integer,ArrayList<E>> {
         if (hashMatches == null) {
             return false;
         }
-        for (E e :hashMatches) {
+        for (E e : hashMatches) {
             if (e.equals(obj)) {
                 return true;
             }
@@ -147,7 +146,7 @@ public class HashPool<E> extends HashMap<Integer,ArrayList<E>> {
         if (hashMatches == null) {
             return null;
         }
-        for (E e :hashMatches) {
+        for (E e : hashMatches) {
             if (e.equals(obj)) {
                 return e;
             }
@@ -182,5 +181,4 @@ public class HashPool<E> extends HashMap<Integer,ArrayList<E>> {
     public void setEnumerationMap(HashMap<E, ArrayList<Integer>> enumerationMap) {
         this.enumerationMap = enumerationMap;
     }
-
 }

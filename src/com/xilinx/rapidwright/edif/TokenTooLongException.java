@@ -23,7 +23,7 @@
 
 package com.xilinx.rapidwright.edif;
 
-public class TokenTooLongException extends EDIFParseException{
+public class TokenTooLongException extends EDIFParseException {
     public TokenTooLongException(EDIFToken token, String message) {
         super(token, message);
     }

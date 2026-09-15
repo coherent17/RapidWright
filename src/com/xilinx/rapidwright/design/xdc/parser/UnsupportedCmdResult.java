@@ -37,7 +37,7 @@ import tcl.lang.TclObject;
 /**
  * This wraps an unsupported command's call to support passing it on
  */
-public class UnsupportedCmdResult<T> extends DesignObject{
+public class UnsupportedCmdResult<T> extends DesignObject {
     private final List<UnsupportedConstraintElement> cmd;
 
     private final EdifCellLookup<T> lookup;
@@ -50,7 +50,8 @@ public class UnsupportedCmdResult<T> extends DesignObject{
     private static Function<UnsupportedConstraintElement, Stream<UnsupportedConstraintElement>> wrapDollarSigns() {
         final boolean[] inBraces = {false};
         return uce -> {
-            if (uce instanceof UnsupportedConstraintElement.CellConstraintElement || uce instanceof UnsupportedConstraintElement.NameConstraintElement) {
+            if (uce instanceof UnsupportedConstraintElement.CellConstraintElement ||
+                uce instanceof UnsupportedConstraintElement.NameConstraintElement) {
                 if (!inBraces[0] && uce.toXdc().contains("$")) {
                     inBraces[0] = true;
                     return Stream.of(new UnsupportedConstraintElement.SyntaxConstraintElement("{"), uce);
@@ -86,19 +87,24 @@ public class UnsupportedCmdResult<T> extends DesignObject{
         };
     }
 
-    public UnsupportedCmdResult(Interp interp, TclObject[] argv, EdifCellLookup<T> lookup, boolean replaceProbableCells, boolean applyWildcardsChooseAny) {
+    public UnsupportedCmdResult(Interp interp, TclObject[] argv, EdifCellLookup<T> lookup, boolean replaceProbableCells,
+                                boolean applyWildcardsChooseAny) {
         this.lookup = lookup;
-        Stream<UnsupportedConstraintElement> objs = Arrays.stream(argv)
-                .flatMap(UnsupportedConstraintElement.addSpacesBetween(
-                        obj->UnsupportedConstraintElement.objToUnsupportedConstraintElement(interp, obj, lookup, replaceProbableCells, applyWildcardsChooseAny)
-                ));
+        Stream<UnsupportedConstraintElement> objs =
+            Arrays.stream(argv).flatMap(UnsupportedConstraintElement.addSpacesBetween(
+                obj
+                -> UnsupportedConstraintElement.objToUnsupportedConstraintElement(
+                    interp, obj, lookup, replaceProbableCells, applyWildcardsChooseAny)));
         this.cmd = UnsupportedConstraintElement.wrapStream(objs, "[", "]")
-                .flatMap(wrapDollarSigns())
-                .collect(Collectors.toList());
+                       .flatMap(wrapDollarSigns())
+                       .collect(Collectors.toList());
     }
 
-    public static <T> TclObject makeTclObj(Interp interp, TclObject[] objv, EdifCellLookup<T> lookup, boolean replaceProbableCells, boolean applyWildcardsChooseAny) throws TclException {
-        return new UnsupportedCmdResult<>(interp, objv, lookup, replaceProbableCells, applyWildcardsChooseAny).toReflectObj(interp);
+    public static <T> TclObject makeTclObj(Interp interp, TclObject[] objv, EdifCellLookup<T> lookup,
+                                           boolean replaceProbableCells, boolean applyWildcardsChooseAny)
+        throws TclException {
+        return new UnsupportedCmdResult<>(interp, objv, lookup, replaceProbableCells, applyWildcardsChooseAny)
+            .toReflectObj(interp);
     }
 
     @Override
@@ -132,8 +138,9 @@ public class UnsupportedCmdResult<T> extends DesignObject{
     }
 
     public UnsupportedCmdResult<T> withoutOutsideBrackets() {
-        if (isSyntaxStr(cmd.get(0), "[") && isSyntaxStr(cmd.get(cmd.size()-1), "]")) {
-            List<UnsupportedConstraintElement> newList = cmd.stream().skip(1).limit(cmd.size() - 2).collect(Collectors.toList());
+        if (isSyntaxStr(cmd.get(0), "[") && isSyntaxStr(cmd.get(cmd.size() - 1), "]")) {
+            List<UnsupportedConstraintElement> newList =
+                cmd.stream().skip(1).limit(cmd.size() - 2).collect(Collectors.toList());
             return new UnsupportedCmdResult<>(newList, lookup);
         }
         return new UnsupportedCmdResult<>(new ArrayList<>(cmd), lookup);

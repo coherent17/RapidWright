@@ -39,20 +39,18 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import com.xilinx.rapidwright.design.ConstraintGroup;
+import com.xilinx.rapidwright.design.Design;
+import com.xilinx.rapidwright.edif.EDIFNetlist;
+import com.xilinx.rapidwright.tests.CodePerfTracker;
+import com.xilinx.rapidwright.util.FileTools;
 import org.capnproto.MessageBuilder;
 import org.capnproto.MessageReader;
 import org.capnproto.ReaderOptions;
 import org.capnproto.Serialize;
 import org.capnproto.SerializePacked;
 
-import com.xilinx.rapidwright.design.ConstraintGroup;
-import com.xilinx.rapidwright.design.Design;
-import com.xilinx.rapidwright.edif.EDIFNetlist;
-import com.xilinx.rapidwright.tests.CodePerfTracker;
-import com.xilinx.rapidwright.util.FileTools;
-
 public class Interchange {
-
     /** Flag indicating use of Packed Cap'n Proto Serialization */
     public static boolean IS_PACKED = false;
     /** Flag indicating that files are gzipped on output */
@@ -69,7 +67,7 @@ public class Interchange {
      * provided name is a logical netlist and no physical netlist is found, it will
      * only load the logical netlist. It will also load any XDC file with the same
      * root name.
-     * 
+     *
      * @param fileName The name of the logical or physical netlist file.
      * @return The loaded design.
      */
@@ -84,7 +82,7 @@ public class Interchange {
      * provided name is a logical netlist and no physical netlist is found, it will
      * only load the logical netlist. It will also load any XDC file with the same
      * root name.
-     * 
+     *
      * @param filePath The path to the logical or physical netlist file.
      * @return The loaded design.
      */
@@ -101,13 +99,13 @@ public class Interchange {
 
         return readInterchangeDesign(logFileName.toString(), physFileName.toString(), xdcFileName, false, null);
     }
-    
+
     /**
      * Gets the existing Interchange companion file name based on the provided
      * filename. For example, if the logical netlist file name is provided, it will
      * return the physical netlist filename if it exists. If the physical netlist is
      * provided, it returns the logical netlist filename if the file exists.
-     * 
+     *
      * @param filePath Path of an existing FPGA Interchange file (logical netlist
      *                 with the {@link #LOG_NETLIST_EXT} extension or physical
      *                 netlist with the {@link #PHYS_NETLIST_EXT})
@@ -131,7 +129,7 @@ public class Interchange {
 
     /**
      * Reads a set of existing FPGA Interchange files and returns a new design.
-     * 
+     *
      * @param logFileName    The logical netlist file to be loaded.
      * @param physFileName   The physical netlist file to be loaded, this can be
      *                       null for no placement or routing information.
@@ -147,7 +145,7 @@ public class Interchange {
      * @return The newly created design based on the provided files.
      */
     public static Design readInterchangeDesign(String logFileName, String physFileName, String xdcFileName,
-            boolean isOutOfContext, CodePerfTracker t) {
+                                               boolean isOutOfContext, CodePerfTracker t) {
         String msg = "Reading Interchange: " + logFileName;
         CodePerfTracker tt = t == null ? new CodePerfTracker(msg, true) : t;
         Design design = null;
@@ -186,7 +184,7 @@ public class Interchange {
      * Writes out a set of Interchange files for the given design. It will write up
      * to 3 files with the logical netlist always being written out. The two
      * optional files are the physical netlist and XDC (constraints) file.
-     * 
+     *
      * @param design       The design in memory to write out.
      * @param rootFileName The root or common name among the output files.
      */
@@ -213,7 +211,7 @@ public class Interchange {
     /**
      * Checks if the provided file name is a logical or physical FPGA Interchange
      * file.
-     * 
+     *
      * @param fileName The file name in question.
      * @return True if the file name matches the logical or physical netlist file
      *         name type.
@@ -283,16 +281,13 @@ public class Interchange {
     private static String READ_LOGICAL_NETLIST = "READ_LOGICAL_NETLIST";
     private static String READ_PHYSICAL_NETLIST = "READ_PHYSICAL_NETLIST";
 
-    public static Path benchmarkDCPvsInterchange(Path dcpPath,
-                                                 Path edifPath,
-                                                 Path workingPath) throws IOException {
+    public static Path benchmarkDCPvsInterchange(Path dcpPath, Path edifPath, Path workingPath) throws IOException {
         String title = dcpPath + " IS_PACKED=" + IS_PACKED + " IS_GZIPPED=" + IS_GZIPPED;
         CodePerfTracker t = new CodePerfTracker(title);
         t.useGCToTrackMemory(true);
         t.start(READ_DCP);
-        Design design = edifPath != null ?
-                Design.readCheckpoint(dcpPath, edifPath, CodePerfTracker.SILENT) :
-                Design.readCheckpoint(dcpPath, CodePerfTracker.SILENT);
+        Design design = edifPath != null ? Design.readCheckpoint(dcpPath, edifPath, CodePerfTracker.SILENT)
+                                         : Design.readCheckpoint(dcpPath, CodePerfTracker.SILENT);
         t.stop().start(WRITE_LOGICAL_NETLIST);
         Path logNetlistPath = FileTools.replaceExtension(dcpPath, ".netlist");
         if (workingPath != null) {
@@ -327,30 +322,21 @@ public class Interchange {
         designReturn.writeCheckpoint(dcpOutputFileName, CodePerfTracker.SILENT);
         t.stop().printSummary();
 
-        System.out.print("# " + title + " "
-                + t.getRuntime(READ_DCP) + " "
-                + t.getMemUsage(READ_DCP) + " "
-                + t.getRuntime(WRITE_LOGICAL_NETLIST) + " "
-                + t.getMemUsage(WRITE_LOGICAL_NETLIST) + " "
-                + t.getRuntime(WRITE_PHYSICAL_NETLIST) + " "
-                + t.getMemUsage(WRITE_PHYSICAL_NETLIST) + " "
-                + t.getRuntime(READ_LOGICAL_NETLIST) + " "
-                + t.getMemUsage(READ_LOGICAL_NETLIST) + " "
-                + t.getRuntime(READ_PHYSICAL_NETLIST) + " "
-                + t.getMemUsage(READ_PHYSICAL_NETLIST) + " "
-                + t.getRuntime(WRITE_DCP) + " "
-                + t.getMemUsage(WRITE_DCP) + " "
-                + printFileSize("             DCP", dcpOutputFileName) + " "
-                + printFileSize(" LOGICAL_NETLIST", logNetlistFileName) + " "
-                + printFileSize("PHYSICAL_NETLIST", physNetlistFileName) + " "
-        );
+        System.out.print("# " + title + " " + t.getRuntime(READ_DCP) + " " + t.getMemUsage(READ_DCP) + " " +
+                         t.getRuntime(WRITE_LOGICAL_NETLIST) + " " + t.getMemUsage(WRITE_LOGICAL_NETLIST) + " " +
+                         t.getRuntime(WRITE_PHYSICAL_NETLIST) + " " + t.getMemUsage(WRITE_PHYSICAL_NETLIST) + " " +
+                         t.getRuntime(READ_LOGICAL_NETLIST) + " " + t.getMemUsage(READ_LOGICAL_NETLIST) + " " +
+                         t.getRuntime(READ_PHYSICAL_NETLIST) + " " + t.getMemUsage(READ_PHYSICAL_NETLIST) + " " +
+                         t.getRuntime(WRITE_DCP) + " " + t.getMemUsage(WRITE_DCP) + " " +
+                         printFileSize("             DCP", dcpOutputFileName) + " " +
+                         printFileSize(" LOGICAL_NETLIST", logNetlistFileName) + " " +
+                         printFileSize("PHYSICAL_NETLIST", physNetlistFileName) + " ");
 
         return Paths.get(dcpOutputFileName);
     }
 
-
     private static double printFileSize(String title, String fileName) {
-        double fileSize = FileTools.getFileSize(fileName)/(1024.0*1024.0);
+        double fileSize = FileTools.getFileSize(fileName) / (1024.0 * 1024.0);
         System.out.printf(title + "_FILE_SIZE: %10.3fMBs\n", fileSize);
         return fileSize;
     }
@@ -360,8 +346,6 @@ public class Interchange {
             System.out.println("USAGE: <input DCP> [input EDIF]");
             return;
         }
-        benchmarkDCPvsInterchange(Paths.get(args[0]),
-                args.length == 2 ? Paths.get(args[1]) : null,
-                null);
+        benchmarkDCPvsInterchange(Paths.get(args[0]), args.length == 2 ? Paths.get(args[1]) : null, null);
     }
 }

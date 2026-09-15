@@ -38,45 +38,42 @@ import org.junit.jupiter.params.provider.MethodSource;
  * permits, rather than only the subset Vivado happens to emit.
  */
 public class TestEDIFParserGrammar {
-
     /**
      * Builds a minimal but complete netlist, varying only the status block so each
      * test can exercise one shape of (written ...).
      */
     protected static String netlist(String status) {
         return "(edif test\n"
-                + "  (edifVersion 2 0 0)\n"
-                + "  (edifLevel 0)\n"
-                + "  (keywordMap (keywordLevel 0))\n"
-                + status
-                + "  (library work\n"
-                + "    (edifLevel 0)\n"
-                + "    (technology (numberDefinition))\n"
-                + "    (cell sub (cellType GENERIC)\n"
-                + "      (view netlist (viewType NETLIST)\n"
-                + "        (interface (port i (direction INPUT)))\n"
-                + "      )\n"
-                + "    )\n"
-                + "    (cell top (cellType GENERIC)\n"
-                + "      (view netlist (viewType NETLIST)\n"
-                + "        (interface\n"
-                + "          (port a (direction INPUT))\n"
-                + "          (port b (direction OUTPUT))\n"
-                + "        )\n"
-                + "        (contents\n"
-                + "          (instance inst1 (viewRef netlist (cellRef sub (libraryRef work))))\n"
-                + "          (net n1 (joined (portRef a) (portRef i (instanceRef inst1))))\n"
-                + "        )\n"
-                + "      )\n"
-                + "    )\n"
-                + "  )\n"
-                + "  (design top (cellRef top (libraryRef work)))\n"
-                + ")\n";
+            + "  (edifVersion 2 0 0)\n"
+            + "  (edifLevel 0)\n"
+            + "  (keywordMap (keywordLevel 0))\n" + status + "  (library work\n"
+            + "    (edifLevel 0)\n"
+            + "    (technology (numberDefinition))\n"
+            + "    (cell sub (cellType GENERIC)\n"
+            + "      (view netlist (viewType NETLIST)\n"
+            + "        (interface (port i (direction INPUT)))\n"
+            + "      )\n"
+            + "    )\n"
+            + "    (cell top (cellType GENERIC)\n"
+            + "      (view netlist (viewType NETLIST)\n"
+            + "        (interface\n"
+            + "          (port a (direction INPUT))\n"
+            + "          (port b (direction OUTPUT))\n"
+            + "        )\n"
+            + "        (contents\n"
+            + "          (instance inst1 (viewRef netlist (cellRef sub (libraryRef work))))\n"
+            + "          (net n1 (joined (portRef a) (portRef i (instanceRef inst1))))\n"
+            + "        )\n"
+            + "      )\n"
+            + "    )\n"
+            + "  )\n"
+            + "  (design top (cellRef top (libraryRef work)))\n"
+            + ")\n";
     }
 
     protected static String defaultStatus() {
         return "  (status (written (timeStamp 2024 1 1 0 0 0)"
-                + " (program \"Vivado\" (version \"2024.1\"))))\n";
+            + " (program \"Vivado\" (version \"2024.1\"))))\n";
     }
 
     protected static String simple() {
@@ -113,8 +110,8 @@ public class TestEDIFParserGrammar {
     @Test
     public void testWrittenAuthorAndOptionalProgram(@TempDir Path dir) throws IOException {
         String status = "  (status (written (timeStamp 2024 1 1 0 0 0)\n"
-                + "    (author \"Some Tool\")\n"
-                + "    (program \"NoVersionTool\")))\n";
+                        + "    (author \"Some Tool\")\n"
+                        + "    (program \"NoVersionTool\")))\n";
         assertWellFormed(parse(dir, "author.edf", netlist(status)));
     }
 
@@ -122,8 +119,8 @@ public class TestEDIFParserGrammar {
     @Test
     public void testWrittenProgramWithVersionAfterAuthor(@TempDir Path dir) throws IOException {
         String status = "  (status (written (timeStamp 2024 1 1 0 0 0)\n"
-                + "    (author \"Some Tool\")\n"
-                + "    (program \"Tool\" (version \"1.2\"))))\n";
+                        + "    (author \"Some Tool\")\n"
+                        + "    (program \"Tool\" (version \"1.2\"))))\n";
         assertWellFormed(parse(dir, "authorver.edf", netlist(status)));
     }
 
@@ -133,32 +130,26 @@ public class TestEDIFParserGrammar {
      */
     static Stream<Arguments> writtenBodies() {
         return Stream.of(
-                Arguments.of("author only, no program",
-                        "    (author \"Some Tool\")\n"),
-                Arguments.of("neither author nor program",
-                        ""),
-                Arguments.of("program ahead of author",
-                        "    (program \"Tool\" (version \"1.2\")) (author \"Some Tool\")\n"),
-                Arguments.of("author repeated",
-                        "    (author \"First\") (author \"Second\")\n"),
-                Arguments.of("author text containing spaces and parentheses",
-                        "    (author \"A B (x)\")\n"),
-                Arguments.of("program carrying a comment instead of a version",
-                        "    (program \"Tool\" (comment \"built somewhere\"))\n"),
-                Arguments.of("program carrying both a version and a comment",
-                        "    (program \"Tool\" (version \"1.2\") (comment \"note\"))\n"),
-                Arguments.of("program carrying nested userData",
-                        "    (program \"Tool\" (userData ud (inner (deeper 1))))\n"),
-                Arguments.of("program comment holding several strings",
-                        "    (program \"Tool\" (comment \"one\" \"two\"))\n"),
-                Arguments.of("program comment whose text is a parenthesis",
-                        "    (program \"Tool\" (comment \")\"))\n"));
+            Arguments.of("author only, no program", "    (author \"Some Tool\")\n"),
+            Arguments.of("neither author nor program", ""),
+            Arguments.of("program ahead of author",
+                         "    (program \"Tool\" (version \"1.2\")) (author \"Some Tool\")\n"),
+            Arguments.of("author repeated", "    (author \"First\") (author \"Second\")\n"),
+            Arguments.of("author text containing spaces and parentheses", "    (author \"A B (x)\")\n"),
+            Arguments.of("program carrying a comment instead of a version",
+                         "    (program \"Tool\" (comment \"built somewhere\"))\n"),
+            Arguments.of("program carrying both a version and a comment",
+                         "    (program \"Tool\" (version \"1.2\") (comment \"note\"))\n"),
+            Arguments.of("program carrying nested userData",
+                         "    (program \"Tool\" (userData ud (inner (deeper 1))))\n"),
+            Arguments.of("program comment holding several strings",
+                         "    (program \"Tool\" (comment \"one\" \"two\"))\n"),
+            Arguments.of("program comment whose text is a parenthesis", "    (program \"Tool\" (comment \")\"))\n"));
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("writtenBodies")
-    public void testWrittenBodyVariants(String description, String writtenBody, @TempDir Path dir)
-            throws IOException {
+    public void testWrittenBodyVariants(String description, String writtenBody, @TempDir Path dir) throws IOException {
         String status = "  (status (written (timeStamp 2024 1 1 0 0 0)\n" + writtenBody + "  ))\n";
         assertWellFormed(parse(dir, "written.edf", netlist(status)));
     }
@@ -170,8 +161,8 @@ public class TestEDIFParserGrammar {
     @Test
     public void testWrittenCommentRetainedAlongsideAuthor(@TempDir Path dir) throws IOException {
         String status = "  (status (written (timeStamp 2024 1 1 0 0 0)\n"
-                + "    (author \"Some Tool\")\n"
-                + "    (comment \"a retained comment\")))\n";
+                        + "    (author \"Some Tool\")\n"
+                        + "    (comment \"a retained comment\")))\n";
         EDIFNetlist netlist = parse(dir, "comment.edf", netlist(status));
         assertWellFormed(netlist);
         Assertions.assertEquals(1, netlist.getComments().size());
@@ -180,16 +171,15 @@ public class TestEDIFParserGrammar {
 
     /** Places cell-level entries between the top cell's (cellType ...) and its (view ...). */
     protected static String topCellBody(String body) {
-        return simple().replace("(cell top (cellType GENERIC)\n",
-                "(cell top (cellType GENERIC)\n" + body);
+        return simple().replace("(cell top (cellType GENERIC)\n", "(cell top (cellType GENERIC)\n" + body);
     }
 
     /** The grammar allows (property ...) at cell level, ahead of the view. */
     @Test
     public void testCellPropertyBeforeView(@TempDir Path dir) throws IOException {
-        EDIFNetlist netlist = parse(dir, "cellprop.edf", topCellBody(
-                "      (PROPERTY PROP1 (string \"value1\") (owner \"xilinx\"))\n"
-                        + "      (property PROP2 (integer 7))\n"));
+        EDIFNetlist netlist = parse(dir, "cellprop.edf",
+                                    topCellBody("      (PROPERTY PROP1 (string \"value1\") (owner \"xilinx\"))\n"
+                                                + "      (property PROP2 (integer 7))\n"));
         assertWellFormed(netlist);
         EDIFCell top = netlist.getDesign().getTopCell();
         Assertions.assertEquals(2, top.getPropertyCount());
@@ -202,6 +192,6 @@ public class TestEDIFParserGrammar {
     @Test
     public void testUnknownCellEntryBeforeViewRejected(@TempDir Path dir) {
         Assertions.assertThrows(EDIFParseException.class,
-                () -> parse(dir, "bogus.edf", topCellBody("      (bogus B (string \"v\"))\n")));
+                                () -> parse(dir, "bogus.edf", topCellBody("      (bogus B (string \"v\"))\n")));
     }
 }

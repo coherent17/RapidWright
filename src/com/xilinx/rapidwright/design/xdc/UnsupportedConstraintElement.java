@@ -50,47 +50,37 @@ import tcl.lang.TclToken;
  */
 public abstract class UnsupportedConstraintElement {
     public static String toXdc(Stream<UnsupportedConstraintElement> unsupportedConstraintElements) {
-        return unsupportedConstraintElements.map(e->e.toXdc()).collect(Collectors.joining());
+        return unsupportedConstraintElements.map(e -> e.toXdc()).collect(Collectors.joining());
     }
 
-    public static Stream<UnsupportedConstraintElement> wrapStream(Stream<UnsupportedConstraintElement> inner, Stream<UnsupportedConstraintElement> prefix, Stream<UnsupportedConstraintElement> suffix) {
-        if (prefix !=null) {
-            inner = Stream.concat(
-                    prefix,
-                    inner
-            );
+    public static Stream<UnsupportedConstraintElement> wrapStream(Stream<UnsupportedConstraintElement> inner,
+                                                                  Stream<UnsupportedConstraintElement> prefix,
+                                                                  Stream<UnsupportedConstraintElement> suffix) {
+        if (prefix != null) {
+            inner = Stream.concat(prefix, inner);
         }
         if (suffix != null) {
-            inner = Stream.concat(
-                    inner,
-                    suffix
-            );
+            inner = Stream.concat(inner, suffix);
         }
         return inner;
-
     }
-    public static Stream<UnsupportedConstraintElement> wrapStream(Stream<UnsupportedConstraintElement> inner, String prefix, String suffix) {
-        if (prefix !=null) {
-            inner = Stream.concat(
-                    Stream.of(new SyntaxConstraintElement(prefix)),
-                    inner
-            );
+    public static Stream<UnsupportedConstraintElement> wrapStream(Stream<UnsupportedConstraintElement> inner,
+                                                                  String prefix, String suffix) {
+        if (prefix != null) {
+            inner = Stream.concat(Stream.of(new SyntaxConstraintElement(prefix)), inner);
         }
         if (suffix != null) {
-            inner = Stream.concat(
-                    inner,
-                    Stream.of(new SyntaxConstraintElement(suffix))
-            );
+            inner = Stream.concat(inner, Stream.of(new SyntaxConstraintElement(suffix)));
         }
         return inner;
     }
 
-
-    public static <T> Function<T, Stream<UnsupportedConstraintElement>> addSpacesBetween(Function<T, Stream<UnsupportedConstraintElement>> innerFunc) {
+    public static <T> Function<T, Stream<UnsupportedConstraintElement>>
+    addSpacesBetween(Function<T, Stream<UnsupportedConstraintElement>> innerFunc) {
         final boolean[] first = {true};
-        return e->{
+        return e -> {
             if (first[0]) {
-                first[0] =false;
+                first[0] = false;
                 return innerFunc.apply(e);
             }
             return Stream.concat(Stream.of(new SyntaxConstraintElement(" ")), innerFunc.apply(e));
@@ -99,25 +89,25 @@ public abstract class UnsupportedConstraintElement {
 
     public static Function<UnsupportedConstraintElement, Stream<UnsupportedConstraintElement>> addSpacesBetween() {
         final boolean[] first = {true};
-        return e->{
+        return e -> {
             if (first[0]) {
-                first[0] =false;
+                first[0] = false;
                 return Stream.of(e);
             }
             return Stream.of(new SyntaxConstraintElement(" "), e);
         };
     }
 
-    public static @NotNull List<UnsupportedConstraintElement> commandToUnsupportedConstraints(Interp interp, TclObject[] objv, EdifCellLookup<?> cellLookup) {
+    public static @NotNull List<UnsupportedConstraintElement>
+    commandToUnsupportedConstraints(Interp interp, TclObject[] objv, EdifCellLookup<?> cellLookup) {
         return Arrays.stream(objv)
-                .flatMap(addSpacesBetween(obj -> objToUnsupportedConstraintElement(interp, obj, cellLookup, false, false)))
-                .collect(Collectors.toList());
+            .flatMap(addSpacesBetween(obj -> objToUnsupportedConstraintElement(interp, obj, cellLookup, false, false)))
+            .collect(Collectors.toList());
     }
 
     public abstract String toXdc();
 
     public abstract boolean referencesCell(String name);
-
 
     /**
      * Unsupported Constraint Element that contains any text or command name except cells
@@ -141,7 +131,7 @@ public abstract class UnsupportedConstraintElement {
 
         @Override
         public String toString() {
-            return "N<"+toXdc()+">";
+            return "N<" + toXdc() + ">";
         }
     }
 
@@ -167,14 +157,14 @@ public abstract class UnsupportedConstraintElement {
 
         @Override
         public String toString() {
-            return "S<"+toXdc()+">";
+            return "S<" + toXdc() + ">";
         }
     }
 
     /**
      * Unsupported Constraint Element that references a cell name
      */
-    public static class CellConstraintElement extends UnsupportedConstraintElement{
+    public static class CellConstraintElement extends UnsupportedConstraintElement {
         private final String cellName;
 
         public CellConstraintElement(String cellName) {
@@ -197,15 +187,16 @@ public abstract class UnsupportedConstraintElement {
 
         @Override
         public String toString() {
-            return "C<"+toXdc()+">";
+            return "C<" + toXdc() + ">";
         }
     }
-
 
     /**
      * Convert a TclObject into UnsupportedConstraintElements
      */
-    public static <T> Stream<UnsupportedConstraintElement> objToUnsupportedConstraintElement(Interp interp, TclObject obj, EdifCellLookup<T> lookup, boolean replaceProbableCells, boolean applyWildcardsChooseAny) {
+    public static <T> Stream<UnsupportedConstraintElement>
+    objToUnsupportedConstraintElement(Interp interp, TclObject obj, EdifCellLookup<T> lookup,
+                                      boolean replaceProbableCells, boolean applyWildcardsChooseAny) {
         try {
             Optional<DesignObject<T>> designObject = DesignObject.unwrapTclObject(interp, obj, lookup);
             if (designObject.isPresent()) {
@@ -214,37 +205,41 @@ public abstract class UnsupportedConstraintElement {
             if (obj.getInternalRep() instanceof TclList) {
                 TclObject[] elements = TclList.getElements(interp, obj);
 
-                Stream<UnsupportedConstraintElement> inner = Arrays.stream(elements).flatMap(e -> objToUnsupportedConstraintElement(interp, e, lookup, false, applyWildcardsChooseAny));
-                return wrapStream(inner, "{","}");
+                Stream<UnsupportedConstraintElement> inner = Arrays.stream(elements).flatMap(
+                    e -> objToUnsupportedConstraintElement(interp, e, lookup, false, applyWildcardsChooseAny));
+                return wrapStream(inner, "{", "}");
             }
 
             final boolean[] startsWithCell = {false};
-            final T[] cell = (T[]) new Object[]{null};
+            final T[] cell = (T[]) new Object[] {null};
 
             String s = obj.toString();
             List<UnsupportedConstraintElement> res = new ArrayList<>();
-            TclHashIdentifiedObject.unpack(interp, s, partS -> {
-                res.add(new UnsupportedConstraintElement.NameConstraintElement(partS));
-            }, partObj -> {
-                DesignObject<?> po = DesignObject.requireCastUnwrappedObject(partObj, lookup);
-                if (po instanceof CellObject && cell[0]==null) {
-                    List<T> cells = ((CellObject<T>) po).getCells();
-                    if (cells.size()!=1) {
-                        throw new RuntimeException("should have one cell??");
-                    }
-                    startsWithCell[0] = true;
+            TclHashIdentifiedObject.unpack(
+                interp, s,
+                partS
+                -> { res.add(new UnsupportedConstraintElement.NameConstraintElement(partS)); },
+                partObj -> {
+                    DesignObject<?> po = DesignObject.requireCastUnwrappedObject(partObj, lookup);
+                    if (po instanceof CellObject && cell[0] == null) {
+                        List<T> cells = ((CellObject<T>)po).getCells();
+                        if (cells.size() != 1) {
+                            throw new RuntimeException("should have one cell??");
+                        }
+                        startsWithCell[0] = true;
 
-                    T c = cells.iterator().next();
-                    cell[0] = c;
-                } else {
-                    po.toUnsupportedConstraintElement().forEach(res::add);
-                }
-            });
+                        T c = cells.iterator().next();
+                        cell[0] = c;
+                    } else {
+                        po.toUnsupportedConstraintElement().forEach(res::add);
+                    }
+                });
 
             if (replaceProbableCells) {
-                absorbIntoCells(lookup, res, (T) cell[0], applyWildcardsChooseAny);
-            } else if (cell[0]!=null) {
-                res.add(0, new UnsupportedConstraintElement.CellConstraintElement(lookup.getAbsoluteFinalName(cell[0])));
+                absorbIntoCells(lookup, res, (T)cell[0], applyWildcardsChooseAny);
+            } else if (cell[0] != null) {
+                res.add(0,
+                        new UnsupportedConstraintElement.CellConstraintElement(lookup.getAbsoluteFinalName(cell[0])));
             }
 
             if (XDCTools.stringNeedsBraces(s)) {
@@ -258,19 +253,21 @@ public abstract class UnsupportedConstraintElement {
     }
 
     /**
-     * If a cell name is followed by text that looks like a subcell reference, absorb that text into the cell name
+     * If a cell name is followed by text that looks like a subcell reference, absorb that text into
+     * the cell name
      */
-    private static <T> void absorbIntoCells(EdifCellLookup<T> lookup, List<UnsupportedConstraintElement> res, T cell, boolean applyWildcardsChooseAny) {
-        if (res.size()!=1 || lookup==null) {
+    private static <T> void absorbIntoCells(EdifCellLookup<T> lookup, List<UnsupportedConstraintElement> res, T cell,
+                                            boolean applyWildcardsChooseAny) {
+        if (res.size() != 1 || lookup == null) {
             return;
         }
         String suffix = res.get(0).toXdc();
         if (cell != null) {
             if (!suffix.startsWith("/")) {
-                //Suffix should always start with slash, something unsupported is happening
+                // Suffix should always start with slash, something unsupported is happening
 
-                //Currently unimplemented! The code is trying to access a sibling cell on the same hierarchy level.
-                //Need to strip last level off cell, prepend suffix with its name
+                // Currently unimplemented! The code is trying to access a sibling cell on the same
+                // hierarchy level. Need to strip last level off cell, prepend suffix with its name
                 throw new RuntimeException("Suffix should start with slash!");
             }
             suffix = suffix.substring(1);
@@ -278,7 +275,7 @@ public abstract class UnsupportedConstraintElement {
             cell = lookup.getRoot();
         }
 
-        while (suffix!=null) {
+        while (suffix != null) {
             int slashPos = suffix.indexOf("/");
             String currLevel, remaining;
             if (slashPos == -1) {
@@ -286,13 +283,14 @@ public abstract class UnsupportedConstraintElement {
                 remaining = null;
             } else {
                 currLevel = suffix.substring(0, slashPos);
-                remaining = suffix.substring(slashPos+1);
+                remaining = suffix.substring(slashPos + 1);
             }
             T child = lookup.getChild(cell, currLevel);
             if (child == null) {
                 if (applyWildcardsChooseAny) {
-                    List<T> matches = lookup.getChildrenOf(cell)
-                            .filter(x-> FilenameUtils.wildcardMatch(lookup.getRelativeOriginalName(x), currLevel))
+                    List<T> matches =
+                        lookup.getChildrenOf(cell)
+                            .filter(x -> FilenameUtils.wildcardMatch(lookup.getRelativeOriginalName(x), currLevel))
                             .collect(Collectors.toList());
                     if (matches.isEmpty()) {
                         break;
@@ -309,14 +307,14 @@ public abstract class UnsupportedConstraintElement {
             suffix = remaining;
         }
 
-        if (cell==lookup.getRoot()) {
+        if (cell == lookup.getRoot()) {
             return;
         }
 
         res.clear();
         res.add(new UnsupportedConstraintElement.CellConstraintElement(lookup.getAbsoluteFinalName(cell)));
-        if (suffix!=null) {
-            res.add(new NameConstraintElement("/"+suffix));
+        if (suffix != null) {
+            res.add(new NameConstraintElement("/" + suffix));
         }
     }
 }

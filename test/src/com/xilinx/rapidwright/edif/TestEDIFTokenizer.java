@@ -47,7 +47,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 public class TestEDIFTokenizer {
-
     private static final int TESTING_MAX_TOKEN_LENGTH = 4096;
 
     private List<EDIFToken> readTokens(EDIFTokenizer tokenizer) {
@@ -65,35 +64,37 @@ public class TestEDIFTokenizer {
         Path edif = tempDir.resolve("picoblaze.edf");
         d.getNetlist().exportEDIF(edif);
         long fileSize = Files.size(edif);
-        EDIFTokenizer tokenizer = new EDIFTokenizer(edif, new BufferedInputStream(Files.newInputStream(edif)), StringPool.singleThreadedPool());
+        EDIFTokenizer tokenizer = new EDIFTokenizer(edif, new BufferedInputStream(Files.newInputStream(edif)),
+                                                    StringPool.singleThreadedPool());
 
         List<EDIFToken> allTokens = readTokens(tokenizer);
         tokenizer.close();
 
-        LongStream.range(0, fileSize).parallel()
-                .forEach(i-> {
-                    try (EDIFTokenizer skipTokenizer = new EDIFTokenizer(edif, new BufferedInputStream(Files.newInputStream(edif)), StringPool.singleThreadedPool(), TESTING_MAX_TOKEN_LENGTH)) {
-                        skipTokenizer.skip(i);
+        LongStream.range(0, fileSize).parallel().forEach(i -> {
+            try (EDIFTokenizer skipTokenizer =
+                     new EDIFTokenizer(edif, new BufferedInputStream(Files.newInputStream(edif)),
+                                       StringPool.singleThreadedPool(), TESTING_MAX_TOKEN_LENGTH)) {
+                skipTokenizer.skip(i);
 
-                        compareSuffixTokens(i, allTokens, skipTokenizer);
+                compareSuffixTokens(i, allTokens, skipTokenizer);
 
-                    } catch (RuntimeException e) {
-                        throw new RuntimeException("Failed parsing starting at offset "+i, e);
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                });
+            } catch (RuntimeException e) {
+                throw new RuntimeException("Failed parsing starting at offset " + i, e);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
     }
 
     private void compareSuffixTokens(long offset, List<EDIFToken> allTokens, EDIFTokenizer tokenizer) {
         final EDIFToken firstToken = tokenizer.getOptionalNextToken(true);
         if (firstToken == null) {
-            //Already at end
+            // Already at end
             return;
         }
 
         int tokenOffset = allTokens.indexOf(firstToken);
-        if (tokenOffset ==-1) {
+        if (tokenOffset == -1) {
             Assertions.fail(generateOffsetErrorMsg(offset, allTokens, firstToken));
         }
     }
@@ -101,21 +102,23 @@ public class TestEDIFTokenizer {
     @NotNull
     private String generateOffsetErrorMsg(long offset, List<EDIFToken> allTokens, EDIFToken firstSuffix) {
         if (firstSuffix.byteOffset <= allTokens.get(0).byteOffset) {
-            return "With start offset " + offset + ", suffix tokens were not a suffix of full tokens. First suffix token: "
-                    + firstSuffix + ", first full token: " + allTokens.get(0);
+            return "With start offset " + offset +
+                ", suffix tokens were not a suffix of full tokens. First suffix token: " + firstSuffix +
+                ", first full token: " + allTokens.get(0);
         }
 
-        for (int i = 1; i< allTokens.size(); i++) {
+        for (int i = 1; i < allTokens.size(); i++) {
             EDIFToken currentAll = allTokens.get(i);
 
             if (currentAll.byteOffset >= firstSuffix.byteOffset) {
-                return "With start offset " + offset + ", suffix tokens were not a suffix of full tokens. First suffix token: "
-                        + firstSuffix + ". Tokens around that byte offset: " + allTokens.get(i - 1) + ","
-                        + currentAll;
+                return "With start offset " + offset +
+                    ", suffix tokens were not a suffix of full tokens. First suffix token: " + firstSuffix +
+                    ". Tokens around that byte offset: " + allTokens.get(i - 1) + "," + currentAll;
             }
         }
-        return "With start offset " + offset + ", suffix tokens " + " were not a suffix of full tokens. First suffix token: "
-                + firstSuffix + ", last full token: " + allTokens.get(allTokens.size() - 1);
+        return "With start offset " + offset + ", suffix tokens "
+            + " were not a suffix of full tokens. First suffix token: " + firstSuffix +
+            ", last full token: " + allTokens.get(allTokens.size() - 1);
     }
 
     private byte[] toByteArray(String s) {
@@ -131,7 +134,9 @@ public class TestEDIFTokenizer {
 
     @Test
     public void readEmptyQuotes() throws IOException {
-        EDIFTokenizer tokenizerV2 = new EDIFTokenizer(null, new ByteArrayInputStream(toByteArray("\"\"")), StringPool.singleThreadedPool(), EDIFTokenizer.DEFAULT_MAX_TOKEN_LENGTH);
+        EDIFTokenizer tokenizerV2 =
+            new EDIFTokenizer(null, new ByteArrayInputStream(toByteArray("\"\"")), StringPool.singleThreadedPool(),
+                              EDIFTokenizer.DEFAULT_MAX_TOKEN_LENGTH);
         final EDIFToken token = tokenizerV2.getOptionalNextToken(true);
         Assertions.assertNotNull(token);
         Assertions.assertEquals("", token.text);
@@ -153,21 +158,18 @@ public class TestEDIFTokenizer {
         return sb.toString();
     }
 
-
-    private static final int FILLING_MAX_TOKEN_LENGTH=8;
+    private static final int FILLING_MAX_TOKEN_LENGTH = 8;
     private static final int READ_COUNT = 3;
-
 
     void doTestFilling(List<Integer> lengths) {
         try {
-
             String alphabet = "abcdefghijklmnopqrstuvwxyz";
             String input = repeatString(alphabet + alphabet.toUpperCase() + "0123456789", 8);
 
-
             StringBuilder sb = new StringBuilder();
 
-            TestingTokenizer tokenizer = new TestingTokenizer(null, stringToInputStream(input), StringPool.singleThreadedPool(), FILLING_MAX_TOKEN_LENGTH);
+            TestingTokenizer tokenizer = new TestingTokenizer(
+                null, stringToInputStream(input), StringPool.singleThreadedPool(), FILLING_MAX_TOKEN_LENGTH);
 
             for (Integer length : lengths) {
                 tokenizer.fill();
@@ -183,59 +185,49 @@ public class TestEDIFTokenizer {
     }
 
     Stream<List<Integer>> testTokenizerFilling(List<Integer> oldLengths) {
-        if (oldLengths.size()>=READ_COUNT) {
+        if (oldLengths.size() >= READ_COUNT) {
             return Stream.of(oldLengths);
         }
-        return IntStream.rangeClosed(0, FILLING_MAX_TOKEN_LENGTH).mapToObj(i -> {
-            final ArrayList<Integer> newLengths = new ArrayList<>(oldLengths);
-            newLengths.add(i);
-            return newLengths;
-        }).flatMap(this::testTokenizerFilling);
-
+        return IntStream.rangeClosed(0, FILLING_MAX_TOKEN_LENGTH)
+            .mapToObj(i -> {
+                final ArrayList<Integer> newLengths = new ArrayList<>(oldLengths);
+                newLengths.add(i);
+                return newLengths;
+            })
+            .flatMap(this::testTokenizerFilling);
     }
-
 
     @Test
     void testTokenizerFilling() {
-        testTokenizerFilling(new ArrayList<>())
-                .forEach(this::doTestFilling);
+        testTokenizerFilling(new ArrayList<>()).forEach(this::doTestFilling);
     }
 
     static class TestingTokenizer extends EDIFTokenizer {
-
         public TestingTokenizer(Path fileName, InputStream in, StringPool uniquifier, int maxTokenLength) {
             super(fileName, in, uniquifier, maxTokenLength);
         }
 
         String testingReadToken(int length) {
-            Assertions.assertTrue(length<=maxTokenLength);
-            int endOffset = bufferAddressMask & (offset+length);
+            Assertions.assertTrue(length <= maxTokenLength);
+            int endOffset = bufferAddressMask & (offset + length);
             final String text = getUniqueToken(offset, endOffset, true);
             offset = endOffset;
             return text;
         }
-
     }
-
 
     @Test
     void testConcatenateMultibyte() {
-        //This test string contains multi-byte characters. We cannot encode it directly as a string here, because
-        //source code encoding varies between platforms.
-        byte[] bytes = new byte[]{
-                (byte) 0xf0, (byte) 0x9f, (byte) 0x98, (byte) 0x8b, (byte) 0xf0, (byte) 0x9f,
-                (byte) 0x8e, (byte) 0x9b, (byte) 0xef, (byte) 0xb8, (byte) 0x8f, (byte) 0xc3,
-                (byte) 0xa4, (byte) 0xc3, (byte) 0xb6, (byte) 0xc3, (byte) 0xbc, (byte) 0xc3,
-                (byte) 0x9f, (byte) 0xce, (byte) 0xa9, (byte) 0xce, (byte) 0xa6
-        };
+        // This test string contains multi-byte characters. We cannot encode it directly as a string
+        // here, because source code encoding varies between platforms.
+        byte[] bytes =
+            new byte[] {(byte)0xf0, (byte)0x9f, (byte)0x98, (byte)0x8b, (byte)0xf0, (byte)0x9f, (byte)0x8e, (byte)0x9b,
+                        (byte)0xef, (byte)0xb8, (byte)0x8f, (byte)0xc3, (byte)0xa4, (byte)0xc3, (byte)0xb6, (byte)0xc3,
+                        (byte)0xbc, (byte)0xc3, (byte)0x9f, (byte)0xce, (byte)0xa9, (byte)0xce, (byte)0xa6};
         String orig = new String(bytes, StandardCharsets.UTF_8);
-        for (int i=0;i<bytes.length;i++) {
-
-            String read = EDIFTokenizer.byteArrayToStringMulti(bytes, 0, i, i, bytes.length-i);
+        for (int i = 0; i < bytes.length; i++) {
+            String read = EDIFTokenizer.byteArrayToStringMulti(bytes, 0, i, i, bytes.length - i);
             Assertions.assertEquals(orig, read);
         }
     }
-
-
-
 }

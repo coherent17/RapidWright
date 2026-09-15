@@ -24,16 +24,14 @@
 
 package com.xilinx.rapidwright.util;
 
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
+import com.xilinx.rapidwright.device.Device;
 import org.python.core.PySystemState;
 import org.python.google.common.reflect.ClassPath;
 import org.python.google.common.reflect.ClassPath.ClassInfo;
 import org.python.util.jython;
-
-import com.xilinx.rapidwright.device.Device;
 
 /**
  * Main entry point for the RapidWright Jython (Python) interactive shell.
@@ -41,12 +39,11 @@ import com.xilinx.rapidwright.device.Device;
  *
  */
 public class Jython {
-
     /**
      * When invoking the '-c' option for the Jython interpreter, this method will
      * analyze the command for RapidWright classes that need to be imported and
      * automatically add the import statements.
-     * 
+     *
      * @param args Command line options.
      * @return Augments the argument of the '-c' option with the proper import
      *         statement for a RapidWright class. If not RapidWright class is needed
@@ -88,7 +85,7 @@ public class Jython {
                         continue;
                     if (s.getPackageName().startsWith("com.xilinx.rapidwright.gui"))
                         continue;
-        
+
                     // Only import those classes being called out
                     if (origCmd.contains(s.getSimpleName())) {
                         jythonCmd.append("from " + s.getPackageName() + " import " + s.getSimpleName() + ";");
@@ -100,7 +97,7 @@ public class Jython {
             // Overwrite the original command with version supplemented with import statements
             args[origCmdIdx] = jythonCmd.toString();
         }
-        
+
         return args;
     }
 
@@ -108,61 +105,61 @@ public class Jython {
         if (args.length == 0) {
             // If no arguments, import all major rapidwright packages for ease of use
             @SuppressWarnings("rawtypes")
-            Class[] primerClass = new Class[]{
-                    com.xilinx.rapidwright.debug.DesignInstrumentor.class,
-                    com.xilinx.rapidwright.debug.ProbeRouter.class,
-                    com.xilinx.rapidwright.design.Cell.class,
-                    com.xilinx.rapidwright.design.Design.class,
-                    com.xilinx.rapidwright.design.Module.class,
-                    com.xilinx.rapidwright.design.ModuleInst.class,
-                    com.xilinx.rapidwright.design.ModuleCache.class,
-                    com.xilinx.rapidwright.design.Net.class,
-                    com.xilinx.rapidwright.design.NetType.class,
-                    com.xilinx.rapidwright.design.SitePinInst.class,
-                    com.xilinx.rapidwright.device.PIP.class,
-                    com.xilinx.rapidwright.design.Port.class,
-                    com.xilinx.rapidwright.design.PortType.class,
-                    com.xilinx.rapidwright.design.SiteInst.class,
-                    com.xilinx.rapidwright.design.blocks.PBlock.class,
-                    com.xilinx.rapidwright.device.ClockRegion.class,
-                    com.xilinx.rapidwright.device.Device.class,
-                    com.xilinx.rapidwright.device.BELClass.class,
-                    com.xilinx.rapidwright.device.BEL.class,
-                    com.xilinx.rapidwright.device.FamilyType.class,
-                    com.xilinx.rapidwright.device.Grade.class,
-                    com.xilinx.rapidwright.device.IntentCode.class,
-                    com.xilinx.rapidwright.device.Node.class,
-                    com.xilinx.rapidwright.device.Package.class,
-                    com.xilinx.rapidwright.device.Part.class,
-                    com.xilinx.rapidwright.device.PIPType.class,
-                    com.xilinx.rapidwright.device.Series.class,
-                    com.xilinx.rapidwright.device.Site.class,
-                    com.xilinx.rapidwright.device.SiteTypeEnum.class,
-                    com.xilinx.rapidwright.device.SLR.class,
-                    com.xilinx.rapidwright.device.Tile.class,
-                    com.xilinx.rapidwright.device.TileTypeEnum.class,
-                    com.xilinx.rapidwright.device.Wire.class,
-                    com.xilinx.rapidwright.util.Utils.class,
-                    com.xilinx.rapidwright.device.browser.DeviceBrowser.class,
-                    com.xilinx.rapidwright.edif.EDIFNetlist.class,
-                    com.xilinx.rapidwright.edif.EDIFTools.class,
-                    com.xilinx.rapidwright.examples.AddSubGenerator.class,
-                    com.xilinx.rapidwright.examples.PolynomialGenerator.class,
-                    com.xilinx.rapidwright.examples.SLRCrosserGenerator.class,
-                    com.xilinx.rapidwright.ipi.BlockCreator.class,
-                    com.xilinx.rapidwright.placer.handplacer.HandPlacer.class,
-                    com.xilinx.rapidwright.router.Router.class,
-                    com.xilinx.rapidwright.tests.CodePerfTracker.class,
-                    com.xilinx.rapidwright.design.Unisim.class,
-                    com.xilinx.rapidwright.util.FileTools.class,
-                    com.xilinx.rapidwright.util.DeviceTools.class,
-                    com.xilinx.rapidwright.device.PartNameTools.class,
-                    com.xilinx.rapidwright.util.PerformanceExplorer.class,
-                    com.xilinx.rapidwright.util.StringTools.class,
-                    com.xilinx.rapidwright.design.DesignTools.class,
-                    com.xilinx.rapidwright.design.tools.LUTTools.class,
-                    com.xilinx.rapidwright.device.helper.TileColumnPattern.class,
-                    com.xilinx.rapidwright.gui.NetlistBrowser.class,
+            Class[] primerClass = new Class[] {
+                com.xilinx.rapidwright.debug.DesignInstrumentor.class,
+                com.xilinx.rapidwright.debug.ProbeRouter.class,
+                com.xilinx.rapidwright.design.Cell.class,
+                com.xilinx.rapidwright.design.Design.class,
+                com.xilinx.rapidwright.design.Module.class,
+                com.xilinx.rapidwright.design.ModuleInst.class,
+                com.xilinx.rapidwright.design.ModuleCache.class,
+                com.xilinx.rapidwright.design.Net.class,
+                com.xilinx.rapidwright.design.NetType.class,
+                com.xilinx.rapidwright.design.SitePinInst.class,
+                com.xilinx.rapidwright.device.PIP.class,
+                com.xilinx.rapidwright.design.Port.class,
+                com.xilinx.rapidwright.design.PortType.class,
+                com.xilinx.rapidwright.design.SiteInst.class,
+                com.xilinx.rapidwright.design.blocks.PBlock.class,
+                com.xilinx.rapidwright.device.ClockRegion.class,
+                com.xilinx.rapidwright.device.Device.class,
+                com.xilinx.rapidwright.device.BELClass.class,
+                com.xilinx.rapidwright.device.BEL.class,
+                com.xilinx.rapidwright.device.FamilyType.class,
+                com.xilinx.rapidwright.device.Grade.class,
+                com.xilinx.rapidwright.device.IntentCode.class,
+                com.xilinx.rapidwright.device.Node.class,
+                com.xilinx.rapidwright.device.Package.class,
+                com.xilinx.rapidwright.device.Part.class,
+                com.xilinx.rapidwright.device.PIPType.class,
+                com.xilinx.rapidwright.device.Series.class,
+                com.xilinx.rapidwright.device.Site.class,
+                com.xilinx.rapidwright.device.SiteTypeEnum.class,
+                com.xilinx.rapidwright.device.SLR.class,
+                com.xilinx.rapidwright.device.Tile.class,
+                com.xilinx.rapidwright.device.TileTypeEnum.class,
+                com.xilinx.rapidwright.device.Wire.class,
+                com.xilinx.rapidwright.util.Utils.class,
+                com.xilinx.rapidwright.device.browser.DeviceBrowser.class,
+                com.xilinx.rapidwright.edif.EDIFNetlist.class,
+                com.xilinx.rapidwright.edif.EDIFTools.class,
+                com.xilinx.rapidwright.examples.AddSubGenerator.class,
+                com.xilinx.rapidwright.examples.PolynomialGenerator.class,
+                com.xilinx.rapidwright.examples.SLRCrosserGenerator.class,
+                com.xilinx.rapidwright.ipi.BlockCreator.class,
+                com.xilinx.rapidwright.placer.handplacer.HandPlacer.class,
+                com.xilinx.rapidwright.router.Router.class,
+                com.xilinx.rapidwright.tests.CodePerfTracker.class,
+                com.xilinx.rapidwright.design.Unisim.class,
+                com.xilinx.rapidwright.util.FileTools.class,
+                com.xilinx.rapidwright.util.DeviceTools.class,
+                com.xilinx.rapidwright.device.PartNameTools.class,
+                com.xilinx.rapidwright.util.PerformanceExplorer.class,
+                com.xilinx.rapidwright.util.StringTools.class,
+                com.xilinx.rapidwright.design.DesignTools.class,
+                com.xilinx.rapidwright.design.tools.LUTTools.class,
+                com.xilinx.rapidwright.device.helper.TileColumnPattern.class,
+                com.xilinx.rapidwright.gui.NetlistBrowser.class,
             };
 
             args = new String[3];
@@ -174,8 +171,8 @@ public class Jython {
                 importCmd.append("from " + pkg + " import " + c.getSimpleName() + ";");
             }
             args[2] = importCmd.toString();
-            System.out.println(Device.FRAMEWORK_NAME + " " + Device.RAPIDWRIGHT_VERSION + " (Jython "
-                    + PySystemState.version + ")");
+            System.out.println(Device.FRAMEWORK_NAME + " " + Device.RAPIDWRIGHT_VERSION + " (Jython " +
+                               PySystemState.version + ")");
             FileTools.blockSystemExitCalls();
         } else {
             args = addImportsForCommandLineOption(args);

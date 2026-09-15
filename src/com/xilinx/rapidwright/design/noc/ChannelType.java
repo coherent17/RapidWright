@@ -34,7 +34,7 @@ public enum ChannelType {
     WRITE("WRITE"),
     WRITE_RESPONSE("WRITE_RESP");
 
-    private static Map<String,ChannelType> map;
+    private static Map<String, ChannelType> map;
 
     static {
         map = new HashMap<>();

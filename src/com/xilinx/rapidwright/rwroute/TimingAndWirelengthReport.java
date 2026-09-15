@@ -43,9 +43,10 @@ import com.xilinx.rapidwright.util.Pair;
 
 /**
  * An example to report the critical path delay and total wirelength of a routed design.
- * It is able to reproduce the same statistics as a {@link RWRoute} Object reports after routing a design.
+ * It is able to reproduce the same statistics as a {@link RWRoute} Object reports after routing a
+ * design.
  */
-public class TimingAndWirelengthReport{
+public class TimingAndWirelengthReport {
     private Design design;
     private long wirelength;
     private long usedNodes;
@@ -53,14 +54,14 @@ public class TimingAndWirelengthReport{
     private int numConnectionsToRoute;
     private TimingManager timingManager;
     private DelayEstimatorBase<InterconnectInfo> estimator;
-    private Map<IntentCode, Long> nodeTypeUsage ;
+    private Map<IntentCode, Long> nodeTypeUsage;
     private Map<IntentCode, Long> nodeTypeLength;
 
     public TimingAndWirelengthReport(Design design, RWRouteConfig config, boolean isPartialRouting) {
         this.design = design;
-        estimator = new DelayEstimatorBase<>(design.getDevice(),
-                new InterconnectInfo(), config.isUseUTurnNodes(), 0);
-        timingManager = new TimingManager(design, null, config, RWRoute.createClkTimingData(config), design.getNets(), isPartialRouting, estimator);
+        estimator = new DelayEstimatorBase<>(design.getDevice(), new InterconnectInfo(), config.isUseUTurnNodes(), 0);
+        timingManager = new TimingManager(design, null, config, RWRoute.createClkTimingData(config), design.getNets(),
+                                          isPartialRouting, estimator);
         wirelength = 0;
         usedNodes = 0;
         nodeTypeUsage = new HashMap<>();
@@ -68,7 +69,8 @@ public class TimingAndWirelengthReport{
     }
 
     /**
-     * Computes the wirelength and delay for each net and reports the total wirelength and critical path delay.
+     * Computes the wirelength and delay for each net and reports the total wirelength and critical
+     * path delay.
      */
     private void computeStatisticsAndReport() {
         computeNetsWirelengthAndDelay();
@@ -88,9 +90,12 @@ public class TimingAndWirelengthReport{
      */
     private void computeNetsWirelengthAndDelay() {
         for (Net net : design.getNets()) {
-            if (net.getType() != NetType.WIRE) continue;
-            if (!RouterHelper.isRoutableNetWithSourceSinks(net)) continue;
-            if (net.getSource().toString().contains("CLK")) continue;
+            if (net.getType() != NetType.WIRE)
+                continue;
+            if (!RouterHelper.isRoutableNetWithSourceSinks(net))
+                continue;
+            if (net.getSource().toString().contains("CLK"))
+                continue;
             NetWrapper netplus = createNetWrapper(net);
             for (Node node : RouterHelper.getNodesOfNet(net)) {
                 if (RouteNodeGraph.isExcludedTile(node)) {
@@ -107,13 +112,14 @@ public class TimingAndWirelengthReport{
     }
 
     /**
-     * Creates a {@link NetWrapper} Object that consists of a list of {@link Connection} Objects, based on a net.
+     * Creates a {@link NetWrapper} Object that consists of a list of {@link Connection} Objects,
+     * based on a net.
      * @param net
      * @return
      */
     private NetWrapper createNetWrapper(Net net) {
         NetWrapper netWrapper = new NetWrapper(numWireNetsToRoute++, net);
-        for (SitePinInst sink:net.getSinkPins()) {
+        for (SitePinInst sink : net.getSinkPins()) {
             SitePinInst source = net.getSource();
             if (RouterHelper.isExternalConnectionToCout(source, sink)) {
                 SitePinInst altSource = net.getAlternateSource();
@@ -136,19 +142,20 @@ public class TimingAndWirelengthReport{
     }
 
     /**
-     * Using PIPs to calculate and set accumulative delay for each used node of a routed net that is represented by a {@link NetWrapper} Object.
-     * The delay of each node is the total route delay from the source to the node (inclusive).
+     * Using PIPs to calculate and set accumulative delay for each used node of a routed net that is
+     * represented by a {@link NetWrapper} Object. The delay of each node is the total route delay
+     * from the source to the node (inclusive).
      * @param netWrapper
      */
     private void setAccumulativeDelayOfEachNetNode(NetWrapper netWrapper) {
-        Map<SitePinInst, Pair<Node,Short>> sourceToSinkINTNodeDelays =
-                RouterHelper.getSourceToSinkINTNodeDelays(netWrapper.getNet(), estimator);
+        Map<SitePinInst, Pair<Node, Short>> sourceToSinkINTNodeDelays =
+            RouterHelper.getSourceToSinkINTNodeDelays(netWrapper.getNet(), estimator);
 
         for (Connection connection : netWrapper.getConnections()) {
             if (connection.isDirect()) {
                 continue;
             }
-            Pair<Node,Short> sinkINTNodeDelay = sourceToSinkINTNodeDelays.get(connection.getSink());
+            Pair<Node, Short> sinkINTNodeDelay = sourceToSinkINTNodeDelays.get(connection.getSink());
             short connectionDelay = sinkINTNodeDelay.getSecond();
             if (connection.getTimingEdges() == null) {
                 continue;
@@ -164,11 +171,13 @@ public class TimingAndWirelengthReport{
         }
         Design design = Design.readCheckpoint(args[0]);
         if (design.getNets().isEmpty()) {
-            // A placed-only checkpoint can contain no physical nets at all; recover them (along with
-            // their intra-site routing) from the logical netlist so that a timing graph can be built.
+            // A placed-only checkpoint can contain no physical nets at all; recover them (along
+            // with their intra-site routing) from the logical netlist so that a timing graph can be
+            // built.
             design.routeSites();
         }
-        //design manipulations are necessary, otherwise there will be problems in associating timing edges with connections.
+        // design manipulations are necessary, otherwise there will be problems in associating
+        // timing edges with connections.
         DesignTools.makePhysNetNamesConsistent(design);
         DesignTools.createMissingSitePinInsts(design);
         RWRouteConfig config = new RWRouteConfig(Arrays.copyOfRange(args, 1, args.length));
@@ -177,5 +186,4 @@ public class TimingAndWirelengthReport{
         TimingAndWirelengthReport reporter = new TimingAndWirelengthReport(design, config, isPartialRouting);
         reporter.computeStatisticsAndReport();
     }
-
 }

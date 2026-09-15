@@ -30,7 +30,6 @@ import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.edif.EDIFHierCellInst;
 
 public class FindBlackBoxes {
-
     public static List<EDIFHierCellInst> getBlackBoxes(Design design) {
         ArrayList<EDIFHierCellInst> blackBoxInsts = new ArrayList<EDIFHierCellInst>();
         for (EDIFHierCellInst inst : design.getNetlist().getAllDescendants("", "*", false)) {
@@ -50,8 +49,8 @@ public class FindBlackBoxes {
             System.out.println("USAGE: <input.dcp> [input.edf]");
             return;
         }
-        Design designWithBB = args.length == 1 ?
-                Design.readCheckpoint(args[0]) : Design.readCheckpoint(args[0], args[1]);
+        Design designWithBB =
+            args.length == 1 ? Design.readCheckpoint(args[0]) : Design.readCheckpoint(args[0], args[1]);
 
         for (EDIFHierCellInst inst : getBlackBoxes(designWithBB)) {
             System.out.println(inst.getFullHierarchicalInstName());

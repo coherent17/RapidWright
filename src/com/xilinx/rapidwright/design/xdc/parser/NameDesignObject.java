@@ -42,10 +42,8 @@ public class NameDesignObject<T> extends DesignObject<T> {
 
     @Override
     public String toString() {
-        return "DesignObjects{" +
-                "type='" + type + '\'' +
-                ", objects=" + objects +
-                '}';
+        return "DesignObjects{"
+            + "type='" + type + '\'' + ", objects=" + objects + '}';
     }
 
     public String toXdc() {
@@ -55,42 +53,38 @@ public class NameDesignObject<T> extends DesignObject<T> {
     @Override
     public Stream<UnsupportedConstraintElement> toUnsupportedConstraintElement() {
         if (objects == null) {
-            return Stream.of(
-                    new UnsupportedConstraintElement.SyntaxConstraintElement("["),
-                    new UnsupportedConstraintElement.NameConstraintElement(type.getXdcCommand()),
-                    new UnsupportedConstraintElement.SyntaxConstraintElement("]")
-                    );
+            return Stream.of(new UnsupportedConstraintElement.SyntaxConstraintElement("["),
+                             new UnsupportedConstraintElement.NameConstraintElement(type.getXdcCommand()),
+                             new UnsupportedConstraintElement.SyntaxConstraintElement("]"));
         }
 
         if (objects.isEmpty()) {
-            return Stream.of(
-                    new UnsupportedConstraintElement.SyntaxConstraintElement("["),
-                    new UnsupportedConstraintElement.NameConstraintElement(type.getXdcCommand()),
-                    new UnsupportedConstraintElement.SyntaxConstraintElement(" ["),
-                    new UnsupportedConstraintElement.NameConstraintElement("list"),
-                    new UnsupportedConstraintElement.SyntaxConstraintElement("]]")
-            );
-
+            return Stream.of(new UnsupportedConstraintElement.SyntaxConstraintElement("["),
+                             new UnsupportedConstraintElement.NameConstraintElement(type.getXdcCommand()),
+                             new UnsupportedConstraintElement.SyntaxConstraintElement(" ["),
+                             new UnsupportedConstraintElement.NameConstraintElement("list"),
+                             new UnsupportedConstraintElement.SyntaxConstraintElement("]]"));
         }
 
-        boolean braces = objects.size()!=1 || objects.stream().anyMatch(XDCTools::stringNeedsBraces);
+        boolean braces = objects.size() != 1 || objects.stream().anyMatch(XDCTools::stringNeedsBraces);
 
-        List<UnsupportedConstraintElement> before = new ArrayList<>(Arrays.asList(
-                new UnsupportedConstraintElement.SyntaxConstraintElement("["),
-                new UnsupportedConstraintElement.NameConstraintElement(type.getXdcCommand()),
-                new UnsupportedConstraintElement.SyntaxConstraintElement(" ")
-        ));
+        List<UnsupportedConstraintElement> before =
+            new ArrayList<>(Arrays.asList(new UnsupportedConstraintElement.SyntaxConstraintElement("["),
+                                          new UnsupportedConstraintElement.NameConstraintElement(type.getXdcCommand()),
+                                          new UnsupportedConstraintElement.SyntaxConstraintElement(" ")));
         List<UnsupportedConstraintElement> after = new ArrayList<>(Collections.singleton(
 
-                new UnsupportedConstraintElement.SyntaxConstraintElement("]")
-        ));
+            new UnsupportedConstraintElement.SyntaxConstraintElement("]")));
         if (braces) {
             before.add(new UnsupportedConstraintElement.SyntaxConstraintElement("{"));
             after.add(0, new UnsupportedConstraintElement.SyntaxConstraintElement("}"));
         }
 
-        Function<? super String, ? extends UnsupportedConstraintElement> uceConstructor = type == ObjType.Cell ? UnsupportedConstraintElement.CellConstraintElement::new : UnsupportedConstraintElement.NameConstraintElement::new;
-        Stream<UnsupportedConstraintElement> objs = objects.stream().map(uceConstructor).flatMap(UnsupportedConstraintElement.addSpacesBetween());
+        Function<? super String, ? extends UnsupportedConstraintElement> uceConstructor =
+            type == ObjType.Cell ? UnsupportedConstraintElement.CellConstraintElement::new
+                                 : UnsupportedConstraintElement.NameConstraintElement::new;
+        Stream<UnsupportedConstraintElement> objs =
+            objects.stream().map(uceConstructor).flatMap(UnsupportedConstraintElement.addSpacesBetween());
         return UnsupportedConstraintElement.wrapStream(objs, before.stream(), after.stream());
     }
 
@@ -103,8 +97,8 @@ public class NameDesignObject<T> extends DesignObject<T> {
     }
 
     public String requireOneObject() {
-        if (objects.size()!=1) {
-            throw new RuntimeException("requiring one object but got: "+objects);
+        if (objects.size() != 1) {
+            throw new RuntimeException("requiring one object but got: " + objects);
         }
         return objects.get(0);
     }

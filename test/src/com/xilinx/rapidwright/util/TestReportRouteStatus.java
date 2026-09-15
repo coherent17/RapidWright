@@ -35,7 +35,7 @@ public class TestReportRouteStatus {
     @Test
     public void testReportRouteStatusMain() {
         String path = RapidWrightDCP.getString("picoblaze_ooc_X10Y235.dcp");
-        ReportRouteStatus.main(new String[]{path});
+        ReportRouteStatus.main(new String[] {path});
     }
 
     @Test

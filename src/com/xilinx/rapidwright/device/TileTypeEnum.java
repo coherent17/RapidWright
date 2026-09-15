@@ -25,7 +25,6 @@
  */
 package com.xilinx.rapidwright.device;
 
-
 /**
  * Generated on: Tue Jun 09 13:13:33 MDT 2026
  * by: com.xilinx.rapidwright.release.SiteAndTileTypeUpdater

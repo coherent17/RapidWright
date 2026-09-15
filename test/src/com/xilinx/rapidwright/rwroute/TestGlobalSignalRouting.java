@@ -31,15 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
-import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
-
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.DesignTools;
@@ -67,25 +58,27 @@ import com.xilinx.rapidwright.util.FileTools;
 import com.xilinx.rapidwright.util.ReportRouteStatusResult;
 import com.xilinx.rapidwright.util.VivadoTools;
 import com.xilinx.rapidwright.util.VivadoToolsHelper;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class TestGlobalSignalRouting {
     @ParameterizedTest
-    @CsvSource({
-            "CLKBWRCLK,",
-            "RSTRAMB,",
-            "WEBWE[0],WEBL0",
-            "ADDRENA,ADDRENAL",
-            "ADDRENB,ADDRENBU"
-    })
+    @CsvSource({"CLKBWRCLK,", "RSTRAMB,", "WEBWE[0],WEBL0", "ADDRENA,ADDRENAL", "ADDRENB,ADDRENBU"})
     public void testRAMB36(String logicalPinName, String erroringSitePinName) throws Throwable {
         Design design = new Design("design", "xcvu3p");
         Cell bufg = design.createAndPlaceCell("test_bufg", Unisim.BUFGCE, "BUFGCE_X0Y0/BUFCE");
         Net globalNet = design.createNet("clk");
-        globalNet.connect(bufg,"O");
+        globalNet.connect(bufg, "O");
 
         Cell target = design.createAndPlaceCell("test_ram", Unisim.RAMB36E2, "RAMB36_X0Y0/RAMB36E2");
         if (logicalPinName.equals("CLKBWRCLK") || logicalPinName.equals("RSTRAMB") ||
-                logicalPinName.equals("ADDRENA") || logicalPinName.equals("ADDRENB")) {
+            logicalPinName.equals("ADDRENA") || logicalPinName.equals("ADDRENB")) {
             target.addPinMapping(logicalPinName + "L", logicalPinName);
             target.addPinMapping(logicalPinName + "U", logicalPinName);
         } else if (logicalPinName.equals("WEBWE[0]")) {
@@ -98,15 +91,16 @@ public class TestGlobalSignalRouting {
         //        This is a canary assertion that will light up when this gets fixed.
         Assertions.assertEquals(2 /* 3 */, globalNet.getPins().size());
 
-        Executable e = () -> GlobalSignalRouting.symmetricClkRouting(globalNet, design.getDevice(),
-                (n) -> NodeStatus.AVAILABLE, null);
+        Executable e = ()
+            -> GlobalSignalRouting.symmetricClkRouting(globalNet, design.getDevice(),
+                                                       (n) -> NodeStatus.AVAILABLE, null);
         if (erroringSitePinName == null) {
             e.execute();
         } else {
             // FIXME: Known broken -- see https://github.com/Xilinx/RapidWright/issues/756
             RuntimeException ex = Assertions.assertThrows(RuntimeException.class, e, "true");
             Assertions.assertEquals("ERROR: No mapped LCB to SitePinInst IN RAMB36_X0Y0." + erroringSitePinName,
-                    ex.getMessage());
+                                    ex.getMessage());
         }
     }
 
@@ -117,8 +111,9 @@ public class TestGlobalSignalRouting {
         SiteInst site = (sitePin != null) ? design.getSiteInstFromSite(sitePin.getSite()) : null;
         SitePinInst spi = (site != null) ? site.getSitePinInst(sitePin.getPinName()) : null;
         Net net = (spi != null) ? spi.getNet() : null;
-        return net == null ? NodeStatus.AVAILABLE :
-                net.getType() == netType ? NodeStatus.INUSE : NodeStatus.UNAVAILABLE;
+        return net == null         ? NodeStatus.AVAILABLE
+        : net.getType() == netType ? NodeStatus.INUSE
+                                   : NodeStatus.UNAVAILABLE;
     }
 
     @Test
@@ -143,13 +138,15 @@ public class TestGlobalSignalRouting {
 
         RouteThruHelper routeThruHelper = new RouteThruHelper(design.getDevice());
 
-        GlobalSignalRouting.routeStaticNet(gndPins, (n) -> getNodeState(design, NetType.GND, n), design, routeThruHelper);
+        GlobalSignalRouting.routeStaticNet(gndPins,
+                                           (n) -> getNodeState(design, NetType.GND, n), design, routeThruHelper);
         gndPins = gndNet.getPins();
         Assertions.assertEquals(737, gndPins.stream().filter((spi) -> spi.isOutPin()).count());
         Assertions.assertEquals(19010, gndPins.stream().filter((spi) -> !spi.isOutPin()).count());
         Assertions.assertEquals(33429, gndNet.getPIPs().size());
 
-        GlobalSignalRouting.routeStaticNet(vccPins, (n) -> getNodeState(design, NetType.VCC, n), design, routeThruHelper);
+        GlobalSignalRouting.routeStaticNet(vccPins,
+                                           (n) -> getNodeState(design, NetType.VCC, n), design, routeThruHelper);
         vccPins = vccNet.getPins();
         Assertions.assertEquals(0, vccPins.stream().filter((spi) -> spi.isOutPin()).count());
         Assertions.assertEquals(23099, vccPins.stream().filter((spi) -> !spi.isOutPin()).count());
@@ -163,7 +160,7 @@ public class TestGlobalSignalRouting {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {false,true})
+    @ValueSource(booleans = {false, true})
     public void testRouteStaticNetOnVersalDevice(boolean createStaticPins, @TempDir Path tempDir) {
         Design design = RapidWrightDCP.loadDCP("picoblaze_2022.2.dcp");
         design.unrouteDesign();
@@ -228,12 +225,14 @@ public class TestGlobalSignalRouting {
         RouteThruHelper routeThruHelper = new RouteThruHelper(design.getDevice());
 
         Design finalDesign = design;
-        GlobalSignalRouting.routeStaticNet(gndPins, (n) -> getNodeState(finalDesign, NetType.GND, n), design, routeThruHelper);
+        GlobalSignalRouting.routeStaticNet(gndPins,
+                                           (n) -> getNodeState(finalDesign, NetType.GND, n), design, routeThruHelper);
         Assertions.assertEquals(8, gndPins.stream().filter((spi) -> spi.isOutPin()).count());
         Assertions.assertEquals(123, gndPins.stream().filter((spi) -> !spi.isOutPin()).count());
         Assertions.assertEquals(436, gndNet.getPIPs().size());
 
-        GlobalSignalRouting.routeStaticNet(vccPins, (n) -> getNodeState(finalDesign, NetType.VCC, n), design, routeThruHelper);
+        GlobalSignalRouting.routeStaticNet(vccPins,
+                                           (n) -> getNodeState(finalDesign, NetType.VCC, n), design, routeThruHelper);
         Assertions.assertEquals(0, vccPins.stream().filter((spi) -> spi.isOutPin()).count());
         Assertions.assertEquals(232, vccPins.stream().filter((spi) -> !spi.isOutPin()).count());
         Assertions.assertEquals(464, vccNet.getPIPs().size());
@@ -247,11 +246,7 @@ public class TestGlobalSignalRouting {
 
     // This is a minimized testcase from the result of GlobalSignalRouter
     @ParameterizedTest
-    @CsvSource({
-            "false,false",
-            "true,false",
-            "false,true"
-    })
+    @CsvSource({"false,false", "true,false", "false,true"})
     public void testMuxOutPinAsStaticSourceEvenWithLut6(boolean setCmuxCtag, boolean fullIntraSiteRouting) {
         Assumptions.assumeTrue(FileTools.isVivadoOnPath());
 
@@ -259,13 +254,12 @@ public class TestGlobalSignalRouting {
         Device device = design.getDevice();
         Net gndNet = design.getGndNet();
         boolean srcToSinkOrder = true;
-        gndNet.setPIPs(RouterHelper.getPIPsFromNodes(Arrays.asList(
-                device.getNode("CLEM_X52Y123/CLE_CLE_M_SITE_0_CMUX"),
-                device.getNode("INT_X52Y123/INT_NODE_SDQ_90_INT_OUT1"),
-                device.getNode("INT_X52Y123/WW1_W_BEG7"),
-                device.getNode("INT_X51Y124/INODE_E_1_FT1"),
-                device.getNode("INT_X51Y123/IMUX_E15")
-        ), srcToSinkOrder));
+        gndNet.setPIPs(RouterHelper.getPIPsFromNodes(
+            Arrays.asList(device.getNode("CLEM_X52Y123/CLE_CLE_M_SITE_0_CMUX"),
+                          device.getNode("INT_X52Y123/INT_NODE_SDQ_90_INT_OUT1"),
+                          device.getNode("INT_X52Y123/WW1_W_BEG7"), device.getNode("INT_X51Y124/INODE_E_1_FT1"),
+                          device.getNode("INT_X51Y123/IMUX_E15")),
+            srcToSinkOrder));
         SiteInst si = design.getSiteInstFromSiteName("SLICE_X81Y123");
         Cell lut6 = si.getCell("C6LUT");
         Assertions.assertEquals("LUT6", lut6.getType());
@@ -282,21 +276,19 @@ public class TestGlobalSignalRouting {
 
         String status = VivadoTools.reportRouteStatus(design, const0);
         if (!setCmuxCtag) {
-            // Not setting the CMUX cTag correctly causes SLICE_X81Y123 to have invalid site programming
+            // Not setting the CMUX cTag correctly causes SLICE_X81Y123 to have invalid site
+            // programming
             Assertions.assertEquals("CONFLICTS", status);
         } else {
-            // In both cases, SLICE_X81Y123 does not exhibit invalid site programming and thus net appears partially routed
+            // In both cases, SLICE_X81Y123 does not exhibit invalid site programming and thus net
+            // appears partially routed
             Assertions.assertEquals("PARTIAL", status);
         }
     }
 
     // This is a minimized testcase from the result of GlobalSignalRouter
     @ParameterizedTest
-    @CsvSource({
-            "false,false",
-            "true,false",
-            "false,true"
-    })
+    @CsvSource({"false,false", "true,false", "false,true"})
     public void testMuxOutPinAsStaticSourceEvenWithLutRam(boolean setFmuxCtag, boolean fullIntraSiteRouting) {
         Assumptions.assumeTrue(FileTools.isVivadoOnPath());
 
@@ -304,14 +296,12 @@ public class TestGlobalSignalRouting {
         Device device = design.getDevice();
         Net gndNet = design.getGndNet();
         boolean srcToSinkOrder = true;
-        gndNet.setPIPs(RouterHelper.getPIPsFromNodes(Arrays.asList(
-                device.getNode("CLEM_X52Y218/CLE_CLE_M_SITE_0_FMUX"),
-                device.getNode("INT_X52Y218/SDQNODE_W_2_FT1"),
-                device.getNode("INT_X52Y218/EE2_W_BEG0"),
-                device.getNode("INT_X53Y218/INODE_W_1_FT1"),
-                device.getNode("INT_X53Y217/IMUX_W46"),
-                device.getNode("BRAM_X53Y215/BRAM_BRAM_CORE_3_ADDRENAU_PIN")
-        ), srcToSinkOrder));
+        gndNet.setPIPs(RouterHelper.getPIPsFromNodes(
+            Arrays.asList(device.getNode("CLEM_X52Y218/CLE_CLE_M_SITE_0_FMUX"),
+                          device.getNode("INT_X52Y218/SDQNODE_W_2_FT1"), device.getNode("INT_X52Y218/EE2_W_BEG0"),
+                          device.getNode("INT_X53Y218/INODE_W_1_FT1"), device.getNode("INT_X53Y217/IMUX_W46"),
+                          device.getNode("BRAM_X53Y215/BRAM_BRAM_CORE_3_ADDRENAU_PIN")),
+            srcToSinkOrder));
         SiteInst si = design.getSiteInstFromSiteName("SLICE_X81Y218");
         Cell lutRam = si.getCell("F6LUT");
         Assertions.assertEquals("RAMS64E", lutRam.getType());
@@ -327,10 +317,12 @@ public class TestGlobalSignalRouting {
         }
         String status = VivadoTools.reportRouteStatus(design, const0);
         if (!setFmuxCtag) {
-            // Not setting the FMUX cTag correctly causes SLICE_X81Y218 to have invalid site programming
+            // Not setting the FMUX cTag correctly causes SLICE_X81Y218 to have invalid site
+            // programming
             Assertions.assertEquals("CONFLICTS", status);
         } else {
-            // In both cases, SLICE_X81Y218 does not exhibit invalid site programming and thus net appears partially routed
+            // In both cases, SLICE_X81Y218 does not exhibit invalid site programming and thus net
+            // appears partially routed
             Assertions.assertEquals("PARTIAL", status);
         }
     }
@@ -346,12 +338,13 @@ public class TestGlobalSignalRouting {
         for (String netName : Arrays.asList("clk1_IBUF_BUFG", "clk2_IBUF_BUFG", "rst1", "rst2")) {
             Net net = design.getNet(netName);
             Assertions.assertTrue(NetTools.isGlobalClock(net));
-            GlobalSignalRouting.symmetricClkRouting(net, design.getDevice(),
-                    (n) -> used.contains(n) ? NodeStatus.UNAVAILABLE : NodeStatus.AVAILABLE,
-                    usedRoutingTracks);
-            for (PIP pip: net.getPIPs()) {
-                for (Node node: Arrays.asList(pip.getStartNode(), pip.getEndNode())) {
-                    if (node != null) used.add(node);
+            GlobalSignalRouting.symmetricClkRouting(
+                net, design.getDevice(),
+                (n) -> used.contains(n) ? NodeStatus.UNAVAILABLE : NodeStatus.AVAILABLE, usedRoutingTracks);
+            for (PIP pip : net.getPIPs()) {
+                for (Node node : Arrays.asList(pip.getStartNode(), pip.getEndNode())) {
+                    if (node != null)
+                        used.add(node);
                 }
             }
             Assertions.assertEquals(0, DesignTools.updatePinsIsRouted(net));
@@ -392,23 +385,23 @@ public class TestGlobalSignalRouting {
         return bufgce;
     }
 
-    private Design genTestDesignForVersalClockRouting() { 
+    private Design genTestDesignForVersalClockRouting() {
         Design design = new Design("versal_clk", "xcv80-lsva4737-2MHP-e-S");
         EDIFCell top = design.getTopEDIFCell();
-        
+
         Net clk = design.createNet("clk");
         Net clkIn = design.createNet("clkIn");
         Net vcc = design.getVccNet();
         Net gnd = design.getGndNet();
-        
+
         clkIn.getLogicalNet().createPortInst(top.createPort(clkIn.getName(), EDIFDirection.INPUT, 1));
         Cell bufgce = createBUFGCE(design, top, "bufgceInst", design.getDevice().getSite("BUFGCE_X2Y0"));
-        
+
         clkIn.connect(bufgce, "I");
         clk.connect(bufgce, "O");
         vcc.connect(bufgce, "CE");
-        
-        int i=0; 
+
+        int i = 0;
         for (String loc : new String[] {"SLICE_X98Y8", "SLICE_X86Y96", "SLICE_X86Y236", "SLICE_X86Y284"}) {
             Cell ff = design.createAndPlaceCell("ff" + i++, Unisim.FDRE, loc + "/AFF");
             clk.connect(ff, "C");
@@ -416,12 +409,12 @@ public class TestGlobalSignalRouting {
             gnd.connect(ff, "D");
             gnd.connect(ff, "R");
         }
-        
+
         design.addXDCConstraint("create_clock -period 10.0 [get_ports clk_in]");
         design.routeSites();
         design.setAutoIOBuffers(false);
         design.setDesignOutOfContext(true);
-        
+
         return design;
     }
 
@@ -449,8 +442,7 @@ public class TestGlobalSignalRouting {
         design.setAutoIOBuffers(false);
         design.setDesignOutOfContext(true);
 
-        GlobalSignalRouting.symmetricClkRouting(clk, design.getDevice(),
-                (n) -> NodeStatus.AVAILABLE, null);
+        GlobalSignalRouting.symmetricClkRouting(clk, design.getDevice(), (n) -> NodeStatus.AVAILABLE, null);
 
         SitePinInst nocClkPin = nsu.getSiteInst().getSitePinInst("CLK");
         Assertions.assertNotNull(nocClkPin, "NOC CLK SitePinInst should exist");
@@ -471,17 +463,17 @@ public class TestGlobalSignalRouting {
         for (PIP p : d.getNet("clk").getPIPs()) {
             Node n = p.getEndNode();
             if (n != null) {
-                if (n.getIntentCode() == IntentCode.NODE_GLOBAL_VDISTR_LVL2
-                        && n.getTile().getClockRegion().getName().equals("X3Y2")) {
+                if (n.getIntentCode() == IntentCode.NODE_GLOBAL_VDISTR_LVL2 &&
+                    n.getTile().getClockRegion().getName().equals("X3Y2")) {
                     foundVDistrLVL2InX3Y2 = true;
-                } else if (n.getIntentCode() == IntentCode.NODE_GLOBAL_VDISTR_LVL1
-                        && n.getTile().getClockRegion().getName().equals("X3Y3")) {
+                } else if (n.getIntentCode() == IntentCode.NODE_GLOBAL_VDISTR_LVL1 &&
+                           n.getTile().getClockRegion().getName().equals("X3Y3")) {
                     foundVDistrLVL1InX3Y3 = true;
-                } else if (n.getIntentCode() == IntentCode.NODE_GLOBAL_VDISTR
-                        && n.getTile().getClockRegion().getName().equals("X3Y1")) {
+                } else if (n.getIntentCode() == IntentCode.NODE_GLOBAL_VDISTR &&
+                           n.getTile().getClockRegion().getName().equals("X3Y1")) {
                     foundVDistrInX3Y1 = true;
-                } else if (n.getIntentCode() == IntentCode.NODE_GLOBAL_VDISTR
-                        && n.getTile().getClockRegion().getName().equals("X3Y2")) {
+                } else if (n.getIntentCode() == IntentCode.NODE_GLOBAL_VDISTR &&
+                           n.getTile().getClockRegion().getName().equals("X3Y2")) {
                     foundVDistrInX3Y2 = true;
                 }
             }

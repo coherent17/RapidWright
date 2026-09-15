@@ -50,7 +50,6 @@ import com.xilinx.rapidwright.placer.handplacer.GUIMultiNetLine;
 import com.xilinx.rapidwright.util.Utils;
 
 public class GUIModuleInst extends QGraphicsPolygonItem {
-
     public Signal1<Boolean> selected = new Signal1<Boolean>();
     public Signal0 moved = new Signal0();
     private ModuleInst moduleInst;
@@ -81,7 +80,7 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
 
         this.setFlag(GraphicsItemFlag.ItemIsMovable, movable);
         this.setFlag(GraphicsItemFlag.ItemIsSelectable, true);
-        //this.setFlag(GraphicsItemFlag.ItemSendsGeometryChanges, true);
+        // this.setFlag(GraphicsItemFlag.ItemSendsGeometryChanges, true);
         this.moved.connect(this, "checkPlacement()");
         this.selected.connect(this, "bringToFront(boolean)");
     }
@@ -90,8 +89,7 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
     private void printPos() {
         System.out.println("this:" + this.pos());
         for (int i = 0; i < hmTiles.size() && i < 5; i++) {
-            System.out.println("   tile(" + i + "):"
-                    + this.hmTiles.get(i).pos());
+            System.out.println("   tile(" + i + "):" + this.hmTiles.get(i).pos());
         }
     }
 
@@ -142,8 +140,8 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
                 Tile tile = pip.getTile();
                 if (!occupiedTiles.contains(tile)) {
                     occupiedTiles.add(tile);
-                    //int col = tile.getColumn();
-                    //int row = tile.getRow();
+                    // int col = tile.getColumn();
+                    // int row = tile.getRow();
                     int col = scene.getDrawnTileX(tile);
                     int row = scene.getDrawnTileY(tile);
                     minCol = (minCol <= col) ? minCol : col;
@@ -181,8 +179,7 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
                 hmTileMap[tileY - 4][tileX] = true;
             }
 
-            else if (tileX >= 0 && tileX < widthInTiles && tileY >= 0
-                    && tileY < heightInTiles) {
+            else if (tileX >= 0 && tileX < widthInTiles && tileY >= 0 && tileY < heightInTiles) {
                 hmTileMap[tileY][tileX] = true;
             }
 
@@ -195,7 +192,7 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
         this.moveBy(minCol * scene.tileSize, minRow * scene.tileSize);
         this.hideGuts();
         this.setAnchorOffset();
-        this.setToolTip(moduleInst.getName()+"\n"+moduleInst.getModule().getName());
+        this.setToolTip(moduleInst.getName() + "\n" + moduleInst.getModule().getName());
     }
 
     private void addHMTile(Tile tile, int tileX, int tileY, boolean hasSLICEM, boolean isAnchor) {
@@ -203,7 +200,6 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
         hmTile.moveBy(tileX * scene.tileSize, tileY * scene.tileSize);
         hmTile.setBrush(new QBrush(QColor.white));
         hmTiles.add(hmTile);
-
     }
 
     private QPolygonF createOutline(boolean[][] hmTileMap) {
@@ -238,7 +234,6 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
                 }
             }
 
-
             // fill in holes in tile cols
             for (int j = 0; j < width; j++) {
                 int bottomI = -1;
@@ -265,19 +260,15 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
             }
         } while (changed);
 
-
         int tileSize = scene.tileSize;
         QPolygonF hmPolygon = new QPolygonF();
         // Go down right side, adding profile points
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
-                if (hmTileMap[i][j]
-                        && (j + 1 > width - 1 || !hmTileMap[i][j + 1])) {
-                    QPointF pTR = new QPointF((j + 1) * tileSize - 1, i
-                            * tileSize - 1);
+                if (hmTileMap[i][j] && (j + 1 > width - 1 || !hmTileMap[i][j + 1])) {
+                    QPointF pTR = new QPointF((j + 1) * tileSize - 1, i * tileSize - 1);
                     hmPolygon.add(this.pos().add(pTR));
-                    QPointF pBR = new QPointF((j + 1) * tileSize - 1, (i + 1)
-                            * tileSize - 1);
+                    QPointF pBR = new QPointF((j + 1) * tileSize - 1, (i + 1) * tileSize - 1);
                     hmPolygon.add(this.pos().add(pBR));
                     break;
                 }
@@ -287,11 +278,9 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
         for (int i = height - 1; i >= 0; i--) {
             for (int j = width - 1; j >= 0; j--) {
                 if (hmTileMap[i][j] && (j - 1 < 0 || !hmTileMap[i][j - 1])) {
-                    QPointF pBL = new QPointF((j) * tileSize - 1, (i + 1)
-                            * tileSize - 1);
+                    QPointF pBL = new QPointF((j)*tileSize - 1, (i + 1) * tileSize - 1);
                     hmPolygon.add(this.pos().add(pBL));
-                    QPointF pTL = new QPointF((j) * tileSize - 1, (i)
-                            * tileSize - 1);
+                    QPointF pTL = new QPointF((j)*tileSize - 1, (i)*tileSize - 1);
                     hmPolygon.add(this.pos().add(pTL));
                     break;
                 }
@@ -309,7 +298,6 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
         } else {
             double z = this.zValue() - 1;
             this.setZValue(z);
-
         }
     }
 
@@ -317,10 +305,9 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
      * TODO - This method is overly optimistic and needs to be updated - 3/8/16 - CL
      */
     public void checkPlacement() {
-
         HashSet<GUIModuleInst> prevCollidingGMIs = new HashSet<GUIModuleInst>();
         HashSet<GUIModuleInst> newCollidingGMIs = new HashSet<GUIModuleInst>();
-        for (int i=0; i<occupiedTilesX.size(); i++) {
+        for (int i = 0; i < occupiedTilesX.size(); i++) {
             HashSet<GUIModuleInst> prevGMISet = scene.tileOccupantCount[occupiedTilesY.get(i)][occupiedTilesX.get(i)];
             prevGMISet.remove(this);
             prevCollidingGMIs.addAll(prevGMISet);
@@ -334,29 +321,26 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
         boolean isValidAnchor = false;
         if (anchorOffset != null) {
             final Tile tile = scene.getTile(scenePos().x() + anchorOffset.x(), scenePos().y() + anchorOffset.y());
-            isValidAnchor = moduleInst.getModule().getAllValidPlacements().stream().anyMatch(p->p.getTile()==tile);
+            isValidAnchor = moduleInst.getModule().getAllValidPlacements().stream().anyMatch(p -> p.getTile() == tile);
         }
 
         for (HMTile hmTile : this.hmTiles) {
-            //Check to see if this HMTile collides with any other GMIs (other than parent)
-
+            // Check to see if this HMTile collides with any other GMIs (other than parent)
 
             boolean tileColliding = false;
 
-            int x = (int) Math.floor(hmTile.scenePos().x()
-                    / scene.tileSize);
-            int y = (int) Math.floor(hmTile.scenePos().y()
-                    / scene.tileSize);
+            int x = (int)Math.floor(hmTile.scenePos().x() / scene.tileSize);
+            int y = (int)Math.floor(hmTile.scenePos().y() / scene.tileSize);
             if (x >= scene.cols || y >= scene.rows || x < 0 || y < 0) {
-                System.out.println("ERROR - Moved out of bounds:"+this.moduleInst.getName());
+                System.out.println("ERROR - Moved out of bounds:" + this.moduleInst.getName());
                 break;
             }
             TileTypeEnum myType = hmTile.getTile().getTileTypeEnum();
-            //if (myType.toString().startsWith("DSP")
-            //        || myType.toString().startsWith("BRAM")) {
-            //    y += 3;
-            //}
-            //TileTypeEnum devType = fpScene.device.getTile(y, x).getType();
+            // if (myType.toString().startsWith("DSP")
+            //         || myType.toString().startsWith("BRAM")) {
+            //     y += 3;
+            // }
+            // TileTypeEnum devType = fpScene.device.getTile(y, x).getType();
 
             occupiedTilesX.add(x);
             occupiedTilesY.add(y);
@@ -368,8 +352,7 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
                 tileColliding = true;
 
             TileTypeEnum devType = scene.drawnTiles[y][x].getTileTypeEnum();
-            if (myType.equals(devType)
-                    || Utils.isInterConnect(myType) && Utils.isInterConnect(devType)) {
+            if (myType.equals(devType) || Utils.isInterConnect(myType) && Utils.isInterConnect(devType)) {
                 if (tileColliding) {
                     hmTile.setState(GUIShapeState.COLLIDING);
                     isColliding = true;
@@ -383,10 +366,10 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
         }
 
         if (isValidAnchor) {
-            //Workaround for relocation issues in this code
+            // Workaround for relocation issues in this code
             isPlacementValid = true;
         }
-        isValidlyPlaced = isPlacementValid ;
+        isValidlyPlaced = isPlacementValid;
 
         if (isPlacementValid) {
             if (isColliding) {
@@ -398,11 +381,10 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
             this.setState(GUIShapeState.INVALID);
         }
 
-
         StackTraceElement aParentStack = new Throwable().fillInStackTrace().getStackTrace()[1];
-        //This is here to prevent infinite recursion.  It makes sure
-        // that checkPlacement is only called on the colliding GMIs iff
-        // this function was called by something other than itself
+        // This is here to prevent infinite recursion.  It makes sure
+        //  that checkPlacement is only called on the colliding GMIs iff
+        //  this function was called by something other than itself
         if (!aParentStack.getMethodName().equals("checkPlacement")) {
             for (GUIModuleInst gmi : prevCollidingGMIs) {
                 gmi.checkPlacement();
@@ -411,7 +393,6 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
                 gmi.checkPlacement();
             }
         }
-
     }
     public void showGuts() {
         for (HMTile hmTile : this.hmTiles) {
@@ -444,7 +425,7 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
             moved.emit();
         } else if (change == GraphicsItemChange.ItemPositionChange && scene() != null) {
             // value is the new position.
-            return makeValidPosition((QPointF) value);
+            return makeValidPosition((QPointF)value);
         }
         return super.itemChange(change, value);
     }
@@ -462,10 +443,8 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
         rect.setBottomRight(p);
         if (!rect.contains(newPos)) {
             // Keep the item inside the scene rect.
-            newPos.setX(Math.min(rect.right(), Math.max(newPos.x(), rect
-                    .left())));
-            newPos.setY(Math.min(rect.bottom(), Math.max(newPos.y(), rect
-                    .top())));
+            newPos.setX(Math.min(rect.right(), Math.max(newPos.x(), rect.left())));
+            newPos.setY(Math.min(rect.bottom(), Math.max(newPos.y(), rect.top())));
         }
         return scene.getTile(newPos.x(), newPos.y());
     }
@@ -488,7 +467,7 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
 
         // Only snap to valid placement if it is close
         return closestValidPlacement > SNAPPING_DISTANCE ? scene.getTilePoint(target)
-                : scene.getTilePoint(result).subtract(getAnchorOffset());
+                                                         : scene.getTilePoint(result).subtract(getAnchorOffset());
     }
 
     public boolean isGrabbed() {
@@ -514,19 +493,18 @@ public class GUIModuleInst extends QGraphicsPolygonItem {
         return isValidlyPlaced;
     }
 
-
     public void setAnchorOffset() {
         Site anchorInst = null;
         if (moduleInst.isPlaced()) {
-            anchorInst  = moduleInst.getAnchor().getSite();
+            anchorInst = moduleInst.getAnchor().getSite();
         } else {
             anchorInst = moduleInst.getModule().getAnchor();
         }
-        //int x = anchorInst.getTile().getColumn();
-        //int y = anchorInst.getTile().getRow();
+        // int x = anchorInst.getTile().getColumn();
+        // int y = anchorInst.getTile().getRow();
         int x = scene.getDrawnTileX(anchorInst.getTile());
         int y = scene.getDrawnTileY(anchorInst.getTile());
-        this.anchorOffset = (new QPointF(x*scene.tileSize,y*scene.tileSize)).subtract(this.pos());
+        this.anchorOffset = (new QPointF(x * scene.tileSize, y * scene.tileSize)).subtract(this.pos());
     }
 
     public QPointF getAnchorOffset() {

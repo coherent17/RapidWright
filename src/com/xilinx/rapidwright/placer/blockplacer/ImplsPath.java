@@ -33,7 +33,7 @@ import com.xilinx.rapidwright.design.SimpleTileRectangle;
 /**
  * Net between Ports of {@link ModuleImplsInst}s
  */
-public class ImplsPath extends AbstractPath<ImplsInstancePort, ModuleImplsInst>{
+public class ImplsPath extends AbstractPath<ImplsInstancePort, ModuleImplsInst> {
     int length;
     int undoLength;
 
@@ -47,14 +47,12 @@ public class ImplsPath extends AbstractPath<ImplsInstancePort, ModuleImplsInst>{
     public void addPort(ImplsInstancePort port) {
         ports.add(port);
         if (port instanceof ImplsInstancePort.InstPort) {
-            moduleInsts.add(((ImplsInstancePort.InstPort) port).getInstance());
+            moduleInsts.add(((ImplsInstancePort.InstPort)port).getInstance());
         }
         port.setPath(this);
     }
 
-
     final String name;
-
 
     @Override
     public int getLength() {
@@ -62,7 +60,6 @@ public class ImplsPath extends AbstractPath<ImplsInstancePort, ModuleImplsInst>{
     }
 
     public void calculateLength() {
-
         current = new SimpleTileRectangle();
         for (ImplsInstancePort port : ports) {
             port.enterToRect(current);
@@ -87,14 +84,13 @@ public class ImplsPath extends AbstractPath<ImplsInstancePort, ModuleImplsInst>{
 
     @Override
     public Set<?> getPathConnections() {
-        return ports.stream()
-                .map(ImplsInstancePort::getAllTiles)
-                .collect(Collectors.toSet());
+        return ports.stream().map(ImplsInstancePort::getAllTiles).collect(Collectors.toSet());
     }
 
     public ImplsInstancePort findSource() {
-        final List<ImplsInstancePort> sources = ports.stream().filter(ImplsInstancePort::isOutputPort).collect(Collectors.toList());
-        if (sources.size()>1) {
+        final List<ImplsInstancePort> sources =
+            ports.stream().filter(ImplsInstancePort::isOutputPort).collect(Collectors.toList());
+        if (sources.size() > 1) {
             throw new IllegalStateException("Multiple sources at " + getName() + ": " + sources);
         } else if (sources.isEmpty()) {
             return null;
@@ -111,7 +107,7 @@ public class ImplsPath extends AbstractPath<ImplsInstancePort, ModuleImplsInst>{
     @Override
     public void restoreUndo() {
         if (undoCache == null) {
-            throw new RuntimeException("No cached undo value present in "+getName());
+            throw new RuntimeException("No cached undo value present in " + getName());
         }
 
         current = undoCache;

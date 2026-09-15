@@ -43,30 +43,31 @@ import com.xilinx.rapidwright.edif.EDIFPortInst;
 import com.xilinx.rapidwright.edif.EDIFTools;
 import com.xilinx.rapidwright.tests.CodePerfTracker;
 
-
 /**
  * Fill some black boxes of a given design with a specific {@link Module} (DCP) implementation.
  */
 public class BlackboxPopulator {
-
     /**
      * Fill some black boxes of the given design with the given implementation.
      *
      * @param top         The design with black boxes to fill
      * @param mod         The implementation to fill the black boxes
      * @param cellAnchor The reference INT tile used as the handle to {@code mod} parameter
-     * @param blackboxes The list of pairs of a black box cell to be filled and its reference INT tile.
+     * @param blackboxes The list of pairs of a black box cell to be filled and its reference INT
+     *     tile.
      *                    The x-coordinate of this INT tile must match that of the cellAnchor.
      */
-    public static boolean relocateModuleInsts(Design top, Module mod, String cellAnchor, List<Pair<String, String>> blackboxes) {
+    public static boolean relocateModuleInsts(Design top, Module mod, String cellAnchor,
+                                              List<Pair<String, String>> blackboxes) {
         System.out.println("\n\nRelocate " + mod.getName());
 
         top.setAutoIOBuffers(false);
 
         Site frSite = mod.getAnchor();
         Tile frTile = frSite.getTile();
-        // The cellAnchor is used by a user as an anchor to the cell.  It can differ from anchorTile.
-        // Relocate the cell is equivalent to moving the cell so that the cellAnchor align with the specified INT tile.
+        // The cellAnchor is used by a user as an anchor to the cell.  It can differ from
+        // anchorTile. Relocate the cell is equivalent to moving the cell so that the cellAnchor
+        // align with the specified INT tile.
         Tile tFrom = top.getDevice().getTile(cellAnchor);
         System.out.printf("\n     fr %12s                : anchor %14s  %14s\n", cellAnchor, frSite, frTile);
 
@@ -74,7 +75,8 @@ public class BlackboxPopulator {
             Tile tTo = top.getDevice().getTile(cell.getSecond());
             if (tFrom.getColumn() != tTo.getColumn()) {
                 System.out.println("Target location of " + cell.getFirst() + ", " + cell.getSecond() +
-                        ", is not vertically aligned with that of the implementation, " + cellAnchor + ".");
+                                   ", is not vertically aligned with that of the implementation, " + cellAnchor +
+                                   ".");
                 return false;
             }
         }
@@ -85,7 +87,8 @@ public class BlackboxPopulator {
 
             Tile toTile = frTile.getTileNeighbor(0, verticalMoveOffset);
             Site toSite = toTile.getSites()[frTile.getSiteIndex(frSite)];
-            System.out.printf("     to %12s  y_offset %4d : anchor %14s  %14s\n", cell.getSecond(), verticalMoveOffset, toSite, toTile);
+            System.out.printf("     to %12s  y_offset %4d : anchor %14s  %14s\n", cell.getSecond(), verticalMoveOffset,
+                              toSite, toTile);
             clearTargetSiteInsts(mod, toSite, top);
             if (!mod.isValidPlacement(toSite, top)) {
                 System.out.println("Invalid placement.");
@@ -121,7 +124,6 @@ public class BlackboxPopulator {
      * @return False if an invalid Tile or Site is encountered. True otherwise.
      */
     private static boolean clearTargetSiteInsts(Module mod, Site proposedAnchorSite, Design design) {
-
         for (SiteInst inst : mod.getSiteInsts()) {
             if (Utils.isLockedSiteType(inst.getSiteTypeEnum())) {
                 continue;
@@ -138,7 +140,6 @@ public class BlackboxPopulator {
         return true;
     }
 
-
     /**
      * Determine if the given net is a clock net.
      * Net.isClockNet() examines the source, this method looks for at least one clock pin sink.
@@ -148,15 +149,15 @@ public class BlackboxPopulator {
     private static boolean hasClockPinSink(Net net) {
         // TODO: rely on attribute instead of name
         for (SitePinInst sink : net.getSinkPins()) {
-            if (sink.getName().contains("CLK")) return true;
+            if (sink.getName().contains("CLK"))
+                return true;
         }
         return false;
     }
 
-
     /**
-     * Combine PIPs on the clock nets that were associated with various wires and set it on the top level.
-     * This is to avoid misintepretation in Vivado.
+     * Combine PIPs on the clock nets that were associated with various wires and set it on the top
+     * level. This is to avoid misintepretation in Vivado.
      *
      * @param top      The design with black boxes to fill
      * @param cellName A black box name
@@ -171,8 +172,9 @@ public class BlackboxPopulator {
             if (p.getInternalNet() == null) // unconnected port
                 continue;
 
-            String hierNetName_outside = netlist.getHierNetFromName(
-                    cellName + EDIFTools.EDIF_HIER_SEP + p.getInternalNet().getName()).getHierarchicalNetName();
+            String hierNetName_outside =
+                netlist.getHierNetFromName(cellName + EDIFTools.EDIF_HIER_SEP + p.getInternalNet().getName())
+                    .getHierarchicalNetName();
             for (EDIFHierNet net : netlist.getNetAliases(netlist.getHierNetFromName(hierNetName_outside))) {
                 String physNetName = net.getHierarchicalNetName();
                 Net physNet = top.getNet(physNetName);
@@ -203,40 +205,34 @@ public class BlackboxPopulator {
                     physNet.setPIPs(new ArrayList<>(pips));
                 }
             }
-
         }
     }
 
-// Example arguments
-/*
-   -in    hwct.dcp
-   -out   hw_contract_userp0.dcp
-   -from  hwct_rp0.dcp       INT_X32Y0
-   -to    hw_contract_rp2    INT_X32Y240
-   -to    hw_contract_rp1    INT_X32Y120
-   -to    hw_contract_rp0    INT_X32Y0
-*/
+    // Example arguments
+    /*
+       -in    hwct.dcp
+       -out   hw_contract_userp0.dcp
+       -from  hwct_rp0.dcp       INT_X32Y0
+       -to    hw_contract_rp2    INT_X32Y240
+       -to    hw_contract_rp1    INT_X32Y120
+       -to    hw_contract_rp0    INT_X32Y0
+    */
 
-/*   need to do RP_1 last when RP_1 is the source, otherwise nets of some BUFGCEs become unrouted!
-   -in    openacap_shell_bb.dcp
-   -out   openacap_shell_aes128.dcp
-   -from  AES128_inst_1_RP1.dcp INT_X32Y120
-   -to    openacap_shell_i/RP_2 INT_X32Y240
-   -to    openacap_shell_i/RP_0 INT_X32Y0
-   -to    openacap_shell_i/RP_1 INT_X32Y120
- */
+    /*   need to do RP_1 last when RP_1 is the source, otherwise nets of some BUFGCEs become
+       unrouted! -in    openacap_shell_bb.dcp -out   openacap_shell_aes128.dcp -from
+       AES128_inst_1_RP1.dcp INT_X32Y120 -to    openacap_shell_i/RP_2 INT_X32Y240 -to
+       openacap_shell_i/RP_0 INT_X32Y0 -to    openacap_shell_i/RP_1 INT_X32Y120
+     */
 
     public static void main(String[] args) {
-        String usage = String.join(System.getProperty("line.separator"),
-                "Relocate DCP to fill vertically aligned black boxes",
-                "  -in   <name of the DCP of a design with black boxes>",
-                "  -out  <name of the output DCP>",
-                "  -form <name of the DCP of an implementation to fill the black boxes>",
-                "        <a reference interconnect tile, eg., INT_X32Y0>",
-                "  -to   <a full hierarchical name to a black box in the DCP specified by -in>",
-                "        <a reference interconnect tile, eg., INT_X32Y120>",
-                "  -to   <can be repeated as many as the number of black boxes to fill>");
-
+        String usage =
+            String.join(System.getProperty("line.separator"), "Relocate DCP to fill vertically aligned black boxes",
+                        "  -in   <name of the DCP of a design with black boxes>", "  -out  <name of the output DCP>",
+                        "  -form <name of the DCP of an implementation to fill the black boxes>",
+                        "        <a reference interconnect tile, eg., INT_X32Y0>",
+                        "  -to   <a full hierarchical name to a black box in the DCP specified by -in>",
+                        "        <a reference interconnect tile, eg., INT_X32Y120>",
+                        "  -to   <can be repeated as many as the number of black boxes to fill>");
 
         String topDCPName = null;
         String newDCPName = null;
@@ -244,7 +240,6 @@ public class BlackboxPopulator {
         String cellAnchor = null;
         // Need random access to the list
         List<Pair<String, String>> targets = new ArrayList<>();
-
 
         // Collect command line arguments
         int i = 0;
@@ -290,7 +285,6 @@ public class BlackboxPopulator {
             i++;
         }
 
-
         CodePerfTracker t = new CodePerfTracker("Elapsed time", false);
 
         // Report collected arguments
@@ -298,11 +292,10 @@ public class BlackboxPopulator {
         System.out.println("  -in   " + topDCPName);
         System.out.println("  -out  " + newDCPName);
         System.out.println("  -from " + cellDCPName + " " + cellAnchor);
-        for (Pair<String,String> toCellLoc : targets) {
+        for (Pair<String, String> toCellLoc : targets) {
             System.out.println("  -to   " + toCellLoc.getFirst() + " " + toCellLoc.getSecond());
         }
         System.out.println();
-
 
         // Fill the black boxes
         t.start("Read dcp of the top design");
@@ -310,10 +303,8 @@ public class BlackboxPopulator {
         t.stop().start("Read dcp of the module");
         Module mod = new Module(Design.readCheckpoint(cellDCPName), false);
 
-
         t.stop().start("Relocate module instances");
         if (relocateModuleInsts(top, mod, cellAnchor, targets)) {
-
             postProcessing(top, targets);
 
             System.out.println("\n");

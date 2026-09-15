@@ -34,9 +34,7 @@ import com.trolltech.qt.gui.QPrinter;
 import com.trolltech.qt.svg.QSvgGenerator;
 
 public class UiTools {
-
     private UiTools() {
-
     }
 
     private static final double EXPORT_MARGIN = 10.0;
@@ -63,7 +61,7 @@ public class UiTools {
         QRectF exportRect = getExportRect(scene);
         QSvgGenerator svgGen = new QSvgGenerator();
         svgGen.setFileName(file.toString());
-        svgGen.setSize(new QSize((int) exportRect.width(), (int) exportRect.height()));
+        svgGen.setSize(new QSize((int)exportRect.width(), (int)exportRect.height()));
         svgGen.setViewBox(new QRectF(0, 0, exportRect.width(), exportRect.height()));
         svgGen.setTitle("RapidWright Schematic");
         svgGen.setDescription("Schematic Scene");

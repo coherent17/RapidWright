@@ -79,7 +79,7 @@ public class Point implements Comparable<Point> {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        Point other = (Point) obj;
+        Point other = (Point)obj;
         if (x != other.x)
             return false;
         if (y != other.y)
@@ -88,7 +88,6 @@ public class Point implements Comparable<Point> {
     }
 
     public String toString() {
-        return "(" +x + "," + y + ")";
+        return "(" + x + "," + y + ")";
     }
-
 }

@@ -75,11 +75,10 @@ import com.xilinx.rapidwright.gui.TileView;
 import com.xilinx.rapidwright.util.FileTools;
 
 public class ModuleOptimizer extends QMainWindow {
-
     private TileView view;
     private QLabel statusLabel;
     private FloorPlanScene scene;
-    private String rsrcPath = FileTools.getRapidWrightPath()+File.separator+FileTools.IMAGES_FOLDER_NAME;
+    private String rsrcPath = FileTools.getRapidWrightPath() + File.separator + FileTools.IMAGES_FOLDER_NAME;
     private QAction actionUndo;
     private QAction actionRedo;
     private QAction actionZoomIn;
@@ -95,7 +94,6 @@ public class ModuleOptimizer extends QMainWindow {
     private static String title = "Module Optimizer";
 
     private String currOpenFileName = null;
-
 
     public static void main(String[] args) {
         QApplication.setGraphicsSystem("raster");
@@ -136,19 +134,17 @@ public class ModuleOptimizer extends QMainWindow {
 
         createModuleList();
         createUtilizationTable();
-        scene.selectionChanged.connect(this,"updateListSelection()");
-        macroList.itemSelectionChanged.connect(this,"updateSceneSelection()");
+        scene.selectionChanged.connect(this, "updateListSelection()");
+        macroList.itemSelectionChanged.connect(this, "updateSceneSelection()");
         statusLabel = new QLabel("Status Bar");
         statusLabel.setText("Status Bar");
 
         scene.updateStatus.connect(this, "setStatusText(String, Tile)");
         scene.hmMoved.connect(this, "hmMoved(java.util.List, java.util.List)");
 
-
         QStatusBar statusBar = new QStatusBar();
         statusBar.addWidget(statusLabel);
         setStatusBar(statusBar);
-
 
         if (fileToOpen != null && new File(fileToOpen).exists()) {
             internalOpenDesign(fileToOpen);
@@ -169,7 +165,7 @@ public class ModuleOptimizer extends QMainWindow {
             treeItem.setText(0, macro.getModuleInst().getName());
             String sizeFMT = String.format("%5d", macro.getSizeInTiles());
             treeItem.setText(1, sizeFMT);
-            //treeItem.setText(1, macro.getModuleInst().getModule().getName());
+            // treeItem.setText(1, macro.getModuleInst().getModule().getName());
             macroList.addTopLevelItem(treeItem);
         }
     }
@@ -181,7 +177,8 @@ public class ModuleOptimizer extends QMainWindow {
         macroList.clearSelection();
         for (QGraphicsItemInterface item : scene.selectedItems()) {
             String modInstName = ((GUIModuleInst)item).getModuleInst().getName();
-            List<QTreeWidgetItem> itemList = macroList.findItems(modInstName, new MatchFlags(MatchFlag.MatchExactly), 0);
+            List<QTreeWidgetItem> itemList =
+                macroList.findItems(modInstName, new MatchFlags(MatchFlag.MatchExactly), 0);
             if (itemList.size() > 0) {
                 itemList.get(0).setSelected(true);
             }
@@ -216,7 +213,6 @@ public class ModuleOptimizer extends QMainWindow {
     }
 
     private void createUtilizationTable() {
-
         List<String> headerList = Arrays.asList("Used", "Avail", "%Util");
         List<String> vHeaderList = new ArrayList<String>(UtilizationType.values().length);
         for (UtilizationType type : UtilizationType.values()) {
@@ -226,16 +222,15 @@ public class ModuleOptimizer extends QMainWindow {
 
         utilTable.setHorizontalHeaderLabels(headerList);
         utilTable.setVerticalHeaderLabels(vHeaderList);
-        for (int i=0; i < vHeaderList.size(); i++) {
+        for (int i = 0; i < vHeaderList.size(); i++) {
             utilTable.setRowHeight(i, 20);
         }
-        for (int i=0; i < headerList.size(); i++) {
+        for (int i = 0; i < headerList.size(); i++) {
             utilTable.setColumnWidth(i, 50);
         }
 
         QDockWidget dockWidget = new QDockWidget(tr("PBlock Utilization"), this);
-        dockWidget.setAllowedAreas(DockWidgetArea.RightDockWidgetArea,
-                DockWidgetArea.LeftDockWidgetArea);
+        dockWidget.setAllowedAreas(DockWidgetArea.RightDockWidgetArea, DockWidgetArea.LeftDockWidgetArea);
         dockWidget.setWidget(utilTable);
         addDockWidget(DockWidgetArea.RightDockWidgetArea, dockWidget);
     }
@@ -243,16 +238,13 @@ public class ModuleOptimizer extends QMainWindow {
     private void updateUtilizationTable(Design d) {
         Map<UtilizationType, Integer> map = DesignTools.calculateUtilization(d);
 
-        for (int i=0; i < UtilizationType.values.length; i++) {
+        for (int i = 0; i < UtilizationType.values.length; i++) {
             Integer count = map.get(UtilizationType.values[i]);
             utilTable.setItem(i, 0, new QTableWidgetItem(count.toString()));
         }
-
-
     }
 
     private void createModuleList() {
-
         macroList = new QTreeWidget();
         macroList.setSelectionMode(SelectionMode.ExtendedSelection);
         macroList.setColumnCount(2);
@@ -262,22 +254,18 @@ public class ModuleOptimizer extends QMainWindow {
         macroList.setHeaderLabels(headerList);
         macroList.setSortingEnabled(true);
 
-
         QDockWidget dockWidget = new QDockWidget(tr("Module List"), this);
-        dockWidget.setAllowedAreas(DockWidgetArea.RightDockWidgetArea,
-                DockWidgetArea.LeftDockWidgetArea);
+        dockWidget.setAllowedAreas(DockWidgetArea.RightDockWidgetArea, DockWidgetArea.LeftDockWidgetArea);
         dockWidget.setWidget(macroList);
         addDockWidget(DockWidgetArea.RightDockWidgetArea, dockWidget);
     }
 
     protected void about() {
-        QMessageBox.information(this, "Info",
-                "Interactive Module Optimization Tool\n built on RapidWright.");
+        QMessageBox.information(this, "Info", "Interactive Module Optimization Tool\n built on RapidWright.");
     }
 
     protected void openDesign() {
-        String fileName = QFileDialog.getOpenFileName(this, "Choose a file...",
-                ".", FileFilters.dcpFilter);
+        String fileName = QFileDialog.getOpenFileName(this, "Choose a file...", ".", FileFilters.dcpFilter);
         if (fileName.endsWith(".dcp")) {
             internalOpenDesign(fileName);
         }
@@ -285,8 +273,8 @@ public class ModuleOptimizer extends QMainWindow {
 
     private void internalOpenDesign(String fileName) {
         currOpenFileName = fileName;
-        String shortFileName = fileName.substring(fileName.lastIndexOf('/')+1);
-        QProgressDialog progress = new QProgressDialog("Loading "+currOpenFileName+"...", "", 0, 100, this);
+        String shortFileName = fileName.substring(fileName.lastIndexOf('/') + 1);
+        QProgressDialog progress = new QProgressDialog("Loading " + currOpenFileName + "...", "", 0, 100, this);
         progress.setWindowTitle("Load Progress");
         progress.setWindowModality(WindowModality.WindowModal);
         progress.setCancelButton(null);
@@ -324,7 +312,7 @@ public class ModuleOptimizer extends QMainWindow {
     protected void saveAsDesign() {
         if (scene.getDesign() == null)
             return;
-        String fileName = QFileDialog.getSaveFileName(this, tr("Save As"),".", FileFilters.dcpFilter);
+        String fileName = QFileDialog.getSaveFileName(this, tr("Save As"), ".", FileFilters.dcpFilter);
         if (fileName.length() == 0)
             return;
         scene.getDesign().flattenDesign();
@@ -335,7 +323,7 @@ public class ModuleOptimizer extends QMainWindow {
     protected void saveAsPDFDesign() {
         if (scene.getDesign() == null)
             return;
-        String fileName = QFileDialog.getSaveFileName(this, tr("Save As PDF"),".", FileFilters.pdfFilter);
+        String fileName = QFileDialog.getSaveFileName(this, tr("Save As PDF"), ".", FileFilters.pdfFilter);
         if (fileName.length() == 0)
             return;
         QPrinter printer = new QPrinter();
@@ -348,8 +336,7 @@ public class ModuleOptimizer extends QMainWindow {
         statusBar().showMessage(fileName + " saved.", 2000);
     }
 
-    private QAction action(String name, String image, Object shortcut,
-            String slot, QMenu menu, QToolBar toolBar) {
+    private QAction action(String name, String image, Object shortcut, String slot, QMenu menu, QToolBar toolBar) {
         QAction a = new QAction(name, this);
 
         if (image != null)
@@ -362,9 +349,9 @@ public class ModuleOptimizer extends QMainWindow {
             a.triggered.connect(this, slot);
 
         if (shortcut instanceof String)
-            a.setShortcut((String) shortcut);
+            a.setShortcut((String)shortcut);
         else if (shortcut instanceof QKeySequence.StandardKey)
-            a.setShortcuts((QKeySequence.StandardKey) shortcut);
+            a.setShortcuts((QKeySequence.StandardKey)shortcut);
 
         return a;
     }
@@ -377,7 +364,7 @@ public class ModuleOptimizer extends QMainWindow {
         QMenu fileMenu = new QMenu(tr("&File"), this);
         menuBar().addMenu(fileMenu);
 
-        action(tr("Open"), "fileopen", StandardKey.Open, "openDesign()",fileMenu, tb);
+        action(tr("Open"), "fileopen", StandardKey.Open, "openDesign()", fileMenu, tb);
         fileMenu.addSeparator();
         action(tr("&Save"), "filesave", StandardKey.Save, "saveDesign()", fileMenu, tb);
         action(tr("&Save As"), "filesaveas", StandardKey.SaveAs, "saveAsDesign()", fileMenu, tb);
@@ -396,12 +383,10 @@ public class ModuleOptimizer extends QMainWindow {
         QMenu m = new QMenu(tr("&Edit"), this);
         menuBar().addMenu(m);
 
-        actionUndo = action(tr("&Undo"), "editundo", StandardKey.Undo, null, m,
-                b);
+        actionUndo = action(tr("&Undo"), "editundo", StandardKey.Undo, null, m, b);
         actionUndo.setEnabled(false);
         actionUndo.triggered.connect(undoStack, "undo()");
-        actionRedo = action(tr("&Redo"), "editredo", StandardKey.Redo, null, m,
-                b);
+        actionRedo = action(tr("&Redo"), "editredo", StandardKey.Redo, null, m, b);
         actionRedo.setEnabled(false);
         actionRedo.triggered.connect(undoStack, "redo()");
 
@@ -419,9 +404,9 @@ public class ModuleOptimizer extends QMainWindow {
         netViewCombo = new QComboBox();
         netViewCombo.addItem(tr("Nets hidden"));
         netViewCombo.addItem(tr("Module-to-module"));
-        //netViewCombo.addItem(tr("All nets(not clk)"));
+        // netViewCombo.addItem(tr("All nets(not clk)"));
         netViewCombo.setEnabled(false);
-        netViewCombo.currentIndexChanged.connect(scene,"changeNetView(int)");
+        netViewCombo.currentIndexChanged.connect(scene, "changeNetView(int)");
         tb.addWidget(netViewCombo);
 
         actionZoomIn = action(tr("&Zoom Out"), "zoomout", StandardKey.ZoomOut, "zoomout()", m, tb);
@@ -442,7 +427,7 @@ public class ModuleOptimizer extends QMainWindow {
     }
     @SuppressWarnings("unused")
     private void zoomselection() {
-        double top=-1,left=-1,right=-1,bottom=-1;
+        double top = -1, left = -1, right = -1, bottom = -1;
         for (QGraphicsItemInterface item : scene.selectedItems()) {
             QPointF gmiTL = item.pos();
             QPointF gmiBR = item.pos().add(item.boundingRect().bottomRight());
@@ -455,7 +440,7 @@ public class ModuleOptimizer extends QMainWindow {
             if (right < 0 || gmiBR.x() > right)
                 right = gmiBR.x();
         }
-        view.fitInView(left, top, right-left, bottom-top, Qt.AspectRatioMode.KeepAspectRatio);
+        view.fitInView(left, top, right - left, bottom - top, Qt.AspectRatioMode.KeepAspectRatio);
     }
     @SuppressWarnings("unused")
     private void addPblock() {

@@ -39,12 +39,12 @@ public class CreatePBlockCommand implements Command {
     }
     @Override
     public void cmdProc(Interp interp, TclObject[] objv) throws TclException {
-        if (objv.length!=2) {
+        if (objv.length != 2) {
             throw new RuntimeException("wrong argument count");
         }
         String pBlockName = objv[1].toString();
         if (constraints.getPBlockConstraints().containsKey(pBlockName)) {
-            throw new RuntimeException("duplicate pblock name: "+pBlockName);
+            throw new RuntimeException("duplicate pblock name: " + pBlockName);
         }
         PBlockConstraint constraint = new PBlockConstraint();
         constraint.getPblock().setName(pBlockName);

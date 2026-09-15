@@ -80,16 +80,15 @@ import com.xilinx.rapidwright.util.Utils;
  * Created on: Jun 19, 2015
  */
 public class BlockStitcher {
-
     private String partName = null;
 
     private HashSet<String> uniqueModInstNames = new HashSet<String>();
 
-    private HashMap<String,ArrayList<EDIFCellInst>> ipiBlockInstanceMap = null;
+    private HashMap<String, ArrayList<EDIFCellInst>> ipiBlockInstanceMap = null;
 
-    HashMap<String,EDIFCellInst> instNameToInst = new HashMap<String,EDIFCellInst>();
+    HashMap<String, EDIFCellInst> instNameToInst = new HashMap<String, EDIFCellInst>();
 
-    HashMap<String,String> bdInstNameToModInstName = new HashMap<String, String>();
+    HashMap<String, String> bdInstNameToModInstName = new HashMap<String, String>();
 
     public static final boolean DUMP_SYNTH_DCP_ONLY = false;
 
@@ -127,7 +126,8 @@ public class BlockStitcher {
     }
 
     private Net validateNet(Net curr, Net found) {
-        if (curr == null) return found;
+        if (curr == null)
+            return found;
         if (!curr.equals(found)) {
             throw new RuntimeException("ERROR: Consolidation of nets failed: curr=" + curr + " found=" + found);
         }
@@ -143,18 +143,20 @@ public class BlockStitcher {
     public void stitchDesign(Design design, Map<String, PackagePinConstraint> constraints) {
         boolean debug = false;
         EDIFNetlist n = design.getNetlist();
-        // Create a reverse parent net map (Parent Net -> Children Nets: all logical nets that are physically equivalent)
-        HashMap<EDIFHierNet,ArrayList<EDIFHierNet>> reverseMap = new HashMap<>();
-        for (Entry<EDIFHierNet,EDIFHierNet> e : n.getParentNetMap().entrySet()) {
+        // Create a reverse parent net map (Parent Net -> Children Nets: all logical nets that are
+        // physically equivalent)
+        HashMap<EDIFHierNet, ArrayList<EDIFHierNet>> reverseMap = new HashMap<>();
+        for (Entry<EDIFHierNet, EDIFHierNet> e : n.getParentNetMap().entrySet()) {
             ArrayList<EDIFHierNet> l = reverseMap.computeIfAbsent(e.getValue(), k -> new ArrayList<>());
             l.add(e.getKey());
         }
 
         HashSet<String> addedPorts = new HashSet<>();
-        HashMap<String,ArrayList<EDIFHierPortInst>> portGroups = new HashMap<>();
+        HashMap<String, ArrayList<EDIFHierPortInst>> portGroups = new HashMap<>();
         // For each parent (physical) net...
-        for (Entry<EDIFHierNet,ArrayList<EDIFHierNet>> e : reverseMap.entrySet()) {
-            if (debug) System.out.println(e.getKey() + ":");
+        for (Entry<EDIFHierNet, ArrayList<EDIFHierNet>> e : reverseMap.entrySet()) {
+            if (debug)
+                System.out.println(e.getKey() + ":");
             ArrayList<EDIFHierPortInst> absPortInsts = new ArrayList<>();
             EDIFHierNet absNet = e.getKey();
             if (absNet == null) {
@@ -166,7 +168,8 @@ public class BlockStitcher {
                 // Get all the port instances that belong to these nets
                 for (EDIFPortInst p : absNet.getNet().getPortInsts()) {
                     EDIFHierPortInst absPort = new EDIFHierPortInst(absNet.getHierarchicalInst(), p);
-                    if (addedPorts.contains(absPort.toString())) continue;
+                    if (addedPorts.contains(absPort.toString()))
+                        continue;
                     addedPorts.add(absPort.toString());
                     absPortInsts.add(absPort);
                 }
@@ -175,19 +178,24 @@ public class BlockStitcher {
             for (EDIFHierPortInst p : absPortInsts) {
                 // Create a port group - physically equivalent set of ports
                 portGroups.put(p.toString(), absPortInsts);
-                if (debug) System.out.println("  "+ p.getFullHierarchicalInstName() + "/"+ p.getPortInst().getName());
+                if (debug)
+                    System.out.println("  " + p.getFullHierarchicalInstName() + "/" + p.getPortInst().getName());
                 ModuleInst mi = design.getModuleInst(p.getFullHierarchicalInstName());
-                if (mi == null) continue;
+                if (mi == null)
+                    continue;
                 Port port = mi.getPort(p.getPortInst().getName());
-                if (debug) System.out.println("    (PORT) " + port.getType() + " " + port.getName() + " " + port.getPassThruPortNames());
+                if (debug)
+                    System.out.println("    (PORT) " + port.getType() + " " + port.getName() + " " +
+                                       port.getPassThruPortNames());
             }
         }
 
         HashSet<String> visited = new HashSet<>();
-        HashMap<EDIFHierPortInst,Net> topPortsMap = new HashMap<>();
+        HashMap<EDIFHierPortInst, Net> topPortsMap = new HashMap<>();
         // Connect port groups through pass-thru connections from Module Port meta-data
         for (Entry<String, ArrayList<EDIFHierPortInst>> e : portGroups.entrySet()) {
-            if (visited.contains(e.getKey())) continue;
+            if (visited.contains(e.getKey()))
+                continue;
             Queue<EDIFHierPortInst> q = new LinkedList<>(e.getValue());
             ArrayList<Net> nets = new ArrayList<>();
             HashSet<String> netsAlreadyVisited = new HashSet<>();
@@ -195,7 +203,8 @@ public class BlockStitcher {
             Net newNet = null;
             while (!q.isEmpty()) {
                 EDIFHierPortInst curr = q.poll();
-                if (visited.contains(curr.toString())) continue;
+                if (visited.contains(curr.toString()))
+                    continue;
                 visited.add(curr.toString());
                 ModuleInst mi = design.getModuleInst(curr.getFullHierarchicalInstName());
                 if (mi == null) {
@@ -204,8 +213,7 @@ public class BlockStitcher {
                         // Internal VCC/GND source
                         if (inst.getCellType().getName().equals("GND")) {
                             newNet = validateNet(newNet, design.getGndNet());
-                        }
-                        else if (inst.getCellType().getName().equals("VCC")) {
+                        } else if (inst.getCellType().getName().equals("VCC")) {
                             newNet = validateNet(newNet, design.getVccNet());
                         }
                     } else if (curr.getHierarchicalInstName().isEmpty()) {
@@ -219,7 +227,8 @@ public class BlockStitcher {
                 }
                 for (EDIFHierPortInst passThru : getPassThruPortInsts(port, curr)) {
                     String passThruName = passThru.toString();
-                    if (visited.contains(passThruName)) continue;
+                    if (visited.contains(passThruName))
+                        continue;
                     ArrayList<EDIFHierPortInst> passThruGroup = portGroups.get(passThruName);
                     if (passThruGroup == null) {
                         // This is likely a pass-thru that is static-driven and down stream
@@ -229,19 +238,19 @@ public class BlockStitcher {
                         for (EDIFPortInst pi : portInst.getPortInst().getNet().getPortInsts()) {
                             passThruGroup.add(new EDIFHierPortInst(portInst.getHierarchicalInst(), pi));
                         }
-
                     }
                     q.addAll(passThruGroup);
                 }
-                Net net = getCorrespondingNet(curr,design);
-                if (net == null) continue;
-                if (netsAlreadyVisited.contains(net.getName())) continue;
+                Net net = getCorrespondingNet(curr, design);
+                if (net == null)
+                    continue;
+                if (netsAlreadyVisited.contains(net.getName()))
+                    continue;
                 netsAlreadyVisited.add(net.getName());
 
                 if (net.getType() == NetType.GND) {
                     newNet = validateNet(newNet, design.getGndNet());
-                }
-                else if (net.getType() == NetType.VCC) {
+                } else if (net.getType() == NetType.VCC) {
                     newNet = validateNet(newNet, design.getVccNet());
                 } else {
                     nets.add(net);
@@ -252,13 +261,15 @@ public class BlockStitcher {
             }
 
             if (newNet == null) {
-                if (nets.size() == 0) continue;
+                if (nets.size() == 0)
+                    continue;
                 // This is a new with a top-level input yet to be instantiated
                 newNet = nets.get(0);
             }
 
             for (Net net : nets) {
-                if (net.equals(newNet)) continue;
+                if (net.equals(newNet))
+                    continue;
                 design.movePinsToNewNetDeleteOldNet(net, newNet, true);
             }
             for (EDIFHierPortInst p : topPorts) {
@@ -267,16 +278,19 @@ public class BlockStitcher {
         }
 
         // Handle top level pins / IO instantiation
-        // Note that it appears like some top-level pins might already have IOs instantiated (clk_wiz)
+        // Note that it appears like some top-level pins might already have IOs instantiated
+        // (clk_wiz)
         if (INSTANCE_PORT_IOs && constraints != null && constraints.size() > 0) {
-            nextPort: for (Entry<EDIFHierPortInst, Net> e : topPortsMap.entrySet()) {
+        nextPort:
+            for (Entry<EDIFHierPortInst, Net> e : topPortsMap.entrySet()) {
                 String portName = e.getKey().getPortInst().getName();
                 Net portNet = null;
                 portNet = e.getValue();
 
                 Site site = design.getDevice().getSiteFromPackagePin(constraints.get(portName).getPackagePin());
                 if (site == null) {
-                    MessageGenerator.briefMessage("WARNING: It appears that the I/O called " + portName + " is not assigned to a package pin!");
+                    MessageGenerator.briefMessage("WARNING: It appears that the I/O called " + portName +
+                                                  " is not assigned to a package pin!");
                     continue nextPort;
                 }
 
@@ -299,7 +313,8 @@ public class BlockStitcher {
                 String ioStandard = constraints.get(portName).getIoStandard();
                 String pkgPin = constraints.get(portName).getPackagePin();
                 EDIFNet logNet = e.getKey().getPortInst().getNet();
-                design.createAndPlaceIOB(portName, isPortOutput ? PinType.OUT : PinType.IN, pkgPin, ioStandard, portNet, logNet);
+                design.createAndPlaceIOB(portName, isPortOutput ? PinType.OUT : PinType.IN, pkgPin, ioStandard, portNet,
+                                         logNet);
             }
         }
 
@@ -314,13 +329,15 @@ public class BlockStitcher {
                 if (site != null) {
                     if (uniqueMap.containsKey(i.getSite())) {
                         SiteInst duplicate = uniqueMap.get(site);
-                        System.out.println("WARNING: Found duplicate site used by instances: " + i.getName() + " " + duplicate.getName() + " " + i.getSiteName());
+                        System.out.println("WARNING: Found duplicate site used by instances: " + i.getName() + " " +
+                                           duplicate.getName() + " " + i.getSiteName());
                     } else {
-                        uniqueMap.put(i.getSite(),i);
+                        uniqueMap.put(i.getSite(), i);
                     }
                 } else {
                     if (i.getModuleInst() == null) {
-                        System.out.println("WARNING: Unplaced site outside of module instance: " + i.getName()  + " "+ i.getSiteTypeEnum());
+                        System.out.println("WARNING: Unplaced site outside of module instance: " + i.getName() + " " +
+                                           i.getSiteTypeEnum());
                     }
                 }
             }
@@ -331,15 +348,17 @@ public class BlockStitcher {
         String modInstName = pr.getFullHierarchicalInstName();
         ModuleInst mi = design.getModuleInst(modInstName);
         if (mi == null) {
-            //throw new RuntimeException("ERROR: No module instance named: " +modInstName);
+            // throw new RuntimeException("ERROR: No module instance named: " +modInstName);
             return null;
         }
         Port port = mi.getModule().getPort(pr.getPortInst().getName());
         if (port.getType() == PortType.UNCONNECTED)
             return null;
         if (port.getSitePinInsts().isEmpty()) {
-            if (port.getType() == PortType.GROUND) return design.getGndNet();
-            if (port.getType() == PortType.POWER) return design.getVccNet();
+            if (port.getType() == PortType.GROUND)
+                return design.getGndNet();
+            if (port.getType() == PortType.POWER)
+                return design.getVccNet();
             return null;
         }
         if (port.getNet() == null) {
@@ -351,33 +370,31 @@ public class BlockStitcher {
         return net;
     }
 
-    public String getModuleInstName(EDIFNetlist module, EDIFNetlist netlist, HashMap<String,String> modInstNameMap) {
+    public String getModuleInstName(EDIFNetlist module, EDIFNetlist netlist, HashMap<String, String> modInstNameMap) {
         String fullInstName = modInstNameMap.get(module.getTopCell().getName());
 
         boolean first = true;
-        int i=0;
+        int i = 0;
         while (uniqueModInstNames.contains(fullInstName)) {
             i++;
             if (first) {
                 fullInstName = fullInstName + "_" + i;
                 first = false;
             } else {
-                fullInstName = fullInstName.substring(0, fullInstName.lastIndexOf('_')+1) + i;
+                fullInstName = fullInstName.substring(0, fullInstName.lastIndexOf('_') + 1) + i;
             }
         }
         uniqueModInstNames.add(fullInstName);
         return fullInstName;
     }
 
-
-
     private boolean netlistHasBlock(Design stitched, String blockName) {
         String netlistPrefix = stitched.getNetlist().getName() + "_";
         String blockName2 = blockName.replaceFirst(netlistPrefix, "");
-        blockName2 = blockName2.substring(0, blockName2.length()-2);
+        blockName2 = blockName2.substring(0, blockName2.length() - 2);
 
         if (ipiBlockInstanceMap == null) {
-            ipiBlockInstanceMap = new HashMap<String,ArrayList<EDIFCellInst>>();
+            ipiBlockInstanceMap = new HashMap<String, ArrayList<EDIFCellInst>>();
             Queue<EDIFCell> q = new LinkedList<EDIFCell>();
             q.add(stitched.getNetlist().getTopCell());
             while (!q.isEmpty()) {
@@ -392,7 +409,7 @@ public class BlockStitcher {
                         ipiBlockInstanceMap.put(eci.getName(), insts);
                     }
                     insts.add(eci);
-                    //EDIFCellInst eciErr = ipiBlockInstanceMap.put(eci.getName(),eci);
+                    // EDIFCellInst eciErr = ipiBlockInstanceMap.put(eci.getName(),eci);
                     if (eci.getCellType().getCellInsts() != null) {
                         q.add(eci.getCellType());
                     }
@@ -403,9 +420,9 @@ public class BlockStitcher {
         return ipiBlockInstanceMap.containsKey(blockName2);
     }
 
-    private HashMap<String,String> getPartAndIPNames(String fileName) {
+    private HashMap<String, String> getPartAndIPNames(String fileName) {
         ArrayList<String> lines = FileTools.getLinesFromTextFile(fileName);
-        HashMap<String,String> names = new HashMap<String,String>();
+        HashMap<String, String> names = new HashMap<String, String>();
         boolean first = true;
         for (String line : lines) {
             if (first) {
@@ -426,12 +443,12 @@ public class BlockStitcher {
         while (!queue.isEmpty()) {
             EDIFHierCellInst p = queue.poll();
             EDIFCellInst i = p.getInst();
-            if (i.getName().equals("VCC") || i.getName().equals("GND")) continue;
+            if (i.getName().equals("VCC") || i.getName().equals("GND"))
+                continue;
             instNameToInst.put(p.getFullHierarchicalInstName(), i);
             p.addChildren(queue);
         }
     }
-
 
     public static void main(String[] args) {
         if (args.length != 3) {
@@ -448,7 +465,7 @@ public class BlockStitcher {
             throw new RuntimeException("ERROR: BlockGuide cache directory does not exist!");
         }
         BlockStitcher stitcher = new BlockStitcher();
-        HashMap<String,String> ipNames = stitcher.getPartAndIPNames(args[2]);
+        HashMap<String, String> ipNames = stitcher.getPartAndIPNames(args[2]);
 
         ImplGuide implHelper = null;
         HashSet<String> unusedImplGuides = null;
@@ -472,16 +489,17 @@ public class BlockStitcher {
         stitcher.populateModuleInstMaps(topEdifNetlist);
 
         if (!FileTools.isVivadoOnPath()) {
-            MessageGenerator.briefError("WARNING: Vivado executable is not on path.  All BlockStitcher implementation builds will fail.");
+            MessageGenerator.briefError("WARNING: Vivado executable is not on path.  All "
+                                        + "BlockStitcher implementation builds will fail.");
         }
 
         BlockCreator.implementBlocks(ipNames, dir.getAbsolutePath(), implHelper, stitched.getDevice());
 
-        HashMap<String,String> modInstName2CacheID = new HashMap<String, String>();
+        HashMap<String, String> modInstName2CacheID = new HashMap<String, String>();
         t.stop().start("Retrieve Blocks from Cache");
         int totalBlocks = 0;
-        HashMap<ModuleInst,EDIFNetlist> miMap = new HashMap<ModuleInst,EDIFNetlist>();
-        for (Entry<String,String> e : ipNames.entrySet()) {
+        HashMap<ModuleInst, EDIFNetlist> miMap = new HashMap<ModuleInst, EDIFNetlist>();
+        for (Entry<String, String> e : ipNames.entrySet()) {
             String blockName = e.getKey();
             String cacheID = e.getValue();
             if (implHelper != null) {
@@ -494,9 +512,9 @@ public class BlockStitcher {
             String xciFileName = null;
             int blockImplCount = 0;
             if (dir2.list() == null || dir2.list().length == 0) {
-                throw new RuntimeException("ERROR: Cached entry " + dir2 + " for ip " + blockName +" is empty!");
+                throw new RuntimeException("ERROR: Cached entry " + dir2 + " for ip " + blockName + " is empty!");
             }
-            for (String d2: dir2.list()) {
+            for (String d2 : dir2.list()) {
                 File f = new File(d2);
                 if (f.getName().endsWith(BlockCreator.ROUTED_DCP_SUFFIX) && !f.getName().contains("roundtrip")) {
                     routedDCPFileName = dir + File.separator + cacheID + File.separator + f.getName();
@@ -511,9 +529,10 @@ public class BlockStitcher {
             }
 
             xciFileName = dir2 + "/" + cacheID + ".xci";
-            //System.out.println(routedDCPFileName + " " + edifFileName + " " + xciFileName);
+            // System.out.println(routedDCPFileName + " " + edifFileName + " " + xciFileName);
 
-            ModuleImpls modImpls = BlockCreator.createOrRetrieveBlock(edifFileName, routedDCPFileName, blockName, xciFileName, blockImplCount);
+            ModuleImpls modImpls = BlockCreator.createOrRetrieveBlock(edifFileName, routedDCPFileName, blockName,
+                                                                      xciFileName, blockImplCount);
             for (Module m : modImpls) {
                 // Add Cache ID to Module
                 m.getMetaDataMap().put(CACHE_ID, cacheID);
@@ -536,7 +555,7 @@ public class BlockStitcher {
                     implementationIndex = bi.getImplIndex();
                 }
             }
-            //System.out.println(modInstName + " " + implementationIndex);
+            // System.out.println(modInstName + " " + implementationIndex);
             EDIFNetlist tmp = stitched.getNetlist();
             stitched.setNetlist(EDIFTools.createNewNetlist("dummy"));
             ModuleInst mi = stitched.createModuleInst(modInstName, modImpls.get(implementationIndex));
@@ -545,9 +564,9 @@ public class BlockStitcher {
             Site anchor = mi.getModule().getAnchor();
             if (anchor != null) {
                 mi.place(anchor);
-                //System.out.println("Placed: " + mi.place(anchor.getSite(), stitched.getDevice()) + " " + totalBlocks);
+                // System.out.println("Placed: " + mi.place(anchor.getSite(), stitched.getDevice())
+                // + " " + totalBlocks);
             }
-
         }
         // Check for unused impl guide directives
         if (implHelper != null) {
@@ -555,7 +574,6 @@ public class BlockStitcher {
                 System.out.println("WARNING: Unused impl guide ID " + id);
             }
         }
-
 
         // Update package in case block loading changed it
         stitched.getDevice().setActivePackage(PartNameTools.getPart(stitcher.partName).getPkg());
@@ -565,9 +583,9 @@ public class BlockStitcher {
         runtimes[2] = System.currentTimeMillis();
         System.out.println("Total Blocks : " + totalBlocks);
         String xdcFileName = args[1].replace(".edf", ".xdc");
-        Map<String,PackagePinConstraint> constraints = null;
+        Map<String, PackagePinConstraint> constraints = null;
         if (new File(xdcFileName).exists()) {
-            constraints = XDCParser.parseXDC(xdcFileName,stitched.getDevice()).getPinConstraints();
+            constraints = XDCParser.parseXDC(xdcFileName, stitched.getDevice()).getPinConstraints();
         } else {
             MessageGenerator.briefError("WARNING: Could not find XDC file " + xdcFileName);
         }
@@ -576,9 +594,11 @@ public class BlockStitcher {
         stitcher.stitchDesign(stitched, constraints);
 
         Set<String> uniqifiedNetlists = new HashSet<>();
-        for (Entry<ModuleInst,EDIFNetlist> e : miMap.entrySet()) {
-            //System.out.println(" MAPPINGS: " + e.getKey() + " " + e.getValue() + " " + stitcher.instNameToInst.get(e.getKey().getName()) );
-            if (uniqifiedNetlists.contains(e.getValue().getName())) continue;
+        for (Entry<ModuleInst, EDIFNetlist> e : miMap.entrySet()) {
+            // System.out.println(" MAPPINGS: " + e.getKey() + " " + e.getValue() + " " +
+            // stitcher.instNameToInst.get(e.getKey().getName()) );
+            if (uniqifiedNetlists.contains(e.getValue().getName()))
+                continue;
             uniqifiedNetlists.add(e.getValue().getName());
             stitched.repopulateNetlistOfModuleInst(e.getKey(), e.getValue());
         }
@@ -586,11 +606,13 @@ public class BlockStitcher {
         EDIFCell top = stitched.getNetlist().getTopCell();
         EDIFLibrary work = stitched.getNetlist().getLibrary(EDIFTools.EDIF_LIBRARY_WORK_NAME);
         work.addCell(top);
-        for (Entry<ModuleInst,EDIFNetlist> e : miMap.entrySet()) {
+        for (Entry<ModuleInst, EDIFNetlist> e : miMap.entrySet()) {
             EDIFCellInst inst = stitched.getNetlist().getCellInstFromHierName(e.getKey().getName());
-            if (inst == null) throw new RuntimeException("ERROR: Couldn't update EDIF cell instance.");
+            if (inst == null)
+                throw new RuntimeException("ERROR: Couldn't update EDIF cell instance.");
             EDIFCell cellType = work.getCell(e.getValue().getName() + "_" + e.getValue().getName());
-            if (cellType == null) throw new RuntimeException("ERROR: Couldn't update EDIF cell type " + e.getValue().getName());
+            if (cellType == null)
+                throw new RuntimeException("ERROR: Couldn't update EDIF cell type " + e.getValue().getName());
             inst.setCellType(cellType);
         }
 
@@ -612,22 +634,24 @@ public class BlockStitcher {
         if (DUMP_SYNTH_DCP_ONLY) {
             stitched.unplaceDesign();
             String dcpName = args[1].replace(".edf", "_rw_synth.dcp");
-            stitched.writeCheckpoint(dcpName,t);
-            //EDIFTools.writeEDIFFile(args[1].replace(".edf", "_stitched.edf"), stitched.getNetlist(), stitched.getPartName());
+            stitched.writeCheckpoint(dcpName, t);
+            // EDIFTools.writeEDIFFile(args[1].replace(".edf", "_stitched.edf"),
+            // stitched.getNetlist(), stitched.getPartName());
             System.out.println("Wrote Synthesized DCP: " + dcpName);
             return;
         }
 
-        //XPNWriter.writeXPN(stitched, args[1].replace(".edf", ".xpn"), true);
-        //XPNWriter.writeXPN(stitched, args[1].replace(".edf", "_not_flat.xpn"), false);
-        //EDIFTools.writeEDIFFile(args[1].replace(".edf", "_stitched.edf"), stitched.getNetlist(), stitched.getPartName());
+        // XPNWriter.writeXPN(stitched, args[1].replace(".edf", ".xpn"), true);
+        // XPNWriter.writeXPN(stitched, args[1].replace(".edf", "_not_flat.xpn"), false);
+        // EDIFTools.writeEDIFFile(args[1].replace(".edf", "_stitched.edf"), stitched.getNetlist(),
+        // stitched.getPartName());
 
         runtimes[2] = System.currentTimeMillis() - runtimes[2];
         runtimes[3] = System.currentTimeMillis();
 
         if (new File(xdcFileName).exists()) {
             for (String line : FileTools.getLinesFromTextFile(xdcFileName)) {
-                stitched.addXDCConstraint(ConstraintGroup.LATE,line);
+                stitched.addXDCConstraint(ConstraintGroup.LATE, line);
             }
         }
 
@@ -635,7 +659,7 @@ public class BlockStitcher {
             stitched.setAutoIOBuffers(false);
             stitched.setDesignOutOfContext(true);
 
-            int sliceY = 0;  // TODO - Empty blocks are placed in a column so they don't overlap
+            int sliceY = 0; // TODO - Empty blocks are placed in a column so they don't overlap
             t = new CodePerfTracker("CUSTOM PLACER", true);
             t.start("Custom Placement");
 
@@ -654,12 +678,14 @@ public class BlockStitcher {
                 }
             }
             t.stop().start("Write Stitched EDIF");
-            EDIFTools.writeEDIFFile(args[1].replace(".edf", "_stitched.edf"), stitched.getNetlist(), stitched.getPartName());
+            EDIFTools.writeEDIFFile(args[1].replace(".edf", "_stitched.edf"), stitched.getNetlist(),
+                                    stitched.getPartName());
             t.stop().start("Save Checkpoint");
-            stitched.writeCheckpoint(args[1].replace(".edf","_placed.dcp"));
+            stitched.writeCheckpoint(args[1].replace(".edf", "_placed.dcp"));
             t.stop();
             t.printSummary();
-            if (OPEN_HAND_PLACER) HandPlacer.openDesign(stitched);
+            if (OPEN_HAND_PLACER)
+                HandPlacer.openDesign(stitched);
             return;
         } else {
             BlockPlacer2Module placer = new BlockPlacer2Module(stitched);
@@ -680,8 +706,10 @@ public class BlockStitcher {
             }
 
             for (ModuleInst mi : miMap.keySet()) {
-                if (mi.getModule().getPBlock() == null) continue;
-                if (mi.getModule().getAnchor() == null) continue;
+                if (mi.getModule().getPBlock() == null)
+                    continue;
+                if (mi.getModule().getAnchor() == null)
+                    continue;
                 String cacheID = mi.getModule().getMetaDataMap().get(CACHE_ID);
                 BlockGuide bg = ig.getBlock(cacheID);
 
@@ -699,13 +727,14 @@ public class BlockStitcher {
             ig.writeImplGuide(args[1].replace(".edf", ".igf.example"));
         }
 
-        // Need to remove duplicate sites because IPI will generate the same IOs in multiple IP blocks :-(
-        HashMap<String,SiteInst> duplicateCheck = new HashMap<String, SiteInst>();
+        // Need to remove duplicate sites because IPI will generate the same IOs in multiple IP
+        // blocks :-(
+        HashMap<String, SiteInst> duplicateCheck = new HashMap<String, SiteInst>();
         ArrayList<SiteInst> removeThese = new ArrayList<SiteInst>();
         for (SiteInst inst : stitched.getSiteInsts()) {
             SiteInst match = duplicateCheck.get(inst.getSiteName());
             if (match != null) {
-                //System.out.println("Found match: " + match.toString() + " " + inst.toString());
+                // System.out.println("Found match: " + match.toString() + " " + inst.toString());
                 if (match.getConnectedNets().size() == 0) {
                     removeThese.add(match);
                 } else {
@@ -721,7 +750,8 @@ public class BlockStitcher {
             stitched.removeSiteInst(i);
         }
 
-        if (OPEN_HAND_PLACER) HandPlacer.openDesign(stitched);
+        if (OPEN_HAND_PLACER)
+            HandPlacer.openDesign(stitched);
 
         runtimes[3] = System.currentTimeMillis() - runtimes[3];
         runtimes[4] = System.currentTimeMillis();
@@ -737,29 +767,31 @@ public class BlockStitcher {
             runtimes[4] = System.currentTimeMillis() - runtimes[4];
             runtimes[5] = System.currentTimeMillis();
 
-
             stitched.writeCheckpoint(routedDCPName);
         } else {
             runtimes[4] = System.currentTimeMillis() - runtimes[4];
         }
 
-        //EDIFTools.writeEDIFFile(args[1].replace(".edf", BlockCreator.ROUTED_EDIF_SUFFIX), stitched.getNetlist(), stitched.getPartName());
+        // EDIFTools.writeEDIFFile(args[1].replace(".edf", BlockCreator.ROUTED_EDIF_SUFFIX),
+        // stitched.getNetlist(), stitched.getPartName());
 
         runtimes[5] = System.currentTimeMillis() - runtimes[5];
         runtimes[0] = System.currentTimeMillis() - runtimes[0];
 
         System.out.println();
         System.out.println("----------------- SUMMARY --------------------");
-        System.out.printf("           Module Loading Time : %8.3fs \n", runtimes[1]/1000.0);
-        System.out.printf("                Stitching Time : %8.3fs \n", runtimes[2]/1000.0);
-        System.out.printf("                   Placer Time : %8.3fs \n", runtimes[3]/1000.0);
-        if (CREATE_ROUTED_DCP) System.out.printf("                   Router Time : %8.3fs \n", runtimes[4]/1000.0);
-        System.out.printf("            Saving Design Time : %8.3fs \n", runtimes[CREATE_ROUTED_DCP ? 5 : 4]/1000.0);
+        System.out.printf("           Module Loading Time : %8.3fs \n", runtimes[1] / 1000.0);
+        System.out.printf("                Stitching Time : %8.3fs \n", runtimes[2] / 1000.0);
+        System.out.printf("                   Placer Time : %8.3fs \n", runtimes[3] / 1000.0);
+        if (CREATE_ROUTED_DCP)
+            System.out.printf("                   Router Time : %8.3fs \n", runtimes[4] / 1000.0);
+        System.out.printf("            Saving Design Time : %8.3fs \n", runtimes[CREATE_ROUTED_DCP ? 5 : 4] / 1000.0);
         System.out.println("----------------------------------------------");
-        System.out.printf("                 Total Runtime : %8.3fs \n", runtimes[0]/1000.0);
+        System.out.printf("                 Total Runtime : %8.3fs \n", runtimes[0] / 1000.0);
 
-        if (CREATE_ROUTED_DCP) System.out.println("Created Routed DCP at: " + routedDCPName);
-        else System.out.println("Created Placed DCP at: " + placedDCPName);
+        if (CREATE_ROUTED_DCP)
+            System.out.println("Created Routed DCP at: " + routedDCPName);
+        else
+            System.out.println("Created Placed DCP at: " + placedDCPName);
     }
 }
-

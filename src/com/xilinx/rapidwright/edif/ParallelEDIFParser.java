@@ -49,7 +49,7 @@ import com.xilinx.rapidwright.util.function.InputStreamSupplier;
 /**
  * Fast EDIF Parser using parallelism
  */
-public class ParallelEDIFParser implements AutoCloseable{
+public class ParallelEDIFParser implements AutoCloseable {
     private static final long MIN_BYTES_PER_THREAD = EDIFTokenizer.DEFAULT_MAX_TOKEN_LENGTH * 8L;
     protected final List<ParallelEDIFParserWorker> workers = new ArrayList<>();
     protected final Path fileName;
@@ -70,8 +70,8 @@ public class ParallelEDIFParser implements AutoCloseable{
      */
     public static final int EDIF_GZIP_COMPRESSION_RATIO = 16;
 
-    ParallelEDIFParser(Path fileName, long fileSize, InputStreamSupplier inputStreamSupplier,
-            int maxTokenLength, int maxThreads, boolean gzipped) {
+    ParallelEDIFParser(Path fileName, long fileSize, InputStreamSupplier inputStreamSupplier, int maxTokenLength,
+                       int maxThreads, boolean gzipped) {
         this.fileName = fileName;
         this.fileSize = fileSize;
         this.inputStreamSupplier = inputStreamSupplier;
@@ -81,15 +81,13 @@ public class ParallelEDIFParser implements AutoCloseable{
         this.gzipped = gzipped;
     }
 
-    ParallelEDIFParser(Path fileName, long fileSize, InputStreamSupplier inputStreamSupplier,
-            int maxTokenLength, int maxThreads) {
-        this(fileName, fileSize, inputStreamSupplier, maxTokenLength, maxThreads,
-                EDIFTools.isGzipped(fileName));
+    ParallelEDIFParser(Path fileName, long fileSize, InputStreamSupplier inputStreamSupplier, int maxTokenLength,
+                       int maxThreads) {
+        this(fileName, fileSize, inputStreamSupplier, maxTokenLength, maxThreads, EDIFTools.isGzipped(fileName));
     }
 
     public ParallelEDIFParser(Path fileName, long fileSize, InputStreamSupplier inputStreamSupplier) {
-        this(fileName, fileSize, inputStreamSupplier, EDIFTokenizer.DEFAULT_MAX_TOKEN_LENGTH,
-                Integer.MAX_VALUE);
+        this(fileName, fileSize, inputStreamSupplier, EDIFTokenizer.DEFAULT_MAX_TOKEN_LENGTH, Integer.MAX_VALUE);
     }
 
     /**
@@ -99,8 +97,9 @@ public class ParallelEDIFParser implements AutoCloseable{
      *                 caller that has already determined this avoid a second check.
      */
     public ParallelEDIFParser(Path p, long fileSize, boolean gzipped) {
-        this(p, fileSize, () -> EDIFTools.openEDIFInputStream(p),
-                EDIFTokenizer.DEFAULT_MAX_TOKEN_LENGTH, Integer.MAX_VALUE, gzipped);
+        this(
+            p, fileSize,
+            () -> EDIFTools.openEDIFInputStream(p), EDIFTokenizer.DEFAULT_MAX_TOKEN_LENGTH, Integer.MAX_VALUE, gzipped);
     }
 
     public ParallelEDIFParser(Path p, long fileSize) {
@@ -112,24 +111,22 @@ public class ParallelEDIFParser implements AutoCloseable{
     }
 
     protected ParallelEDIFParserWorker makeWorker(long offset) throws IOException {
-        return new ParallelEDIFParserWorker(fileName, inputStreamSupplier.get(), offset, uniquifier, maxTokenLength, cache);
+        return new ParallelEDIFParserWorker(fileName, inputStreamSupplier.get(), offset, uniquifier, maxTokenLength,
+                                            cache);
     }
 
     public static int calcThreads(long fileSize, int maxThreads, boolean isGzipped) {
-        long sizeThreshold = isGzipped ? (MIN_BYTES_PER_THREAD / EDIF_GZIP_COMPRESSION_RATIO)
-                : MIN_BYTES_PER_THREAD;
-        int maxUsefulThreads = Math.max((int) (fileSize / sizeThreshold), 1);
+        long sizeThreshold = isGzipped ? (MIN_BYTES_PER_THREAD / EDIF_GZIP_COMPRESSION_RATIO) : MIN_BYTES_PER_THREAD;
+        int maxUsefulThreads = Math.max((int)(fileSize / sizeThreshold), 1);
         return Math.min(maxUsefulThreads, Math.min(ParallelismTools.maxParallelism(), maxThreads));
     }
-
 
     protected void initializeWorkers() throws IOException {
         workers.clear();
         int threads = calcThreads(fileSize, maxThreads, gzipped);
-        long offsetPerThread = (gzipped ? (fileSize * EDIF_GZIP_COMPRESSION_RATIO) : fileSize)
-                / threads;
-        for (int i=0;i<threads;i++) {
-            ParallelEDIFParserWorker worker = makeWorker(i*offsetPerThread);
+        long offsetPerThread = (gzipped ? (fileSize * EDIF_GZIP_COMPRESSION_RATIO) : fileSize) / threads;
+        for (int i = 0; i < threads; i++) {
+            ParallelEDIFParserWorker worker = makeWorker(i * offsetPerThread);
             workers.add(worker);
         }
     }
@@ -138,38 +135,35 @@ public class ParallelEDIFParser implements AutoCloseable{
 
     public EDIFNetlist parseEDIFNetlist() throws IOException {
         EDIFNetlist netlist = parseEDIFNetlist(CodePerfTracker.SILENT);
-        if (fileName != null && fileName.toString().endsWith(".gz")
-                && Params.RW_DECOMPRESS_GZIPPED_EDIF_TO_DISK) {
+        if (fileName != null && fileName.toString().endsWith(".gz") && Params.RW_DECOMPRESS_GZIPPED_EDIF_TO_DISK) {
             Files.delete(FileTools.getDecompressedGZIPFileName(fileName));
         }
         return netlist;
     }
 
     public EDIFNetlist parseEDIFNetlist(CodePerfTracker t) throws IOException {
-
         t.start("Initialize workers");
         initializeWorkers();
         numberOfThreads = workers.size();
 
         t.stop().start("Parse First Token");
-        final List<Future<ParallelEDIFParserWorker>> futures = ParallelismTools.invokeAll(workers, w -> !w.parseFirstToken() ? w : null);
-        final List<ParallelEDIFParserWorker> failedWorkers = futures.stream()
-                .map(ParallelismTools::get)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        final List<Future<ParallelEDIFParserWorker>> futures =
+            ParallelismTools.invokeAll(workers, w -> !w.parseFirstToken() ? w : null);
+        final List<ParallelEDIFParserWorker> failedWorkers =
+            futures.stream().map(ParallelismTools::get).filter(Objects::nonNull).collect(Collectors.toList());
 
         if (!failedWorkers.isEmpty() && !Device.QUIET_MESSAGE) {
             for (ParallelEDIFParserWorker failedWorker : failedWorkers) {
-                if (failedWorker.parseException!=null) {
+                if (failedWorker.parseException != null) {
                     String message = failedWorker.parseException.getMessage();
                     if (failedWorker.parseException instanceof TokenTooLongException) {
-                        //Message contains a hint to a constant that the user should adjust.
-                        //Token misdetection is the more likely cause, so let's adjust it
+                        // Message contains a hint to a constant that the user should adjust.
+                        // Token misdetection is the more likely cause, so let's adjust it
                         message = "Likely token misdetection";
                     }
-                    System.err.println("Removing failed thread "+failedWorker+": "+ message);
+                    System.err.println("Removing failed thread " + failedWorker + ": " + message);
                 } else {
-                    System.err.println("Removing "+failedWorker+", it started past the last cell.");
+                    System.err.println("Removing " + failedWorker + ", it started past the last cell.");
                 }
             }
         }
@@ -178,7 +172,7 @@ public class ParallelEDIFParser implements AutoCloseable{
         }
         workers.removeAll(failedWorkers);
 
-        //Propagate parse limit to neighbours
+        // Propagate parse limit to neighbours
         for (int i = 1; i < workers.size(); i++) {
             workers.get(i - 1).setStopCellToken(workers.get(i).getFirstCellToken());
         }
@@ -186,44 +180,45 @@ public class ParallelEDIFParser implements AutoCloseable{
         t.stop().start("Do Parse");
         doParse();
 
-
         return mergeParseResults(t);
     }
 
     private void doParse() {
-        ParallelismTools.invokeAllRunnable(workers, w->w.doParse(false));
+        ParallelismTools.invokeAllRunnable(workers, w -> w.doParse(false));
 
-        //Check if we had misdetected start tokens
-        for (int i=0; i<workers.size();i++) {
+        // Check if we had misdetected start tokens
+        for (int i = 0; i < workers.size(); i++) {
             final ParallelEDIFParserWorker worker = workers.get(i);
-            if (worker.parseException!=null) {
+            if (worker.parseException != null) {
                 throw worker.parseException;
             }
             while (worker.stopTokenMismatch) {
-                if (i<workers.size()-1) {
+                if (i < workers.size() - 1) {
                     final ParallelEDIFParserWorker failedWorker = workers.get(i + 1);
                     if (!Device.QUIET_MESSAGE) {
-                        System.err.println("Token mismatch between "+worker+" and " + failedWorker + ". Discarding second one and reparsing...");
+                        System.err.println("Token mismatch between " + worker + " and " + failedWorker +
+                                           ". Discarding second one and reparsing...");
                     }
                     try {
                         failedWorker.close();
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                    workers.remove(i+1);
+                    workers.remove(i + 1);
                 } else {
-                    throw new IllegalStateException(worker+" claims to have a mismatch with the following thread, but is is the last one");
+                    throw new IllegalStateException(worker + (" claims to have a mismatch with the "
+                                                              + "following thread, but is is the last one"));
                 }
 
-                if (i<workers.size()-1) {
+                if (i < workers.size() - 1) {
                     worker.setStopCellToken(workers.get(i + 1).getFirstCellToken());
                 } else {
                     worker.setStopCellToken(null);
                 }
 
-                //Re-Parse :(
+                // Re-Parse :(
                 worker.doParse(true);
-                if (worker.parseException!=null) {
+                if (worker.parseException != null) {
                     throw worker.parseException;
                 }
             }
@@ -234,9 +229,9 @@ public class ParallelEDIFParser implements AutoCloseable{
     }
 
     private EDIFDesign getEdifDesign() {
-        //We can't just ask the last thread, since it may have parsed nothing at all. The designInfo is then in
-        //the previous thread.
-        for (int i=workers.size()-1;i>=0;i--) {
+        // We can't just ask the last thread, since it may have parsed nothing at all. The
+        // designInfo is then in the previous thread.
+        for (int i = workers.size() - 1; i >= 0; i--) {
             final ParallelEDIFParserWorker worker = workers.get(i);
             if (worker.edifDesign != null) {
                 return worker.edifDesign;
@@ -251,8 +246,9 @@ public class ParallelEDIFParser implements AutoCloseable{
         EDIFToken currentToken = null;
         for (ParallelEDIFParserWorker worker : workers) {
             for (ParallelEDIFParserWorker.LibraryOrCellResult parsed : worker.librariesAndCells) {
-                if (currentToken!=null && parsed.getToken().byteOffset<= currentToken.byteOffset) {
-                    throw new IllegalStateException("Not in ascending order! seen: "+currentToken+", now processed "+parsed.getToken());
+                if (currentToken != null && parsed.getToken().byteOffset <= currentToken.byteOffset) {
+                    throw new IllegalStateException("Not in ascending order! seen: " + currentToken +
+                                                    ", now processed " + parsed.getToken());
                 }
                 currentToken = parsed.getToken();
 
@@ -262,14 +258,15 @@ public class ParallelEDIFParser implements AutoCloseable{
         return cellsByLegalName;
     }
 
-    private void processLinks(CodePerfTracker t, EDIFNetlist netlist, Map<EDIFLibrary, Map<String, EDIFCell>> cellsByLegalName) {
+    private void processLinks(CodePerfTracker t, EDIFNetlist netlist,
+                              Map<EDIFLibrary, Map<String, EDIFCell>> cellsByLegalName) {
         t.start("Link CellInst+SmallPorts");
-        //We have to map from a string representation of the ports' names to the ports.
-        //Directly map the ports from small cells, add ports from large cells to this map
-        final Map<String, EDIFLibrary> librariesByLegalName = netlist.getLibraries().stream()
-                .collect(Collectors.toMap(cache::getLegalEDIFName, Function.identity()));
+        // We have to map from a string representation of the ports' names to the ports.
+        // Directly map the ports from small cells, add ports from large cells to this map
+        final Map<String, EDIFLibrary> librariesByLegalName =
+            netlist.getLibraries().stream().collect(Collectors.toMap(cache::getLegalEDIFName, Function.identity()));
         Map<EDIFCell, Collection<ParallelEDIFParserWorker.LinkPortInstData>> byPortCell = new ConcurrentHashMap<>();
-        ParallelismTools.invokeAllRunnable(workers, w-> {
+        ParallelismTools.invokeAllRunnable(workers, w -> {
             for (ParallelEDIFParserWorker.CellReferenceData cellReferenceData : w.linkCellReference) {
                 cellReferenceData.apply(librariesByLegalName, cellsByLegalName);
             }
@@ -277,7 +274,7 @@ public class ParallelEDIFParser implements AutoCloseable{
         });
 
         t.stop().start("Link Large Port Cells");
-        //Now we can create a map of ports just for large cells and look up the ports
+        // Now we can create a map of ports just for large cells and look up the ports
         ParallelismTools.invokeAllRunnable(byPortCell.entrySet(), entry -> {
             EDIFCell cell = entry.getKey();
             final EDIFPortCache edifPortCache = new EDIFPortCache(cell, cache);
@@ -287,18 +284,18 @@ public class ParallelEDIFParser implements AutoCloseable{
         });
 
         t.stop().start("Name and Add port insts");
-        //When adding the port insts, we have to make sure that we don't split a parent cell's port instances
-        // between threads.
-        //That could lead to ConcurrentModificationExceptions
-        ParallelismTools.invokeAllRunnable(workers,
-                w-> {
-                    for (List<ParallelEDIFParserWorker.LinkPortInstData> list : w.linkPortInstData) {
-                        for (ParallelEDIFParserWorker.LinkPortInstData linkPortInstData : list) {
-                            linkPortInstData.name(uniquifier);
-                            linkPortInstData.add();
-                        }
-                    }
-                });
+        // When adding the port insts, we have to make sure that we don't split a parent cell's port
+        // instances
+        //  between threads.
+        // That could lead to ConcurrentModificationExceptions
+        ParallelismTools.invokeAllRunnable(workers, w -> {
+            for (List<ParallelEDIFParserWorker.LinkPortInstData> list : w.linkPortInstData) {
+                for (ParallelEDIFParserWorker.LinkPortInstData linkPortInstData : list) {
+                    linkPortInstData.name(uniquifier);
+                    linkPortInstData.add();
+                }
+            }
+        });
         t.stop().start("Trim PortInst Lists");
         // Port instance lists are built via incremental ArrayList insertion, which
         // leaves unused capacity slack. Trim it now that all insertions are done.

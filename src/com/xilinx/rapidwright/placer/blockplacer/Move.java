@@ -30,8 +30,7 @@ import com.xilinx.rapidwright.design.AbstractModuleInst;
  * @author clavin
  *
  */
-public class Move<ModuleInstT extends AbstractModuleInst<?,?,?>, PlacementT> {
-
+public class Move<ModuleInstT extends AbstractModuleInst<?, ?, ?>, PlacementT> {
     private final AbstractBlockPlacer<ModuleInstT, PlacementT> placer;
     PlacementT site0;
 
@@ -43,20 +42,20 @@ public class Move<ModuleInstT extends AbstractModuleInst<?,?,?>, PlacementT> {
     private ModuleInstT block1;
     private int deltaCost;
 
-
     public Move(AbstractBlockPlacer<ModuleInstT, PlacementT> placer) {
-
         this.placer = placer;
     }
 
-    public Move(PlacementT site0, PlacementT site1, ModuleInstT block0, ModuleInstT block1, AbstractBlockPlacer<ModuleInstT, PlacementT> placer) {
+    public Move(PlacementT site0, PlacementT site1, ModuleInstT block0, ModuleInstT block1,
+                AbstractBlockPlacer<ModuleInstT, PlacementT> placer) {
         this.placer = placer;
         this.site0 = site0;
         this.site1 = site1;
         this.setBlock0(block0);
         this.setBlock1(block1);
     }
-    public void setMove(PlacementT site0, PlacementT site1, ModuleInstT block0, ModuleInstT block1, PlacementT site1Previous) {
+    public void setMove(PlacementT site0, PlacementT site1, ModuleInstT block0, ModuleInstT block1,
+                        PlacementT site1Previous) {
         this.site0 = site0;
         this.site1 = site1;
         this.site1Previous = site1Previous;
@@ -69,8 +68,10 @@ public class Move<ModuleInstT extends AbstractModuleInst<?,?,?>, PlacementT> {
     }
 
     public void undoMove() {
-        if (getBlock0() != null) placer.setTempAnchorSite(getBlock0(), site0);
-        if (getBlock1() != null) placer.setTempAnchorSite(getBlock1(), site1Previous != null ? site1Previous : site1);
+        if (getBlock0() != null)
+            placer.setTempAnchorSite(getBlock0(), site0);
+        if (getBlock1() != null)
+            placer.setTempAnchorSite(getBlock1(), site1Previous != null ? site1Previous : site1);
     }
 
     /* (non-Javadoc)
@@ -78,7 +79,8 @@ public class Move<ModuleInstT extends AbstractModuleInst<?,?,?>, PlacementT> {
      */
     @Override
     public String toString() {
-        return "Move " + (getBlock0() == null ? "null" : getBlock0().getName()) + " -> " + site1 + ", " + (getBlock1() == null ? "null" : getBlock1().getName()) + " -> " + site0+" cost: "+deltaCost;
+        return "Move " + (getBlock0() == null ? "null" : getBlock0().getName()) + " -> " + site1 + ", " +
+            (getBlock1() == null ? "null" : getBlock1().getName()) + " -> " + site0 + " cost: " + deltaCost;
     }
 
     /**
@@ -108,7 +110,6 @@ public class Move<ModuleInstT extends AbstractModuleInst<?,?,?>, PlacementT> {
     public void setBlock1(ModuleInstT block1) {
         this.block1 = block1;
     }
-
 
     public void setDeltaCost(int deltaCost) {
         this.deltaCost = deltaCost;

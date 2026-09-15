@@ -26,7 +26,6 @@
  */
 package com.xilinx.rapidwright.placer.handplacer;
 
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -61,7 +60,6 @@ import com.xilinx.rapidwright.gui.TileScene;
  *
  */
 public class FloorPlanScene extends TileScene {
-
     /**  */
     List<GUIModuleInst> movingHMList;
     /**  */
@@ -75,7 +73,7 @@ public class FloorPlanScene extends TileScene {
     /**  */
     private ArrayList<GUIModuleInst> polyList;
     /**  */
-    HashMap<String,GUIMultiNetLine> multiNetLineMap;
+    HashMap<String, GUIMultiNetLine> multiNetLineMap;
     /**  */
     protected boolean debugPlacer;
     /**  */
@@ -120,8 +118,9 @@ public class FloorPlanScene extends TileScene {
             if (ghmpi.isSelected() || ghmpi.isGrabbed()) {
                 movingHMList.add(ghmpi);
                 movingPosList.add(ghmpi.pos());
-                //highlightValidPlacements(ghmpi);
-                if (netViewState == HIDE_NETS) ghmpi.showMyLines();
+                // highlightValidPlacements(ghmpi);
+                if (netViewState == HIDE_NETS)
+                    ghmpi.showMyLines();
             }
         }
         mousePressed.emit();
@@ -135,8 +134,7 @@ public class FloorPlanScene extends TileScene {
             }
         }
         validPlacements.clear();
-        if (movingHMList != null && !movingHMList.isEmpty()
-                && event.button() == Qt.MouseButton.LeftButton) {
+        if (movingHMList != null && !movingHMList.isEmpty() && event.button() == Qt.MouseButton.LeftButton) {
             if (!movingPosList.get(0).equals(movingHMList.get(0).pos())) {
                 hmMoved.emit(movingHMList, movingPosList);
             }
@@ -153,27 +151,25 @@ public class FloorPlanScene extends TileScene {
         QPolygonF shape = new QPolygonF(ghmpi.getShape());
 
         for (Site s : ghmpi.getModuleInst().getAllValidPlacements()) {
-            ValidPlacementPolygon item = new ValidPlacementPolygon(shape,ghmpi.getAnchorOffset());
+            ValidPlacementPolygon item = new ValidPlacementPolygon(shape, ghmpi.getAnchorOffset());
             addItem(item);
         }
     }
 
     public QGraphicsRectItem highlightTile(int x, int y) {
         QColor color = new QColor(0, 255, 0, 190);
-        int offset = (int) Math.ceil((lineWidth / 2.0));
-        QGraphicsRectItem rect = addRect((tileSize + offset),
-                (tileSize + offset), tileSize - 2 * offset, tileSize - 2
-                        * offset, new QPen(color), new QBrush(color));
+        int offset = (int)Math.ceil((lineWidth / 2.0));
+        QGraphicsRectItem rect = addRect((tileSize + offset), (tileSize + offset), tileSize - 2 * offset,
+                                         tileSize - 2 * offset, new QPen(color), new QBrush(color));
         rect.setPos(x * tileSize, y * tileSize);
         return rect;
     }
 
     public QGraphicsRectItem highlightQuadTile(int x, int y) {
         QColor color = new QColor(0, 255, 0, 190);
-        int offset = (int) Math.ceil((lineWidth / 2.0));
-        QGraphicsRectItem rect = addRect((tileSize + offset),
-                (tileSize + offset), tileSize - 2 * offset, 4 * tileSize - 2
-                        * offset, new QPen(color), new QBrush(color));
+        int offset = (int)Math.ceil((lineWidth / 2.0));
+        QGraphicsRectItem rect = addRect((tileSize + offset), (tileSize + offset), tileSize - 2 * offset,
+                                         4 * tileSize - 2 * offset, new QPen(color), new QBrush(color));
         rect.setPos(x * tileSize, y * tileSize);
         return rect;
     }
@@ -199,42 +195,43 @@ public class FloorPlanScene extends TileScene {
             macroMap.put(ghmpi.getModuleInst().getName(), ghmpi);
         }
 
-
         for (String key : modInstances.keySet()) {
             List<SiteInst> instList = modInstances.get(key).getSiteInsts();
-            if (instList.size() == 0) continue;
+            if (instList.size() == 0)
+                continue;
             SiteInst inst0 = instList.get(0);
             String moduleName = inst0.getModuleInstName();
             Module module = inst0.getModuleTemplate();
 
             for (Port port : module.getPorts()) {
-                if (port.getSitePinInsts().stream().allMatch(p-> {
-                    String name = p.getName().toUpperCase();
-                    return name.contains("CLK") || name.contains("RST");
-                }))
+                if (port.getSitePinInsts().stream().allMatch(p -> {
+                        String name = p.getName().toUpperCase();
+                        return name.contains("CLK") || name.contains("RST");
+                    }))
                     continue;
                 for (SitePinInst sitePinInst : port.getSitePinInsts()) {
                     String instName = moduleName + "/" + sitePinInst.getSite().getName();
                     SiteInst portInst = getDesign().getSiteInst(instName);
-                    if (portInst == null) continue;
+                    if (portInst == null)
+                        continue;
                     for (Net portInstNet : portInst.getConnectedNets()) {
-                        if (!portInstNet.isStaticNet()
-                                && portInstNet.getModuleInst() == null
-                                && !portInstNet.getName().contains("clk")
-                                && !netsFound.contains(portInstNet)
-                                && !portInstNet.getName().contains("rst")) {
+                        if (!portInstNet.isStaticNet() && portInstNet.getModuleInst() == null &&
+                            !portInstNet.getName().contains("clk") && !netsFound.contains(portInstNet) &&
+                            !portInstNet.getName().contains("rst")) {
                             netsFound.add(portInstNet);
                             addNetToScene(portInstNet);
                         }
                     }
                 }
-
             }
         }
         if (netsFound.size() < 2) {
-            nextNet: for (Net n : getDesign().getNets()) {
-                if (n.isClockNet()) continue;
-                if (n.isStaticNet()) continue;
+        nextNet:
+            for (Net n : getDesign().getNets()) {
+                if (n.isClockNet())
+                    continue;
+                if (n.isStaticNet())
+                    continue;
                 String modInstName = null;
                 for (SitePinInst p : n.getPins()) {
                     String curr = p.getModuleInstName();
@@ -243,7 +240,8 @@ public class FloorPlanScene extends TileScene {
                         addNetToScene(n);
                         continue nextNet;
                     }
-                    if (curr != null) modInstName = curr;
+                    if (curr != null)
+                        modInstName = curr;
                 }
             }
         }
@@ -253,7 +251,7 @@ public class FloorPlanScene extends TileScene {
                 if (inst.getModuleTemplate() == null && inst.isPlaced()) {
                     Tile t = inst.getTile();
                     HMTile myTile = new HMTile(t, this, null);
-                    myTile.setBrush(new QBrush(new QColor(255,125,0,125)));
+                    myTile.setBrush(new QBrush(new QColor(255, 125, 0, 125)));
                     myTile.moveBy(getDrawnTileX(t) * tileSize, getDrawnTileY(t) * tileSize);
                     addItem(myTile);
                 }
@@ -262,7 +260,8 @@ public class FloorPlanScene extends TileScene {
     }
 
     private void addNetToScene(Net net) {
-        if (net.isClockNet()) return;
+        if (net.isClockNet())
+            return;
         String srcMIName = null;
         Tile srcTile = null;
         ArrayList<String> destMINameList = new ArrayList<String>();
@@ -271,56 +270,56 @@ public class FloorPlanScene extends TileScene {
             SiteInst pinInst = sitePinInst.getSiteInst();
             String pinMIName = pinInst.getModuleInstName();
 
-
             if (pinMIName == null && pinInst.isPlaced()) {
                 if (debugPlacer)
                     pinMIName = "NOMODULE";
                 else
-                    pinMIName = pinInst.getName()+"_HMTILE";
+                    pinMIName = pinInst.getName() + "_HMTILE";
             }
             if (pinMIName != null) {
                 if (sitePinInst.isOutPin()) {
                     // outpin
                     srcMIName = pinMIName;
-                    srcTile = (pinInst.isPlaced())? pinInst.getTile() : pinInst.getModuleTemplateInst().getTile();
+                    srcTile = (pinInst.isPlaced()) ? pinInst.getTile() : pinInst.getModuleTemplateInst().getTile();
                 } else {
                     // inpins
                     destMINameList.add(pinMIName);
-                    destTileList.add((pinInst.isPlaced())? pinInst.getTile() : pinInst.getModuleTemplateInst().getTile());
+                    destTileList.add((pinInst.isPlaced()) ? pinInst.getTile()
+                                                          : pinInst.getModuleTemplateInst().getTile());
                 }
             }
-
         }
         if (srcMIName != null) {
-            //for (String destKey : destMINameList) {
-            for (int i=0;i<destMINameList.size();i++) {
+            // for (String destKey : destMINameList) {
+            for (int i = 0; i < destMINameList.size(); i++) {
                 String destMIName = destMINameList.get(i);
                 Tile destTile = destTileList.get(i);
-                //Non-module-to-module connections
+                // Non-module-to-module connections
                 if (debugPlacer) {
                     if (srcMIName.equals("NOMODULE") || destMIName.equals("NOMODULE")) {
-
                         int srcX = getDrawnTileX(srcTile);
                         if (srcX < 0)
-                            srcX = (srcTile.getColumn() >= cols)? (cols-1)*tileSize : srcTile.getColumn()*tileSize;
+                            srcX =
+                                (srcTile.getColumn() >= cols) ? (cols - 1) * tileSize : srcTile.getColumn() * tileSize;
                         int srcY = getDrawnTileY(srcTile);
                         if (srcY < 0)
-                            srcY = (srcTile.getRow() >= rows)? (rows-1)*tileSize : srcTile.getRow()*tileSize;
+                            srcY = (srcTile.getRow() >= rows) ? (rows - 1) * tileSize : srcTile.getRow() * tileSize;
                         int destX = getDrawnTileX(destTile);
                         if (destX < 0)
-                            destX = (destTile.getColumn() >= cols)? (cols-1)*tileSize : destTile.getColumn()*tileSize;
+                            destX = (destTile.getColumn() >= cols) ? (cols - 1) * tileSize
+                                                                   : destTile.getColumn() * tileSize;
                         int destY = getDrawnTileY(destTile);
                         if (destY < 0)
-                            destY = (destTile.getRow() >= rows)? (rows-1)*tileSize : destTile.getRow()*tileSize;
-                        QGraphicsLineItem line = new QGraphicsLineItem(10+srcX, 10+srcY, 10+destX, 10+destY);
+                            destY = (destTile.getRow() >= rows) ? (rows - 1) * tileSize : destTile.getRow() * tileSize;
+                        QGraphicsLineItem line = new QGraphicsLineItem(10 + srcX, 10 + srcY, 10 + destX, 10 + destY);
                         line.setPen(new QPen(QColor.cyan, 2));
                         addItem(line);
                         continue;
                     }
                 }
-                //Module-to-module + Module-to-IOB connections
+                // Module-to-module + Module-to-IOB connections
                 QGraphicsItemInterface gmiSrc = getGMI(srcMIName);
-                //for IOB connections, create immovable HMTile for net connection
+                // for IOB connections, create immovable HMTile for net connection
                 if (gmiSrc == null) {
                     HMTile hmTile = new HMTile(srcTile, this, null);
                     hmTile.moveBy(getDrawnTileX(srcTile) * this.tileSize, getDrawnTileY(srcTile) * this.tileSize);
@@ -337,13 +336,15 @@ public class FloorPlanScene extends TileScene {
                 if (line != null) {
                     line.addNet();
                 } else {
-                    line = new GUIMultiNetLine(gmiSrc,gmiDest);
+                    line = new GUIMultiNetLine(gmiSrc, gmiDest);
                     multiNetLineMap.put(key, line);
                     addItem(line);
-                    if (gmiSrc instanceof GUIModuleInst) ((GUIModuleInst) gmiSrc).addLine(line);
-                    if (gmiDest instanceof GUIModuleInst) ((GUIModuleInst) gmiDest).addLine(line);
+                    if (gmiSrc instanceof GUIModuleInst)
+                        ((GUIModuleInst)gmiSrc).addLine(line);
+                    if (gmiDest instanceof GUIModuleInst)
+                        ((GUIModuleInst)gmiDest).addLine(line);
                 }
-                //Single nets (All nets(not clk/rst)
+                // Single nets (All nets(not clk/rst)
                 /*HMTile tileSrc = ((GuiModuleInst) gmiSrc).getHMTile(srcTile);
                 HMTile tileDest = ((GuiModuleInst) gmiDest).getHMTile(destTileList.get(i));
                 GuiNetLine singleLine = new GuiNetLine(tileSrc, tileDest);
@@ -361,33 +362,33 @@ public class FloorPlanScene extends TileScene {
     public void changeNetView(int index) {
         netViewState = index;
         switch (index) {
-        case HIDE_NETS://Nets hidden
-            for (String key : multiNetLineMap.keySet()) {
-                GUIMultiNetLine line = multiNetLineMap.get(key);
-                line.hide();
-            }
-            for (GUINetLine line : netLineList)
-                line.hide();
-            break;
-        case MODULE_TO_MODULE://Module-to-module
-            for (String key : multiNetLineMap.keySet()) {
-                GUIMultiNetLine line = multiNetLineMap.get(key);
-                line.show();
-            }
-            for (GUINetLine line : netLineList)
-                line.hide();
-            break;
-        case 2://All nets(not clk/rst)
-            for (String key : multiNetLineMap.keySet()) {
-                GUIMultiNetLine line = multiNetLineMap.get(key);
-                line.hide();
-            }
-            for (GUINetLine line : netLineList)
-                line.show();
-            break;
-        default:
-            System.out.println("FloorPlanScene::changeNetView(int) - Whoa!...was not expecting index = "+index);
-            break;
+            case HIDE_NETS: // Nets hidden
+                for (String key : multiNetLineMap.keySet()) {
+                    GUIMultiNetLine line = multiNetLineMap.get(key);
+                    line.hide();
+                }
+                for (GUINetLine line : netLineList)
+                    line.hide();
+                break;
+            case MODULE_TO_MODULE: // Module-to-module
+                for (String key : multiNetLineMap.keySet()) {
+                    GUIMultiNetLine line = multiNetLineMap.get(key);
+                    line.show();
+                }
+                for (GUINetLine line : netLineList)
+                    line.hide();
+                break;
+            case 2: // All nets(not clk/rst)
+                for (String key : multiNetLineMap.keySet()) {
+                    GUIMultiNetLine line = multiNetLineMap.get(key);
+                    line.hide();
+                }
+                for (GUINetLine line : netLineList)
+                    line.show();
+                break;
+            default:
+                System.out.println("FloorPlanScene::changeNetView(int) - Whoa!...was not expecting index = " + index);
+                break;
         }
     }
 
@@ -395,7 +396,7 @@ public class FloorPlanScene extends TileScene {
         return netLineList;
     }
 
-    public ArrayList<GUIModuleInst>    getMacroList() {
+    public ArrayList<GUIModuleInst> getMacroList() {
         return polyList;
     }
 }

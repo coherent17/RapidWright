@@ -23,8 +23,4 @@
  */
 package com.xilinx.rapidwright.design;
 
-public enum PinType {
-    IN,
-    OUT,
-    INOUT
-}
+public enum PinType { IN, OUT, INOUT }

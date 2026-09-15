@@ -80,10 +80,7 @@ public class CUFRpartitionTree {
     }
 
     /* The direction in which the cutline cuts the partition */
-    public enum PartitionAxis {
-        X,
-        Y
-    }
+    public enum PartitionAxis { X, Y }
 
     public PartitionTreeNode root;
     private PartitionBBox bbox;
@@ -107,8 +104,9 @@ public class CUFRpartitionTree {
         int H = cur.bbox.yMax - cur.bbox.yMin + 1;
 
         /*
-         * |xTotalBefore[x] - xTotalAfter[x]| is the difference in the number of connections between the
-         * two sub-partitions when the cutline is positioned between locations x and (x+1) on the X-axis.
+         * |xTotalBefore[x] - xTotalAfter[x]| is the difference in the number of connections between
+         * the two sub-partitions when the cutline is positioned between locations x and (x+1) on
+         * the X-axis.
          *
          * So as to yTotalBefore[] and yTotalAfter[]
          */
@@ -155,7 +153,8 @@ public class CUFRpartitionTree {
             int after = xTotalAfter[x];
             if (before == maxXBefore || after == maxXAfter)
                 continue;
-            double score = (double) Math.abs(xTotalBefore[x] - xTotalAfter[x]) / Math.max(xTotalBefore[x], xTotalAfter[x]);
+            double score =
+                (double)Math.abs(xTotalBefore[x] - xTotalAfter[x]) / Math.max(xTotalBefore[x], xTotalAfter[x]);
             if (score < bestScore) {
                 bestScore = score;
                 bestPos = cur.bbox.xMin + x + 0.5;
@@ -170,7 +169,8 @@ public class CUFRpartitionTree {
             int after = yTotalAfter[y];
             if (before == maxYBefore || after == maxYAfter)
                 continue;
-            double score = (double) Math.abs(yTotalBefore[y] - yTotalAfter[y]) / Math.max(yTotalBefore[y], yTotalAfter[y]);
+            double score =
+                (double)Math.abs(yTotalBefore[y] - yTotalAfter[y]) / Math.max(yTotalBefore[y], yTotalAfter[y]);
             if (score < bestScore) {
                 bestScore = score;
                 bestPos = cur.bbox.yMin + y + 0.5;
@@ -184,8 +184,9 @@ public class CUFRpartitionTree {
         // THIS PART CORRESPONDS TO line 13 of Algorithm 1: RPTT-based Parallel Routing ->
 
         /*
-         * If bestPos is never updated, meaning that a cutline that can divide the original partition into two non-empty partitions cannot be found,
-         * then the recursion to build the subtrees will not continue, and all three subtrees will be null.
+         * If bestPos is never updated, meaning that a cutline that can divide the original
+         * partition into two non-empty partitions cannot be found, then the recursion to build the
+         * subtrees will not continue, and all three subtrees will be null.
          */
         if (Double.isNaN(bestPos))
             return;
@@ -212,8 +213,9 @@ public class CUFRpartitionTree {
                     cur.middle.connections.add(connection);
                 }
             }
-            cur.left.bbox = new PartitionBBox(cur.bbox.xMin, (int) Math.floor(bestPos), cur.bbox.yMin, cur.bbox.yMax);
-            cur.right.bbox = new PartitionBBox((int) Math.floor(bestPos) + 1, cur.bbox.xMax, cur.bbox.yMin, cur.bbox.yMax);
+            cur.left.bbox = new PartitionBBox(cur.bbox.xMin, (int)Math.floor(bestPos), cur.bbox.yMin, cur.bbox.yMax);
+            cur.right.bbox =
+                new PartitionBBox((int)Math.floor(bestPos) + 1, cur.bbox.xMax, cur.bbox.yMin, cur.bbox.yMax);
             cur.middle.bbox = cur.bbox;
         } else {
             assert (bestAxis == PartitionAxis.Y);
@@ -227,8 +229,9 @@ public class CUFRpartitionTree {
                     cur.middle.connections.add(connection);
                 }
             }
-            cur.left.bbox = new PartitionBBox(cur.bbox.xMin, cur.bbox.xMax, cur.bbox.yMin, (int) Math.floor(bestPos));
-            cur.right.bbox = new PartitionBBox(cur.bbox.xMin, cur.bbox.xMax, (int) Math.floor(bestPos) + 1, cur.bbox.yMax);
+            cur.left.bbox = new PartitionBBox(cur.bbox.xMin, cur.bbox.xMax, cur.bbox.yMin, (int)Math.floor(bestPos));
+            cur.right.bbox =
+                new PartitionBBox(cur.bbox.xMin, cur.bbox.xMax, (int)Math.floor(bestPos) + 1, cur.bbox.yMax);
             cur.middle.bbox = cur.bbox;
         }
         assert (cur.left.connections.size() > 0 && cur.right.connections.size() > 0);
@@ -245,7 +248,8 @@ public class CUFRpartitionTree {
 
     /*
      * Some connections, when expanding their bounding boxes during initialization,
-     * may cause the bounding boxes to exceed the range of the FPGA device, so they need to be clamped.
+     * may cause the bounding boxes to exceed the range of the FPGA device, so they need to be
+     * clamped.
      */
     private int clampX(int x) {
         return Math.min(Math.max(x, bbox.xMin), bbox.xMax);

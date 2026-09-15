@@ -33,7 +33,8 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 
 /**
- * This class creates a random permutation of all ints from 0 (inclusive) to a given maximum (exclusive) with no repeats.
+ * This class creates a random permutation of all ints from 0 (inclusive) to a given maximum
+ * (exclusive) with no repeats.
  *
  * It implements a linear congruential generator and achieves O(N) in runtime, O(1) in memory.
  */
@@ -47,15 +48,13 @@ public class LinearCongruentialGenerator implements PrimitiveIterator.OfInt {
 
     public static int nextPowerOf2(int i) {
         int r = 1;
-        while (r<i) {
-            r=r*2;
+        while (r < i) {
+            r = r * 2;
         }
         return r;
     }
 
-    private LinearCongruentialGenerator(
-            int max, int value, int offset, int multiplier, int modulus, int outputCount
-    ) {
+    private LinearCongruentialGenerator(int max, int value, int offset, int multiplier, int modulus, int outputCount) {
         this.max = max;
         this.value = value;
         this.offset = offset;
@@ -68,28 +67,27 @@ public class LinearCongruentialGenerator implements PrimitiveIterator.OfInt {
         this.max = max;
         value = random.nextInt(max);
 
-        //See https://en.wikipedia.org/wiki/Linear_congruential_generator#cite_ref-KnuthV2_1-3
+        // See https://en.wikipedia.org/wiki/Linear_congruential_generator#cite_ref-KnuthV2_1-3
 
         offset = random.nextInt(max) * 2 + 1;
-        multiplier = 4*(max/4)+1;
+        multiplier = 4 * (max / 4) + 1;
         modulus = nextPowerOf2(max);
     }
 
-
     @Override
     public boolean hasNext() {
-        return outputCount<max;
+        return outputCount < max;
     }
 
     @Override
     public int nextInt() {
         int output = value;
         do {
-            //Using long here, because value * multiplier might take us above the limit of int
+            // Using long here, because value * multiplier might take us above the limit of int
             long v = value;
-            value = (int) ((v * multiplier + offset) % modulus);
-        } while (value>=max);
-        outputCount ++;
+            value = (int)((v * multiplier + offset) % modulus);
+        } while (value >= max);
+        outputCount++;
         return output;
     }
 
@@ -100,13 +98,14 @@ public class LinearCongruentialGenerator implements PrimitiveIterator.OfInt {
 
     public void dump(Path p) {
         try (PrintWriter pw = new PrintWriter(Files.newBufferedWriter(p))) {
-            forEachRemaining((int i)->pw.println(i));
+            forEachRemaining((int i) -> pw.println(i));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     public Spliterator.OfInt spliterator() {
-        return Spliterators.spliterator(this, max-outputCount, Spliterator.DISTINCT|Spliterator.ORDERED|Spliterator.SIZED);
+        return Spliterators.spliterator(this, max - outputCount,
+                                        Spliterator.DISTINCT | Spliterator.ORDERED | Spliterator.SIZED);
     }
 }

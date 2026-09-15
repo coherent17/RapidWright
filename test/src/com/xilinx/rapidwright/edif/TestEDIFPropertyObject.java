@@ -51,8 +51,8 @@ public class TestEDIFPropertyObject {
     @Test
     public void testPropertiesUseCompactMap() {
         EDIFNetlist netlist = EDIFTools.createNewNetlist("test");
-        EDIFCellInst inst = netlist.getTopCell().createChildCellInst("u0",
-                Design.getPrimitivesLibrary().getCell("FDRE"));
+        EDIFCellInst inst =
+            netlist.getTopCell().createChildCellInst("u0", Design.getPrimitivesLibrary().getCell("FDRE"));
 
         // No properties yet -> empty (immutable) map
         Assertions.assertTrue(inst.getPropertiesMap().isEmpty());
@@ -62,7 +62,7 @@ public class TestEDIFPropertyObject {
 
         Map<String, EDIFPropertyValue> map = inst.getPropertiesMap();
         Assertions.assertTrue(map instanceof EDIFPropertyMap,
-                "Expected EDIFPropertyMap backing, got " + map.getClass());
+                              "Expected EDIFPropertyMap backing, got " + map.getClass());
         Assertions.assertEquals(2, map.size());
         Assertions.assertEquals("1'b0", inst.getProperty("INIT").getValue());
 
@@ -85,8 +85,8 @@ public class TestEDIFPropertyObject {
     @Test
     public void testPropertiesMapIsLiveView() {
         EDIFNetlist netlist = EDIFTools.createNewNetlist("test");
-        EDIFCellInst inst = netlist.getTopCell().createChildCellInst("u0",
-                Design.getPrimitivesLibrary().getCell("FDRE"));
+        EDIFCellInst inst =
+            netlist.getTopCell().createChildCellInst("u0", Design.getPrimitivesLibrary().getCell("FDRE"));
         inst.addProperty("A", "1");
 
         Map<String, EDIFPropertyValue> view = inst.getPropertiesMap();
@@ -113,8 +113,8 @@ public class TestEDIFPropertyObject {
     @Test
     public void testSetPropertiesMapWithOwnLiveView() {
         EDIFNetlist netlist = EDIFTools.createNewNetlist("test");
-        EDIFCellInst inst = netlist.getTopCell().createChildCellInst("u0",
-                Design.getPrimitivesLibrary().getCell("FDRE"));
+        EDIFCellInst inst =
+            netlist.getTopCell().createChildCellInst("u0", Design.getPrimitivesLibrary().getCell("FDRE"));
         inst.addProperty("A", "1");
         inst.addProperty("B", "2");
 
@@ -126,8 +126,8 @@ public class TestEDIFPropertyObject {
         Assertions.assertEquals("2", inst.getProperty("B").getValue());
 
         // Passing another object's live view copies it (and does not alias).
-        EDIFCellInst other = netlist.getTopCell().createChildCellInst("u1",
-                Design.getPrimitivesLibrary().getCell("FDRE"));
+        EDIFCellInst other =
+            netlist.getTopCell().createChildCellInst("u1", Design.getPrimitivesLibrary().getCell("FDRE"));
         other.setPropertiesMap(inst.getPropertiesMap());
         Assertions.assertEquals(2, other.getPropertyCount());
         // Mutating the source afterwards must not affect the copy.
@@ -165,7 +165,7 @@ public class TestEDIFPropertyObject {
             Assertions.assertEquals(a.keySet(), b.keySet(), "Property keys differ for " + inst.getName());
             for (String key : a.keySet()) {
                 Assertions.assertEquals(a.get(key).getValue(), b.get(key).getValue(),
-                        "Property value differs for " + inst.getName() + "." + key);
+                                        "Property value differs for " + inst.getName() + "." + key);
             }
         }
     }

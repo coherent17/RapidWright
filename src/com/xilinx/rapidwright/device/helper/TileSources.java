@@ -31,8 +31,7 @@ import java.util.Arrays;
  * size of the Device class.
  * @author Chris Lavin
  */
-public class TileSources implements Serializable{
-
+public class TileSources implements Serializable {
     private static final long serialVersionUID = -139462627137160891L;
     /** Sources of the tile */
     public int[] sources;
@@ -50,8 +49,7 @@ public class TileSources implements Serializable{
 
         if (sources == null) {
             return hash;
-        }
-        else {
+        } else {
             Arrays.sort(sources);
             for (Integer i : sources) {
                 hash += i * 7;
@@ -71,7 +69,7 @@ public class TileSources implements Serializable{
             return false;
         if (getClass() != obj.getClass())
             return false;
-        TileSources other = (TileSources) obj;
+        TileSources other = (TileSources)obj;
         if (other.sources == null && sources == null) {
             return true;
         }
@@ -80,13 +78,11 @@ public class TileSources implements Serializable{
         }
         Arrays.sort(other.sources);
         Arrays.sort(sources);
-        for (int i=0; i< sources.length; i++) {
+        for (int i = 0; i < sources.length; i++) {
             if (sources[i] != other.sources[i]) {
                 return false;
             }
         }
         return true;
     }
-
-
 }

@@ -23,6 +23,10 @@
 
 package com.xilinx.rapidwright.interchange;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import com.xilinx.rapidwright.design.SitePinInst;
 import com.xilinx.rapidwright.design.tools.LUTTools;
 import com.xilinx.rapidwright.device.BELClass;
@@ -35,18 +39,8 @@ import com.xilinx.rapidwright.device.SitePin;
 import com.xilinx.rapidwright.device.Wire;
 import com.xilinx.rapidwright.util.Utils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 public class RouteBranchNode {
-
-    enum RouteSegmentType {
-        SITE_PIN,
-        BEL_PIN,
-        SITE_PIP,
-        PIP
-    }
+    enum RouteSegmentType { SITE_PIN, BEL_PIN, SITE_PIP, PIP }
 
     private Object routeSegment;
 
@@ -86,7 +80,7 @@ public class RouteBranchNode {
     }
 
     public RouteBranchNode(Site site, BELPin belPin, boolean isRoutethru) {
-        routeSegment = new SiteBELPin(site,belPin);
+        routeSegment = new SiteBELPin(site, belPin);
         type = RouteSegmentType.BEL_PIN;
         routethru = isRoutethru;
     }
@@ -96,19 +90,19 @@ public class RouteBranchNode {
     }
 
     public SitePinInst getSitePin() {
-        return (SitePinInst) routeSegment;
+        return (SitePinInst)routeSegment;
     }
 
     public SiteBELPin getBELPin() {
-        return (SiteBELPin) routeSegment;
+        return (SiteBELPin)routeSegment;
     }
 
     public SiteSitePIP getSitePIP() {
-        return (SiteSitePIP) routeSegment;
+        return (SiteSitePIP)routeSegment;
     }
 
     public PIP getPIP() {
-        return (PIP) routeSegment;
+        return (PIP)routeSegment;
     }
 
     public String toString() {
@@ -129,7 +123,8 @@ public class RouteBranchNode {
     public boolean isSource() {
         if (type == RouteSegmentType.BEL_PIN) {
             SiteBELPin belPin = getBELPin();
-            if (belPin.belPin.isInput()) return false;
+            if (belPin.belPin.isInput())
+                return false;
             if (belPin.belPin.getBEL().getBELClass() == BELClass.BEL) {
                 return !routethru;
             }
@@ -155,8 +150,8 @@ public class RouteBranchNode {
     public List<String> getDrivers(boolean simulateSwappedLutPins) {
         ArrayList<String> drivers = new ArrayList<String>();
 
-        switch(type) {
-            case PIP:{
+        switch (type) {
+            case PIP: {
                 PIP pip = getPIP();
                 Node node = pip.isReversed() ? pip.getEndNode() : pip.getStartNode();
                 for (Wire w : node.getAllWiresInNode()) {
@@ -172,14 +167,14 @@ public class RouteBranchNode {
                 }
                 break;
             }
-            case SITE_PIP:{
+            case SITE_PIP: {
                 SiteSitePIP sitePIP = getSitePIP();
                 // The "driver" of the site PIP is the input BELPin used to enter
                 BELPin belPinSrc = sitePIP.sitePIP.getInputPin();
                 drivers.add(sitePIP.site.getName() + "/" + belPinSrc.toString());
                 break;
             }
-            case SITE_PIN:{
+            case SITE_PIN: {
                 SitePinInst spi = getSitePin();
                 if (spi.isOutPin()) {
                     BELPin belPin = spi.getBELPin();
@@ -190,7 +185,7 @@ public class RouteBranchNode {
                         char lutLetter = spi.getName().charAt(0);
                         int originalInput = spi.getName().charAt(1) - '0';
                         Site site = spi.getSite();
-                        assert(Utils.isSLICE(site.getSiteTypeEnum()));
+                        assert (Utils.isSLICE(site.getSiteTypeEnum()));
                         nodes = new ArrayList<>(LUTTools.MAX_LUT_SIZE);
                         // Prioritize the original input node without pin swapping
                         nodes.add(spi.getConnectedNode());
@@ -213,10 +208,10 @@ public class RouteBranchNode {
                     }
                 }
                 break;
-            }case BEL_PIN:{
+            }
+            case BEL_PIN: {
                 SiteBELPin belPin = getBELPin();
-                if (belPin.belPin.isOutput() && belPin.belPin.getBEL().getBELClass() == BELClass.RBEL
-                                                                                && !isSource()) {
+                if (belPin.belPin.isOutput() && belPin.belPin.getBEL().getBELClass() == BELClass.RBEL && !isSource()) {
                     String site = belPin.site.getName() + "/";
                     for (SitePIP p : belPin.belPin.getSitePIPs()) {
                         drivers.add(site + p.toString());

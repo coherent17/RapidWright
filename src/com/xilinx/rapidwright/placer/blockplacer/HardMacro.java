@@ -52,7 +52,6 @@ public class HardMacro extends ModuleInst implements Comparable<Object> {
     private Site tempAnchorSite;
     private RelocatableTileRectangle tempAnchorBoundingBox;
 
-
     private int tileSize = 0;
 
     public HardMacro(ModuleInst moduleInst) {
@@ -100,7 +99,6 @@ public class HardMacro extends ModuleInst implements Comparable<Object> {
      * @param tempAnchorSite the tempAnchorSite to set
      */
     public void setTempAnchorSite(Site tempAnchorSite, HashMap<Site, HardMacro> currentPlacements) {
-
         // perform the move
         if (currentPlacements != null) {
             currentPlacements.remove(this.tempAnchorSite);
@@ -108,7 +106,8 @@ public class HardMacro extends ModuleInst implements Comparable<Object> {
         }
 
         this.tempAnchorSite = tempAnchorSite;
-        this.tempAnchorBoundingBox = getModule().getBoundingBox().getCorresponding(tempAnchorSite.getTile(), getModule().getAnchor().getTile());
+        this.tempAnchorBoundingBox =
+            getModule().getBoundingBox().getCorresponding(tempAnchorSite.getTile(), getModule().getAnchor().getTile());
     }
 
     /**
@@ -144,7 +143,7 @@ public class HardMacro extends ModuleInst implements Comparable<Object> {
 
     @Override
     public RelocatableTileRectangle getBoundingBox() {
-        if (getTempAnchorSite()!=null) {
+        if (getTempAnchorSite() != null) {
             return tempAnchorBoundingBox;
         }
         return super.getBoundingBox();
@@ -174,7 +173,7 @@ public class HardMacro extends ModuleInst implements Comparable<Object> {
 
     @Override
     public Site getPlacement() {
-        if (tempAnchorSite!=null) {
+        if (tempAnchorSite != null) {
             return tempAnchorSite;
         }
         return super.getPlacement();
@@ -182,6 +181,6 @@ public class HardMacro extends ModuleInst implements Comparable<Object> {
 
     @Override
     public boolean isPlaced() {
-        return super.isPlaced() || tempAnchorSite!=null;
+        return super.isPlaced() || tempAnchorSite != null;
     }
 }

@@ -37,16 +37,13 @@ import com.xilinx.rapidwright.util.FileTools;
  *
  */
 public class CellPinStaticDefaults {
-
     private static Map<Series, Map<Unisim, Map<String, NetType>>> cellPinDefaultsMap;
 
     @SuppressWarnings("unchecked")
     public static synchronized Map<Series, Map<Unisim, Map<String, NetType>>> getCellPinDefaultsMap() {
         if (cellPinDefaultsMap == null) {
-            InputStream is = FileTools.getRapidWrightResourceInputStream(
-                    FileTools.CELL_PIN_DEFAULTS_FILE_NAME);
-            cellPinDefaultsMap = (Map<Series, Map<Unisim, Map<String, NetType>>>)
-                    FileTools.readObjectFromKryoFile(is);
+            InputStream is = FileTools.getRapidWrightResourceInputStream(FileTools.CELL_PIN_DEFAULTS_FILE_NAME);
+            cellPinDefaultsMap = (Map<Series, Map<Unisim, Map<String, NetType>>>)FileTools.readObjectFromKryoFile(is);
         }
         return cellPinDefaultsMap;
     }
@@ -63,16 +60,15 @@ public class CellPinStaticDefaults {
         return null;
     }
 
-    private static void writeToFileDefaultsMap(
-            Map<Series, Map<Unisim, Map<String,NetType>>> pinDefaults,
-            String fileName) throws IOException {
+    private static void writeToFileDefaultsMap(Map<Series, Map<Unisim, Map<String, NetType>>> pinDefaults,
+                                               String fileName) throws IOException {
         BufferedWriter bw = new BufferedWriter(new FileWriter(fileName));
-        for (Entry<Series, Map<Unisim, Map<String,NetType>>> e : pinDefaults.entrySet()) {
+        for (Entry<Series, Map<Unisim, Map<String, NetType>>> e : pinDefaults.entrySet()) {
             bw.write(e.getKey() + ":\n");
-            for (Entry<Unisim, Map<String,NetType>> e2 : e.getValue().entrySet()) {
+            for (Entry<Unisim, Map<String, NetType>> e2 : e.getValue().entrySet()) {
                 bw.write("  " + e2.getKey() + ":\n");
-                for (Entry<String,NetType> e3 : e2.getValue().entrySet()) {
-                    bw.write("    " + e3.getKey() +"=" + e3.getValue() + "\n");
+                for (Entry<String, NetType> e3 : e2.getValue().entrySet()) {
+                    bw.write("    " + e3.getKey() + "=" + e3.getValue() + "\n");
                 }
             }
         }

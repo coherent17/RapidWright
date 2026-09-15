@@ -39,7 +39,7 @@ import com.trolltech.qt.gui.QWheelEvent;
  * This class is written specifically for the DeviceBrowser class and provides
  * the Qt View.  It controls much of the interaction from the user.
  */
-public class TileView extends QGraphicsView{
+public class TileView extends QGraphicsView {
     /** Current center of this view */
     QPointF currCenter;
     /** Stores the last pan of the view */
@@ -81,7 +81,6 @@ public class TileView extends QGraphicsView{
         if (addingAPBlock && event.button().equals(Qt.MouseButton.LeftButton)) {
             // Start drawing a Pblock
             System.out.println("Begin drawing pblock...");
-
         }
         super.mousePressEvent(event);
     }
@@ -112,16 +111,14 @@ public class TileView extends QGraphicsView{
             if (lastPan != null && !lastPan.isNull()) {
                 hasPanned = true;
                 // Get how much we panned
-                QPointF s1 = mapToScene(new QPoint((int) lastPan.x(),
-                        (int) lastPan.y()));
-                QPointF s2 = mapToScene(new QPoint((int) event.pos().x(),
-                        (int) event.pos().y()));
+                QPointF s1 = mapToScene(new QPoint((int)lastPan.x(), (int)lastPan.y()));
+                QPointF s2 = mapToScene(new QPoint((int)event.pos().x(), (int)event.pos().y()));
                 QPointF delta = new QPointF(s1.x() - s2.x(), s1.y() - s2.y());
                 lastPan = event.pos();
                 // Scroll the scrollbars ie. do the pan
                 double zoom = this.matrix().m11();
-                this.horizontalScrollBar().setValue((int) (this.horizontalScrollBar().value()+zoom*delta.x()));
-                this.verticalScrollBar().setValue((int) (this.verticalScrollBar().value()+zoom*delta.y()));
+                this.horizontalScrollBar().setValue((int)(this.horizontalScrollBar().value() + zoom * delta.x()));
+                this.verticalScrollBar().setValue((int)(this.verticalScrollBar().value() + zoom * delta.y()));
             }
         }
         super.mouseMoveEvent(event);
@@ -148,17 +145,17 @@ public class TileView extends QGraphicsView{
                 scale(1.0 / scaleFactor, 1.0 / scaleFactor);
         }
 
-        //Read the new zoom value
+        // Read the new zoom value
         zoom = this.matrix().m11();
 
         // Get the position after scaling, in scene coords
         QPointF pointAfterScale = mapToScene(event.pos());
 
         // Get the offset of how the screen moved
-        QPointF offset = new QPointF(
-                pointBeforeScale.x() - pointAfterScale.x(), pointBeforeScale.y() - pointAfterScale.y());
-        this.horizontalScrollBar().setValue((int) (this.horizontalScrollBar().value()+zoom*offset.x()));
-        this.verticalScrollBar().setValue((int) (this.verticalScrollBar().value()+zoom*offset.y()));
+        QPointF offset =
+            new QPointF(pointBeforeScale.x() - pointAfterScale.x(), pointBeforeScale.y() - pointAfterScale.y());
+        this.horizontalScrollBar().setValue((int)(this.horizontalScrollBar().value() + zoom * offset.x()));
+        this.verticalScrollBar().setValue((int)(this.verticalScrollBar().value() + zoom * offset.y()));
     }
 
     /**
@@ -200,6 +197,4 @@ public class TileView extends QGraphicsView{
             setCursor(new QCursor(CursorShape.ArrowCursor));
         }
     }
-
 }
-

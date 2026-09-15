@@ -52,7 +52,6 @@ import com.xilinx.rapidwright.device.Series;
  * Created on: May 11, 2017
  */
 public class EDIFCell extends EDIFPropertyObject {
-
     public static final EDIFName DEFAULT_VIEW = new EDIFName("netlist");
 
     private EDIFLibrary library;
@@ -75,11 +74,12 @@ public class EDIFCell extends EDIFPropertyObject {
      */
     private volatile int nonHierInstantiationCount = 0;
     private static final AtomicIntegerFieldUpdater<EDIFCell> nonHierInstantiationCountUpdater =
-            AtomicIntegerFieldUpdater.newUpdater(EDIFCell.class, "nonHierInstantiationCount");
+        AtomicIntegerFieldUpdater.newUpdater(EDIFCell.class, "nonHierInstantiationCount");
 
     public EDIFCell(EDIFLibrary lib, String name) {
         super(name);
-        if (lib != null) lib.addCell(this);
+        if (lib != null)
+            lib.addCell(this);
     }
 
     /**
@@ -101,7 +101,8 @@ public class EDIFCell extends EDIFPropertyObject {
      */
     public EDIFCell(EDIFLibrary lib, EDIFCell orig) {
         super(orig.getName());
-        if (lib != null) lib.addCell(this);
+        if (lib != null)
+            lib.addCell(this);
         instances = orig.instances;
         nets = orig.nets;
         ports = orig.ports;
@@ -137,7 +138,8 @@ public class EDIFCell extends EDIFPropertyObject {
     }
 
     private void deepCopyInit(EDIFLibrary lib, EDIFCell orig, String newCellName, boolean includeNetsAndInsts) {
-        if (lib != null) lib.addCell(this);
+        if (lib != null)
+            lib.addCell(this);
         if (includeNetsAndInsts && orig.instances != null) {
             for (Entry<String, EDIFCellInst> e : orig.instances.entrySet()) {
                 addCellInst(new EDIFCellInst(e.getValue(), this));
@@ -177,7 +179,6 @@ public class EDIFCell extends EDIFPropertyObject {
     }
 
     protected EDIFCell() {
-
     }
 
     public EDIFCellInst createChildCellInst(String name, EDIFCell reference) {
@@ -198,13 +199,14 @@ public class EDIFCell extends EDIFPropertyObject {
      * @return The instance added to the cell.
      */
     public EDIFCellInst addCellInst(EDIFCellInst instance) {
-        if (instances == null) instances = getNewMap();
+        if (instances == null)
+            instances = getNewMap();
         instance.setParentCell(this);
         EDIFCellInst collision = instances.put(instance.getName(), instance);
         if (collision != null && instance != collision) {
-            throw new RuntimeException("ERROR: Name collsion inside EDIFCell " +
-                    getName() + ", trying to add instance " + instance.getName() +
-                    " which already exists inside this cell.");
+            throw new RuntimeException("ERROR: Name collsion inside EDIFCell " + getName() +
+                                       ", trying to add instance " + instance.getName() +
+                                       " which already exists inside this cell.");
         }
         return instance;
     }
@@ -217,7 +219,8 @@ public class EDIFCell extends EDIFPropertyObject {
      * @return The instance added to the cell.
      */
     public EDIFCellInst addCellInstUniqueName(EDIFCellInst instance) {
-        if (instances == null) instances = getNewMap();
+        if (instances == null)
+            instances = getNewMap();
         instance.setParentCell(this);
         while (instances.containsKey(instance.getName())) {
             instance.setName(instance.getName() + "_" + getLibrary().getNetlist().nameSpaceUniqueCount++);
@@ -227,7 +230,8 @@ public class EDIFCell extends EDIFPropertyObject {
     }
 
     public EDIFCellInst getCellInst(String name) {
-        if (instances == null) return null;
+        if (instances == null)
+            return null;
         return instances.get(name);
     }
 
@@ -238,13 +242,13 @@ public class EDIFCell extends EDIFPropertyObject {
      * @return The net that was added.
      */
     public EDIFNet addNet(EDIFNet net) {
-        if (nets == null) nets = getNewMap();
+        if (nets == null)
+            nets = getNewMap();
         net.setParentCell(this);
         EDIFNet collision = nets.put(net.getName(), net);
         if (collision != null && net != collision) {
-            throw new RuntimeException("ERROR: Name collision inside EDIFCell " +
-                    getName() + ", trying to add net " + net.getName() +
-                    " which already exists inside this cell.");
+            throw new RuntimeException("ERROR: Name collision inside EDIFCell " + getName() + ", trying to add net " +
+                                       net.getName() + " which already exists inside this cell.");
         }
         return net;
     }
@@ -254,7 +258,8 @@ public class EDIFCell extends EDIFPropertyObject {
     }
 
     public EDIFNet getNet(String name) {
-        if (nets == null) return null;
+        if (nets == null)
+            return null;
         return nets.get(name);
     }
 
@@ -263,7 +268,8 @@ public class EDIFCell extends EDIFPropertyObject {
     }
 
     public EDIFNet removeNet(String name) {
-        if (nets == null) return null;
+        if (nets == null)
+            return null;
         trackChange(EDIFChangeType.NET_REMOVE, name);
         return nets.remove(name);
     }
@@ -280,13 +286,14 @@ public class EDIFCell extends EDIFPropertyObject {
      * @return The port that was added.
      */
     public EDIFPort addPort(EDIFPort port) {
-        if (ports == null) ports = getNewMap();
+        if (ports == null)
+            ports = getNewMap();
         port.setParentCell(this);
         EDIFPort collision = ports.put(port.getBusName(true), port);
         if (collision != null && port != collision) {
-            throw new RuntimeException("ERROR: Port name collision on EDIFCell " + getName()
-                    + ", trying to add port " + port
-                    + ", but the cell already contains ports with the " + "same name: " + collision);
+            throw new RuntimeException("ERROR: Port name collision on EDIFCell " + getName() + ", trying to add port " +
+                                       port + ", but the cell already contains ports with the "
+                                       + "same name: " + collision);
         }
         return port;
     }
@@ -301,9 +308,11 @@ public class EDIFCell extends EDIFPropertyObject {
      * @return The port or null if none exists.
      */
     public EDIFPort getPort(String name) {
-        if (ports == null) return null;
+        if (ports == null)
+            return null;
         EDIFPort port = ports.get(name);
-        // For callers who have a port name and its unknown if its a bus, attempt a check with adding the '[' suffix
+        // For callers who have a port name and its unknown if its a bus, attempt a check with
+        // adding the '[' suffix
         if (port == null && name.charAt(name.length() - 1) != '[') {
             port = ports.get(name + "[");
         }
@@ -318,7 +327,8 @@ public class EDIFCell extends EDIFPropertyObject {
      * @return
      */
     public EDIFPort getPortByPortInstName(String portInstName) {
-        if (ports == null) return null;
+        if (ports == null)
+            return null;
         EDIFPort port = ports.get(portInstName);
         if (port == null && portInstName.charAt(portInstName.length() - 1) == ']') {
             port = ports.get(portInstName.substring(0, portInstName.lastIndexOf('[') + 1));
@@ -340,8 +350,8 @@ public class EDIFCell extends EDIFPropertyObject {
         EDIFPort port = getPortByPortInstName(currName);
 
         if (port == null) {
-            throw new RuntimeException("Attempting to rename port " + currName
-                    + " that does not exist on cell " + getName());
+            throw new RuntimeException("Attempting to rename port " + currName + " that does not exist on cell " +
+                                       getName());
         }
 
         EDIFPort newPort = new EDIFPort(newName, port.getDirection(), port.getWidth());
@@ -369,10 +379,11 @@ public class EDIFCell extends EDIFPropertyObject {
     }
 
     public EDIFCellInst removeCellInst(String name) {
-        if (instances == null) return null;
+        if (instances == null)
+            return null;
         EDIFCellInst removedInstance = instances.remove(name);
         if (removedInstance != null) {
-            assert(removedInstance.getParentCell() == this);
+            assert (removedInstance.getParentCell() == this);
             removedInstance.setParentCell(null);
         }
         return removedInstance;
@@ -414,9 +425,9 @@ public class EDIFCell extends EDIFPropertyObject {
     public EDIFCellInst renameCellInst(EDIFCellInst i, String newName) {
         EDIFCellInst inst = getCellInst(i.getName());
         if (inst == null) {
-            throw new RuntimeException("ERROR: " +
-                    "Couldn't find instance " + i.getName() + " in cell " + getName() +
-                    " when trying to rename to " + newName);
+            throw new RuntimeException("ERROR: "
+                                       + "Couldn't find instance " + i.getName() + " in cell " + getName() +
+                                       " when trying to rename to " + newName);
         }
         removeCellInst(inst);
         inst.setName(newName);
@@ -438,7 +449,8 @@ public class EDIFCell extends EDIFPropertyObject {
     }
 
     public void moveToLibrary(EDIFLibrary newLibrary) {
-        if (library != null) library.removeCell(this);
+        if (library != null)
+            library.removeCell(this);
         newLibrary.addCell(this);
     }
 
@@ -472,7 +484,8 @@ public class EDIFCell extends EDIFPropertyObject {
     }
 
     public Collection<EDIFPort> getPorts() {
-        if (ports == null) return Collections.emptyList();
+        if (ports == null)
+            return Collections.emptyList();
         return ports.values();
     }
 
@@ -481,23 +494,27 @@ public class EDIFCell extends EDIFPropertyObject {
     }
 
     public Collection<EDIFCellInst> getCellInsts() {
-        if (instances == null) return Collections.emptyList();
+        if (instances == null)
+            return Collections.emptyList();
         return instances.values();
     }
 
     public Collection<EDIFNet> getNets() {
-        if (nets == null) return Collections.emptyList();
+        if (nets == null)
+            return Collections.emptyList();
         return nets.values();
     }
 
     /**
      * Populates an internal map between port-based port ref name,  'bus[3]' or 'clk'.
      *
-     * @param portInstName Name from a port ref as generated in @link {@link EDIFPortInst#getPortInstNameFromPort()}
+     * @param portInstName Name from a port ref as generated in @link {@link
+     *     EDIFPortInst#getPortInstNameFromPort()}
      * @param internalNet  The net inside this cell to match with the port ref name.
      */
     public void addInternalPortMapEntry(String portInstName, EDIFNet internalNet) {
-        if (internalPortMap == null) internalPortMap = getNewMap();
+        if (internalPortMap == null)
+            internalPortMap = getNewMap();
         internalPortMap.put(portInstName, internalNet);
     }
 
@@ -508,12 +525,14 @@ public class EDIFCell extends EDIFPropertyObject {
      * @return The net to which the removed port ref belongs, or null if none could be found.
      */
     public EDIFNet removeInternalPortMapEntry(String portInstName) {
-        if (internalPortMap == null) return null;
+        if (internalPortMap == null)
+            return null;
         return internalPortMap.remove(portInstName);
     }
 
     public Map<String, EDIFNet> getInternalNetMap() {
-        if (internalPortMap == null) return Collections.emptyMap();
+        if (internalPortMap == null)
+            return Collections.emptyMap();
         return internalPortMap;
     }
 
@@ -536,7 +555,8 @@ public class EDIFCell extends EDIFPropertyObject {
      * @return The internal connected net or null if none exists.
      */
     public EDIFNet getInternalNet(String portInstName) {
-        if (internalPortMap == null) return null;
+        if (internalPortMap == null)
+            return null;
         return internalPortMap.get(portInstName);
     }
 
@@ -555,7 +575,8 @@ public class EDIFCell extends EDIFPropertyObject {
             throw new RuntimeException("ERROR: library argument cannot be null.");
         }
         if (this.library != null && this.library != library) {
-            throw new RuntimeException("ERROR: EDIFCell is already attached to a library. Call EDIFLibrary.removeCell() first.");
+            throw new RuntimeException("ERROR: EDIFCell is already attached to a library. Call "
+                                       + "EDIFLibrary.removeCell() first.");
         }
 
         this.library = library;
@@ -602,8 +623,9 @@ public class EDIFCell extends EDIFPropertyObject {
      * @return True if the ports on each cell match each other, false otherwise.
      */
     public boolean hasCompatibleInterface(EDIFCell cell) {
-        Map<String,EDIFPort> portMap = new HashMap<>(ports);
-        if (portMap.size() != cell.getPortMap().size()) return false;
+        Map<String, EDIFPort> portMap = new HashMap<>(ports);
+        if (portMap.size() != cell.getPortMap().size())
+            return false;
 
         for (EDIFPort port : cell.getPorts()) {
             EDIFPort match = portMap.remove(port.getBusName(true));
@@ -613,9 +635,12 @@ public class EDIFCell extends EDIFPropertyObject {
                     return false;
                 }
             }
-            if (!Objects.equals(port.getName(), match.getName())) return false;
-            if (!Objects.equals(port.getWidth(), match.getWidth())) return false;
-            if (!Objects.equals(port.getDirection(), match.getDirection())) return false;
+            if (!Objects.equals(port.getName(), match.getName()))
+                return false;
+            if (!Objects.equals(port.getWidth(), match.getWidth()))
+                return false;
+            if (!Objects.equals(port.getDirection(), match.getDirection()))
+                return false;
         }
         return portMap.isEmpty();
     }
@@ -641,10 +666,11 @@ public class EDIFCell extends EDIFPropertyObject {
         internalPortMap = null;
     }
 
-
     public static final byte[] EXPORT_CONST_CELL_BEGIN = "   (cell ".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] EXPORT_CONST_CELLTYPE = " (celltype GENERIC)\n     (view ".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] EXPORT_CONST_VIEWTYPE = " (viewtype NETLIST)\n       (interface \n".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] EXPORT_CONST_CELLTYPE =
+        " (celltype GENERIC)\n     (view ".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] EXPORT_CONST_VIEWTYPE =
+        " (viewtype NETLIST)\n       (interface \n".getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_INTERFACE_END = "       )\n".getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_CONTENTS = "       (contents\n".getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_CONTENTS_END = "       )\n".getBytes(StandardCharsets.UTF_8);
@@ -680,7 +706,7 @@ public class EDIFCell extends EDIFPropertyObject {
         os.write(EXPORT_CONST_CELL_END); // Cell end
     }
 
-    public void exportEDIF(OutputStream os, EDIFWriteLegalNameCache<?> cache) throws IOException{
+    public void exportEDIF(OutputStream os, EDIFWriteLegalNameCache<?> cache) throws IOException {
         exportEDIF(os, cache, false);
     }
 
@@ -699,13 +725,15 @@ public class EDIFCell extends EDIFPropertyObject {
      * Recursively finds all leaf cell descendants of this cell
      *
      * @param parentInstance Parent name or prefix name for all leaf cell descendants to be
-     *                       added.  Is not error checked against netlist because the context is not available.
+     *                       added.  Is not error checked against netlist because the context is not
+     * available.
      * @return A list of all leaf cell descendants of this cell
      */
     public List<EDIFHierCellInst> getAllLeafDescendants(EDIFHierCellInst parentInstance) {
         List<EDIFHierCellInst> leafCells = new ArrayList<>();
 
-        if (!hasContents()) return leafCells;
+        if (!hasContents())
+            return leafCells;
 
         Queue<EDIFHierCellInst> toProcess = new LinkedList<EDIFHierCellInst>();
         for (EDIFCellInst inst : getCellInsts()) {
@@ -746,7 +774,7 @@ public class EDIFCell extends EDIFPropertyObject {
         }
         // Finding by EDIFName is O(n), but n is generally small and alternative to building
         // a map for this single search ends up taking longer
-        for (Map.Entry<String,EDIFPort> e : getPortMap().entrySet()) {
+        for (Map.Entry<String, EDIFPort> e : getPortMap().entrySet()) {
             if (cache.getLegalEDIFName(e.getValue()).equals(name)) {
                 return e.getValue();
             }
@@ -757,11 +785,13 @@ public class EDIFCell extends EDIFPropertyObject {
     public void sortEDIFPortInstLists() {
         for (EDIFNet net : getNets()) {
             EDIFPortInstList list = net.getEDIFPortInstList();
-            if (list != null) list.reSortList();
+            if (list != null)
+                list.reSortList();
         }
         for (EDIFCellInst inst : getCellInsts()) {
             EDIFPortInstList list = inst.getEDIFPortInstList();
-            if (list != null) list.reSortList();
+            if (list != null)
+                list.reSortList();
         }
     }
 
@@ -776,20 +806,25 @@ public class EDIFCell extends EDIFPropertyObject {
     public void trimEDIFPortInstLists() {
         for (EDIFNet net : getNets()) {
             EDIFPortInstList list = net.getEDIFPortInstList();
-            if (list != null) list.trimToSize();
+            if (list != null)
+                list.trimToSize();
         }
         for (EDIFCellInst inst : getCellInsts()) {
             EDIFPortInstList list = inst.getEDIFPortInstList();
-            if (list != null) list.trimToSize();
+            if (list != null)
+                list.trimToSize();
         }
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        EDIFCell edifCell = (EDIFCell) o;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        if (!super.equals(o))
+            return false;
+        EDIFCell edifCell = (EDIFCell)o;
         return Objects.equals(library, edifCell.library);
     }
 
@@ -828,8 +863,9 @@ public class EDIFCell extends EDIFPropertyObject {
 
     /**
      * Checks if this cell and the provided cell have the same set of ports.
-     * Port names that are the same except for starting with EDIFTools.VIVADO_PRESERVE_PORT_INTERFACE ("[]") are
-     * considered equivalent for the purpose of cells having a matching set of ports.
+     * Port names that are the same except for starting with
+     * EDIFTools.VIVADO_PRESERVE_PORT_INTERFACE ("[]") are considered equivalent for the purpose of
+     * cells having a matching set of ports.
      *
      * @param other The other cell to match against.
      * @return True if the set of ports on both this cell and the other cell match
@@ -843,15 +879,13 @@ public class EDIFCell extends EDIFPropertyObject {
         for (EDIFPort port : getPorts()) {
             EDIFPort otherPort = otherPorts.get(port.getBusName(true));
             if (otherPort == null) {
-                otherPort = otherPorts.get(EDIFTools.VIVADO_PRESERVE_PORT_INTERFACE
-                        + port.getBusName(true));
+                otherPort = otherPorts.get(EDIFTools.VIVADO_PRESERVE_PORT_INTERFACE + port.getBusName(true));
             }
-            if (otherPort == null || port.getWidth() != otherPort.getWidth()
-                    || port.getDirection() != otherPort.getDirection()) {
+            if (otherPort == null || port.getWidth() != otherPort.getWidth() ||
+                port.getDirection() != otherPort.getDirection()) {
                 return false;
             }
         }
         return true;
     }
 }
-

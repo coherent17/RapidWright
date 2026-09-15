@@ -31,16 +31,14 @@ import com.xilinx.rapidwright.device.SiteTypeEnum;
 
 /**
  * Represents a site and keeps tracks of attributes on its BELs.
- * 
+ *
  */
 public class SiteConfig {
-
     private Site site;
 
     private SiteTypeEnum type;
 
     private Map<BEL, Map<String, BELAttr>> belAttrs;
-
 
     public static SiteConfig createSiteConfig(Site site, SiteTypeEnum type) {
         return new SiteConfig(site, type);
@@ -76,7 +74,8 @@ public class SiteConfig {
     }
 
     public BELAttr getBELAttribute(BEL bel, String name) {
-        if (belAttrs == null) return null;
+        if (belAttrs == null)
+            return null;
         Map<String, BELAttr> map = belAttrs.get(bel);
         if (map != null) {
             return map.get(name);
@@ -89,7 +88,8 @@ public class SiteConfig {
     }
 
     public BELAttr removeBELAttribute(BEL bel, String name) {
-        if (belAttrs == null) return null;
+        if (belAttrs == null)
+            return null;
         Map<String, BELAttr> map = belAttrs.get(bel);
         if (map != null) {
             return map.remove(name);

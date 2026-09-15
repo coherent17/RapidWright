@@ -34,15 +34,17 @@ import java.util.stream.Collectors;
  */
 public class ExhaustiveValidPlacementCache<PlacementT> extends AbstractValidPlacementCache<PlacementT> {
     protected final List<PlacementT> placements;
-    protected final BlockPlacer2<?,?,PlacementT, ?> placer;
+    protected final BlockPlacer2<?, ?, PlacementT, ?> placer;
 
     public ExhaustiveValidPlacementCache(List<PlacementT> placements, BlockPlacer2<?, ?, PlacementT, ?> placer) {
         this.placements = placements;
         this.placer = placer;
     }
 
-    public static <PlacementT> Collector<PlacementT, ?, ExhaustiveValidPlacementCache<PlacementT>> collector(BlockPlacer2<?,?, PlacementT, ?> placer) {
-        return Collectors.collectingAndThen(Collectors.toList(), list-> new ExhaustiveValidPlacementCache<>(list, placer));
+    public static <PlacementT> Collector<PlacementT, ?, ExhaustiveValidPlacementCache<PlacementT>>
+    collector(BlockPlacer2<?, ?, PlacementT, ?> placer) {
+        return Collectors.collectingAndThen(Collectors.toList(),
+                                            list -> new ExhaustiveValidPlacementCache<>(list, placer));
     }
 
     @Override

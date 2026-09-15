@@ -22,19 +22,16 @@
 
 package com.xilinx.rapidwright.device;
 
+import java.util.Arrays;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import java.util.Arrays;
-
 public class TestTile {
     @ParameterizedTest
-    @CsvSource({
-            "xcku025,true",
-            "xcku035,false"
-    })
+    @CsvSource({"xcku025,true", "xcku035,false"})
     public void testGetWireConnections(String partName, boolean expectThrow) {
         Device dev = Device.getDevice(partName);
         Tile tile = dev.getTile("RCLK_CLE_M_L_X31Y149");
@@ -49,14 +46,16 @@ public class TestTile {
 
     @ParameterizedTest
     @CsvSource({
-            "xcvu5p,LAG_LAG_X30Y250,'[LAGUNA_X6Y140, LAGUNA_X6Y141, LAGUNA_X7Y140, LAGUNA_X7Y141]',true",
+        "xcvu5p,LAG_LAG_X30Y250,'[LAGUNA_X6Y140, LAGUNA_X6Y141, LAGUNA_X7Y140, "
+            + "LAGUNA_X7Y141]',true",
 
-            // FIXME: Known broken -- see https://github.com/Xilinx/RapidWright/issues/745
-            "xcvu3p,LAG_LAG_X30Y50,'[]',false",
-            "xcvu3p,LAG_LAG_X30Y250,'[]',false",
-            "xcvu5p,LAG_LAG_X30Y50,'[]',false",
+        // FIXME: Known broken -- see https://github.com/Xilinx/RapidWright/issues/745
+        "xcvu3p,LAG_LAG_X30Y50,'[]',false",
+        "xcvu3p,LAG_LAG_X30Y250,'[]',false",
+        "xcvu5p,LAG_LAG_X30Y50,'[]',false",
     })
-    public void testGetSites(String partName, String tileName, String expectedSites, boolean expectPass) {
+    public void
+    testGetSites(String partName, String tileName, String expectedSites, boolean expectPass) {
         Device dev = Device.getDevice(partName);
         Tile tile = dev.getTile(tileName);
         Assertions.assertEquals(expectPass, expectedSites.equals(Arrays.toString(tile.getSites())));

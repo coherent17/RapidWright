@@ -47,8 +47,6 @@ public class XDCConstraints {
     private List<List<UnsupportedConstraintElement>> unsupportedConstraints = new ArrayList<>();
     private Map<String, PBlockConstraint> pBlockConstraints = new HashMap<>();
 
-
-
     public XDCConstraints(Map<String, PackagePinConstraint> pinConstraints,
                           Map<String, ClockConstraint> clockConstraints,
                           Map<String, Map<String, String>> cellProperties,
@@ -59,23 +57,19 @@ public class XDCConstraints {
         this.unsupportedConstraints = unsupportedConstraints;
     }
 
-    private static <T extends Constraint<T>> Map<String,T> cloneMap(Map<String,T> map) {
-        return map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e->e.getValue().clone()));
+    private static <T extends Constraint<T>> Map<String, T> cloneMap(Map<String, T> map) {
+        return map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().clone()));
     }
-    private static Map<String,Map<String, String>> cloneStringMap(Map<String,Map<String, String>> map) {
-        return map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e->new HashMap<>(e.getValue())));
+    private static Map<String, Map<String, String>> cloneStringMap(Map<String, Map<String, String>> map) {
+        return map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> new HashMap<>(e.getValue())));
     }
 
     private static List<List<UnsupportedConstraintElement>> cloneList(List<List<UnsupportedConstraintElement>> list) {
         return list.stream().map(ArrayList::new).collect(Collectors.toList());
     }
     public XDCConstraints clone() {
-        return new XDCConstraints(
-                cloneMap(pinConstraints),
-                cloneMap(clockConstraints),
-                cloneStringMap(cellProperties),
-                cloneList(unsupportedConstraints)
-        );
+        return new XDCConstraints(cloneMap(pinConstraints), cloneMap(clockConstraints), cloneStringMap(cellProperties),
+                                  cloneList(unsupportedConstraints));
     }
 
     public XDCConstraints() {
@@ -102,34 +96,50 @@ public class XDCConstraints {
     }
 
     private static Stream<String> cellPropsToXdc(int counter, String cell, Map<String, String> properties) {
-        if (properties.size()<2) {
-            return properties.entrySet().stream().map(propToValue->
-                    "set_property " + propToValue.getKey() + " " + XDCTools.braceEnclosedIfNeeded(propToValue.getValue()) + " [get_cells {" + cell + "}]"
-            );
+        if (properties.size() < 2) {
+            return properties.entrySet().stream().map(propToValue
+                                                      -> "set_property " + propToValue.getKey() + " " +
+                                                             XDCTools.braceEnclosedIfNeeded(propToValue.getValue()) +
+                                                             " [get_cells {" + cell + "}]");
         }
 
-        String varName = "rw_getcell_"+counter;
-        String initVarLine = "set "+varName+  " [get_cells {" + cell + "}]";
-        return Stream.concat(
-                Stream.of(initVarLine),
-                properties.entrySet().stream().sorted(Map.Entry.comparingByKey()).map(propToValue->
-                                "set_property " + propToValue.getKey() + " " + XDCTools.braceEnclosedIfNeeded(propToValue.getValue()) + " $"+varName
-                        )
-        );
+        String varName = "rw_getcell_" + counter;
+        String initVarLine = "set " + varName + " [get_cells {" + cell + "}]";
+        return Stream.concat(Stream.of(initVarLine),
+                             properties.entrySet()
+                                 .stream()
+                                 .sorted(Map.Entry.comparingByKey())
+                                 .map(propToValue
+                                      -> "set_property " + propToValue.getKey() + " " +
+                                             XDCTools.braceEnclosedIfNeeded(propToValue.getValue()) + " $" + varName));
     }
 
     public Stream<String> getAllAsXdc() {
-        Stream<String> clocks = clockConstraints.values().stream().sorted(Comparator.comparing(ClockConstraint::getPortName)).map(ClockConstraint::asXdc);
-        Stream<String> unsupported = unsupportedConstraints.stream().map(e->UnsupportedConstraintElement.toXdc(e.stream()));
+        Stream<String> clocks = clockConstraints.values()
+                                    .stream()
+                                    .sorted(Comparator.comparing(ClockConstraint::getPortName))
+                                    .map(ClockConstraint::asXdc);
+        Stream<String> unsupported =
+            unsupportedConstraints.stream().map(e -> UnsupportedConstraintElement.toXdc(e.stream()));
 
         AtomicInteger varCounter = new AtomicInteger();
-        Stream<String> cellProps = cellProperties.entrySet().stream().sorted(Map.Entry.comparingByKey()).flatMap(
-                cellToProps -> cellPropsToXdc(varCounter.getAndIncrement(), cellToProps.getKey(), cellToProps.getValue()));
-        Stream<String> pinConstrs = pinConstraints.values().stream().sorted(Comparator.comparing(PackagePinConstraint::getPortName)).flatMap(PackagePinConstraint::asXdc);
-        Stream<String> pblockConstrs = pBlockConstraints.values().stream().sorted(Comparator.comparing(pBlockConstraint -> pBlockConstraint.getPblock().getName())).flatMap(PBlockConstraint::asXdc);
+        Stream<String> cellProps =
+            cellProperties.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey())
+                .flatMap(cellToProps
+                         -> cellPropsToXdc(varCounter.getAndIncrement(), cellToProps.getKey(), cellToProps.getValue()));
+        Stream<String> pinConstrs = pinConstraints.values()
+                                        .stream()
+                                        .sorted(Comparator.comparing(PackagePinConstraint::getPortName))
+                                        .flatMap(PackagePinConstraint::asXdc);
+        Stream<String> pblockConstrs =
+            pBlockConstraints.values()
+                .stream()
+                .sorted(Comparator.comparing(pBlockConstraint -> pBlockConstraint.getPblock().getName()))
+                .flatMap(PBlockConstraint::asXdc);
 
-
-        return Stream.of(clocks, cellProps, pinConstrs, pblockConstrs, unsupported).flatMap(e->e);
+        return Stream.of(clocks, cellProps, pinConstrs, pblockConstrs, unsupported).flatMap(e -> e);
     }
 
     public void writeToFile(Path file) {
@@ -140,42 +150,44 @@ public class XDCConstraints {
         }
     }
 
-    private List<UnsupportedConstraintElement> rewriteUnsupported(List<UnsupportedConstraintElement> list, UnaryOperator<String> cellNameMapper) {
-        return list.stream().map(elem -> {
-            if (!(elem instanceof UnsupportedConstraintElement.CellConstraintElement)) {
-                return elem;
-            }
-            UnsupportedConstraintElement.CellConstraintElement cellElem = (UnsupportedConstraintElement.CellConstraintElement) elem;
-            return new UnsupportedConstraintElement.CellConstraintElement(cellNameMapper.apply(cellElem.getCellName()));
-        }).collect(Collectors.toList());
+    private List<UnsupportedConstraintElement> rewriteUnsupported(List<UnsupportedConstraintElement> list,
+                                                                  UnaryOperator<String> cellNameMapper) {
+        return list.stream()
+            .map(elem -> {
+                if (!(elem instanceof UnsupportedConstraintElement.CellConstraintElement)) {
+                    return elem;
+                }
+                UnsupportedConstraintElement.CellConstraintElement cellElem =
+                    (UnsupportedConstraintElement.CellConstraintElement)elem;
+                return new UnsupportedConstraintElement.CellConstraintElement(
+                    cellNameMapper.apply(cellElem.getCellName()));
+            })
+            .collect(Collectors.toList());
     }
 
     public XDCConstraints duplicateWithReplacedCellNames(UnaryOperator<String> cellNameMapper) {
-        Map<String, Map<String, String>> rewrittenProperties = cellProperties.entrySet().stream()
+        Map<String, Map<String, String>> rewrittenProperties =
+            cellProperties.entrySet()
+                .stream()
                 .flatMap(e -> e.getValue().entrySet().stream().map(e2 -> new Pair<>(e.getKey(), e2)))
                 .collect(Collectors.groupingBy(
-                        e -> cellNameMapper.apply(e.getFirst()), Collectors.toMap(
-                                e->e.getSecond().getKey(),
-                                e->e.getSecond().getValue(),
-                                (a,b) -> {
-                                    if (!a.equals(b)) {
-                                        throw new IllegalStateException("Cannot merge values "+a+" and "+b);
-                                    }
-                                    return a;
-                                }
-                        )
-                ));
-        List<List<UnsupportedConstraintElement>> rewrittenUnsupported = unsupportedConstraints.stream()
-                .map(l->rewriteUnsupported(l, cellNameMapper)).collect(Collectors.toList());
-        return new XDCConstraints(
-                pinConstraints,
-                clockConstraints,
-                rewrittenProperties,
-                rewrittenUnsupported
-        );
+                    e
+                    -> cellNameMapper.apply(e.getFirst()),
+                    Collectors.toMap(e -> e.getSecond().getKey(), e -> e.getSecond().getValue(), (a, b) -> {
+                        if (!a.equals(b)) {
+                            throw new IllegalStateException("Cannot merge values " + a + " and " + b);
+                        }
+                        return a;
+                    })));
+        List<List<UnsupportedConstraintElement>> rewrittenUnsupported =
+            unsupportedConstraints.stream()
+                .map(l -> rewriteUnsupported(l, cellNameMapper))
+                .collect(Collectors.toList());
+        return new XDCConstraints(pinConstraints, clockConstraints, rewrittenProperties, rewrittenUnsupported);
     }
 
     public boolean isCellReferencedInConstraints(String name) {
-        return unsupportedConstraints.stream().anyMatch(elements -> elements.stream().anyMatch(elem -> elem.referencesCell(name)));
+        return unsupportedConstraints.stream().anyMatch(
+            elements -> elements.stream().anyMatch(elem -> elem.referencesCell(name)));
     }
 }

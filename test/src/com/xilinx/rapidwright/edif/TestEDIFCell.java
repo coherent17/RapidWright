@@ -42,12 +42,14 @@ public class TestEDIFCell {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "picoblaze_ooc_X10Y235.dcp",
-            "optical-flow.dcp",
-            "bnn.dcp",
-    })
-    public void testIsUniquified(String path) {
+    @ValueSource(strings =
+                     {
+                         "picoblaze_ooc_X10Y235.dcp",
+                         "optical-flow.dcp",
+                         "bnn.dcp",
+                     })
+    public void
+    testIsUniquified(String path) {
         Design design = RapidWrightDCP.loadDCP(path, true);
         EDIFNetlist netlist = design.getNetlist();
 
@@ -84,7 +86,8 @@ public class TestEDIFCell {
         Assertions.assertNotNull(topCell.removeCellInst("picoblaze_1_12"));
         Assertions.assertNotNull(topCell.removeCellInst("picoblaze_1_13"));
 
-        // Check that creating an EDIFCellInst without a parent cell does not increment instance count
+        // Check that creating an EDIFCellInst without a parent cell does not increment instance
+        // count
         EDIFCellInst eci = new EDIFCellInst("picoblaze_1_13", picoblazeTop, null);
         Assertions.assertTrue(picoblazeTop.isUniquified());
 

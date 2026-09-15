@@ -24,11 +24,6 @@ package com.xilinx.rapidwright.design;
 
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-
 import com.xilinx.rapidwright.device.BEL;
 import com.xilinx.rapidwright.device.SiteTypeEnum;
 import com.xilinx.rapidwright.edif.EDIFCell;
@@ -38,11 +33,14 @@ import com.xilinx.rapidwright.edif.EDIFNetlist;
 import com.xilinx.rapidwright.edif.EDIFTools;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
 import com.xilinx.rapidwright.util.VivadoToolsHelper;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class TestDCPSave {
-
     @ParameterizedTest
-    @ValueSource(booleans = { true, false })
+    @ValueSource(booleans = {true, false})
     public void testDCPSave(boolean detachNetlist, @TempDir Path tempDir) {
         // Taken from example provided by https://github.com/nqdtan in #548
         Design d = new Design("test", "xcvc1902-vsvd1760-2MP-e-S");
@@ -57,8 +55,7 @@ public class TestDCPSave {
         EDIFCellInst eci1 = new EDIFCellInst("LUTCY1_INST", ec1, ec0);
         EDIFCellInst eci2 = new EDIFCellInst("LUTCY2_INST", ec2, ec0);
 
-        SiteInst si = new SiteInst("SLICE_X182Y139", d, SiteTypeEnum.SLICEL,
-                d.getDevice().getSite("SLICE_X182Y139"));
+        SiteInst si = new SiteInst("SLICE_X182Y139", d, SiteTypeEnum.SLICEL, d.getDevice().getSite("SLICE_X182Y139"));
         BEL bel1 = si.getSite().getBEL("B5LUT");
         BEL bel2 = si.getSite().getBEL("B6LUT");
 

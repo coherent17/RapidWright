@@ -25,15 +25,13 @@ package com.xilinx.rapidwright.design.tools;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import com.xilinx.rapidwright.device.ClockRegion;
 import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.device.Tile;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestTileGroup {
-
     @Test
     public void testTileGroup() {
         Device d = Device.getDevice("xcvc1902");

@@ -25,7 +25,6 @@ package com.xilinx.rapidwright.util;
 import java.util.List;
 
 public class ReportPlaceStatusResult {
-
     public int logicalCells;
     public int unplacedCells;
     public int placedCells;
@@ -83,14 +82,15 @@ public class ReportPlaceStatusResult {
         sb.append(String.format("   # of logical cells............................ : %11d :\n", logicalCells));
         sb.append(String.format("       # of unplaced cells....................... : %11d :\n", unplacedCells));
         sb.append(String.format("       # of placed cells......................... : %11d :\n", placedCells));
-        sb.append(String.format("       # of cells with fixed placement........... : %11d :\n", cellsWithFixedPlacement));
+        sb.append(
+            String.format("       # of cells with fixed placement........... : %11d :\n", cellsWithFixedPlacement));
         sb.append(String.format("   # of used sites............................... : %11d :\n", usedSites));
         sb.append(String.format("       # of sites with route thrus............... : %11d :\n", sitesWithRouteThrus));
-        sb.append(String.format("       # of sites with inverted inputs........... : %11d :\n", sitesWithInvertedInputs));
+        sb.append(
+            String.format("       # of sites with inverted inputs........... : %11d :\n", sitesWithInvertedInputs));
         sb.append(String.format("       # of sites with tie-off pins.............. : %11d :\n", sitesWithTieOffPins));
         sb.append(String.format("       # of sites with errors.................... : %11d :\n", sitesWithErrors));
         sb.append("   ---------------------------------------------- : ----------- :");
         return sb.toString();
     }
-
 }

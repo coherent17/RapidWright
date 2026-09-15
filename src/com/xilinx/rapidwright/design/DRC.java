@@ -37,16 +37,14 @@ public class DRC {
     }
 
     // Static list of all DRCs to be run
-    public static final List<DrcTypeSignature> checks =
-            new ArrayList<DrcTypeSignature>() {{
-        add(NetRoutesThruLutAtMostOnce::run);
-    }};
+    public static final List<DrcTypeSignature> checks = new ArrayList<DrcTypeSignature>() {
+        { add(NetRoutesThruLutAtMostOnce::run); }
+    };
 
     public int run(Design design, boolean strict) {
         // Each check's run() returns an int of how many checks failed,
         // sum those up
-        return checks.stream().map((f) -> f.run(design, strict))
-                .reduce(0, Integer::sum);
+        return checks.stream().map((f) -> f.run(design, strict)).reduce(0, Integer::sum);
     }
 
     private static void printUsageAndExit() {

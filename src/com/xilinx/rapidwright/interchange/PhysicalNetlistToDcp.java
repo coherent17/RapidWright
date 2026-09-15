@@ -35,14 +35,12 @@ import com.xilinx.rapidwright.edif.EDIFNetlist;
 import com.xilinx.rapidwright.tests.CodePerfTracker;
 
 public class PhysicalNetlistToDcp {
-
     private static final String MAKE_DCP_OUT_OF_CONTEXT = "--out_of_context";
 
     public static void main(String[] args) throws IOException {
         if (args.length != 4 && args.length != 5) {
-            System.out.println(
-                    "USAGE: <input>.netlist <input>.phys <input>.xdc <output>.dcp [" 
-                            + MAKE_DCP_OUT_OF_CONTEXT + "]");
+            System.out.println("USAGE: <input>.netlist <input>.phys <input>.xdc <output>.dcp [" +
+                               MAKE_DCP_OUT_OF_CONTEXT + "]");
             System.exit(1);
         }
 
@@ -52,19 +50,18 @@ public class PhysicalNetlistToDcp {
         String outputDCPFileName = args[3];
 
         boolean makeOutOfContext = false;
-        
+
         if (args.length == 5) {
             if (args[4].equals(MAKE_DCP_OUT_OF_CONTEXT)) {
                 makeOutOfContext = true;
             } else {
-                System.out.println("Unrecognized option '" + args[4] + "', did you mean '"
-                                    + MAKE_DCP_OUT_OF_CONTEXT + "'?");
+                System.out.println("Unrecognized option '" + args[4] + "', did you mean '" + MAKE_DCP_OUT_OF_CONTEXT +
+                                   "'?");
                 System.exit(1);
             }
-        }        
-        
-        
-        CodePerfTracker t = new CodePerfTracker("Interchange Format->DCP",false);
+        }
+
+        CodePerfTracker t = new CodePerfTracker("Interchange Format->DCP", false);
 
         t.start("Read Logical Netlist");
 
@@ -93,4 +90,3 @@ public class PhysicalNetlistToDcp {
         t.stop().printSummary();
     }
 }
-

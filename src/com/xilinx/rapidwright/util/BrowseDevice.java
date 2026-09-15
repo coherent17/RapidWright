@@ -37,8 +37,7 @@ import com.xilinx.rapidwright.device.Wire;
  * @author Chris Lavin
  * Created on: Jul 12, 2010
  */
-public class BrowseDevice{
-
+public class BrowseDevice {
     public static void run(Device dev) {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         Tile t = null;
@@ -53,7 +52,7 @@ public class BrowseDevice{
             System.out.println(" 7: Exit");
             try {
                 Integer cmd = Integer.parseInt(br.readLine().trim());
-                switch(cmd) {
+                switch (cmd) {
                     case 1:
                         System.out.println("Enter tile name: ");
                         t = dev.getTile(br.readLine().trim());
@@ -75,7 +74,8 @@ public class BrowseDevice{
                     case 3:
                         System.out.println("PIPRouteThroughs");
                         /*for (WireConnection w : dev.getRouteThroughMap().keySet()) {
-                            System.out.println("  " + w.toString(we) + " " + dev.getRouteThroughMap().get(w).toString(we));
+                            System.out.println("  " + w.toString(we) + " " +
+                        dev.getRouteThroughMap().get(w).toString(we));
                         }*/
                         break;
                     case 4:
@@ -94,13 +94,16 @@ public class BrowseDevice{
                             List<Wire> wireConnections = t.getWireConnections(t.getWireIndex(startWire));
                             System.out.println(t.getName() + " " + startWire + ":");
                             for (int i = 0; i < wireConnections.size(); i++) {
-                                System.out.println("  " + i + ". " + wireConnections.get(i).getTile() +" " + t.getWireName(wireConnections.get(i).getWireIndex()) + " ("+wireConnections.get(i).getIntentCode()+")");
+                                System.out.println("  " + i + ". " + wireConnections.get(i).getTile() + " " +
+                                                   t.getWireName(wireConnections.get(i).getWireIndex()) + " (" +
+                                                   wireConnections.get(i).getIntentCode() + ")");
                                 if (true) {
                                     // print next hop
                                     Tile tmpTile = wireConnections.get(i).getTile();
                                     String tmpWire = tmpTile.getWireName(wireConnections.get(i).getWireIndex());
                                     for (Wire w : tmpTile.getWireConnections(t.getWireIndex(tmpWire))) {
-                                        System.out.println("     ->  " + w.getTile() +" " + w.getWireName() + " ("+w.getIntentCode()+")");
+                                        System.out.println("     ->  " + w.getTile() + " " + w.getWireName() + " (" +
+                                                           w.getIntentCode() + ")");
                                     }
                                 }
                             }
@@ -110,12 +113,10 @@ public class BrowseDevice{
                                 ndx = Integer.parseInt(br.readLine().trim());
                                 t = wireConnections.get(ndx).getTile();
                                 startWire = t.getWireName(wireConnections.get(ndx).getWireIndex());
-                            }
-                            catch (Exception e) {
+                            } catch (Exception e) {
                                 System.out.println("Did not understand, try again.");
                                 continue;
                             }
-
                         }
                         break;
                     case 5:
@@ -125,8 +126,7 @@ public class BrowseDevice{
 
                         if (t.getSites().length == 0) {
                             System.out.println(t.getName() + " has no primitive sites.");
-                        }
-                        else {
+                        } else {
                             for (Site p : t.getSites()) {
                                 System.out.println("  " + p.getName());
                             }
@@ -138,15 +138,13 @@ public class BrowseDevice{
                         String siteName = br.readLine().trim();
                         Site site = dev.getSite(siteName);
                         if (site == null) {
-                            System.out.println("No primitive site called \"" + siteName +  "\" exists.");
-                        }
-                        else {
+                            System.out.println("No primitive site called \"" + siteName + "\" exists.");
+                        } else {
                             System.out.println(site.getTile());
                         }
                         break;
                     case 7:
                         return;
-
                 }
             } catch (Exception e) {
                 System.out.println("Bad input, try again.");
@@ -159,7 +157,7 @@ public class BrowseDevice{
             System.out.println("USAGE: <device part name, ex: xc4vfx12ff668 >");
             return;
         }
-        Device dev = (Device) Device.getDevice(args[0]);
+        Device dev = (Device)Device.getDevice(args[0]);
 
         run(dev);
     }

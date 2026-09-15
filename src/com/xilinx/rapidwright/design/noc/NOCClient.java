@@ -38,7 +38,6 @@ import org.json.JSONObject;
  * @since 2022.1.0
  */
 public class NOCClient implements Serializable {
-
     private static final long serialVersionUID = -7129544855705593999L;
     private String name;
     private boolean hasParityAddr;
@@ -142,8 +141,8 @@ public class NOCClient implements Serializable {
     public void checkUnsupportedFields(JSONObject json) {
         for (String s : unsupportedFields) {
             if (json.has(s) && warnedUnsupportedFields.add(s)) {
-                System.out.println("WARNING: Unsupported NOC field '" + s +
-                    "' encountered (e.g., client " + name + "); field will be ignored.");
+                System.out.println("WARNING: Unsupported NOC field '" + s + "' encountered (e.g., client " + name +
+                                   "); field will be ignored.");
             }
         }
     }
@@ -155,13 +154,15 @@ public class NOCClient implements Serializable {
      */
     public JSONObject toJSONObject() {
         JSONObject obj = NOCJSONUtil.createOrderedJSONObject();
-        obj.put(NOCJSONUtil.JSON_FIELD_NAME,name);
-        if (hasParityAddr) obj.put(NOCJSONUtil.JSON_FIELD_HAS_PARITY_ADDR,hasParityAddr);
-        if (hasParityData) obj.put(NOCJSONUtil.JSON_FIELD_HAS_PARITY_DATA,hasParityData);
-        obj.put(NOCJSONUtil.JSON_FIELD_COMPONENT_TYPE,compType);
-        obj.put(NOCJSONUtil.JSON_FIELD_PROTOCOL,protocol);
+        obj.put(NOCJSONUtil.JSON_FIELD_NAME, name);
+        if (hasParityAddr)
+            obj.put(NOCJSONUtil.JSON_FIELD_HAS_PARITY_ADDR, hasParityAddr);
+        if (hasParityData)
+            obj.put(NOCJSONUtil.JSON_FIELD_HAS_PARITY_DATA, hasParityData);
+        obj.put(NOCJSONUtil.JSON_FIELD_COMPONENT_TYPE, compType);
+        obj.put(NOCJSONUtil.JSON_FIELD_PROTOCOL, protocol);
         if (this.isFabricClient()) {
-            obj.put(NOCJSONUtil.JSON_FIELD_AXI_DATA_WIDTH,axiDataWidth);
+            obj.put(NOCJSONUtil.JSON_FIELD_AXI_DATA_WIDTH, axiDataWidth);
         }
         if (isVirtual) {
             obj.put(NOCJSONUtil.JSON_FIELD_IS_VIRTUAL, true);
@@ -170,7 +171,7 @@ public class NOCClient implements Serializable {
             String connList = "";
             for (String conn : externalConnections)
                 connList += conn + " ";
-            connList = connList.substring(0, connList.length()-1);
+            connList = connList.substring(0, connList.length() - 1);
             obj.put(NOCJSONUtil.JSON_FIELD_EXTERNAL_CONNECTIONS, connList);
         }
         if (simMetaData != null) {
@@ -186,8 +187,7 @@ public class NOCClient implements Serializable {
      * @since 2022.1.0
      */
     public boolean isFabricClient() {
-        return compType.equals(ComponentType.PL_NSU)
-            || compType.equals(ComponentType.PL_NMU);
+        return compType.equals(ComponentType.PL_NSU) || compType.equals(ComponentType.PL_NMU);
     }
 
     /**
@@ -417,7 +417,7 @@ public class NOCClient implements Serializable {
 
     /**
      * Gets the String representation of this client
-     * 
+     *
      * @return The String representation of this client, 'name + (componentType)'
      * @since 2022.1.0
      */
@@ -425,5 +425,4 @@ public class NOCClient implements Serializable {
     public String toString() {
         return name + " (" + compType + ")";
     }
-
 }

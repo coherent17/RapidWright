@@ -47,8 +47,8 @@ public enum UtilizationType {
     REGS_AS_FFS("Regs as FF"),
     REGS_AS_LATCHES("Regs as Latch"),
     CARRY8S("CARRY8s"),
-    F7_MUXES("F7 Muxes"), 
-    F8_MUXES("F8 Muxes"), 
+    F7_MUXES("F7 Muxes"),
+    F8_MUXES("F8 Muxes"),
     F9_MUXES("F9 Muxes"),
     CLBS("CLBs"),
     CLBLS("CLBLs"),
@@ -76,7 +76,7 @@ public enum UtilizationType {
      * Calculates an estimated utilization for the given design's netlist. It
      * doesn't take into account placement and only depends on the design's netlist
      * for an estimate.
-     * 
+     *
      * @param design The design to query.
      * @return A map of utilization types and their respective counts.
      */
@@ -92,96 +92,96 @@ public enum UtilizationType {
         for (EDIFHierCellInst i : design.getNetlist().getAllLeafHierCellInstances()) {
             String type = i.getCellType().getName();
             switch (type) {
-            case "LUT1":
-                lutCounts[1]++;
-                break;
-            case "LUT2":
-                lutCounts[2]++;
-                break;
-            case "LUT3":
-                lutCounts[3]++;
-                break;
-            case "LUT4":
-                lutCounts[4]++;
-                break;
-            case "LUT5":
-                lutCounts[5]++;
-                break;
-            case "LUT6":
-            case "LUT6_2":
-            case "LUT6CY":
-                lutCounts[6]++;
-                break;
-            case "SRL16E":
-            case "SRLC16E":
-            case "SRLC32E":
-            case "RAMD64E":
-            case "RAMS64E":
-            case "RAMS64E1":
-            case "RAMD32M64":
-            case "RAMS32":
-            case "RAMD32":
-            case "RAMD64E5":
-            case "RAM32X1S":
-                map.compute(LUTS_AS_MEMORY, (k, v) -> v == null ? 1 : (v + 1));
-                break;
-            case "RAM32X1D":
-                map.compute(LUTS_AS_MEMORY, (k, v) -> v == null ? 2 : (v + 2));
-                break;
-            case "RAM32M":
-            case "RAM64M":
-                map.compute(LUTS_AS_MEMORY, (k, v) -> v == null ? 4 : (v + 4));
-                break;
-            case "RAM64X1S":
-            case "RAM32M16":
-                map.compute(LUTS_AS_MEMORY, (k, v) -> v == null ? 8 : (v + 8));
-                break;
-            case "FDCE":
-            case "FDPE":
-            case "FDRE":
-            case "FDSE":
-            case "AND2B1L":
-                map.compute(REGS_AS_FFS, (k, v) -> v == null ? 1 : (v + 1));
-                break;
-            case "LDCE":
-            case "LDPE":
-                map.compute(REGS_AS_LATCHES, (k, v) -> v == null ? 1 : (v + 1));
-                break;
-            case "CARRY8":
-            case "LOOKAHEAD8":
-                map.compute(CARRY8S, (k, v) -> v == null ? 1 : (v + 1));
-                break;
-            case "RAMB36E2":
-            case "RAMB36E5_INT":
-            case "FIFO36E2":
-                map.compute(RAMB36S_FIFOS, (k, v) -> v == null ? 1 : (v + 1));
-                break;
-            case "RAMB18E2":
-            case "RAMB18E5_INT":
-                map.compute(RAMB18S, (k, v) -> v == null ? 1 : (v + 1));
-                break;
-            case "URAM288":
-            case "URAM288_BASE":
-            case "URAM288E5":
-                map.compute(URAMS, (k, v) -> v == null ? 1 : (v + 1));
-                break;
-            case "DSP_PREADD58":
-            case "DSP_FP_ADDER":
-            case "DSP48E2":
-                map.compute(DSPS, (k, v) -> v == null ? 1 : (v + 1));
-                break;
-            case "MUXF7":
-                map.compute(F7_MUXES, (k, v) -> v == null ? 1 : (v + 1));
-                break;
-            case "MUXF8":
-                map.compute(F8_MUXES, (k, v) -> v == null ? 1 : (v + 1));
-                break;
-            case "MUXF9":
-                map.compute(F9_MUXES, (k, v) -> v == null ? 1 : (v + 1));
-                break;
-            default:
-                if (notTracked.add(type))
-                    System.out.println("Didn't count: " + type);
+                case "LUT1":
+                    lutCounts[1]++;
+                    break;
+                case "LUT2":
+                    lutCounts[2]++;
+                    break;
+                case "LUT3":
+                    lutCounts[3]++;
+                    break;
+                case "LUT4":
+                    lutCounts[4]++;
+                    break;
+                case "LUT5":
+                    lutCounts[5]++;
+                    break;
+                case "LUT6":
+                case "LUT6_2":
+                case "LUT6CY":
+                    lutCounts[6]++;
+                    break;
+                case "SRL16E":
+                case "SRLC16E":
+                case "SRLC32E":
+                case "RAMD64E":
+                case "RAMS64E":
+                case "RAMS64E1":
+                case "RAMD32M64":
+                case "RAMS32":
+                case "RAMD32":
+                case "RAMD64E5":
+                case "RAM32X1S":
+                    map.compute(LUTS_AS_MEMORY, (k, v) -> v == null ? 1 : (v + 1));
+                    break;
+                case "RAM32X1D":
+                    map.compute(LUTS_AS_MEMORY, (k, v) -> v == null ? 2 : (v + 2));
+                    break;
+                case "RAM32M":
+                case "RAM64M":
+                    map.compute(LUTS_AS_MEMORY, (k, v) -> v == null ? 4 : (v + 4));
+                    break;
+                case "RAM64X1S":
+                case "RAM32M16":
+                    map.compute(LUTS_AS_MEMORY, (k, v) -> v == null ? 8 : (v + 8));
+                    break;
+                case "FDCE":
+                case "FDPE":
+                case "FDRE":
+                case "FDSE":
+                case "AND2B1L":
+                    map.compute(REGS_AS_FFS, (k, v) -> v == null ? 1 : (v + 1));
+                    break;
+                case "LDCE":
+                case "LDPE":
+                    map.compute(REGS_AS_LATCHES, (k, v) -> v == null ? 1 : (v + 1));
+                    break;
+                case "CARRY8":
+                case "LOOKAHEAD8":
+                    map.compute(CARRY8S, (k, v) -> v == null ? 1 : (v + 1));
+                    break;
+                case "RAMB36E2":
+                case "RAMB36E5_INT":
+                case "FIFO36E2":
+                    map.compute(RAMB36S_FIFOS, (k, v) -> v == null ? 1 : (v + 1));
+                    break;
+                case "RAMB18E2":
+                case "RAMB18E5_INT":
+                    map.compute(RAMB18S, (k, v) -> v == null ? 1 : (v + 1));
+                    break;
+                case "URAM288":
+                case "URAM288_BASE":
+                case "URAM288E5":
+                    map.compute(URAMS, (k, v) -> v == null ? 1 : (v + 1));
+                    break;
+                case "DSP_PREADD58":
+                case "DSP_FP_ADDER":
+                case "DSP48E2":
+                    map.compute(DSPS, (k, v) -> v == null ? 1 : (v + 1));
+                    break;
+                case "MUXF7":
+                    map.compute(F7_MUXES, (k, v) -> v == null ? 1 : (v + 1));
+                    break;
+                case "MUXF8":
+                    map.compute(F8_MUXES, (k, v) -> v == null ? 1 : (v + 1));
+                    break;
+                case "MUXF9":
+                    map.compute(F9_MUXES, (k, v) -> v == null ? 1 : (v + 1));
+                    break;
+                default:
+                    if (notTracked.add(type))
+                        System.out.println("Didn't count: " + type);
             }
         }
 

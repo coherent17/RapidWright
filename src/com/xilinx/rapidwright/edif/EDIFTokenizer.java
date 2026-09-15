@@ -38,7 +38,6 @@ import com.xilinx.rapidwright.util.StringPool;
  * combining it with a {@link java.io.BufferedInputStream} should be avoided.
  */
 public class EDIFTokenizer implements AutoCloseable {
-
     private final Path fileName;
 
     private final InputStream in;
@@ -54,7 +53,6 @@ public class EDIFTokenizer implements AutoCloseable {
 
     public static final int DEFAULT_MAX_TOKEN_LENGTH = Params.RW_EDIF_MAX_TOKEN_LENGTH;
 
-
     protected int offset = 0;
     private int available = 0;
     private boolean sawEOF = false;
@@ -62,7 +60,7 @@ public class EDIFTokenizer implements AutoCloseable {
 
     private boolean ensureRead(int startOffset, int endOffset) throws IOException {
         while (startOffset < endOffset) {
-            int actuallyRead = in.read(buffer, startOffset, endOffset-startOffset);
+            int actuallyRead = in.read(buffer, startOffset, endOffset - startOffset);
             if (actuallyRead == -1) {
                 sawEOF = true;
                 buffer[startOffset] = 0;
@@ -82,23 +80,23 @@ public class EDIFTokenizer implements AutoCloseable {
      * can detect too-long tokens that are longer than our buffer.
      */
     protected void fill() throws IOException {
-        if (available>maxTokenLength || sawEOF) {
+        if (available > maxTokenLength || sawEOF) {
             return;
         }
 
-        int fillStart = (offset+available)&bufferAddressMask;
-        int fillEnd = (offset-1) & bufferAddressMask;
+        int fillStart = (offset + available) & bufferAddressMask;
+        int fillEnd = (offset - 1) & bufferAddressMask;
 
         // Make sure that we're overwriting the '0' that exists on initialization or the
         // placeholder EOF character that was inserted on the last call to fill()
-        assert(buffer[fillStart] == 0);
+        assert (buffer[fillStart] == 0);
 
         // Set the last byte of the buffer to be 0 as a placeholder for EOF
         // which will get overwritten on next fill()
         buffer[fillEnd] = 0;
 
-        if (fillStart>fillEnd) {
-            //Fill in two parts
+        if (fillStart > fillEnd) {
+            // Fill in two parts
             if (!ensureRead(fillStart, buffer.length)) {
                 return;
             }
@@ -113,18 +111,17 @@ public class EDIFTokenizer implements AutoCloseable {
         this.in = in;
         this.uniquifier = uniquifier;
         this.maxTokenLength = maxTokenLength;
-        //Only a power of two does not share any bits with its lower neighbour
-        if ((maxTokenLength & (maxTokenLength-1)) != 0) {
-            throw new IllegalStateException("max token length must be a power of two but is "+maxTokenLength);
+        // Only a power of two does not share any bits with its lower neighbour
+        if ((maxTokenLength & (maxTokenLength - 1)) != 0) {
+            throw new IllegalStateException("max token length must be a power of two but is " + maxTokenLength);
         }
-        bufferAddressMask = maxTokenLength*2-1;
-        this.buffer = new byte[maxTokenLength*2];
+        bufferAddressMask = maxTokenLength * 2 - 1;
+        this.buffer = new byte[maxTokenLength * 2];
     }
 
     public EDIFTokenizer(Path fileName, InputStream in, StringPool uniquifier) {
         this(fileName, in, uniquifier, DEFAULT_MAX_TOKEN_LENGTH);
     }
-
 
     /**
      * Read two separate locations from a buffer, concatenating them into a single string.
@@ -137,8 +134,8 @@ public class EDIFTokenizer implements AutoCloseable {
      * @return the string assembled from the two locations
      */
     public static String byteArrayToStringMulti(byte[] buffer, int start1, int length1, int start2, int length2) {
-        //To support multi-byte characters being split between the parts, we have to take
-        // care to first concatenate, then decode.
+        // To support multi-byte characters being split between the parts, we have to take
+        //  care to first concatenate, then decode.
         byte[] complete = new byte[length1 + length2];
         System.arraycopy(buffer, start1, complete, 0, length1);
         System.arraycopy(buffer, start2, complete, length1, length2);
@@ -162,15 +159,15 @@ public class EDIFTokenizer implements AutoCloseable {
             int length1 = buffer.length - startOffset;
             length = length1 + endOffset;
             token = byteArrayToStringMulti(buffer, startOffset, length1, 0, endOffset);
-
         }
         if (!isShortLived) {
             token = uniquifier.uniquifyName(token);
         }
         byteOffset += length;
         available -= length;
-        if (available<0) {
-            throw new EDIFParseException("Token probably too long or failed to fetch data in time: "+ token +" at "+byteOffset);
+        if (available < 0) {
+            throw new EDIFParseException("Token probably too long or failed to fetch data in time: " + token + " at " +
+                                         byteOffset);
         }
         return token;
     }
@@ -183,24 +180,24 @@ public class EDIFTokenizer implements AutoCloseable {
         int offsetStart = offset;
 
         byte current = buffer[offset];
-        while (current != 0 && current!='"') {
-            offset=bufferAddressMask & (offset+1);
-            current=buffer[offset];
+        while (current != 0 && current != '"') {
+            offset = bufferAddressMask & (offset + 1);
+            current = buffer[offset];
         }
-        if (current==0) {
+        if (current == 0) {
             if (sawEOF) {
                 throw EDIFParseException.unexpectedEOF();
             }
             throw tokenTooLong(offsetStart);
         }
 
-        //Token length is checked inside getUniqueToken, so let's adjust availability beforehand
-        available-=2;
+        // Token length is checked inside getUniqueToken, so let's adjust availability beforehand
+        available -= 2;
 
         final String token = getUniqueToken(offsetStart, offset, isShortLived);
 
-        offset=(offset+1)&bufferAddressMask; //Actually read closing quote
-        byteOffset+=2; //Adjust for both quotes
+        offset = (offset + 1) & bufferAddressMask; // Actually read closing quote
+        byteOffset += 2;                           // Adjust for both quotes
 
         return token;
     }
@@ -209,11 +206,11 @@ public class EDIFTokenizer implements AutoCloseable {
         final long byteOffsetAtStart = this.byteOffset;
         final int endOffset = bufferAddressMask & (startOffset + 150);
         final String failingToken = getUniqueToken(startOffset, endOffset, true);
-        throw new TokenTooLongException("ERROR: String buffer overflow on byte offset " +
-                byteOffsetAtStart + " parsing token starting with "+ failingToken +"...\n\t Please revisit why this EDIF token "
-                + "is so long or increase the buffer in " + this.getClass().getCanonicalName());
+        throw new TokenTooLongException(
+            "ERROR: String buffer overflow on byte offset " + byteOffsetAtStart + " parsing token starting with " +
+            failingToken + "...\n\t Please revisit why this EDIF token "
+            + "is so long or increase the buffer in " + this.getClass().getCanonicalName());
     }
-
 
     /**
      * Check if a character ends a token. Hardcoded using switch
@@ -237,14 +234,13 @@ public class EDIFTokenizer implements AutoCloseable {
     private static boolean[] makeTokenEnderTable() {
         boolean[] res = new boolean[256];
         for (int i = 0; i < 256; i++) {
-            char c = (char) i;
+            char c = (char)i;
             res[i] = endsTokenSwitch(c);
         }
         return res;
     }
 
     private static final boolean[] ENDS_TOKEN = makeTokenEnderTable();
-
 
     /**
      * Check if a character ends a token.
@@ -255,19 +251,17 @@ public class EDIFTokenizer implements AutoCloseable {
         return ENDS_TOKEN[c];
     }
 
-
     private String getUnquotedToken(boolean isShortLived) throws IOException {
-
-        int offsetStart = bufferAddressMask & (offset-1);
+        int offsetStart = bufferAddressMask & (offset - 1);
 
         byte current = buffer[offset];
 
-        //This is the hottest loop in the whole parser. Just look for anything that ends a token, figure out the reason
-        //after the loop.
-        //Inverting the result of endsTokenOpt performed better than having a continuesToken function.
+        // This is the hottest loop in the whole parser. Just look for anything that ends a token, figure out the reason
+        // after the loop.
+        // Inverting the result of endsTokenOpt performed better than having a continuesToken function.
         while (!endsTokenOpt((char)current)) {
-            offset=bufferAddressMask & (offset+1);
-            current=buffer[offset];
+            offset = bufferAddressMask & (offset + 1);
+            current = buffer[offset];
         }
 
         switch (current) {
@@ -283,11 +277,11 @@ public class EDIFTokenizer implements AutoCloseable {
 
     private char readByte() throws IOException {
         fill();
-        char res = (char) buffer[offset];
-        if (res==0) {
+        char res = (char)buffer[offset];
+        if (res == 0) {
             return 0;
         }
-        offset=bufferAddressMask & (offset+1);
+        offset = bufferAddressMask & (offset + 1);
         return res;
     }
 
@@ -298,7 +292,7 @@ public class EDIFTokenizer implements AutoCloseable {
      */
     public EDIFToken getOptionalNextToken(boolean isShortLived) {
         String tokenText = getOptionalNextTokenString(isShortLived);
-        if (tokenText==null) {
+        if (tokenText == null) {
             return null;
         }
         return new EDIFToken(tokenText, byteOffset);
@@ -340,11 +334,10 @@ public class EDIFTokenizer implements AutoCloseable {
                         return getUnquotedToken(isShortLived);
                 }
             }
-            //EOF
+            // EOF
             return null;
         } catch (IOException e) {
-            throw new UncheckedIOException("ERROR: IOException while reading EDIF file: "
-                    + fileName, e);
+            throw new UncheckedIOException("ERROR: IOException while reading EDIF file: " + fileName, e);
         }
     }
 
@@ -369,10 +362,9 @@ public class EDIFTokenizer implements AutoCloseable {
         in.close();
     }
 
-
     void skipInBuffer(int amount) {
         available -= amount;
-        offset = bufferAddressMask & (offset+amount);
+        offset = bufferAddressMask & (offset + amount);
         byteOffset += amount;
     }
 
@@ -385,8 +377,8 @@ public class EDIFTokenizer implements AutoCloseable {
         if (offset != 0) {
             throw new RuntimeException("can only advance if current offset is zero!");
         }
-        if (available != (buffer.length-1)) { //Offset by one since we don't fill the buffer completely
-            //Hit EOF
+        if (available != (buffer.length - 1)) { // Offset by one since we don't fill the buffer completely
+            // Hit EOF
             skipInBuffer(available);
             return false;
         }
@@ -423,16 +415,16 @@ public class EDIFTokenizer implements AutoCloseable {
             }
         }
 
-        //Never saw any Quotes?
+        // Never saw any Quotes?
         if (firstQuoteOffset == null) {
             return true;
         }
 
-        float enderRatioInside = (float) tokenEndersInQuote / totalInQuote;
-        float enderRatioOutside = (float) tokenEndersOutsideQuote / totalOutsideQuote;
+        float enderRatioInside = (float)tokenEndersInQuote / totalInQuote;
+        float enderRatioOutside = (float)tokenEndersOutsideQuote / totalOutsideQuote;
 
         if (totalOutsideQuote == 0 || enderRatioInside > enderRatioOutside) {
-            skipInBuffer(firstQuoteOffset+1);
+            skipInBuffer(firstQuoteOffset + 1);
         }
         return true;
     }
@@ -448,7 +440,7 @@ public class EDIFTokenizer implements AutoCloseable {
             }
             skipInBuffer(1);
         }
-        //Reached EOF. nothing to do
+        // Reached EOF. nothing to do
     }
 
     /**
@@ -464,16 +456,15 @@ public class EDIFTokenizer implements AutoCloseable {
             return;
         }
         advanceToTokenEnder();
-
     }
 
     private void ensureSkip(long i) throws IOException {
-        if (available!=0) {
+        if (available != 0) {
             throw new RuntimeException("available != 0");
         }
         long actual = 0;
         while (actual < i) {
-            long skipped = in.skip(i-actual);
+            long skipped = in.skip(i - actual);
             if (skipped == 0) {
                 if (in.read() == -1) {
                     // EOF reached

@@ -35,10 +35,9 @@ import com.xilinx.rapidwright.design.TileRectangle;
 import com.xilinx.rapidwright.device.Tile;
 import com.xilinx.rapidwright.util.Pair;
 
-
 /**
- * Port of a {@link ImplsPath}. Abstract, since we need to differentiate between ports of modules and outside non-module
- * ports
+ * Port of a {@link ImplsPath}. Abstract, since we need to differentiate between ports of modules
+ * and outside non-module ports
  */
 public abstract class ImplsInstancePort {
     private ImplsPath path;
@@ -72,7 +71,7 @@ public abstract class ImplsInstancePort {
 
         @Override
         public String getName() {
-            return sitePinInst.getSite().getName()+"."+sitePinInst.getName();
+            return sitePinInst.getSite().getName() + "." + sitePinInst.getName();
         }
 
         @Override
@@ -133,10 +132,15 @@ public abstract class ImplsInstancePort {
                 }
                 Port portImpl = instance.getCurrentModuleImplementation().getPort(this.port);
                 if (portImpl == null) {
-                    throw new IllegalStateException("In "+instance.getName()+" of type "+instance.getModule().getName()+", currently mapped to impl"+instance.getCurrentModuleImplementation()+", did not find abstract port "+this.port);
+                    throw new IllegalStateException("In " + instance.getName() + " of type " +
+                                                    instance.getModule().getName() + ", currently mapped to impl" +
+                                                    instance.getCurrentModuleImplementation() +
+                                                    ", did not find abstract port " + this.port);
                 }
                 if (!portImpl.getSitePinInsts().isEmpty()) {
-                    boundingBox = portImpl.getBoundingBox().getCorresponding(instance.getPlacement().placement.getTile(), instance.getCurrentModuleImplementation().getAnchor().getTile());
+                    boundingBox = portImpl.getBoundingBox().getCorresponding(
+                        instance.getPlacement().placement.getTile(),
+                        instance.getCurrentModuleImplementation().getAnchor().getTile());
                 }
             }
             if (boundingBox != null) {

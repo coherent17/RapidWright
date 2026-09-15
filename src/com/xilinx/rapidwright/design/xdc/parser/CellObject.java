@@ -42,54 +42,52 @@ public class CellObject<T> extends DesignObject<T> {
     }
 
     public String toXdc() {
-        if (cells.size()==1) {
+        if (cells.size() == 1) {
             String onlyCell = cellLookup.getAbsoluteFinalName(cells.get(0));
             if (cells.size() == 1 && !onlyCell.contains("[")) {
                 return "[get_cells " + onlyCell + "]";
             }
         }
 
-        return "[get_cells {" + cells.stream().map(cellLookup::getAbsoluteFinalName).collect(Collectors.joining(" ")) + "}]";
+        return "[get_cells {" + cells.stream().map(cellLookup::getAbsoluteFinalName).collect(Collectors.joining(" ")) +
+            "}]";
     }
 
     @Override
     public Stream<UnsupportedConstraintElement> toUnsupportedConstraintElement() {
         if (cells.isEmpty()) {
-            return Stream.of(
-                    new UnsupportedConstraintElement.SyntaxConstraintElement("["),
-                    new UnsupportedConstraintElement.NameConstraintElement("get_cells"),
-                    new UnsupportedConstraintElement.SyntaxConstraintElement(" ["),
-                    new UnsupportedConstraintElement.NameConstraintElement("list"),
-                    new UnsupportedConstraintElement.SyntaxConstraintElement("]]")
-            );
+            return Stream.of(new UnsupportedConstraintElement.SyntaxConstraintElement("["),
+                             new UnsupportedConstraintElement.NameConstraintElement("get_cells"),
+                             new UnsupportedConstraintElement.SyntaxConstraintElement(" ["),
+                             new UnsupportedConstraintElement.NameConstraintElement("list"),
+                             new UnsupportedConstraintElement.SyntaxConstraintElement("]]"));
         }
-        if (cells.size()==1) {
+        if (cells.size() == 1) {
             String onlyCell = cellLookup.getAbsoluteFinalName(cells.get(0));
             if (!onlyCell.contains("[")) {
-                return Stream.of(
-                        new UnsupportedConstraintElement.SyntaxConstraintElement("["),
-                        new UnsupportedConstraintElement.NameConstraintElement("get_cells"),
-                        new UnsupportedConstraintElement.SyntaxConstraintElement(" "),
-                        new UnsupportedConstraintElement.CellConstraintElement(onlyCell),
-                        new UnsupportedConstraintElement.SyntaxConstraintElement("]")
-                );
+                return Stream.of(new UnsupportedConstraintElement.SyntaxConstraintElement("["),
+                                 new UnsupportedConstraintElement.NameConstraintElement("get_cells"),
+                                 new UnsupportedConstraintElement.SyntaxConstraintElement(" "),
+                                 new UnsupportedConstraintElement.CellConstraintElement(onlyCell),
+                                 new UnsupportedConstraintElement.SyntaxConstraintElement("]"));
             }
         }
 
-        Stream<UnsupportedConstraintElement> cellStream = cells.stream()
+        Stream<UnsupportedConstraintElement> cellStream =
+            cells.stream()
                 .map(cellLookup::getAbsoluteFinalName)
                 .map(UnsupportedConstraintElement.CellConstraintElement::new)
                 .flatMap(UnsupportedConstraintElement.addSpacesBetween());
-        return UnsupportedConstraintElement.wrapStream(cellStream, Stream.of(
-                new UnsupportedConstraintElement.SyntaxConstraintElement("["),
-                new UnsupportedConstraintElement.NameConstraintElement("get_cells"),
-                new UnsupportedConstraintElement.SyntaxConstraintElement(" "),
-                new UnsupportedConstraintElement.SyntaxConstraintElement("{")
-                ), Stream.of(
+        return UnsupportedConstraintElement.wrapStream(
+            cellStream,
+            Stream.of(new UnsupportedConstraintElement.SyntaxConstraintElement("["),
+                      new UnsupportedConstraintElement.NameConstraintElement("get_cells"),
+                      new UnsupportedConstraintElement.SyntaxConstraintElement(" "),
+                      new UnsupportedConstraintElement.SyntaxConstraintElement("{")),
+            Stream.of(
 
                 new UnsupportedConstraintElement.SyntaxConstraintElement("}"),
-                new UnsupportedConstraintElement.SyntaxConstraintElement("]")
-        ));
+                new UnsupportedConstraintElement.SyntaxConstraintElement("]")));
     }
 
     public List<T> getCells() {

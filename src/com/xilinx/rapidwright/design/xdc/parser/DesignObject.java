@@ -46,8 +46,8 @@ public abstract class DesignObject<T> {
     /**
      * Casting helper:
      * <ul>
-     *     <li>If the object is an instance of the cell class (T), casts and wraps it into a DesignObject o</li>
-     *     <li>Casts DesignObjects</li>
+     *     <li>If the object is an instance of the cell class (T), casts and wraps it into a
+     * DesignObject o</li> <li>Casts DesignObjects</li>
      * </ul
      * @param obj cell (T) or DesignObject
      * @param lookup the cell lookup
@@ -58,7 +58,7 @@ public abstract class DesignObject<T> {
         if (lookup != null && lookup.getCellClass().isInstance(obj)) {
             return new CellObject<T>(Collections.singletonList(lookup.castCellInst(obj)), lookup);
         }
-        return (DesignObject<T>) obj;
+        return (DesignObject<T>)obj;
     }
 
     /**
@@ -70,25 +70,29 @@ public abstract class DesignObject<T> {
      * @param <T> the lookup's cell representation
      * @throws TclException
      */
-    public static <T> Optional<DesignObject<T>> unwrapTclObject(Interp interp, TclObject obj, EdifCellLookup<T> lookup) throws TclException {
+    public static <T> Optional<DesignObject<T>> unwrapTclObject(Interp interp, TclObject obj, EdifCellLookup<T> lookup)
+        throws TclException {
         if (obj.getInternalRep() instanceof TclList) {
             TclObject[] elements = TclList.getElements(interp, obj);
-            if (!Arrays.stream(elements).allMatch(e-> {
-                try {
-                    return e.getInternalRep() instanceof ReflectObject &&lookup.getCellClass().isInstance(ReflectObject.get(interp,e));
-                } catch (TclException ex) {
-                    throw new RuntimeException(ex);
-                }
-            })) {
+            if (!Arrays.stream(elements).allMatch(e -> {
+                    try {
+                        return e.getInternalRep() instanceof ReflectObject &&
+                            lookup.getCellClass().isInstance(ReflectObject.get(interp, e));
+                    } catch (TclException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                })) {
                 return Optional.empty();
             }
-            List<T> cells = Arrays.stream(elements).map(x -> {
-                try {
-                    return lookup.castCellInst(ReflectObject.get(interp, x));
-                } catch (TclException e) {
-                    throw new RuntimeException(e);
-                }
-            }).collect(Collectors.toList());
+            List<T> cells = Arrays.stream(elements)
+                                .map(x -> {
+                                    try {
+                                        return lookup.castCellInst(ReflectObject.get(interp, x));
+                                    } catch (TclException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                })
+                                .collect(Collectors.toList());
             return Optional.of(new CellObject<>(cells, lookup));
         }
         if (obj.getInternalRep() instanceof ReflectObject) {
@@ -103,9 +107,13 @@ public abstract class DesignObject<T> {
                 Object ref = ReflectObject.get(interp, obj);
                 return " is reflect object type " + ref.getClass() + ": " + ref;
             } else if (obj.getInternalRep() instanceof TclList) {
-                return " is list: ["+ Arrays.stream(TclList.getElements(interp, obj)).map(o->objDebugInfo(interp,o)).collect(Collectors.joining(", "))+"]";
+                return " is list: [" +
+                    Arrays.stream(TclList.getElements(interp, obj))
+                        .map(o -> objDebugInfo(interp, o))
+                        .collect(Collectors.joining(", ")) +
+                    "]";
             } else {
-                return " internal rep: "+obj.getInternalRep().getClass();
+                return " internal rep: " + obj.getInternalRep().getClass();
             }
         } catch (TclException e) {
             throw new RuntimeException(e);
@@ -121,13 +129,12 @@ public abstract class DesignObject<T> {
      * @param <T> the lookup's cell representation
      * @throws TclException
      */
-    public static <T> DesignObject<?> requireUnwrapTclObject(Interp interp, TclObject obj, EdifCellLookup<T> lookup) throws TclException {
-        return unwrapTclObject(interp, obj, lookup)
-                .orElseThrow(()-> {
-                    String moreInfo = objDebugInfo(interp, obj);
-                    return new IllegalArgumentException("expected DesignObject but got " + obj + moreInfo);
-                });
-
+    public static <T> DesignObject<?> requireUnwrapTclObject(Interp interp, TclObject obj, EdifCellLookup<T> lookup)
+        throws TclException {
+        return unwrapTclObject(interp, obj, lookup).orElseThrow(() -> {
+            String moreInfo = objDebugInfo(interp, obj);
+            return new IllegalArgumentException("expected DesignObject but got " + obj + moreInfo);
+        });
     }
 
     public abstract String toXdc();

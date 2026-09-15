@@ -31,7 +31,9 @@ import com.xilinx.rapidwright.design.AbstractModuleInst;
 /**
  * Naive implementation of overlap checking. Always checks against all other instances
  */
-public class ExhaustiveOverlapCache<PlacementT, ModuleInstT extends AbstractModuleInst<?,PlacementT,? super ModuleInstT>>  extends AbstractOverlapCache<PlacementT, ModuleInstT> {
+public class ExhaustiveOverlapCache<PlacementT, ModuleInstT
+                                        extends AbstractModuleInst<?, PlacementT, ? super ModuleInstT>>
+    extends AbstractOverlapCache<PlacementT, ModuleInstT> {
     private final Collection<ModuleInstT> instances;
 
     public ExhaustiveOverlapCache(Collection<ModuleInstT> instances) {
@@ -40,12 +42,12 @@ public class ExhaustiveOverlapCache<PlacementT, ModuleInstT extends AbstractModu
 
     @Override
     public void unplace(ModuleInstT mii) {
-        //Everything gets recalculated, nothing to do
+        // Everything gets recalculated, nothing to do
     }
 
     @Override
     public void place(ModuleInstT mii) {
-        //Everything gets recalculated, nothing to do
+        // Everything gets recalculated, nothing to do
     }
 
     @Override
@@ -62,6 +64,5 @@ public class ExhaustiveOverlapCache<PlacementT, ModuleInstT extends AbstractModu
 
     @Override
     public void printStats() {
-
     }
 }

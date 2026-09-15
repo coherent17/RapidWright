@@ -37,7 +37,6 @@ import java.util.Objects;
  * Created on: May 11, 2017
  */
 public class EDIFCellInst extends EDIFPropertyObject {
-
     private EDIFCell parentCell;
 
     private EDIFCell cellType;
@@ -52,19 +51,19 @@ public class EDIFCellInst extends EDIFPropertyObject {
     private EDIFPortInstList portInsts;
 
     protected EDIFCellInst() {
-
     }
 
     public EDIFCellInst(String name, EDIFCell cellType, EDIFCell parentCell) {
         super(name);
         setCellType(cellType);
-        if (parentCell != null) parentCell.addCellInst(this);
+        if (parentCell != null)
+            parentCell.addCellInst(this);
         setViewref(cellType != null ? cellType.getEDIFView() : DEFAULT_VIEWREF);
     }
 
     /**
      * Copy constructor. Creates new objects except portInsts.
-     * 
+     *
      * @param inst       Prototype instance to copy
      * @param parentCell The parent cell to which the new instance should belong.
      */
@@ -101,19 +100,20 @@ public class EDIFCellInst extends EDIFPropertyObject {
     /**
      * Adds a new EDIFPortInst to this cell instance. The port instances are stored
      * in a sorted ArrayList, so worst case is O(n).
-     * 
+     *
      * @param epr The port instance to add
-     * @param deferSort The EDIFPortInstList maintains a sorted list of EDIFPortInst 
+     * @param deferSort The EDIFPortInstList maintains a sorted list of EDIFPortInst
      * objects and sorts them upon insertion.  Setting this flag to true will skip a sort addition
-     * but the caller is responsible to conclude a batch of additions with a call to 
-     * {@link EDIFPortInstList#reSortList()}.  This is useful when a large number of EDIFPortInsts 
+     * but the caller is responsible to conclude a batch of additions with a call to
+     * {@link EDIFPortInstList#reSortList()}.  This is useful when a large number of EDIFPortInsts
      * will be added consecutively (such as parsing a netlist).
      */
     protected void addPortInst(EDIFPortInst epr, boolean deferSort) {
-        if (portInsts == null) portInsts = new EDIFPortInstList();
+        if (portInsts == null)
+            portInsts = new EDIFPortInstList();
         if (!epr.getCellInst().equals(this))
-            throw new RuntimeException("ERROR: Incorrect EDIFPortInst '"+
-                epr.getFullName()+"' being added to EDIFCellInst " + toString());
+            throw new RuntimeException("ERROR: Incorrect EDIFPortInst '" + epr.getFullName() +
+                                       "' being added to EDIFCellInst " + toString());
         if (deferSort) {
             portInsts.deferSortAdd(epr);
         } else {
@@ -128,7 +128,8 @@ public class EDIFCellInst extends EDIFPropertyObject {
      * @return The removed port instance, or null if it was not found.
      */
     protected EDIFPortInst removePortInst(EDIFPortInst epr) {
-        if (portInsts == null) return null;
+        if (portInsts == null)
+            return null;
         return portInsts.remove(epr);
     }
 
@@ -139,7 +140,8 @@ public class EDIFCellInst extends EDIFPropertyObject {
      * @return The removed port instance, or null if none found by that name.
      */
     protected EDIFPortInst removePortInst(String portName) {
-        if (portInsts == null) return null;
+        if (portInsts == null)
+            return null;
         return portInsts.remove(this, portName);
     }
 
@@ -150,7 +152,8 @@ public class EDIFCellInst extends EDIFPropertyObject {
      * @return The named port instance, or null if none found by that name.
      */
     public EDIFPortInst getPortInst(String name) {
-        if (portInsts == null) return null;
+        if (portInsts == null)
+            return null;
         return portInsts.get(this, name);
     }
 
@@ -158,7 +161,7 @@ public class EDIFCellInst extends EDIFPropertyObject {
      * Gets the named EDIFPortInst or creates it (if correctly named) and returns
      * it. If the port instance is to be created, it will not be connected to an
      * EDIFNet.
-     * 
+     *
      * @param name Name of the port instance to get.
      * @return The existing or created port instance.
      */
@@ -261,11 +264,10 @@ public class EDIFCellInst extends EDIFPropertyObject {
                 port = cellType.getPort(origPort.getName());
             }
             if (port == null) {
-                throw new RuntimeException("ERROR: Cannot remap port '" + origPort.getName()
-                        + "' from old cell type '" + origPort.getParentCell().getName()
-                        + "' to new cell type '" + cellType.getName()
-                        + "' on instance '" + getName()
-                        + "'. Port not found on new cell type.");
+                throw new RuntimeException("ERROR: Cannot remap port '" + origPort.getName() +
+                                           "' from old cell type '" + origPort.getParentCell().getName() +
+                                           "' to new cell type '" + cellType.getName() + "' on instance '" +
+                                           getName() + "'. Port not found on new cell type.");
             }
             portInst.setPort(port);
         }
@@ -299,8 +301,7 @@ public class EDIFCellInst extends EDIFPropertyObject {
     public static final byte[] EXPORT_CONST_CLOSE = "         )\n".getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_CLOSE_NO_PROPS = "))))\n".getBytes(StandardCharsets.UTF_8);
 
-
-    public void exportEDIF(OutputStream os, EDIFWriteLegalNameCache<?> cache, boolean stable) throws IOException{
+    public void exportEDIF(OutputStream os, EDIFWriteLegalNameCache<?> cache, boolean stable) throws IOException {
         os.write(EXPORT_CONST_INSTANCE_BEGIN);
         exportEDIFName(os, cache);
         os.write(EXPORT_CONST_VIEWREF);
@@ -311,7 +312,7 @@ public class EDIFCellInst extends EDIFPropertyObject {
         os.write(cache.getLegalEDIFName(cellType.getLibrary().getName()));
         if (getPropertyCount() > 0) {
             os.write(EXPORT_CONST_CLOSE_WITH_PROPS);
-            exportEDIFProperties(os,EXPORT_CONST_PROP_INDENT, cache, stable);
+            exportEDIFProperties(os, EXPORT_CONST_PROP_INDENT, cache, stable);
             os.write(EXPORT_CONST_CLOSE);
         } else {
             os.write(EXPORT_CONST_CLOSE_NO_PROPS);
@@ -320,14 +321,15 @@ public class EDIFCellInst extends EDIFPropertyObject {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         if (!super.equals(o))
             return false;
-        EDIFCellInst that = (EDIFCellInst) o;
+        EDIFCellInst that = (EDIFCellInst)o;
 
-
-        if (!Objects.equals(parentCell,that.parentCell))
+        if (!Objects.equals(parentCell, that.parentCell))
             return false;
 
         if (!cellType.equals(that.cellType))
@@ -339,9 +341,9 @@ public class EDIFCellInst extends EDIFPropertyObject {
         return true;
     }
 
-
     /**
-     * True if this cell instance is attached to a parent cell, and is the only instantiation of its cell.
+     * True if this cell instance is attached to a parent cell, and is the only instantiation of its
+     * cell.
      */
     public boolean isUniquified() {
         return parentCell != null && cellType.isUniquified();

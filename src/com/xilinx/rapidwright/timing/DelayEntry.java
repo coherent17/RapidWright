@@ -43,25 +43,26 @@ class DelayEntry {
     /**
      * Delay  of the connection.
      */
-    public short  delay;
+    public short delay;
     /**
      * Valid configs of for this entry.
      */
-    public int  config;
+    public int config;
 
     /**
      * Constructor with config parameter.
-     * @param s Scope of the arc. This is a bel name for logic delay  or a site name for intra-site delay.
+     * @param s Scope of the arc. This is a bel name for logic delay  or a site name for intra-site
+     *     delay.
      * @param f Source name of the timing arc.
      * @param t Sink name of the arc.
      * @param d Delay of the arc.
      * @param c Valid configuration of the arc.
      */
     public DelayEntry(String s, String f, String t, short d, int c) {
-        scope  = s;
-        fr     = f;
-        to     = t;
-        delay  = d;
+        scope = s;
+        fr = f;
+        to = t;
+        delay = d;
         config = c;
     }
     /**
@@ -69,10 +70,10 @@ class DelayEntry {
      * For parameter meaning see the other constructor.
      */
     public DelayEntry(String s, String f, String t, short d) {
-        scope  = s;
-        fr     = f;
-        to     = t;
-        delay  = d;
+        scope = s;
+        fr = f;
+        to = t;
+        delay = d;
         config = -1;
     }
 }

@@ -28,7 +28,6 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 public class IdentityEnumerator<T> extends ArrayList<T> {
-
     private static final long serialVersionUID = 5235125492429382642L;
 
     private Map<T, Integer> map = new IdentityHashMap<>();

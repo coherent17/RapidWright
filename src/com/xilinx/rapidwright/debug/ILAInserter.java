@@ -52,14 +52,12 @@ import com.xilinx.rapidwright.edif.EDIFPort;
 import com.xilinx.rapidwright.edif.EDIFPropertyValue;
 import com.xilinx.rapidwright.util.FileTools;
 
-
 /**
  * Example application in RapidWright for adding an ILA core within
  * an implemented (placed and routed) design.
  * Created on: May 3, 2017
  */
 public class ILAInserter {
-
     private static final String ETV_true = "true";
     private static final String ETV_TRUE = "TRUE";
     private static final String EDIF_MARK_DEBUG = "mark_debug";
@@ -75,10 +73,11 @@ public class ILAInserter {
     public static List<String> getNetsMarkedForDebug(Design design) {
         // Nets can be marked for debug as a netlist property
         ArrayList<String> debugNets = new ArrayList<>();
-        HashMap<String,EDIFCellInst> instMap = design.getNetlist().generateCellInstMap();
-        for (Entry<String,EDIFNet> e : design.getNetlist().generateEDIFNetMap(instMap).entrySet()) {
+        HashMap<String, EDIFCellInst> instMap = design.getNetlist().generateCellInstMap();
+        for (Entry<String, EDIFNet> e : design.getNetlist().generateEDIFNetMap(instMap).entrySet()) {
             EDIFPropertyValue p = e.getValue().getProperty(EDIF_MARK_DEBUG);
-            if (p == null) continue;
+            if (p == null)
+                continue;
             String etv = p.getValue();
             if (etv.equals(ETV_true) || etv.equals(ETV_TRUE)) {
                 debugNets.add(e.getKey());
@@ -96,18 +95,18 @@ public class ILAInserter {
         }
         for (List<String> file : xdcLines) {
             for (String line : file) {
-                if (line.isEmpty() || line.startsWith("#")) continue;
+                if (line.isEmpty() || line.startsWith("#"))
+                    continue;
                 if (line.contains(XDC_MARK_DEBUG) && line.contains(XDC_SET_PROPERTY)) {
                     String[] tokens = line.split("\\s+");
-                    if (tokens[0].equals(XDC_SET_PROPERTY) && tokens[1].equals(XDC_MARK_DEBUG) && tokens[2].equals("true") && tokens[3].equals("[get_nets")) {
-                        String netName = tokens[4].substring(tokens[4].indexOf('{')+1, tokens[4].indexOf('}'));
+                    if (tokens[0].equals(XDC_SET_PROPERTY) && tokens[1].equals(XDC_MARK_DEBUG) &&
+                        tokens[2].equals("true") && tokens[3].equals("[get_nets")) {
+                        String netName = tokens[4].substring(tokens[4].indexOf('{') + 1, tokens[4].indexOf('}'));
                         debugNets.add(netName);
                     }
                 }
             }
         }
-
-
 
         return debugNets;
     }
@@ -127,13 +126,16 @@ public class ILAInserter {
         String tclFileName = projFolder + "/create_ila_" + FileTools.getUniqueProcessAndHostID() + ".tcl";
 
         FileTools.makeDir(projFolder);
-        String dcpFileName = projFolder+"/ila.dcp";
-        tclCommands.add("source " + FileTools.getRapidWrightPath() + File.separator + FileTools.TCL_FOLDER_NAME + File.separator + "rapidwright.tcl");
-        tclCommands.add("create_preimplemented_ila_dcp "+part+" "+probeCount+" "+probeDepth+" " +dcpFileName +"\n");
+        String dcpFileName = projFolder + "/ila.dcp";
+        tclCommands.add("source " + FileTools.getRapidWrightPath() + File.separator + FileTools.TCL_FOLDER_NAME +
+                        File.separator + "rapidwright.tcl");
+        tclCommands.add("create_preimplemented_ila_dcp " + part + " " + probeCount + " " + probeDepth + " " +
+                        dcpFileName + "\n");
 
         FileTools.writeLinesToTextFile(tclCommands, tclFileName);
-        FileTools.runCommand("vivado -mode batch -log "+projFolder+"/vivado.log -journal "+
-                projFolder+"/vivado.jou -source " + tclFileName, true);
+        FileTools.runCommand("vivado -mode batch -log " + projFolder + "/vivado.log -journal " + projFolder +
+                                 "/vivado.jou -source " + tclFileName,
+                             true);
 
         Design ilaDesign = Design.readCheckpoint(dcpFileName);
 
@@ -155,11 +157,9 @@ public class ILAInserter {
             mi.place(m.getAnchor());
         }
 
-
         // Logical netlist
         EDIFNetlist netlist = original.getNetlist();
         EDIFCell top = netlist.getTopCell();
-
 
         String ilaClkPort = "ila_clk_out";
         EDIFHierNet clkNet = netlist.getHierNetFromName(clkName);
@@ -182,7 +182,6 @@ public class ILAInserter {
             // Create a new net in the parent cell, connect it to the port
             clkNet = new EDIFHierNet(currInst, currInst.getCellType().createNet(ilaClkPort));
             clkNet.getNet().createPortInst(port, prevInst);
-
         }
 
         EDIFNet clk = clkNet.getNet();
@@ -192,9 +191,9 @@ public class ILAInserter {
         for (String c : ila.getXDCConstraints(ConstraintGroup.NORMAL)) {
             if (c.contains("current_instance ")) {
                 if (!c.contains("-quiet")) {
-                    c = c.replace("current_instance ", "current_instance " + ila.getNetlist().getTopCellInst().getName() + "/");
+                    c = c.replace("current_instance ",
+                                  "current_instance " + ila.getNetlist().getTopCellInst().getName() + "/");
                 }
-
             }
             original.addXDCConstraint(c);
         }
@@ -216,22 +215,26 @@ public class ILAInserter {
         boolean lockRouting = false;
 
         if (probeCount < 0 || probeCount > 1024) {
-            throw new RuntimeException("ERROR: Unsupported probe count of " + probeCount + ", must be between 1 and 1024.");
+            throw new RuntimeException("ERROR: Unsupported probe count of " + probeCount +
+                                       ", must be between 1 and 1024.");
         }
         int[] allowedDepths = new int[] {1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072};
         boolean isDepthValid = false;
         for (int depth : allowedDepths) {
-            if (depth == probeDepth) isDepthValid = true;
+            if (depth == probeDepth)
+                isDepthValid = true;
         }
         if (!isDepthValid) {
-            throw new RuntimeException("ERROR: Unsupported probe depth of " + probeDepth +", must be one of " + Arrays.toString(allowedDepths));
+            throw new RuntimeException("ERROR: Unsupported probe depth of " + probeDepth + ", must be one of " +
+                                       Arrays.toString(allowedDepths));
         }
 
         Design originalDesign = Design.readCheckpoint(inputDcpFileName);
 
         EDIFNet clk = originalDesign.getNetlist().getNetFromHierName(clkNet);
         if (clk == null) {
-            throw new RuntimeException("ERROR: Couldn't find the clk net named " + clkNet + " in the original design provided");
+            throw new RuntimeException("ERROR: Couldn't find the clk net named " + clkNet +
+                                       " in the original design provided");
         }
 
         // TODO - Auto identify clock from probed signals

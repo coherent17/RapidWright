@@ -38,7 +38,6 @@ import com.xilinx.rapidwright.device.TileTypeEnum;
  * Simple tool for generating a routing heat map as a CSV for a given DCP.
  */
 public class RoutingHeatMap {
-
     public static void main(String[] args) {
         if (args.length != 2) {
             System.out.println("USAGE: <routed_input.dcp> <output.csv>");

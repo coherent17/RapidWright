@@ -33,36 +33,34 @@ import java.util.TreeMap;
  * Created on: Jan 22, 2016
  */
 public class CompareRouteStatusReports {
+    TreeMap<String, RouteStatus> tree1;
 
-    TreeMap<String,RouteStatus> tree1;
+    TreeMap<String, RouteStatus> tree2;
 
-    TreeMap<String,RouteStatus> tree2;
-
-    public TreeMap<String,RouteStatus> loadRouteStatusReport(String fileName) {
+    public TreeMap<String, RouteStatus> loadRouteStatusReport(String fileName) {
         ArrayList<String> lines = FileTools.getLinesFromTextFile(fileName);
-        TreeMap<String,RouteStatus> tree = new TreeMap<String,RouteStatus>();
+        TreeMap<String, RouteStatus> tree = new TreeMap<String, RouteStatus>();
         boolean pastHeader = false;
         String currNetName = null;
         String currStatus = null;
         ArrayList<String> currSubTree = null;
         ArrayList<ArrayList<String>> currSubTrees = null;
-        for (int i=0; i < lines.size(); i++) {
+        for (int i = 0; i < lines.size(); i++) {
             String curr = lines.get(i);
             if (pastHeader) {
                 if (curr.length() > 0 && Character.isWhitespace(curr.charAt(0))) {
                     if (curr.contains("Route Tree:")) {
                         continue;
-                    }
-                    else if (curr.contains("Routing status:")) {
+                    } else if (curr.contains("Routing status:")) {
                         String[] parts = curr.split(" ");
                         currStatus = parts[4];
-                    } else if (curr.contains("-----------") && !lines.get(i-1).contains("Route Tree:")) {
+                    } else if (curr.contains("-----------") && !lines.get(i - 1).contains("Route Tree:")) {
                         // create new RouteStatus
                         RouteStatus rs = new RouteStatus();
                         rs.setName(currNetName);
                         rs.setStatus(currStatus);
                         rs.setSubTrees(currSubTrees);
-                        tree.put(rs.getName(),rs);
+                        tree.put(rs.getName(), rs);
                         currSubTree = null;
                         currSubTrees = null;
                     } else if (curr.contains("/")) {
@@ -79,15 +77,13 @@ public class CompareRouteStatusReports {
                 } else {
                     currNetName = curr.trim();
                 }
-            }
-            else if (curr.contains("Logical Net Detailed Routing:")) {
+            } else if (curr.contains("Logical Net Detailed Routing:")) {
                 pastHeader = true;
             }
         }
 
         return tree;
     }
-
 
     public void compare(String fileName1, String fileName2) {
         tree1 = loadRouteStatusReport(fileName1);
@@ -103,7 +99,6 @@ public class CompareRouteStatusReports {
         }
     }
 
-
     public static void main(String[] args) {
         if (args.length != 2) {
             System.out.println("USAGE: report1.txt report2.txt");
@@ -113,6 +108,6 @@ public class CompareRouteStatusReports {
         String file2 = args[1];
 
         CompareRouteStatusReports r = new CompareRouteStatusReports();
-        r.compare(file1,file2);
+        r.compare(file1, file2);
     }
 }

@@ -39,13 +39,13 @@ import org.python.jline.TerminalFactory;
  * Created on: May 25, 2016
  */
 public class StringTools {
-
     public static String makeCamelCase(String name) {
         StringBuilder sb = new StringBuilder();
-        for (int i=0; i < name.length(); i++) {
+        for (int i = 0; i < name.length(); i++) {
             char c = name.charAt(i);
-            if (c == '_') continue;
-            if (i != 0 && name.charAt(i-1) == '_') {
+            if (c == '_')
+                continue;
+            if (i != 0 && name.charAt(i - 1) == '_') {
                 sb.append(Character.toUpperCase(c));
             } else {
                 sb.append(Character.toLowerCase(c));
@@ -68,28 +68,23 @@ public class StringTools {
      * @return
      */
     public static String removeOuterQuotes(String s) {
-        if (s == null) return s;
+        if (s == null)
+            return s;
         int len = s.length();
-        if (len == 0) return s;
+        if (len == 0)
+            return s;
         boolean atFront = s.charAt(0) == '\"';
         if (len == 1) {
             return atFront ? "" : s;
         }
-        boolean atBack = s.charAt(len-1) == '\"';
-        return s.substring(atFront ? 1 : 0, atBack ? len-1 : len);
+        boolean atBack = s.charAt(len - 1) == '\"';
+        return s.substring(atFront ? 1 : 0, atBack ? len - 1 : len);
     }
 
     @SuppressWarnings("unused")
     private void _test_removeOuterQuotes() {
-        String[] tests = new String[] {
-                "\"Hello At Start"
-                ,"\"Hello At Both\""
-                ,"Hello At End\""
-                ,"\"\""
-                ,"\""
-                ,""
-                ,null
-                };
+        String[] tests =
+            new String[] {"\"Hello At Start", "\"Hello At Both\"", "Hello At End\"", "\"\"", "\"", "", null};
 
         for (String s : tests) {
             String result = removeOuterQuotes(s);
@@ -111,10 +106,12 @@ public class StringTools {
                 while (ai < a.length() && bi < b.length()) {
                     if (isDigit(a.charAt(ai)) && isDigit(b.charAt(bi))) {
                         int aStart = ai, bStart = bi;
-                        while (ai < a.length() && isDigit(a.charAt(ai))) ai++;
-                        while (bi < b.length() && isDigit(b.charAt(bi))) bi++;
-                        String aStr = a.substring(aStart,ai);
-                        String bStr = b.substring(bStart,bi);
+                        while (ai < a.length() && isDigit(a.charAt(ai)))
+                            ai++;
+                        while (bi < b.length() && isDigit(b.charAt(bi)))
+                            bi++;
+                        String aStr = a.substring(aStart, ai);
+                        String bStr = b.substring(bStart, bi);
                         if (aStr.length() > 9 || bStr.length() > 9) {
                             if (!aStr.equals(bStr)) {
                                 return aStr.compareTo(bStr);
@@ -122,11 +119,13 @@ public class StringTools {
                         } else {
                             int aInt = Integer.parseInt(aStr);
                             int bInt = Integer.parseInt(bStr);
-                            if (aInt != bInt) return aInt - bInt;
+                            if (aInt != bInt)
+                                return aInt - bInt;
                         }
                     } else if (a.charAt(ai) != b.charAt(bi))
                         return a.charAt(ai) - b.charAt(bi);
-                    ai++; bi++;
+                    ai++;
+                    bi++;
                 }
                 return a.length() - b.length();
             }
@@ -154,7 +153,7 @@ public class StringTools {
      */
     public static String removeLastSeparator(String s) {
         if (s.endsWith(File.separator)) {
-            return s.substring(0, s.length()-1);
+            return s.substring(0, s.length() - 1);
         }
         return s;
     }
@@ -172,8 +171,9 @@ public class StringTools {
     }
 
     public static boolean isInteger(String s) {
-        for (int i=0; i < s.length(); i++) {
-            if (!Character.isDigit(s.charAt(i))) return false;
+        for (int i = 0; i < s.length(); i++) {
+            if (!Character.isDigit(s.charAt(i)))
+                return false;
         }
         return true;
     }
@@ -189,14 +189,15 @@ public class StringTools {
      * no change if no integer is found.
      */
     public static String addIndexingAngleBrackets(String s) {
-        int i = s.length() -1;
-        if (!Character.isDigit(s.charAt(i))) return s;
+        int i = s.length() - 1;
+        if (!Character.isDigit(s.charAt(i)))
+            return s;
         while (Character.isDigit(s.charAt(i))) {
             i--;
         }
-        StringBuilder sb = new StringBuilder(s.substring(0, i+1));
+        StringBuilder sb = new StringBuilder(s.substring(0, i + 1));
         sb.append('<');
-        sb.append(s.substring(i+1));
+        sb.append(s.substring(i + 1));
         sb.append('>');
         return sb.toString();
     }
@@ -209,8 +210,9 @@ public class StringTools {
      */
     public static int countOccurrences(String str, char c) {
         int count = 0;
-        for (int i=0; i < str.length(); i++) {
-            if (str.charAt(i) == c) count++;
+        for (int i = 0; i < str.length(); i++) {
+            if (str.charAt(i) == c)
+                count++;
         }
         return count;
     }
@@ -222,14 +224,15 @@ public class StringTools {
      * @return Longest common prefix string or empty string if none.
      */
     public static String longestCommonPrefix(String s0, String s1) {
-        if (s0 == null || s1 == null) return "";
+        if (s0 == null || s1 == null)
+            return "";
         int min = Math.min(s0.length(), s1.length());
-        for (int i=0; i < min; i++) {
+        for (int i = 0; i < min; i++) {
             if (s0.charAt(i) != s1.charAt(i)) {
                 return s0.substring(0, i);
             }
         }
-        return s0.substring(0,min);
+        return s0.substring(0, min);
     }
 
     /**
@@ -241,14 +244,15 @@ public class StringTools {
      */
     public static String startsWithAny(String str, Collection<String> prefixes) {
         for (String prefix : prefixes) {
-            if (str.startsWith(prefix)) return prefix;
+            if (str.startsWith(prefix))
+                return prefix;
         }
         return null;
     }
 
     /**
      * Creates a String of spaces of the specified length
-     * 
+     *
      * @param length The number of spaces in the desired String
      * @return A String containing spaces of the desired length. Any length less
      *         than 1 will return a String of length 0.
@@ -265,7 +269,7 @@ public class StringTools {
 
     /**
      * Prints a list of Strings in columns, based upon the terminal width.
-     * 
+     *
      * @param items      The list of Strings to print
      * @param ps         The stream to send the printed Strings to.
      */
@@ -275,7 +279,7 @@ public class StringTools {
 
     /**
      * Prints a list of Strings in columns, based upon the terminal width.
-     * 
+     *
      * @param items      The list of Strings to print
      * @param ps         The stream to send the printed Strings to.
      * @param maxColumns A maximum limit to the number columns to print
@@ -305,7 +309,7 @@ public class StringTools {
      * Light-weight helper method to get the value of an option in an array of
      * arguments. For example, if option is '--option' and args is {"in.dcp",
      * "out.dcp", "--option=value"}, this method will return 'value'.
-     * 
+     *
      * @param option The name of the option to search for
      * @param args   The list or arguments (usually from main())
      * @return The value of the option or null if it was not found

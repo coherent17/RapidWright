@@ -47,7 +47,6 @@ import com.xilinx.rapidwright.edif.EDIFLibrary;
 import com.xilinx.rapidwright.edif.EDIFNetlist;
 
 public class PinMapTester {
-
     public static void main(String[] args) {
         if (args.length < 5) {
             System.out.println("USAGE: <partname> <cell name> <site> <site type> <bel> <parameters>");
@@ -96,10 +95,10 @@ public class PinMapTester {
             throw new RuntimeException("BEL " + belName + " is not found in within specified site.");
         }
 
-        //List<String> parameters = new ArrayList<String>();
+        // List<String> parameters = new ArrayList<String>();
         Map<String, String> parameterMap = new HashMap<String, String>();
 
-        Map<String,VivadoProp> defaultParameters = design.getDefaultCellProperties(device.getSeries(), cellTypeName);
+        Map<String, VivadoProp> defaultParameters = design.getDefaultCellProperties(device.getSeries(), cellTypeName);
         for (Map.Entry<String, VivadoProp> defaultParameter : defaultParameters.entrySet()) {
             parameterMap.put(defaultParameter.getKey(), defaultParameter.getValue().getValue());
         }
@@ -119,10 +118,11 @@ public class PinMapTester {
         }
         String[] parameterArray = parameters.toArray(new String[parameters.size()]);
 
-        Cell physCell = design.createAndPlaceCell(topLevelCell, "test", cellType, site.getName() + "/" + belName, parameterArray);
+        Cell physCell =
+            design.createAndPlaceCell(topLevelCell, "test", cellType, site.getName() + "/" + belName, parameterArray);
 
-        System.out.printf("Cell type %s at %s/%s in part %s, pin map:\n",
-                cellTypeName, site.getName(), belName, partName);
+        System.out.printf("Cell type %s at %s/%s in part %s, pin map:\n", cellTypeName, site.getName(), belName,
+                          partName);
         String[] physPinNames = physCell.getPhysicalPinMappings();
         for (int i = 0; i < physPinNames.length; i++) {
             String logPinName = physPinNames[i];
@@ -133,4 +133,3 @@ public class PinMapTester {
         }
     }
 }
-

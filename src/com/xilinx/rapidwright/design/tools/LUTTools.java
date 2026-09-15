@@ -59,7 +59,6 @@ import com.xilinx.rapidwright.edif.EDIFCellInst;
 import com.xilinx.rapidwright.edif.EDIFHierCellInst;
 import com.xilinx.rapidwright.edif.EDIFPropertyValue;
 
-
 /**
  * A collection of tools to help modify LUTs.
  *
@@ -67,7 +66,6 @@ import com.xilinx.rapidwright.edif.EDIFPropertyValue;
  *
  */
 public class LUTTools {
-
     public static final String LUT_INIT = "INIT";
 
     public static final int MAX_LUT_SIZE = 6;
@@ -94,7 +92,8 @@ public class LUTTools {
      */
     public static String[] getLUTBELNames(char lutLetter) {
         int index = lutLetter - (lutLetter >= 'a' ? 'a' : 'A');
-        if (index < 0 || index >= lutLetters.length) return empty;
+        if (index < 0 || index >= lutLetters.length)
+            return empty;
         return lutMap[index];
     }
 
@@ -105,7 +104,8 @@ public class LUTTools {
      * @return The name of the companion LUT or null if undetermined.
      */
     public static String getCompanionLUTName(BEL lut) {
-        if (!lut.isLUT()) return null;
+        if (!lut.isLUT())
+            return null;
         return getCompanionLUTName(lut.getName());
     }
 
@@ -123,7 +123,7 @@ public class LUTTools {
     /**
      * Gets the companion netlist cell type.  For example, a LUT5 will return a LUT6 and vice versa.
      * @param cell The netlist cell type.
-     * @return The companion cell type 
+     * @return The companion cell type
      */
     public static String getCompanionLUTName(EDIFCell cell) {
         return cell.getName().equals("LUT5") ? "LUT6" : (cell.getName().equals("LUT6") ? "LUT5" : null);
@@ -132,7 +132,7 @@ public class LUTTools {
     /**
      * From a placed LUT cell, get the companion LUT BEL location. For example, a
      * cell placed on A5LUT would return the A6LUT and vice versa.
-     * 
+     *
      * @param cell A placed cell on a LUT BEL.
      * @return The companion LUT BEL or null if the cell is not placed on a LUT BEL
      *         location.
@@ -140,7 +140,8 @@ public class LUTTools {
     public static BEL getCompanionLUT(Cell cell) {
         assert (cell.getBEL().isLUT());
         String belName = cell.getBELName();
-        if (belName == null) return null;
+        if (belName == null)
+            return null;
         String otherLUTName = getCompanionLUTName(belName);
         return otherLUTName != null ? cell.getSite().getBEL(otherLUTName) : null;
     }
@@ -149,7 +150,7 @@ public class LUTTools {
      * From a placed LUT cell, get the cell in the companion LUT BEL location. For
      * example, a cell placed on A5LUT would return the cell in the A6LUT and vice
      * versa.
-     * 
+     *
      * @param cell A placed cell on a LUT BEL.
      * @return The companion cell placed in the LUT BEL location or null if the cell
      *         is not placed on a LUT BEL location or there is no cell in the
@@ -162,7 +163,7 @@ public class LUTTools {
 
     /**
      * Gets the output pin from the BEL of a LUT
-     * 
+     *
      * @param bel The physical bel site of the LUT
      * @return O5 or O6 based on the BEL
      */
@@ -173,7 +174,7 @@ public class LUTTools {
     /**
      * Checks if this cell is a LUT (LUT1, LUT2, LUT3,...). A CFGLUT5 will return
      * false.
-     * 
+     *
      * @param c The cell in question
      * @return True if this is a LUT[1-6], false otherwise.
      */
@@ -187,12 +188,15 @@ public class LUTTools {
      * @return True if this is a LUT[1-6], false otherwise.
      */
     public static boolean isCellALUT(EDIFCellInst i) {
-        if (i == null) return false;
+        if (i == null)
+            return false;
         EDIFCell ec = i.getCellType();
-        if (ec == null) return false;
+        if (ec == null)
+            return false;
         boolean isPrimitive = ec.isPrimitive();
         boolean startsWithLUT = ec.getName().startsWith("LUT");
-        if (isPrimitive && startsWithLUT) return true;
+        if (isPrimitive && startsWithLUT)
+            return true;
         return false;
     }
 
@@ -213,7 +217,8 @@ public class LUTTools {
      * @return The number of LUT inputs or 0 if cell is not a LUT.
      */
     public static int getLUTSize(EDIFCellInst c) {
-        if (!isCellALUT(c)) return 0;
+        if (!isCellALUT(c))
+            return 0;
         String cellType = c.getCellType().getName();
         return cellType.startsWith("LUTCY") ? 5 : Character.getNumericValue(cellType.charAt(3));
     }
@@ -221,7 +226,7 @@ public class LUTTools {
     /**
      * If the provided cell instance is a LUT, it will return the LUT input count.
      * If it is not a LUT, it will return 0.
-     * 
+     *
      * @param c The LUT cell
      * @return The number of LUT inputs or 0 if cell is not a LUT.
      */
@@ -232,7 +237,7 @@ public class LUTTools {
     /**
      * Given a LUT BEL, get the size of the LUT (generally 5 or 6). If the BEL is
      * not a LUT type, it returns -1.
-     * 
+     *
      * @param bel The BEL to query
      * @return The size of the LUT, or -1 if the BEL is not a LUT.
      */
@@ -242,14 +247,14 @@ public class LUTTools {
 
     /**
      * Extracts the length value from the INIT String (16, in 16'hA8A2)
-     * 
+     *
      * @param init The init string.
      * @return The init length.
      */
     public static int initLength(String init) {
         int idx = init.indexOf('\'');
-        if (idx == -1) throw new RuntimeException("ERROR: Bad " + LUT_INIT +
-                                " String \"" + init +"\", missing \'");
+        if (idx == -1)
+            throw new RuntimeException("ERROR: Bad " + LUT_INIT + " String \"" + init + "\", missing \'");
         return Integer.parseInt(init.substring(0, idx));
     }
 
@@ -263,26 +268,26 @@ public class LUTTools {
         int lutSize = 0;
         int initLength = initLength(init);
         switch (initLength) {
-        case 2:
-            lutSize = 1;
-            break;
-        case 4:
-            lutSize = 2;
-            break;
-        case 8:
-            lutSize = 3;
-            break;
-        case 16:
-            lutSize = 4;
-            break;
-        case 32:
-            lutSize = 5;
-            break;
-        case 64:
-            lutSize = 6;
-            break;
-        default:
-            throw new RuntimeException("ERROR: Unsupported LUT Size/INIT value " + init);
+            case 2:
+                lutSize = 1;
+                break;
+            case 4:
+                lutSize = 2;
+                break;
+            case 8:
+                lutSize = 3;
+                break;
+            case 16:
+                lutSize = 4;
+                break;
+            case 32:
+                lutSize = 5;
+                break;
+            case 64:
+                lutSize = 6;
+                break;
+            default:
+                throw new RuntimeException("ERROR: Unsupported LUT Size/INIT value " + init);
         }
         return lutSize;
     }
@@ -302,21 +307,22 @@ public class LUTTools {
      * @param c The cell instance in question.
      */
     public static void printTruthTable(EDIFCellInst c) {
-        if (!isCellALUT(c)) return;
+        if (!isCellALUT(c))
+            return;
         String init = c.getProperty(LUT_INIT).getValue();
         int lutSize = getLUTSize(init);
         int initLength = initLength(init);
         long initValue = getInitValue(init);
 
-        for (int i=lutSize-1; i >= 0; i--) {
+        for (int i = lutSize - 1; i >= 0; i--) {
             System.out.print("I" + i + " ");
         }
         System.out.println("| " + getLUTEquation(init));
-        for (int i=0; i < initLength; i++) {
-            for (int j=lutSize-1; j >= 0; j--) {
-                System.out.print(" " + getBit(i,j) + " ");
+        for (int i = 0; i < initLength; i++) {
+            for (int j = lutSize - 1; j >= 0; j--) {
+                System.out.print(" " + getBit(i, j) + " ");
             }
-            System.out.println("| " + getBit(initValue,i));
+            System.out.println("| " + getBit(initValue, i));
         }
     }
 
@@ -328,16 +334,19 @@ public class LUTTools {
      */
     public static long getInitValue(String init) {
         int idx = init.indexOf('\'');
-        if (idx == -1) throw new RuntimeException("ERROR: Bad " + LUT_INIT +
-                                " String \"" + init +"\", missing \'");
-        String radix = init.substring(idx+1, idx+2).toLowerCase();
-        if (radix.equals("h")) return Long.parseUnsignedLong(init.substring(idx+2), 16);
-        if (radix.equals("d")) return Long.parseUnsignedLong(init.substring(idx+2), 10);
-        if (radix.equals("o")) return Long.parseUnsignedLong(init.substring(idx+2), 8);
-        if (radix.equals("b")) return Long.parseUnsignedLong(init.substring(idx+2), 2);
+        if (idx == -1)
+            throw new RuntimeException("ERROR: Bad " + LUT_INIT + " String \"" + init + "\", missing \'");
+        String radix = init.substring(idx + 1, idx + 2).toLowerCase();
+        if (radix.equals("h"))
+            return Long.parseUnsignedLong(init.substring(idx + 2), 16);
+        if (radix.equals("d"))
+            return Long.parseUnsignedLong(init.substring(idx + 2), 10);
+        if (radix.equals("o"))
+            return Long.parseUnsignedLong(init.substring(idx + 2), 8);
+        if (radix.equals("b"))
+            return Long.parseUnsignedLong(init.substring(idx + 2), 2);
 
-        throw new RuntimeException("Unsupported radix '" + radix + "' in " +
-                    LUT_INIT + " string \'" + init + "'");
+        throw new RuntimeException("Unsupported radix '" + radix + "' in " + LUT_INIT + " string \'" + init + "'");
     }
 
     public static long setBit(long value, int bitIndex) {
@@ -384,9 +393,10 @@ public class LUTTools {
         int length = 1 << lutSize;
         long init = 0;
         LUTEquationEvaluator b = new LUTEquationEvaluator(equation);
-        for (int i=0; i < length; i++) {
+        for (int i = 0; i < length; i++) {
             boolean result = b.eval(i);
-            if (result) init = setBit(init,i);
+            if (result)
+                init = setBit(init, i);
         }
         int initLength = Integer.max(1, length >>> 2);
         return length + "'h" + String.format("%0" + initLength + "x", init).toUpperCase();
@@ -400,7 +410,8 @@ public class LUTTools {
      */
     public static EDIFPropertyValue configureLUT(Cell c, String equation) {
         int size = getLUTSize(c);
-        if (size == 0) throw new RuntimeException("ERROR: Cell " + c.getName() + " is not a LUT");
+        if (size == 0)
+            throw new RuntimeException("ERROR: Cell " + c.getName() + " is not a LUT");
         String init = getLUTInitFromEquation(equation, size);
         return c.addProperty(LUT_INIT, init);
     }
@@ -413,7 +424,8 @@ public class LUTTools {
      */
     public static EDIFPropertyValue configureLUT(EDIFCellInst c, String equation) {
         int size = getLUTSize(c);
-        if (size == 0) throw new RuntimeException("ERROR: Cell " + c.getName() + " is not a LUT");
+        if (size == 0)
+            throw new RuntimeException("ERROR: Cell " + c.getName() + " is not a LUT");
         String init = getLUTInitFromEquation(equation, size);
         return c.addProperty(LUT_INIT, init);
     }
@@ -440,14 +452,15 @@ public class LUTTools {
     public static String getLUTEquation(EDIFCellInst i) {
         EDIFPropertyValue prop = i.getProperty(LUT_INIT);
         String init = prop == null ? null : prop.getValue();
-        if (init == null) return null;
+        if (init == null)
+            return null;
         return getLUTEquation(init);
     }
 
     /**
      * Reads the init string in this LUT and creates an equivalent (non-optimal)
      * equation.
-     * 
+     *
      * @param i The LUT instance
      * @return The equation following LUT equation syntax or null if cell is not
      *         configured.
@@ -460,7 +473,7 @@ public class LUTTools {
      * Creates a (dumb, non-reduced) boolean logic equation compatible with Vivado's
      * LUT Equation Editor from an INIT string. TODO - Enhance with a logic
      * minimization method such as Quine-McCluskey method.
-     * 
+     *
      * @param init The existing INIT string configuring a LUT.
      * @return A Vivado LUT Equation Editor compatible equation.
      */
@@ -470,53 +483,58 @@ public class LUTTools {
         int lutSize = getLUTSize(init);
         StringBuilder sb = new StringBuilder("O=");
         int termCount = 0;
-        for (int i=0; i < length; i++) {
-            if (getBit(value,i) == 1) {
-                if (termCount > 0) sb.append(" + ");
-                for (int j=lutSize-1; j >= 0; j--) {
-                    sb.append(getBit(i,j) == 1 ? "" : "!");
+        for (int i = 0; i < length; i++) {
+            if (getBit(value, i) == 1) {
+                if (termCount > 0)
+                    sb.append(" + ");
+                for (int j = lutSize - 1; j >= 0; j--) {
+                    sb.append(getBit(i, j) == 1 ? "" : "!");
                     sb.append("I" + j);
-                    if (j > 0) sb.append(" & ");
+                    if (j > 0)
+                        sb.append(" & ");
                 }
                 termCount++;
             }
         }
-        if (termCount==0) return "O=0";
-        if (termCount==length) return "O=1";
+        if (termCount == 0)
+            return "O=0";
+        if (termCount == length)
+            return "O=1";
         return sb.toString();
     }
 
+    private static List<Map<String, String>> tests;
 
-    private static List<Map<String,String>> tests;
-
-    static{
+    static {
         tests = new ArrayList<>();
-        for (int i=0; i < MAX_LUT_SIZE; i++) {
-            int lutSize = i+1;
+        for (int i = 0; i < MAX_LUT_SIZE; i++) {
+            int lutSize = i + 1;
             tests.add(new LinkedHashMap<>());
-            Map<String,String> test = tests.get(i);
-            long lutInitLength = 1L << (i+1);
+            Map<String, String> test = tests.get(i);
+            long lutInitLength = 1L << (i + 1);
             test.put("O=0", lutInitLength + "'h0");
-            long initValue = lutInitLength == 64 ? -1L : (1L << (lutInitLength))-1;
-            test.put("O=1", lutInitLength + "'h" + Long.toUnsignedString(initValue,16).toUpperCase());
+            long initValue = lutInitLength == 64 ? -1L : (1L << (lutInitLength)) - 1;
+            test.put("O=1", lutInitLength + "'h" + Long.toUnsignedString(initValue, 16).toUpperCase());
 
             if (lutSize > 1) {
-                char[] repeatTemplate = new char[(int) (lutInitLength >> 2)];
-                test.put("O=I0 "+LUTEquationEvaluator.XOR+ " I1", lutInitLength + "'h" + new String(repeatTemplate).replace("\0", "6"));
-                test.put("O=I0 "+LUTEquationEvaluator.XOR2+" I1", lutInitLength + "'h" + new String(repeatTemplate).replace("\0", "6"));
+                char[] repeatTemplate = new char[(int)(lutInitLength >> 2)];
+                test.put("O=I0 " + LUTEquationEvaluator.XOR + " I1",
+                         lutInitLength + "'h" + new String(repeatTemplate).replace("\0", "6"));
+                test.put("O=I0 " + LUTEquationEvaluator.XOR2 + " I1",
+                         lutInitLength + "'h" + new String(repeatTemplate).replace("\0", "6"));
             }
             if (lutSize == 3)
                 test.put("O=!I2 & I1 & !I0 + !I2 & I1 & I0 + I2 & !I1 & I0 + I2 & I1 & I0", "8'hAC");
             if (lutSize == 6) {
-                test.put("O=!I0 + ~I1 * (I2 ^ (I3 & I4 . I5))","64'h5775757575757575");
-                test.put("O=I0 & I1 & !I3 & !I4 + !I1 & I2 & !I3 & !I4 + I3 & I5 + !I3 & I4 & I5","64'hFFFFFFB8000000B8");
-                test.put("O=!(I0 + ~I1) @ (I2 ^ I3) + (I4 . I5)","64'hFFFF4BB44BB44BB4");
+                test.put("O=!I0 + ~I1 * (I2 ^ (I3 & I4 . I5))", "64'h5775757575757575");
+                test.put("O=I0 & I1 & !I3 & !I4 + !I1 & I2 & !I3 & !I4 + I3 & I5 + !I3 & I4 & I5",
+                         "64'hFFFFFFB8000000B8");
+                test.put("O=!(I0 + ~I1) @ (I2 ^ I3) + (I4 . I5)", "64'hFFFF4BB44BB44BB4");
                 test.put("O=I0 ^ (I1 & I2)", "64'h6A6A6A6A6A6A6A6A");
                 test.put("O=I0 & (I1 ^ I2)", "64'h2828282828282828");
                 test.put("O=I0 ^ I1 + I2 ^ I3", "64'h6FF66FF66FF66FF6");
                 test.put("O=(I0 & I1) ^ (I2 & I3)", "64'h7888788878887888");
             }
-
         }
     }
 
@@ -555,7 +573,7 @@ public class LUTTools {
      * @param oldPinToNewPins Mapping from old pins to new pins.
      */
     public static int swapMultipleLutPins(Map<SitePinInst, String> oldPinToNewPins) {
-        Map<String,Map<String,PinSwap>> pinSwaps = new HashMap<>();
+        Map<String, Map<String, PinSwap>> pinSwaps = new HashMap<>();
 
         for (Map.Entry<SitePinInst, String> e : oldPinToNewPins.entrySet()) {
             SitePinInst oldSinkSpi = e.getKey();
@@ -583,10 +601,10 @@ public class LUTTools {
 
                 // Only consider LUT cell or a routethru ...
                 if (!cell.getType().startsWith("LUT") && !cell.isRoutethru() &&
-                        // ... or distributed RAM cells not on a "H" BEL
-                        (!cell.getType().startsWith("RAM") || bel.getName().startsWith("H"))) {
+                    // ... or distributed RAM cells not on a "H" BEL
+                    (!cell.getType().startsWith("RAM") || bel.getName().startsWith("H"))) {
                     // SRL cells do not support pin swapping
-                    assert(cell.getType().startsWith("SRL"));
+                    assert (cell.getType().startsWith("SRL"));
                     continue;
                 }
 
@@ -595,29 +613,29 @@ public class LUTTools {
                 if (ps == null) {
                     String newPhysicalPinName = "A" + newSitePinName.charAt(1);
                     String depopulatedLogicalPinName = cell.getLogicalPinMapping(newPhysicalPinName);
-                    ps = new PinSwap(cell, oldLogicalPinName, oldPhysicalPinName,
-                            newPhysicalPinName, depopulatedLogicalPinName, newSitePinName);
+                    ps = new PinSwap(cell, oldLogicalPinName, oldPhysicalPinName, newPhysicalPinName,
+                                     depopulatedLogicalPinName, newSitePinName);
 
                     String siteAndLut = cell.getSiteName() + "/" + bel.getName().charAt(0);
                     String oldToNewPhysicalPin = oldPhysicalPinName + ">" + newPhysicalPinName;
-                    pinSwaps.computeIfAbsent(siteAndLut, (k) -> new HashMap<>())
-                            .put(oldToNewPhysicalPin, ps);
+                    pinSwaps.computeIfAbsent(siteAndLut, (k) -> new HashMap<>()).put(oldToNewPhysicalPin, ps);
                 } else {
                     if (bel.getName().charAt(1) == '6') {
-                        // Unpredictable set ordering can mean that x5LUT appears before x6LUT; swap them back here
-                        assert(ps.getCell().getBELName().charAt(1) == '5');
+                        // Unpredictable set ordering can mean that x5LUT appears before x6LUT; swap
+                        // them back here
+                        assert (ps.getCell().getBELName().charAt(1) == '5');
                         ps.setCompanionCell(ps.getCell(), ps.getLogicalName());
 
                         ps.setCell(cell);
                         String newPhysicalPinName = "A" + newSitePinName.charAt(1);
                         ps.setLogicalName(oldLogicalPinName);
-                        assert(ps.getOldPhysicalName().equals(oldPhysicalPinName));
-                        assert(ps.getNewPhysicalName().equals(newPhysicalPinName));
+                        assert (ps.getOldPhysicalName().equals(oldPhysicalPinName));
+                        assert (ps.getNewPhysicalName().equals(newPhysicalPinName));
                         String depopulatedLogicalPinName = cell.getLogicalPinMapping(newPhysicalPinName);
                         ps.setDepopulatedLogicalName(depopulatedLogicalPinName);
-                        assert(ps.getNewNetPinName().equals(newSitePinName));
+                        assert (ps.getNewNetPinName().equals(newSitePinName));
                     } else {
-                        assert(bel.getName().charAt(1) == '5');
+                        assert (bel.getName().charAt(1) == '5');
                         ps.setCompanionCell(cell, oldLogicalPinName);
                     }
                 }
@@ -626,7 +644,7 @@ public class LUTTools {
 
         // Make all pin swaps per LUT site simultaneously
         int numPinSwaps = 0;
-        for (Map.Entry<String,Map<String,PinSwap>> e : pinSwaps.entrySet()) {
+        for (Map.Entry<String, Map<String, PinSwap>> e : pinSwaps.entrySet()) {
             Collection<PinSwap> swaps = e.getValue().values();
             swapSingleLutPins(e.getKey(), swaps);
             numPinSwaps += swaps.size();
@@ -642,11 +660,11 @@ public class LUTTools {
      */
     public static void swapSingleLutPins(String key, Collection<PinSwap> pinSwaps) {
         Collection<PinSwap> copyOnWritePinSwaps = pinSwaps;
-        LinkedHashMap<String,PinSwap> overwrittenPins = new LinkedHashMap<>();
-        LinkedHashMap<String,PinSwap> emptySlots = new LinkedHashMap<>();
+        LinkedHashMap<String, PinSwap> overwrittenPins = new LinkedHashMap<>();
+        LinkedHashMap<String, PinSwap> emptySlots = new LinkedHashMap<>();
         for (PinSwap ps : copyOnWritePinSwaps) {
-            overwrittenPins.put(ps.getNewPhysicalName(),ps);
-            emptySlots.put(ps.getOldPhysicalName(),ps);
+            overwrittenPins.put(ps.getNewPhysicalName(), ps);
+            emptySlots.put(ps.getOldPhysicalName(), ps);
         }
         for (PinSwap ps : copyOnWritePinSwaps) {
             String oldPin = ps.getOldPhysicalName();
@@ -666,7 +684,7 @@ public class LUTTools {
         }
         String[] oPins = overwrittenPins.keySet().toArray(new String[overwrittenPins.size()]);
         String[] ePins = emptySlots.keySet().toArray(new String[emptySlots.size()]);
-        for (int i=0; i < oPins.length; i++) {
+        for (int i = 0; i < oPins.length; i++) {
             String oldPhysicalPin = oPins[i];
             String newPhysicalPin = ePins[i];
             Cell c = emptySlots.get(newPhysicalPin).getCell();
@@ -679,8 +697,9 @@ public class LUTTools {
                     // Makes sure if both LUT sites are occupied, that pin movements
                     // are lock-step
                     if (neighborLogicalPinMapping != null) {
-                        PinSwap ps = new PinSwap(neighborLUT, neighborLUT.getLogicalPinMapping(oldPhysicalPin),oldPhysicalPin,newPhysicalPin,
-                                neighborLUT.getLogicalPinMapping(newPhysicalPin),newNetPinName);
+                        PinSwap ps = new PinSwap(neighborLUT, neighborLUT.getLogicalPinMapping(oldPhysicalPin),
+                                                 oldPhysicalPin, newPhysicalPin,
+                                                 neighborLUT.getLogicalPinMapping(newPhysicalPin), newNetPinName);
 
                         if (copyOnWritePinSwaps == pinSwaps) {
                             copyOnWritePinSwaps = new ArrayList<>(pinSwaps);
@@ -693,8 +712,8 @@ public class LUTTools {
             }
             // Make implicit swaps when one of the pins is not being routed
             // or is unconnected for one or both of the cells
-            PinSwap ps = new PinSwap(c, c.getLogicalPinMapping(oldPhysicalPin),oldPhysicalPin,newPhysicalPin,
-                    c.getLogicalPinMapping(newPhysicalPin),newNetPinName);
+            PinSwap ps = new PinSwap(c, c.getLogicalPinMapping(oldPhysicalPin), oldPhysicalPin, newPhysicalPin,
+                                     c.getLogicalPinMapping(newPhysicalPin), newNetPinName);
             Cell neighborLUT = ps.checkForCompanionCell();
             if (neighborLUT != null) {
                 if (neighborLUT.getLogicalPinMapping(oldPhysicalPin) != null) {
@@ -719,7 +738,7 @@ public class LUTTools {
                 continue;
             }
             si.unrouteIntraSiteNet(pinToMove.getBELPin(), cell.getBEL().getPin(ps.getOldPhysicalName()));
-            pinToMove.setSiteInst(null,true);
+            pinToMove.setSiteInst(null, true);
             // Removes pin mappings to prepare for new pin mappings
             cell.removePinMapping(ps.getOldPhysicalName());
             if (ps.getCompanionCell() != null) {
@@ -727,7 +746,7 @@ public class LUTTools {
             }
         }
 
-        assert(q.size() == copyOnWritePinSwaps.size());
+        assert (q.size() == copyOnWritePinSwaps.size());
 
         // Perform the actual swap on cell pin mappings
         for (PinSwap ps : copyOnWritePinSwaps) {
@@ -735,9 +754,9 @@ public class LUTTools {
             cell.addPinMapping(ps.getNewPhysicalName(), ps.getLogicalName());
             if (cell.isRoutethru() && cell.hasAltPinMappings()) {
                 Map<String, AltPinMapping> altPinMappings = cell.getAltPinMappings();
-                assert(altPinMappings.size() == 1);
+                assert (altPinMappings.size() == 1);
                 AltPinMapping apm = altPinMappings.remove(ps.getOldPhysicalName());
-                assert(apm != null);
+                assert (apm != null);
                 cell.addAltPinMapping(ps.getNewPhysicalName(), apm);
             }
             if (ps.getCompanionCell() != null) {
@@ -750,10 +769,11 @@ public class LUTTools {
             pinToMove.setPinName(ps.getNewNetPinName());
             SiteInst si = cell.getSiteInst();
             pinToMove.setSiteInst(si);
-            si.routeIntraSiteNet(pinToMove.getNet(), pinToMove.getBELPin(), cell.getBEL().getPin(ps.getNewPhysicalName()));
+            si.routeIntraSiteNet(pinToMove.getNet(), pinToMove.getBELPin(),
+                                 cell.getBEL().getPin(ps.getNewPhysicalName()));
         }
 
-        assert(q.isEmpty());
+        assert (q.isEmpty());
     }
 
     /**
@@ -788,16 +808,15 @@ public class LUTTools {
                 if (spi.isOutPin() || !spi.isLUTInputPin()) {
                     continue;
                 }
-                assert(spi.getSiteInst().getSitePinInst(spi.getName()) == spi);
-                siteToLutSpis.computeIfAbsent(spi.getSite(), (k) -> new ArrayList<>(1))
-                        .add(spi);
+                assert (spi.getSiteInst().getSitePinInst(spi.getName()) == spi);
+                siteToLutSpis.computeIfAbsent(spi.getSite(), (k) -> new ArrayList<>(1)).add(spi);
             }
 
             for (PIP pip : net.getPIPs()) {
                 if (pip.isRouteThru()) {
                     Node startNode = pip.getStartNode();
                     SitePin newSitePin = startNode.getSitePin();
-                    assert(newSitePin != null);
+                    assert (newSitePin != null);
                     routethruSitePins.add(newSitePin);
                     continue;
                 }
@@ -816,7 +835,7 @@ public class LUTTools {
                     continue;
                 }
                 SiteInst si = design.getSiteInstFromSite(site);
-                assert(si != null);
+                assert (si != null);
 
                 String newSitePinName = newSitePin.getPinName();
                 if (!SitePinInst.isLUTInputPin(si, newSitePinName)) {
@@ -826,7 +845,7 @@ public class LUTTools {
                 List<SitePinInst> spis = siteToLutSpis.get(site);
                 if (spis == null) {
                     System.out.println("WARNING: SitePin " + newSitePin + " visited by PIP " + pip +
-                            " is not a SitePinInst on net " + net + ". Ignoring.");
+                                       " is not a SitePinInst on net " + net + ". Ignoring.");
                 } else if (!spis.remove(newSpi)) {
                     // spi is not already on this net -- could require pin swapping,
                     // or could be a routethru
@@ -842,7 +861,7 @@ public class LUTTools {
                 Site site = newSitePin.getSite();
                 List<SitePinInst> unmatchedSpis = siteToLutSpis.get(site);
                 Iterator<SitePinInst> it = unmatchedSpis.iterator();
-                assert(it.hasNext());
+                assert (it.hasNext());
                 String newSitePinName = newSitePin.getPinName();
                 char lutLetter = newSitePinName.charAt(0);
                 // Assume that unmatchedSpis is generally a small ArrayList
@@ -858,7 +877,7 @@ public class LUTTools {
                     found = true;
                     break;
                 }
-                assert(found);
+                assert (found);
             }
 
             siteToLutSpis.clear();
@@ -870,15 +889,15 @@ public class LUTTools {
     }
 
     public static void main(String[] args) {
-        Design d = new Design("test_design",Device.PYNQ_Z1);
+        Design d = new Design("test_design", Device.PYNQ_Z1);
 
-        for (int k=1; k <= 6; k++) {
+        for (int k = 1; k <= 6; k++) {
             String name = "fred_" + k;
             Cell c = d.createCell(name, Design.getUnisimCell(Unisim.valueOf("LUT" + k)));
             EDIFCellInst i = c.getEDIFCellInst();
             System.out.println("==== LUT" + k + " TESTS ====");
-            Map<String,String> lutTests = tests.get(k-1);
-            for (Entry<String,String> e : lutTests.entrySet()) {
+            Map<String, String> lutTests = tests.get(k - 1);
+            for (Entry<String, String> e : lutTests.entrySet()) {
                 String equation = e.getKey();
                 String init = e.getValue();
                 i.addProperty(LUT_INIT, init);

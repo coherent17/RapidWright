@@ -48,16 +48,16 @@ import com.xilinx.rapidwright.edif.EDIFPortInst;
 import com.xilinx.rapidwright.edif.EDIFPropertyValue;
 
 /**
- * This utility class is used to create RapidWright code from a DCP file that is tedious to create by hand.
+ * This utility class is used to create RapidWright code from a DCP file that is tedious to create
+ * by hand.
  * @author Hayden Cook
  * Created on: August 16, 2023
  */
 public class CodeGenerator {
-
     /**
      * Convenience method to take a net and return a String the generates the routed
      * net for an example test case in RapidWright code
-     * 
+     *
      * @param net The net to extract routing and SiteInst from
      * @return The RapidWright code string
      */
@@ -72,8 +72,8 @@ public class CodeGenerator {
     }
 
     /**
-     * Generates RapidWright test code from a provided checkpoint that instantiates the provided nets and siteInsts,
-     * and adds the associated PIPs to each of the nets.
+     * Generates RapidWright test code from a provided checkpoint that instantiates the provided
+     * nets and siteInsts, and adds the associated PIPs to each of the nets.
      *
      * @param dcp The path to the desired DCP to generate code from.
      * @param nets A collection of nets to generate code for.
@@ -86,8 +86,8 @@ public class CodeGenerator {
     }
 
     /**
-     * Generates RapidWright test code from a provided checkpoint that instantiates the provided nets and siteInsts,
-     * and adds the associated PIPs to each of the nets.
+     * Generates RapidWright test code from a provided checkpoint that instantiates the provided
+     * nets and siteInsts, and adds the associated PIPs to each of the nets.
      *
      * @param dcp The path to the desired DCP to generate code from.
      * @param edif The path to the external EDIF file to load (in case of an encrypted DCP file).
@@ -95,14 +95,15 @@ public class CodeGenerator {
      * @param siteInsts A collection of site instances to generate code for.
      * @return The resulting code.
      */
-    public static String testNetGenerator(String dcp, String edif, Collection<String> nets, Collection<String> siteInsts) {
+    public static String testNetGenerator(String dcp, String edif, Collection<String> nets,
+                                          Collection<String> siteInsts) {
         Design d = Design.readCheckpoint(dcp, edif);
         return testNetGenerator(d, nets, siteInsts);
     }
 
     /**
-     * Generates RapidWright test code from a provided checkpoint that instantiates the provided nets and siteInsts,
-     * and adds the associated PIPs to each of the nets.
+     * Generates RapidWright test code from a provided checkpoint that instantiates the provided
+     * nets and siteInsts, and adds the associated PIPs to each of the nets.
      *
      * @param design The design to generate code from.
      * @param nets A collection of nets to generate code for.
@@ -123,16 +124,17 @@ public class CodeGenerator {
         for (String netName : nets) {
             Net net = design.getNet(netName);
             String varName = "net";
-            if (nets.size() > 1) varName += netIdx;
-            code.append(String.format(
-                    "Net %s = " + CodeGenerator.class.getName() + ".createTestNet(design, \"%s\", new String[]{\n",
-                    varName, varName));
+            if (nets.size() > 1)
+                varName += netIdx;
+            code.append(String.format("Net %s = " + CodeGenerator.class.getName() +
+                                          ".createTestNet(design, \"%s\", new String[]{\n",
+                                      varName, varName));
 
             List<PIP> pips = net.getPIPs();
-            for(int i = 0; i < pips.size(); i++) {
+            for (int i = 0; i < pips.size(); i++) {
                 PIP pip = pips.get(i);
                 code.append(String.format("        \"%s\"", pip));
-                if (i != pips.size()-1)
+                if (i != pips.size() - 1)
                     code.append(",");
                 code.append("\n");
             }
@@ -146,8 +148,8 @@ public class CodeGenerator {
                     siteInstsCreated.put(siteName, siteIdx);
                     siteInstIdx = siteIdx;
                 }
-                code.append(
-                        varName + ".createPin(\"" + pin.getName() + "\", " + getSiteInstVarName(siteInstIdx) + ");\n");
+                code.append(varName + ".createPin(\"" + pin.getName() + "\", " + getSiteInstVarName(siteInstIdx) +
+                            ");\n");
             }
             netIdx++;
         }
@@ -164,7 +166,7 @@ public class CodeGenerator {
 
         return code.toString();
     }
-    
+
     private static String createSiteInstCode(int siteInstIdx, String siteName) {
         String varName = getSiteInstVarName(siteInstIdx);
         return String.format("SiteInst %s = design.createSiteInst(device.getSite(\"%s\"));\n", varName, siteName);
@@ -190,7 +192,7 @@ public class CodeGenerator {
     /**
      * Shorthand method to route site wires with a particular net in a site
      * instance.
-     * 
+     *
      * @param si        The site instance to target
      * @param n         The net to be site routed
      * @param siteWires The list of site wire names to route
@@ -201,10 +203,10 @@ public class CodeGenerator {
             si.routeIntraSiteNet(n, bp, bp);
         }
     }
-    
+
     /**
      * Shorthand method for turning on site PIPs in a site instance.
-     * 
+     *
      * @param si       The target site instance.
      * @param sitePIPs The list of site PIPs (of the format <BEL name>:<input pin
      *                 name>) to turn on.
@@ -219,7 +221,7 @@ public class CodeGenerator {
     /**
      * Shorthand method for creating a placed cell inside a site instance. This is
      * mostly useful for constructing test case scenarios.
-     * 
+     *
      * @param si          The target site instance
      * @param name        Name of the cell to create
      * @param isRoutethru Flag indicating if the cell should be a routethru
@@ -231,7 +233,7 @@ public class CodeGenerator {
      * @return The created cell.
      */
     public static Cell genCell(SiteInst si, String name, boolean isRoutethru, String type, String bel,
-            String... pinMaps) {
+                               String... pinMaps) {
         Cell c = null;
         if (isRoutethru || type.startsWith("<")) {
             c = new Cell(name, si.getBEL(bel));
@@ -241,7 +243,7 @@ public class CodeGenerator {
             c.setRoutethru(isRoutethru);
         } else {
             c = si.getDesign().createAndPlaceCell(si.getDesign().getTopEDIFCell(), name, Unisim.valueOf(type),
-                    si.getSite(), si.getBEL(bel));
+                                                  si.getSite(), si.getBEL(bel));
         }
         for (String pinMap : pinMaps) {
             int colonIdx = pinMap.indexOf(':');
@@ -251,13 +253,12 @@ public class CodeGenerator {
             } else {
                 c.addPinMapping(pinMap.substring(0, colonIdx), logPin);
             }
-
         }
         return c;
     }
 
     private static int uniqueCount = 0;
-    
+
     public static String TEST_SITE_INST_CLASS_NAME = "GenTestSiteInstDesign";
     public static String TEST_SITE_INST_METHOD_NAME = "genTestSiteInstDesign";
 
@@ -265,7 +266,7 @@ public class CodeGenerator {
      * Creates boilerplate code for a test by re-creating a SiteInst's configuration
      * from scratch in RapidWright APIs. This is useful for testing when only a
      * small context is necessary to reproduce a specific scenario.
-     * 
+     *
      * @param inst           The instance to replicate in the test
      * @param ps             The PrintStream (System.out, or a file-based
      *                       PrintStream, for example).
@@ -277,13 +278,13 @@ public class CodeGenerator {
         String part = design.getPartName();
         String siteName = inst.getSiteName();
         Map<String, String> nameMap = new HashMap<>();
-        
-        for (String c : new String[] {"design.AltPinMapping", "design.Cell", "design.Design", 
-                "design.Net", "design.NetType", "design.SiteInst", "device.Device", 
-                "device.SiteTypeEnum", "edif.EDIFCell", "edif.EDIFDirection", "edif.EDIFHierCellInst",
-                "edif.EDIFHierPortInst", "edif.EDIFNetlist", "edif.EDIFTools", "edif.EDIFValueType",
-                "util.CodeGenerator" }) {
-            ps.println("import com.xilinx.rapidwright."+c+";");
+
+        for (String c :
+             new String[] {"design.AltPinMapping", "design.Cell", "design.Design", "design.Net", "design.NetType",
+                           "design.SiteInst", "device.Device", "device.SiteTypeEnum", "edif.EDIFCell",
+                           "edif.EDIFDirection", "edif.EDIFHierCellInst", "edif.EDIFHierPortInst", "edif.EDIFNetlist",
+                           "edif.EDIFTools", "edif.EDIFValueType", "util.CodeGenerator"}) {
+            ps.println("import com.xilinx.rapidwright." + c + ";");
         }
 
         ps.println("");
@@ -291,10 +292,8 @@ public class CodeGenerator {
         ps.println("    public Design " + TEST_SITE_INST_METHOD_NAME + "() {");
         ps.println("        Design design = new Design(\"test\", \"" + part + "\");");
         ps.println("        Device device = design.getDevice();");
-        ps.println("        SiteInst si = design.createSiteInst(\"" + siteName + "\", SiteTypeEnum." 
-                                                                + inst.getSiteTypeEnum() 
-                                                                + ", device.getSite(\"" 
-                                                                + siteName + "\"));");
+        ps.println("        SiteInst si = design.createSiteInst(\"" + siteName + "\", SiteTypeEnum." +
+                   inst.getSiteTypeEnum() + ", device.getSite(\"" + siteName + "\"));");
         ps.println("        EDIFNetlist netlist = design.getNetlist();");
         ps.println("        EDIFCell top = netlist.getTopCell();");
         String tab = "        ";
@@ -302,10 +301,11 @@ public class CodeGenerator {
             String newCellName = nameMap.computeIfAbsent(c.getName(), n -> ("cell" + uniqueCount++));
             nameMap.put(c.getName(), newCellName);
 
-            String varName = newCellName + ((c.isRoutethru() || c.getType().startsWith("<")) ? "_" + c.getBELName() : "");
-            
-            ps.print(tab + "Cell "+varName+" = CodeGenerator.genCell(si, \"" + newCellName + "\", " + c.isRoutethru() + ", \""
-                    + c.getType() + "\", \"" + c.getBELName() + "\"");
+            String varName =
+                newCellName + ((c.isRoutethru() || c.getType().startsWith("<")) ? "_" + c.getBELName() : "");
+
+            ps.print(tab + "Cell " + varName + " = CodeGenerator.genCell(si, \"" + newCellName + "\", " +
+                     c.isRoutethru() + ", \"" + c.getType() + "\", \"" + c.getBELName() + "\"");
 
             String[] physPinMappings = c.getPhysicalPinMappings();
             for (int i = 0; i < physPinMappings.length; i++) {
@@ -315,32 +315,36 @@ public class CodeGenerator {
             }
             ps.println(");");
 
-            for (Entry<String,AltPinMapping> apm : c.getAltPinMappings().entrySet()) {
-                ps.println(tab + varName + ".addAltPinMapping(\"" + apm.getKey() + "\",new AltPinMapping(\""
-                                                    +apm.getValue().getLogicalName()+"\", \""
-                                                    +nameMap.computeIfAbsent(apm.getValue().getAltCellName(), n -> ("cell" + uniqueCount++))+"\",\""
-                                                    +apm.getValue().getAltCellType()+"\"));");    
+            for (Entry<String, AltPinMapping> apm : c.getAltPinMappings().entrySet()) {
+                ps.println(tab + varName + ".addAltPinMapping(\"" + apm.getKey() + "\",new AltPinMapping(\"" +
+                           apm.getValue().getLogicalName() + "\", \"" +
+                           nameMap.computeIfAbsent(apm.getValue().getAltCellName(), n -> ("cell" + uniqueCount++)) +
+                           "\",\"" + apm.getValue().getAltCellType() + "\"));");
             }
             if (!c.isRoutethru()) {
                 for (Entry<String, EDIFPropertyValue> e : c.getProperties().entrySet()) {
-                    ps.println(tab + varName + ".addProperty(\"" + e.getKey() + "\", \"" + e.getValue().getValue()
-                            + "\", EDIFValueType." + e.getValue().getType().name() + ");");
+                    ps.println(tab + varName + ".addProperty(\"" + e.getKey() + "\", \"" + e.getValue().getValue() +
+                               "\", EDIFValueType." + e.getValue().getType().name() + ");");
                 }
             }
             for (String fixPin : c.getPhysicalPinMappings()) {
                 if (c.isPinFixed(fixPin)) {
-                    ps.println(tab + varName + ".fixPin(\""+fixPin+"\");");
+                    ps.println(tab + varName + ".fixPin(\"" + fixPin + "\");");
                 }
             }
             SiteTypeEnum altBlockedType = c.getAltBlockedSiteType();
             if (altBlockedType != null) {
-                ps.println(tab + varName + ".setAltBlockedSiteType(SiteTypeEnum." + altBlockedType.name()+");");
+                ps.println(tab + varName + ".setAltBlockedSiteType(SiteTypeEnum." + altBlockedType.name() + ");");
             }
 
-            if (c.isBELFixed()) ps.println(tab + varName + ".setBELFixed(true);");
-            if (c.isLocked()) ps.println(tab + varName + ".setLocked(true);");
-            if (c.isNullBEL()) ps.println(tab + varName + ".setNullBEL(true);");
-            if (c.isSiteFixed()) ps.println(tab + varName + ".setSiteFixed(true);");
+            if (c.isBELFixed())
+                ps.println(tab + varName + ".setBELFixed(true);");
+            if (c.isLocked())
+                ps.println(tab + varName + ".setLocked(true);");
+            if (c.isNullBEL())
+                ps.println(tab + varName + ".setNullBEL(true);");
+            if (c.isSiteFixed())
+                ps.println(tab + varName + ".setSiteFixed(true);");
         }
 
         ps.println();
@@ -359,23 +363,23 @@ public class CodeGenerator {
             Net n = e.getKey();
             boolean hasSrc = false;
             boolean hasSnk = false;
-            String newNetName = (n.isStaticNet() || n.isUsedNet()) ? null
-                    : nameMap.computeIfAbsent(n.getName(), p -> ("net" + uniqueCount++));
+            String newNetName = (n.isStaticNet() || n.isUsedNet())
+                                    ? null
+                                    : nameMap.computeIfAbsent(n.getName(), p -> ("net" + uniqueCount++));
             if (newNetName == null) {
                 if (n.isStaticNet()) {
                     newNetName = n.isVCCNet() ? "vcc" : "gnd";
-                    ps.println(tab + "Net " + newNetName + " = design." + (n.isVCCNet() ? "getVccNet()" : "getGndNet()")
-                            + ";");
+                    ps.println(tab + "Net " + newNetName + " = design." +
+                               (n.isVCCNet() ? "getVccNet()" : "getGndNet()") + ";");
                     for (Cell c : inst.getCells()) {
                         if (!c.isRoutethru()) {
                             EDIFHierCellInst ci = c.getEDIFHierCellInst();
                             for (EDIFPortInst pi : ci.getInst().getPortInsts()) {
                                 if ((pi.getNet().isVCC() && n.isVCCNet()) || (pi.getNet().isGND() && n.isGNDNet())) {
-
-                                    ps.println(tab + "EDIFTools.getStaticNet(NetType."
-                                            + (pi.getNet().isVCC() ? "VCC" : "GND")
-                                            + ", top, netlist).createPortInst(\"" + pi.getName() + "\", "
-                                            + nameMap.get(c.getName()) + ");");
+                                    ps.println(tab + "EDIFTools.getStaticNet(NetType." +
+                                               (pi.getNet().isVCC() ? "VCC" : "GND") +
+                                               ", top, netlist).createPortInst(\"" + pi.getName() + "\", " +
+                                               nameMap.get(c.getName()) + ");");
                                 }
                             }
                         }
@@ -392,9 +396,8 @@ public class CodeGenerator {
                     for (EDIFHierPortInst pi : n.getLogicalHierNet().getLeafHierPortInsts()) {
                         String newCellName = nameMap.get(pi.getFullHierarchicalInstName());
                         if (newCellName != null) {
-                            ps.println(tab + newNetName + ".getLogicalNet().createPortInst(\""
-                                    + pi.getPortInst().getName()
-                                    + "\", " + newCellName + ");");
+                            ps.println(tab + newNetName + ".getLogicalNet().createPortInst(\"" +
+                                       pi.getPortInst().getName() + "\", " + newCellName + ");");
                             if (pi.isOutput()) {
                                 hasSrc = true;
                             } else {
@@ -403,12 +406,12 @@ public class CodeGenerator {
                         }
                     }
                     if (!hasSrc) {
-                        ps.println(tab + "top.getNet(\"" + newNetName + "\").createPortInst(top.createPort(\"port"
-                                + (uniqueCount++) + "\", EDIFDirection.INPUT, 1));");
+                        ps.println(tab + "top.getNet(\"" + newNetName + "\").createPortInst(top.createPort(\"port" +
+                                   (uniqueCount++) + "\", EDIFDirection.INPUT, 1));");
                     }
                     if (!hasSnk) {
-                        ps.println(tab + "top.getNet(\"" + newNetName + "\").createPortInst(top.createPort(\"port"
-                                + (uniqueCount++) + "\", EDIFDirection.OUTPUT, 1));");
+                        ps.println(tab + "top.getNet(\"" + newNetName + "\").createPortInst(top.createPort(\"port" +
+                                   (uniqueCount++) + "\", EDIFDirection.OUTPUT, 1));");
                     }
                 }
             }
@@ -422,7 +425,7 @@ public class CodeGenerator {
                 ps.println(tab + "CodeGenerator.addPIPs(" + newNetName + ", new String[] {");
                 for (PIP p : n.getPIPs()) {
                     ps.println(tab + "\"" + p.toString() + "\",");
-                }                                        
+                }
                 ps.println(tab + "});");
             }
             ps.print(tab + "CodeGenerator.routeSiteNet(si, " + newNetName + " ");

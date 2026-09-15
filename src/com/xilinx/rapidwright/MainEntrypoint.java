@@ -237,7 +237,8 @@ public class MainEntrypoint {
 
     public static void main(String[] args) throws Throwable {
         if (args.length == 0) {
-            System.err.println("Need one argument to determine the application. Valid applications are (case-insensitive):");
+            System.err.println("Need one argument to determine the application. Valid "
+                               + "applications are (case-insensitive):");
             listModes(System.err);
             System.exit(1);
         }
@@ -251,13 +252,14 @@ public class MainEntrypoint {
         String application = args[0];
         MainStyleFunction<?> func = functions.get(application.toLowerCase());
         if (func == null) {
-            System.err.println("Invalid application '"+application+"'. Valid applications are (case-insensitive): ");
+            System.err.println("Invalid application '" + application +
+                               "'. Valid applications are (case-insensitive): ");
             listModes(System.err);
             System.exit(1);
         }
 
-        String[] childArgs = new String[args.length-1];
-        System.arraycopy(args, 1, childArgs, 0, args.length-1);
+        String[] childArgs = new String[args.length - 1];
+        System.arraycopy(args, 1, childArgs, 0, args.length - 1);
         func.main(childArgs);
     }
 }

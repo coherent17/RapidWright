@@ -35,12 +35,11 @@ import org.json.JSONObject;
  * @since 2022.1.0
  */
 public class NOCConnection implements Serializable {
-
     private static final long serialVersionUID = -1354063342472694874L;
     private int phase;
     private NOCMaster source;
     private NOCSlave dest;
-    private String port; //Destination port
+    private String port; // Destination port
     private CommunicationType commType;
     private int readBandwidth;
     private int writeBandwidth;
@@ -52,13 +51,12 @@ public class NOCConnection implements Serializable {
     private int writeAverageBurst;
     private String exclusiveGroup;
 
-    private Map<ChannelType,NOCChannel> channels;
+    private Map<ChannelType, NOCChannel> channels;
 
     boolean isRouted;
     boolean isPathLocked;
     boolean isSourceLocked;
     boolean isDestLocked;
-
 
     private static final ArrayList<String> unsupportedFields = new ArrayList<String>();
     private static final Set<String> warnedUnsupportedFields = new HashSet<>();
@@ -73,7 +71,7 @@ public class NOCConnection implements Serializable {
      * @since 2026.1.0
      */
     public NOCConnection() {
-        channels = new HashMap<ChannelType,NOCChannel>();
+        channels = new HashMap<ChannelType, NOCChannel>();
         isRouted = false;
         phase = 0;
     }
@@ -94,8 +92,8 @@ public class NOCConnection implements Serializable {
         this.commType = templatePath.commType;
         this.readBandwidth = templatePath.readBandwidth;
         this.writeBandwidth = templatePath.writeBandwidth;
-        //this.readAchievedMBps = templatePath.readAchievedMBps;
-        //this.writeAchievedMBps = templatePath.writeAchievedMBps;
+        // this.readAchievedMBps = templatePath.readAchievedMBps;
+        // this.writeAchievedMBps = templatePath.writeAchievedMBps;
         this.readLatency = templatePath.readLatency;
         this.writeLatency = templatePath.writeLatency;
         this.readAverageBurst = templatePath.readAverageBurst;
@@ -134,9 +132,8 @@ public class NOCConnection implements Serializable {
     public void checkUnsupportedFields(JSONObject json) {
         for (String s : unsupportedFields) {
             if (json.has(s) && warnedUnsupportedFields.add(s)) {
-                System.out.println("WARNING: Unsupported NOC field '" + s +
-                    "' encountered (e.g., Path " + source + " -> " + dest +
-                    "); field will be ignored.");
+                System.out.println("WARNING: Unsupported NOC field '" + s + "' encountered (e.g., Path " + source +
+                                   " -> " + dest + "); field will be ignored.");
             }
         }
     }
@@ -149,16 +146,16 @@ public class NOCConnection implements Serializable {
     public JSONObject getTrafficJSONObject() {
         JSONObject obj = NOCJSONUtil.createOrderedJSONObject();
         obj.put(NOCJSONUtil.JSON_FIELD_PHASE, phase);
-        obj.put(NOCJSONUtil.JSON_FIELD_FROM_CELL,source.getName());
-        obj.put(NOCJSONUtil.JSON_FIELD_TO_CELL,dest.getName());
-        obj.put(NOCJSONUtil.JSON_FIELD_PORT,port);
-        obj.put(NOCJSONUtil.JSON_FIELD_COMMUNICATION_TYPE,commType);
-        obj.put(NOCJSONUtil.JSON_FIELD_READ_BANDWIDTH,readBandwidth);
-        obj.put(NOCJSONUtil.JSON_FIELD_READ_LATENCY,readLatency);
-        obj.put(NOCJSONUtil.JSON_FIELD_READ_AVERAGE_BURST,readAverageBurst);
-        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_BANDWIDTH,writeBandwidth);
-        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_LATENCY,writeLatency);
-        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_AVERAGE_BURST,writeAverageBurst);
+        obj.put(NOCJSONUtil.JSON_FIELD_FROM_CELL, source.getName());
+        obj.put(NOCJSONUtil.JSON_FIELD_TO_CELL, dest.getName());
+        obj.put(NOCJSONUtil.JSON_FIELD_PORT, port);
+        obj.put(NOCJSONUtil.JSON_FIELD_COMMUNICATION_TYPE, commType);
+        obj.put(NOCJSONUtil.JSON_FIELD_READ_BANDWIDTH, readBandwidth);
+        obj.put(NOCJSONUtil.JSON_FIELD_READ_LATENCY, readLatency);
+        obj.put(NOCJSONUtil.JSON_FIELD_READ_AVERAGE_BURST, readAverageBurst);
+        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_BANDWIDTH, writeBandwidth);
+        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_LATENCY, writeLatency);
+        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_AVERAGE_BURST, writeAverageBurst);
         if (exclusiveGroup != null) {
             obj.put(NOCJSONUtil.JSON_FIELD_EXCLUSIVE_GROUP, exclusiveGroup);
         }
@@ -406,7 +403,7 @@ public class NOCConnection implements Serializable {
      * @since 2026.1.0
      */
     public void addChannel(NOCChannel net) {
-        channels.put(net.getChannelType(),net);
+        channels.put(net.getChannelType(), net);
     }
 
     /**
@@ -548,13 +545,13 @@ public class NOCConnection implements Serializable {
         //= json.getInt("WriteBestPossibleLatency"); //"" from T Path's R/WLatency
         isPathLocked = json.getBoolean(NOCJSONUtil.JSON_FIELD_PATH_LOCKED);
 
-        //Nets
-        channels = new HashMap<ChannelType,NOCChannel>();
+        // Nets
+        channels = new HashMap<ChannelType, NOCChannel>();
         JSONArray netArray = json.getJSONArray(NOCJSONUtil.JSON_FIELD_PATH_NETS);
-        for (int i=0; i<netArray.length(); i++) {
+        for (int i = 0; i < netArray.length(); i++) {
             JSONObject net = netArray.getJSONObject(i);
             ChannelType netChannel = ChannelType.stringToValue(net.getString(NOCJSONUtil.JSON_FIELD_NET_CHANNEL));
-            channels.put(netChannel,new NOCChannel(net));
+            channels.put(netChannel, new NOCChannel(net));
         }
     }
 
@@ -566,22 +563,22 @@ public class NOCConnection implements Serializable {
     public JSONObject getSolutionJSONObject() {
         JSONObject obj = NOCJSONUtil.createOrderedJSONObject();
         obj.put(NOCJSONUtil.JSON_FIELD_PHASE, phase);
-        obj.put(NOCJSONUtil.JSON_FIELD_FROM_CELL,source.getName());
-        obj.put(NOCJSONUtil.JSON_FIELD_PATH_SRC_LOCKED,isSourceLocked);
-        obj.put(NOCJSONUtil.JSON_FIELD_TO_CELL,dest.getName());
-        obj.put(NOCJSONUtil.JSON_FIELD_PATH_DST_LOCKED,isDestLocked);
-        obj.put(NOCJSONUtil.JSON_FIELD_PORT,port);
-        obj.put(NOCJSONUtil.JSON_FIELD_READ_TRAFFIC_CLASS,source.getReadTC().toString());
-        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_TRAFFIC_CLASS,source.getWriteTC().toString());
-        obj.put(NOCJSONUtil.JSON_FIELD_READ_BANDWIDTH,readBandwidth);
-        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_BANDWIDTH,writeBandwidth);
-        obj.put(NOCJSONUtil.JSON_FIELD_READ_BW_ACHIEVED,estReadBandwidth);
-        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_BW_ACHIEVED,estWriteBandwidth);
-        obj.put(NOCJSONUtil.JSON_FIELD_READ_LATENCY,readLatency);
-        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_LATENCY,writeLatency);
-        obj.put(NOCJSONUtil.JSON_FIELD_READ_BEST_LATENCY,readLatency);
-        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_BEST_LATENCY,writeLatency);
-        obj.put(NOCJSONUtil.JSON_FIELD_PATH_LOCKED,isPathLocked);
+        obj.put(NOCJSONUtil.JSON_FIELD_FROM_CELL, source.getName());
+        obj.put(NOCJSONUtil.JSON_FIELD_PATH_SRC_LOCKED, isSourceLocked);
+        obj.put(NOCJSONUtil.JSON_FIELD_TO_CELL, dest.getName());
+        obj.put(NOCJSONUtil.JSON_FIELD_PATH_DST_LOCKED, isDestLocked);
+        obj.put(NOCJSONUtil.JSON_FIELD_PORT, port);
+        obj.put(NOCJSONUtil.JSON_FIELD_READ_TRAFFIC_CLASS, source.getReadTC().toString());
+        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_TRAFFIC_CLASS, source.getWriteTC().toString());
+        obj.put(NOCJSONUtil.JSON_FIELD_READ_BANDWIDTH, readBandwidth);
+        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_BANDWIDTH, writeBandwidth);
+        obj.put(NOCJSONUtil.JSON_FIELD_READ_BW_ACHIEVED, estReadBandwidth);
+        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_BW_ACHIEVED, estWriteBandwidth);
+        obj.put(NOCJSONUtil.JSON_FIELD_READ_LATENCY, readLatency);
+        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_LATENCY, writeLatency);
+        obj.put(NOCJSONUtil.JSON_FIELD_READ_BEST_LATENCY, readLatency);
+        obj.put(NOCJSONUtil.JSON_FIELD_WRITE_BEST_LATENCY, writeLatency);
+        obj.put(NOCJSONUtil.JSON_FIELD_PATH_LOCKED, isPathLocked);
         for (NOCChannel net : channels.values()) {
             obj.append(NOCJSONUtil.JSON_FIELD_PATH_NETS, net.toJSONObject());
         }

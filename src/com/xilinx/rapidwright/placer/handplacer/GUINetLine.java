@@ -37,13 +37,11 @@ import com.trolltech.qt.gui.QStyleOptionGraphicsItem;
 import com.trolltech.qt.gui.QWidget;
 import com.xilinx.rapidwright.gui.HMTile;
 
-
 /**
  * @author marc
  *
  */
 public class GUINetLine extends QGraphicsLineItem {
-
     private HMTile srcTile;
     private HMTile destTile;
     private int alpha;
@@ -70,12 +68,10 @@ public class GUINetLine extends QGraphicsLineItem {
         this.setLine(line);
     }
 
-    public void paint(QPainter painter, QStyleOptionGraphicsItem option,
-            QWidget widget) {
+    public void paint(QPainter painter, QStyleOptionGraphicsItem option, QWidget widget) {
         if (srcTile != null && destTile != null) {
             updateLine();
         }
         super.paint(painter, option, widget);
     }
-
 }

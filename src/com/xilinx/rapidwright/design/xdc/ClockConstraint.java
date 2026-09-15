@@ -27,7 +27,7 @@ import java.util.Locale;
 /**
  * A constraint representing a clock
  */
-public class ClockConstraint implements Constraint<ClockConstraint>{
+public class ClockConstraint implements Constraint<ClockConstraint> {
     private String clockName;
     private double period;
 
@@ -62,7 +62,7 @@ public class ClockConstraint implements Constraint<ClockConstraint>{
 
     public String asXdc() {
         String periodString = String.format(Locale.US, "%.3f", period);
-        return "create_clock -period "+periodString+" -name "+clockName+" [get_ports "+portName+"]";
+        return "create_clock -period " + periodString + " -name " + clockName + " [get_ports " + portName + "]";
     }
 
     public String getPortName() {

@@ -40,19 +40,18 @@ import com.xilinx.rapidwright.device.Tile;
  * Created on: Sep 16, 2016
  */
 public class PBlockRange {
-
     private PBlockCorner lowerLeft;
 
     private PBlockCorner upperRight;
 
     public static final String CLOCK_REGION_RANGE_STR = "CLOCKREGION";
 
-
     public PBlockRange(Device dev, String range) {
         int colonIndex = range.indexOf(':');
-        if (colonIndex < 0) throw new RuntimeException("ERROR: Invalid pblock string '" + range + "'");
+        if (colonIndex < 0)
+            throw new RuntimeException("ERROR: Invalid pblock string '" + range + "'");
         String lowerLeftName = range.substring(0, colonIndex);
-        String upperRightName = range.substring(colonIndex+1);
+        String upperRightName = range.substring(colonIndex + 1);
         if (lowerLeftName.startsWith(CLOCK_REGION_RANGE_STR) && upperRightName.startsWith(CLOCK_REGION_RANGE_STR)) {
             ClockRegion lowerLeftCR = dev.getClockRegion(lowerLeftName);
             ClockRegion upperRightCR = dev.getClockRegion(upperRightName);
@@ -81,7 +80,7 @@ public class PBlockRange {
      * @return the lowerLeft
      */
     public Site getLowerLeftSite() {
-        return (Site) lowerLeft;
+        return (Site)lowerLeft;
     }
 
     /**
@@ -95,7 +94,7 @@ public class PBlockRange {
      * @return the upperRight
      */
     public Site getUpperRightSite() {
-        return (Site) upperRight;
+        return (Site)upperRight;
     }
 
     /**
@@ -107,13 +106,14 @@ public class PBlockRange {
 
     private static String getPrefixedCornerName(PBlockCorner corner) {
         if (corner instanceof ClockRegion) {
-            return CLOCK_REGION_RANGE_STR+"_"+corner.getName();
+            return CLOCK_REGION_RANGE_STR + "_" + corner.getName();
         }
         return corner.getName();
     }
     public String toString() {
         if (isClockRegionRange()) {
-            return CLOCK_REGION_RANGE_STR + "_" + lowerLeft.getName() + ":" + CLOCK_REGION_RANGE_STR + "_" + upperRight.getName();
+            return CLOCK_REGION_RANGE_STR + "_" + lowerLeft.getName() + ":" + CLOCK_REGION_RANGE_STR + "_" +
+                upperRight.getName();
         }
         return lowerLeft.getName() + ":" + upperRight.getName();
     }
@@ -129,20 +129,23 @@ public class PBlockRange {
      */
     public boolean move(int xOffset, int yOffset) {
         Device d = getDevice();
-        String newSiteName = replaceXY(lowerLeft.getName(),lowerLeft.getInstanceX()+xOffset, lowerLeft.getInstanceY()+yOffset);
+        String newSiteName =
+            replaceXY(lowerLeft.getName(), lowerLeft.getInstanceX() + xOffset, lowerLeft.getInstanceY() + yOffset);
         PBlockCorner newLowerLeft = isClockRegionRange() ? d.getClockRegion(newSiteName) : d.getSite(newSiteName);
-        if (newLowerLeft == null) return false;
-        newSiteName = replaceXY(upperRight.getName(),upperRight.getInstanceX()+xOffset, upperRight.getInstanceY()+yOffset);
+        if (newLowerLeft == null)
+            return false;
+        newSiteName =
+            replaceXY(upperRight.getName(), upperRight.getInstanceX() + xOffset, upperRight.getInstanceY() + yOffset);
         PBlockCorner newUpperRight = isClockRegionRange() ? d.getClockRegion(newSiteName) : d.getSite(newSiteName);
-        if (newUpperRight == null) return false;
+        if (newUpperRight == null)
+            return false;
         setLowerLeft(newLowerLeft);
         setUpperRight(newUpperRight);
         return true;
-
     }
 
     public static String replaceXY(String name, int x, int y) {
-        return name.substring(0, name.lastIndexOf('X')+1) + x + "Y" + y;
+        return name.substring(0, name.lastIndexOf('X') + 1) + x + "Y" + y;
     }
 
     public Tile getTopLeftTile() {
@@ -222,13 +225,15 @@ public class PBlockRange {
         // We may need to expand column to include outward facing CLB/DSP/BRAM to INT tiles
         if (isSiteRange()) {
             Tile t = getLowerLeftSite().getIntTile();
-            if (t != null && t.getColumn() < colMin) colMin = t.getColumn();
+            if (t != null && t.getColumn() < colMin)
+                colMin = t.getColumn();
             t = getUpperRightSite().getIntTile();
-            if (t != null && t.getColumn() > colMax) colMax = t.getColumn();
+            if (t != null && t.getColumn() > colMax)
+                colMax = t.getColumn();
         }
 
-        for (int col=colMin; col <= colMax; col++) {
-            for (int row=rowMin; row <= rowMax; row++) {
+        for (int col = colMin; col <= colMax; col++) {
+            for (int row = rowMin; row <= rowMax; row++) {
                 tiles.add(getDevice().getTile(row, col));
             }
         }

@@ -28,7 +28,6 @@ import com.xilinx.rapidwright.design.blocks.PBlockRange;
 import com.xilinx.rapidwright.design.xdc.PBlockConstraint;
 import com.xilinx.rapidwright.design.xdc.XDCConstraints;
 import com.xilinx.rapidwright.device.Device;
-
 import tcl.lang.Command;
 import tcl.lang.Interp;
 import tcl.lang.TclException;
@@ -63,10 +62,10 @@ public class ResizePBlockCommand implements Command {
                 }
             } else {
                 DesignObject obj = DesignObject.requireUnwrapTclObject(interp, objv[i], null);
-                if (!(obj instanceof NameDesignObject) || ((NameDesignObject) obj).getType() != ObjType.PBlock) {
+                if (!(obj instanceof NameDesignObject) || ((NameDesignObject)obj).getType() != ObjType.PBlock) {
                     throw new RuntimeException("expected pblock but got " + obj.toXdc());
                 }
-                pblockName = ((NameDesignObject) obj).requireOneObject();
+                pblockName = ((NameDesignObject)obj).requireOneObject();
             }
         }
 
@@ -80,6 +79,5 @@ public class ResizePBlockCommand implements Command {
         for (String range : ranges) {
             constraint.getPblock().add(new PBlockRange(dev, range));
         }
-
     }
 }

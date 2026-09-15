@@ -40,8 +40,8 @@ public class TestPBlock {
     @Test
     public void testVersalPBlockMove() {
         Device device = Device.getDevice("xcv80");
-        PBlock pblock = new PBlock(device, "IRI_QUAD_X58Y3212:IRI_QUAD_X59Y3275 DSP_X0Y398:DSP_X1Y405 " +
-                "DSP58_CPLX_X0Y398:DSP58_CPLX_X0Y405 SLICE_X92Y796:SLICE_X99Y811");
+        PBlock pblock = new PBlock(device, "IRI_QUAD_X58Y3212:IRI_QUAD_X59Y3275 DSP_X0Y398:DSP_X1Y405 "
+                                               + "DSP58_CPLX_X0Y398:DSP58_CPLX_X0Y405 SLICE_X92Y796:SLICE_X99Y811");
         PBlock newPblock = new PBlock(device, pblock.getAllSites(null));
 
         PBlockRange iriRange = getIriQuadPBlockRange(newPblock);

@@ -41,7 +41,8 @@ public class TimingResults {
     public final int routeOverlaps;
     public final Path checkpoint;
 
-    public TimingResults(String constraintName, double worstSlack, double totalNegSlack, boolean constraintsMet, double clockPeriod, int routeOverlaps, Path checkpoint) {
+    public TimingResults(String constraintName, double worstSlack, double totalNegSlack, boolean constraintsMet,
+                         double clockPeriod, int routeOverlaps, Path checkpoint) {
         this.constraintName = constraintName;
         this.worstSlack = worstSlack;
         this.totalNegSlack = totalNegSlack;
@@ -52,26 +53,24 @@ public class TimingResults {
     }
 
     public double clockFrequency() {
-        return 1000/clockPeriod;
+        return 1000 / clockPeriod;
     }
 
     public double getMaxFrequency() {
-        return 1000/getMinPeriod();
+        return 1000 / getMinPeriod();
     }
 
-    enum ParseState {
-        BeforeMetLine,
-        BeforeTable,
-        BeforeSeparator,
-        InContent,
-        After
-    }
-    private static TimingResults parseContentLine(String line, boolean met, double clockPeriod, int routeOverlaps, Path checkpoint) {
+    enum ParseState { BeforeMetLine, BeforeTable, BeforeSeparator, InContent, After }
+    private static TimingResults parseContentLine(String line, boolean met, double clockPeriod, int routeOverlaps,
+                                                  Path checkpoint) {
         String[] split = line.trim().split("\\s+");
         String worstHold = split[5];
-        final TimingResults timingResults = new TimingResults(split[0], Double.parseDouble(split[1]), Double.parseDouble(split[2]), met, clockPeriod, routeOverlaps, checkpoint);
+        final TimingResults timingResults =
+            new TimingResults(split[0], Double.parseDouble(split[1]), Double.parseDouble(split[2]), met, clockPeriod,
+                              routeOverlaps, checkpoint);
         if (worstHold.contains("-")) {
-            System.err.println("Design has worst hold violation of " + worstHold + "ns. Other results: " + timingResults+". Check if there is a clock routing issue.");
+            System.err.println("Design has worst hold violation of " + worstHold +
+                               "ns. Other results: " + timingResults + ". Check if there is a clock routing issue.");
         }
         return timingResults;
     }
@@ -82,27 +81,32 @@ public class TimingResults {
         }
         try (Stream<String> lines = Files.lines(routeStatusFile)) {
             final String prefix = "# of nets with routing errors.......... :";
-            final String errorsLine = lines.filter(l -> l.contains(prefix))
+            final String errorsLine =
+                lines.filter(l -> l.contains(prefix))
                     .findAny()
-                    .orElseThrow(()->new RuntimeException("Did not find Routing Errors line in Route Status Report at "+routeStatusFile));
+                    .orElseThrow(
+                        ()
+                            -> new RuntimeException("Did not find Routing Errors line in Route Status Report at " +
+                                                    routeStatusFile));
             final String trimmed = errorsLine.replace(prefix, "").replace(":", "").trim();
             return Integer.parseInt(trimmed);
         }
     }
 
-    public static TimingResults parseTimingSummaryFile(Path timingSummaryFile, Path routeStatusFile, double clockPeriod, Path checkpoint) throws IOException {
-        return parseTimingSummaryFile(timingSummaryFile, routeStatusFile, clockPeriod, checkpoint,null);
+    public static TimingResults parseTimingSummaryFile(Path timingSummaryFile, Path routeStatusFile, double clockPeriod,
+                                                       Path checkpoint) throws IOException {
+        return parseTimingSummaryFile(timingSummaryFile, routeStatusFile, clockPeriod, checkpoint, null);
     }
-    public static TimingResults parseTimingSummaryFile(Path timingSummaryFile, Path routeStatusFile, double clockPeriod, Path checkpoint, String constraintName) throws IOException {
-
-        int routeOverlaps =  parseRouteOverlaps(routeStatusFile);
+    public static TimingResults parseTimingSummaryFile(Path timingSummaryFile, Path routeStatusFile, double clockPeriod,
+                                                       Path checkpoint, String constraintName) throws IOException {
+        int routeOverlaps = parseRouteOverlaps(routeStatusFile);
         ParseState ps = ParseState.BeforeMetLine;
 
         List<String> contentLine = new ArrayList<>();
         Boolean met = null;
         try (Stream<String> lines = Files.lines(timingSummaryFile)) {
-            LINE_LOOP:
-            for (String line : (Iterable<String>) lines::iterator) {
+        LINE_LOOP:
+            for (String line : (Iterable<String>)lines::iterator) {
                 switch (ps) {
                     case BeforeMetLine:
                         if (line.startsWith("All user specified timing constraints are met.")) {
@@ -124,51 +128,49 @@ public class TimingResults {
                         }
                         break;
                     case InContent:
-                        //After table?
+                        // After table?
                         if (line.trim().isEmpty()) {
                             break LINE_LOOP;
                         }
                         contentLine.add(line);
                         break;
                 }
-
             }
         }
         if (met == null || contentLine.isEmpty()) {
-            throw new RuntimeException("did not find timing resuult line in "+timingSummaryFile);
+            throw new RuntimeException("did not find timing resuult line in " + timingSummaryFile);
         }
         try {
             boolean finalMet = met;
-            final Map<String, TimingResults> resultsByConstraint = contentLine.stream().map(s -> parseContentLine(s, finalMet, clockPeriod, routeOverlaps, checkpoint))
+            final Map<String, TimingResults> resultsByConstraint =
+                contentLine.stream()
+                    .map(s -> parseContentLine(s, finalMet, clockPeriod, routeOverlaps, checkpoint))
                     .collect(Collectors.toMap(l -> l.constraintName, Function.identity()));
             if (constraintName == null) {
                 if (resultsByConstraint.size() != 1) {
-                    throw new RuntimeException("Got design with multiple clocks but no clock name was supplied. Results: " + resultsByConstraint.values());
+                    throw new RuntimeException("Got design with multiple clocks but no clock "
+                                               + "name was supplied. Results: " + resultsByConstraint.values());
                 }
                 return resultsByConstraint.values().iterator().next();
             }
 
             final TimingResults res = resultsByConstraint.get(constraintName);
             if (res == null) {
-                throw new RuntimeException("no constraint of name "+constraintName+" exists in results: "+resultsByConstraint.values());
+                throw new RuntimeException("no constraint of name " + constraintName +
+                                           " exists in results: " + resultsByConstraint.values());
             }
             return res;
         } catch (RuntimeException e) {
-            throw new RuntimeException("could not parse timing result line in "+timingSummaryFile,e);
+            throw new RuntimeException("could not parse timing result line in " + timingSummaryFile, e);
         }
     }
 
     @Override
     public String toString() {
-        return "TimingResults{" +
-                "constraintName='" + constraintName + '\'' +
-                ", worstSlack=" + worstSlack +
-                ", totalNegSlack=" + totalNegSlack +
-                ", constraintsMet=" + timingConstraintsMet +
-                ", clockPeriod=" + clockPeriod +
-                ", routeOverlaps=" + routeOverlaps +
-                ", checkpoint=" + checkpoint +
-                '}';
+        return "TimingResults{"
+            + "constraintName='" + constraintName + '\'' + ", worstSlack=" + worstSlack +
+            ", totalNegSlack=" + totalNegSlack + ", constraintsMet=" + timingConstraintsMet +
+            ", clockPeriod=" + clockPeriod + ", routeOverlaps=" + routeOverlaps + ", checkpoint=" + checkpoint + '}';
     }
 
     public double getMinPeriod() {

@@ -35,7 +35,7 @@ import com.xilinx.rapidwright.device.Node;
 /**
  * A wrapper class of {@link Net} with additional information for the router.
  */
-public class NetWrapper{
+public class NetWrapper {
     /** A unique index for a NetWrapper Object*/
     private int id;
     /** The associated {@link Net} Object */
@@ -68,7 +68,8 @@ public class NetWrapper{
         int count = 0;
         boolean sourceRnodeAdded = false;
         for (Connection connection : connections) {
-            if (connection.isDirect()) continue;
+            if (connection.isDirect())
+                continue;
             if (!sourceRnodeAdded) {
                 short x = connection.getSourceRnode().getEndTileXCoordinate();
                 short y = connection.getSourceRnode().getEndTileYCoordinate();
@@ -77,13 +78,12 @@ public class NetWrapper{
                 xMax = Integer.max(xMax, x);
                 yMax = Integer.max(yMax, y);
 
-                if (connection.isCrossSLR()
-                        && !routingGraph.isVersal) { // FIXME: Update this for Versal
+                if (connection.isCrossSLR() && !routingGraph.isVersal) { // FIXME: Update this for Versal
                     // For SLR-crossing connections, ensure it contains at least one Laguna column
                     int nextLaguna = routingGraph.nextLagunaColumn[xMin];
                     int prevLaguna = routingGraph.prevLagunaColumn[xMax];
-                    xMin = (short) Math.min(xMin, prevLaguna);
-                    xMax = (short) Math.max(xMax, nextLaguna);
+                    xMin = (short)Math.min(xMin, prevLaguna);
+                    xMax = (short)Math.max(xMax, nextLaguna);
                 }
 
                 xSum += x;
@@ -102,7 +102,7 @@ public class NetWrapper{
             count++;
         }
 
-        doubleHpwl = (short) ((xMax - xMin + 1 + yMax - yMin + 1) * 2);
+        doubleHpwl = (short)((xMax - xMin + 1 + yMax - yMin + 1) * 2);
         xCenter = (float)xSum / count;
         yCenter = (float)ySum / count;
     }
@@ -174,7 +174,7 @@ public class NetWrapper{
 
             altSourceRnode = routingGraph.getOrCreate(altSourceNode, RouteNodeType.EXCLUSIVE_SOURCE);
         }
-        assert(altSourceRnode != null);
+        assert (altSourceRnode != null);
         return altSource;
     }
 
@@ -191,7 +191,7 @@ public class NetWrapper{
 
             RouteNode driver = rnodes.get(rnodes.size() - 2);
             for (int i = rnodes.size() - 1; i >= 0; i--) {
-                assert(driver != null);
+                assert (driver != null);
                 RouteNode rnode = rnodes.get(i);
                 if (rnode.isVisited(sequence)) {
                     // Rnode has already been visited by a prior connection;

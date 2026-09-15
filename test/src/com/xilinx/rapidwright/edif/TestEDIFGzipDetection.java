@@ -38,24 +38,23 @@ import org.junit.jupiter.api.io.TempDir;
  * not carry the conventional '.gz' extension are still read correctly.
  */
 public class TestEDIFGzipDetection {
-
     private static final String NETLIST = "(edif test\n"
-            + "  (edifVersion 2 0 0)\n"
-            + "  (edifLevel 0)\n"
-            + "  (keywordMap (keywordLevel 0))\n"
-            + "  (status (written (timeStamp 2024 1 1 0 0 0)"
-            + " (program \"Vivado\" (version \"2024.1\"))))\n"
-            + "  (library work\n"
-            + "    (edifLevel 0)\n"
-            + "    (technology (numberDefinition))\n"
-            + "    (cell top (cellType GENERIC)\n"
-            + "      (view netlist (viewType NETLIST)\n"
-            + "        (interface (port a (direction INPUT)))\n"
-            + "      )\n"
-            + "    )\n"
-            + "  )\n"
-            + "  (design top (cellRef top (libraryRef work)))\n"
-            + ")\n";
+                                          + "  (edifVersion 2 0 0)\n"
+                                          + "  (edifLevel 0)\n"
+                                          + "  (keywordMap (keywordLevel 0))\n"
+                                          + "  (status (written (timeStamp 2024 1 1 0 0 0)"
+                                          + " (program \"Vivado\" (version \"2024.1\"))))\n"
+                                          + "  (library work\n"
+                                          + "    (edifLevel 0)\n"
+                                          + "    (technology (numberDefinition))\n"
+                                          + "    (cell top (cellType GENERIC)\n"
+                                          + "      (view netlist (viewType NETLIST)\n"
+                                          + "        (interface (port a (direction INPUT)))\n"
+                                          + "      )\n"
+                                          + "    )\n"
+                                          + "  )\n"
+                                          + "  (design top (cellRef top (libraryRef work)))\n"
+                                          + ")\n";
 
     private static void assertParses(EDIFNetlist netlist) {
         Assertions.assertNotNull(netlist.getDesign());
@@ -114,8 +113,8 @@ public class TestEDIFGzipDetection {
      */
     @Test
     public void testOpenEDIFInputStreamPreservesLeadingBytes(@TempDir Path dir) throws IOException {
-        for (Path p : new Path[] { writePlain(dir, "plain.edf"), writeGzipped(dir, "gz.edf"),
-                writeGzipped(dir, "named.edf.gz") }) {
+        for (Path p : new Path[] {writePlain(dir, "plain.edf"), writeGzipped(dir, "gz.edf"),
+                                  writeGzipped(dir, "named.edf.gz")}) {
             try (InputStream in = EDIFTools.openEDIFInputStream(p)) {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 byte[] buffer = new byte[512];
@@ -123,8 +122,7 @@ public class TestEDIFGzipDetection {
                 while ((read = in.read(buffer)) >= 0) {
                     out.write(buffer, 0, read);
                 }
-                Assertions.assertEquals(NETLIST, out.toString("UTF-8"),
-                        "content differs for " + p.getFileName());
+                Assertions.assertEquals(NETLIST, out.toString("UTF-8"), "content differs for " + p.getFileName());
             }
         }
     }
@@ -133,7 +131,7 @@ public class TestEDIFGzipDetection {
     @Test
     public void testTruncatedFileNotDetectedAsGzip(@TempDir Path dir) throws IOException {
         Path p = dir.resolve("onebyte.edf");
-        Files.write(p, new byte[] { (byte) 0x1f });
+        Files.write(p, new byte[] {(byte)0x1f});
         Assertions.assertFalse(EDIFTools.isGzipped(p));
         try (InputStream in = EDIFTools.openEDIFInputStream(p)) {
             Assertions.assertEquals(0x1f, in.read());
@@ -147,11 +145,9 @@ public class TestEDIFGzipDetection {
      * flag and when the parser determines it.
      */
     @Test
-    public void testParallelParserOnGzippedWithoutGzExtension(@TempDir Path dir)
-            throws IOException {
+    public void testParallelParserOnGzippedWithoutGzExtension(@TempDir Path dir) throws IOException {
         Path p = writeGzipped(dir, "compressed.edf");
-        try (ParallelEDIFParser parser =
-                new ParallelEDIFParser(p, Files.size(p), EDIFTools.isGzipped(p))) {
+        try (ParallelEDIFParser parser = new ParallelEDIFParser(p, Files.size(p), EDIFTools.isGzipped(p))) {
             assertParses(parser.parseEDIFNetlist());
         }
         try (ParallelEDIFParser parser = new ParallelEDIFParser(p)) {
@@ -163,8 +159,7 @@ public class TestEDIFGzipDetection {
     @Test
     public void testParallelParserOnPlainFile(@TempDir Path dir) throws IOException {
         Path p = writePlain(dir, "plain.edf");
-        try (ParallelEDIFParser parser =
-                new ParallelEDIFParser(p, Files.size(p), EDIFTools.isGzipped(p))) {
+        try (ParallelEDIFParser parser = new ParallelEDIFParser(p, Files.size(p), EDIFTools.isGzipped(p))) {
             assertParses(parser.parseEDIFNetlist());
         }
     }

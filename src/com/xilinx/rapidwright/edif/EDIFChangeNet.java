@@ -28,7 +28,6 @@ package com.xilinx.rapidwright.edif;
  *
  */
 public class EDIFChangeNet extends EDIFChange {
-
     private String netName;
 
     private String instName;
@@ -63,7 +62,7 @@ public class EDIFChangeNet extends EDIFChange {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        EDIFChangeNet other = (EDIFChangeNet) obj;
+        EDIFChangeNet other = (EDIFChangeNet)obj;
         if (netName == null) {
             if (other.netName != null)
                 return false;
@@ -74,7 +73,7 @@ public class EDIFChangeNet extends EDIFChange {
 
     @Override
     public String toString() {
-        return "EDIFChangeNet [netName=" + netName + ", instName=" + instName + ", type=" + getType()
-                + ", portInstName=" + getName() + "]";
+        return "EDIFChangeNet [netName=" + netName + ", instName=" + instName + ", type=" + getType() +
+            ", portInstName=" + getName() + "]";
     }
 }

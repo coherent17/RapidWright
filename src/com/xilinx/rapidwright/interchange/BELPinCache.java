@@ -22,13 +22,13 @@
 
 package com.xilinx.rapidwright.interchange;
 
+import java.util.List;
+import java.util.Map;
+
 import com.xilinx.rapidwright.design.SiteInst;
 import com.xilinx.rapidwright.device.BEL;
 import com.xilinx.rapidwright.device.BELPin;
 import com.xilinx.rapidwright.device.SiteTypeEnum;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Class for caching BELPin lookups, given a SiteInst object, and string
@@ -64,10 +64,9 @@ public class BELPinCache {
                 return false;
             if (getClass() != obj.getClass())
                 return false;
-            Key other = (Key) obj;
-            return belStringIdx == other.belStringIdx &&
-                    pinStringIdx == other.pinStringIdx &&
-                    siteTypeEnum == other.siteTypeEnum;
+            Key other = (Key)obj;
+            return belStringIdx == other.belStringIdx && pinStringIdx == other.pinStringIdx &&
+                siteTypeEnum == other.siteTypeEnum;
         }
     }
 

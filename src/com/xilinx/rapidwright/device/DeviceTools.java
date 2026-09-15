@@ -29,7 +29,6 @@ import java.util.Map;
 import com.xilinx.rapidwright.util.Utils;
 
 public class DeviceTools {
-
     /**
      * Maps from the Name Root to a name that is equal for all relocatable tiles
      */
@@ -44,7 +43,6 @@ public class DeviceTools {
     private static EnumSet<SiteTypeEnum> versalIRIQuadTypes;
 
     static {
-
         versalHalfFSRTileTypes = new HashMap<>();
         // URAMs
         versalHalfFSRTileTypes.put("URAM_ROCF_BL_TILE", "URAM_ROCF_?L_TILE");
@@ -87,8 +85,8 @@ public class DeviceTools {
         ultrascale.put(SiteTypeEnum.SLICEM, "CLK_B1");
         ultrascalePlus.put(SiteTypeEnum.SLICEL, "CLK1");
         ultrascalePlus.put(SiteTypeEnum.SLICEM, "CLK1");
-        versal.put(SiteTypeEnum.SLICEL, "AX"); // CLK/RST sometimes trace to CLE_BC (local INT btw b2b
-                                               // slices)
+        versal.put(SiteTypeEnum.SLICEL, "AX"); // CLK/RST sometimes trace to CLE_BC (local INT btw
+                                               // b2b slices)
         versal.put(SiteTypeEnum.SLICEM, "AX");
 
         // DSP
@@ -131,18 +129,16 @@ public class DeviceTools {
         ultrascale.put(SiteTypeEnum.LAGUNA, "TX_CLK");
         ultrascalePlus.put(SiteTypeEnum.LAGUNA, "TX_CLK");
 
-        for (SiteTypeEnum t : new SiteTypeEnum[] { SiteTypeEnum.OLOGICE2, SiteTypeEnum.OLOGICE3,
-                                SiteTypeEnum.OSERDESE2 }) {
+        for (SiteTypeEnum t :
+             new SiteTypeEnum[] {SiteTypeEnum.OLOGICE2, SiteTypeEnum.OLOGICE3, SiteTypeEnum.OSERDESE2}) {
             series7.put(t, "D1");
         }
-        for (SiteTypeEnum t : new SiteTypeEnum[] { SiteTypeEnum.PHASER_OUT_PHY,
-                                SiteTypeEnum.PHASER_OUT, SiteTypeEnum.PHASER_OUT_ADV,
-                                SiteTypeEnum.PHASER_IN_PHY, SiteTypeEnum.PHASER_IN,
-                                SiteTypeEnum.PHASER_IN_ADV }) {
+        for (SiteTypeEnum t :
+             new SiteTypeEnum[] {SiteTypeEnum.PHASER_OUT_PHY, SiteTypeEnum.PHASER_OUT, SiteTypeEnum.PHASER_OUT_ADV,
+                                 SiteTypeEnum.PHASER_IN_PHY, SiteTypeEnum.PHASER_IN, SiteTypeEnum.PHASER_IN_ADV}) {
             series7.put(t, "SYSCLK");
         }
-        for (SiteTypeEnum t : new SiteTypeEnum[] { SiteTypeEnum.IOB33, SiteTypeEnum.IOB33M,
-                                SiteTypeEnum.IOB33S }) {
+        for (SiteTypeEnum t : new SiteTypeEnum[] {SiteTypeEnum.IOB33, SiteTypeEnum.IOB33M, SiteTypeEnum.IOB33S}) {
             series7.put(t, "INTERMDISABLE");
         }
         series7.put(SiteTypeEnum.GTHE2_COMMON, "DRPCLK");
@@ -159,9 +155,8 @@ public class DeviceTools {
         versal.put(SiteTypeEnum.IRI_QUAD_EVEN, "IMUX_IN0");
         versal.put(SiteTypeEnum.IRI_QUAD_ODD, "IMUX_IN0");
         versal.put(SiteTypeEnum.URAM288, "ADDR_A_0_");
-        versalIRIQuadTypes = EnumSet.of(SiteTypeEnum.DSP58_PRIMARY, SiteTypeEnum.DSP58_CPLX,
-                SiteTypeEnum.URAM288, SiteTypeEnum.RAMB36, SiteTypeEnum.RAMB18_L,
-                SiteTypeEnum.RAMB18_U);
+        versalIRIQuadTypes = EnumSet.of(SiteTypeEnum.DSP58_PRIMARY, SiteTypeEnum.DSP58_CPLX, SiteTypeEnum.URAM288,
+                                        SiteTypeEnum.RAMB36, SiteTypeEnum.RAMB18_L, SiteTypeEnum.RAMB18_U);
     }
 
     public static Map<String, Tile[][]> createTileByRootNameCache(Device device) {
@@ -189,9 +184,8 @@ public class DeviceTools {
         }
 
         // Link Versal Half FSR Tiles
-        versalHalfFSRTileTypes.forEach((original, generalized) -> {
-            tileByRootNameCache.put(original, tileByRootNameCache.get(generalized));
-        });
+        versalHalfFSRTileTypes.forEach(
+            (original, generalized) -> { tileByRootNameCache.put(original, tileByRootNameCache.get(generalized)); });
 
         // Fill the arrays
         for (Tile t : device.getAllTiles()) {
@@ -211,7 +205,7 @@ public class DeviceTools {
      * connect to more than one INT tile, thus the returned INT tile could be
      * arbitrary. Note: This method was moved from {@link Site#getIntTile()} in
      * 2025.1.2.
-     * 
+     *
      * @return The approximate INT tile connected to this site or null if none could
      *         be found.
      */

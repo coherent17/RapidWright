@@ -25,9 +25,4 @@ package com.xilinx.rapidwright.timing;
  * Example distance categories that we created to describe some example filtering options for
  * TimingGroups.
  */
-public enum GroupDistance {
-    SAME,
-    NEAR,
-    MID,
-    FAR
-}
+public enum GroupDistance { SAME, NEAR, MID, FAR }

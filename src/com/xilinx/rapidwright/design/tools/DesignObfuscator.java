@@ -33,9 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.python.google.common.hash.HashFunction;
-import org.python.google.common.hash.Hashing;
-
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.ConstraintGroup;
 import com.xilinx.rapidwright.design.Design;
@@ -54,6 +51,8 @@ import com.xilinx.rapidwright.edif.EDIFNetlist;
 import com.xilinx.rapidwright.edif.EDIFPort;
 import com.xilinx.rapidwright.edif.EDIFPortInst;
 import com.xilinx.rapidwright.edif.EDIFTools;
+import org.python.google.common.hash.HashFunction;
+import org.python.google.common.hash.Hashing;
 
 /**
  * Flattens a design and obfuscates all of the names to SHA256 hashes. Note that
@@ -62,13 +61,12 @@ import com.xilinx.rapidwright.edif.EDIFTools;
  * This behavior can be overridden by using the DesignObfuscator(String) constructor.
  */
 public class DesignObfuscator {
-
     private String timeStamp;
-    
+
     private Map<String, String> obfuscatedMap;
-    
+
     private HashFunction sha256;
-    
+
     private EDIFLibrary macros;
 
     /**
@@ -90,7 +88,7 @@ public class DesignObfuscator {
 
     /**
      * Create a design obfuscator with a custom pepper string.
-     * 
+     *
      * @param pepper The string combined with names to be hashed.
      */
     public DesignObfuscator(String pepper) {
@@ -100,7 +98,7 @@ public class DesignObfuscator {
 
     /**
      * Specify a name that exists in the netlist to preserve.
-     * 
+     *
      * @param preserve The name to preserve and won't be obfuscated.
      */
     public void dontObfuscate(String preserve) {
@@ -109,7 +107,7 @@ public class DesignObfuscator {
 
     public String hash(String name) {
         return obfuscatedMap.computeIfAbsent(name,
-                s -> sha256.hashString(s + timeStamp, StandardCharsets.UTF_8).toString());
+                                             s -> sha256.hashString(s + timeStamp, StandardCharsets.UTF_8).toString());
     }
 
     private String getObfuscatedNetName(Net net) {
@@ -119,12 +117,12 @@ public class DesignObfuscator {
         if (hierNet != null && macros.containsCell(hierNet.getHierarchicalInst().getCellType())) {
             // Check for two-level-deep macros
             if (macros.containsCell(hierNet.getHierarchicalInst().getParent().getCellType())) {
-                oNetName = hash(hierNet.getHierarchicalInst().getParent().getFullHierarchicalInstName())
-                        + EDIFTools.EDIF_HIER_SEP + hierNet.getHierarchicalInst().getInst().getName()
-                        + EDIFTools.EDIF_HIER_SEP + hierNet.getNet().getName();
+                oNetName = hash(hierNet.getHierarchicalInst().getParent().getFullHierarchicalInstName()) +
+                           EDIFTools.EDIF_HIER_SEP + hierNet.getHierarchicalInst().getInst().getName() +
+                           EDIFTools.EDIF_HIER_SEP + hierNet.getNet().getName();
             } else {
-                oNetName = hash(hierNet.getHierarchicalInstName()) 
-                        + EDIFTools.EDIF_HIER_SEP + hierNet.getNet().getName();
+                oNetName =
+                    hash(hierNet.getHierarchicalInstName()) + EDIFTools.EDIF_HIER_SEP + hierNet.getNet().getName();
             }
             obfuscatedMap.put(net.getName(), oNetName);
         } else {
@@ -142,12 +140,12 @@ public class DesignObfuscator {
             EDIFHierCellInst parentInst = cell.getEDIFHierCellInst().getParent();
             // Check for two-level-deep macros
             if (macros.containsCell(parentInst.getParent().getCellType())) {
-                oCellName = hash(parentInst.getParent().getFullHierarchicalInstName()) 
-                        + EDIFTools.EDIF_HIER_SEP + parentInst.getInst().getName() 
-                        + EDIFTools.EDIF_HIER_SEP + cell.getEDIFHierCellInst().getInst().getName();
+                oCellName = hash(parentInst.getParent().getFullHierarchicalInstName()) + EDIFTools.EDIF_HIER_SEP +
+                            parentInst.getInst().getName() + EDIFTools.EDIF_HIER_SEP +
+                            cell.getEDIFHierCellInst().getInst().getName();
             } else {
-                oCellName = hash(parentInst.getFullHierarchicalInstName()) 
-                        + EDIFTools.EDIF_HIER_SEP + cell.getEDIFHierCellInst().getInst().getName();
+                oCellName = hash(parentInst.getFullHierarchicalInstName()) + EDIFTools.EDIF_HIER_SEP +
+                            cell.getEDIFHierCellInst().getInst().getName();
             }
             obfuscatedMap.put(cell.getName(), oCellName);
         } else {
@@ -167,7 +165,7 @@ public class DesignObfuscator {
      * implementation, but completely flattens logical hierarchy and obfuscates all
      * logical names. This method preserves netlist properties but removes all XDC
      * constraints.
-     * 
+     *
      * @param d The original design
      * @return The flattened, obfuscated design
      */
@@ -175,10 +173,10 @@ public class DesignObfuscator {
         // Flatten netlist first to remove all hierarchy (design macros are collapsed)
         EDIFNetlist flatNetlist = EDIFTools.createFlatNetlist(d.getNetlist(), d.getPartName());
         macros = Design.getMacroPrimitives(d.getSeries());
-        
+
         EDIFNetlist obfuscatedNetlist = EDIFTools.createNewNetlist("design");
         EDIFTools.ensureCorrectPartInEDIF(obfuscatedNetlist, d.getPartName());
-        
+
         EDIFCell obfuscatedTop = obfuscatedNetlist.getTopCell();
         EDIFLibrary obfuscatedPrimLib = obfuscatedNetlist.getHDIPrimitivesLibrary();
 
@@ -191,7 +189,7 @@ public class DesignObfuscator {
                 obfuscatedPrimLib.addCell(inst.getCellType());
             }
         }
-        
+
         for (EDIFPort port : flatNetlist.getTopCell().getPorts()) {
             String obfuscatedPortName = hash(port.getBusName()) + port.getBusRange();
             obfuscatedTop.createPort(obfuscatedPortName, port.getDirection(), port.getWidth());
@@ -219,7 +217,7 @@ public class DesignObfuscator {
                 }
             }
         }
-        
+
         // We need to re-expand the macros for proper placement and routing
         // representation
         obfuscatedNetlist.expandMacroUnisims(d.getSeries());
@@ -229,7 +227,7 @@ public class DesignObfuscator {
         obfuscatedDesign.setAdvancedFlow(d.isAdvancedFlow());
         obfuscatedDesign.setAutoIOBuffers(d.isAutoIOBuffersSet());
         obfuscatedDesign.setDesignOutOfContext(d.isDesignOutOfContext());
-        
+
         // Transfer routing information
         for (Net net : d.getNets()) {
             String obfuscatedName = getObfuscatedNetName(net);
@@ -245,7 +243,7 @@ public class DesignObfuscator {
                 obfuscatedNet.addPin(oSPI, false);
             }
         }
-        
+
         // Transfer placement information
         for (SiteInst si : d.getSiteInsts()) {
             SiteInst oSI = obfuscatedDesign.getSiteInstFromSite(si.getSite());
@@ -261,7 +259,6 @@ public class DesignObfuscator {
                 } else {
                     oSI.addCell(oCell);
                 }
-
             }
             for (SitePIP p : si.getUsedSitePIPs()) {
                 oSI.addSitePIP(p);
@@ -283,7 +280,7 @@ public class DesignObfuscator {
                 }
             }
         }
-        
+
         // Check if constraints are present, warn user they won't be propagated
         boolean hasConstraints = false;
         for (ConstraintGroup cg : ConstraintGroup.values()) {
@@ -293,16 +290,18 @@ public class DesignObfuscator {
             }
         }
         if (hasConstraints) {
-            System.out.println("WARNING: Design contains XDC constraints which will not be present in the obfuscated design.");
+            System.out.println("WARNING: Design contains XDC constraints which will not be "
+                               + "present in the obfuscated design.");
         }
         if (d.getPartitionPins().size() > 0) {
             // TODO support partition pins
-            System.out.println("WARNING: Design contains partition which will not be present in the obfuscated design.");
+            System.out.println("WARNING: Design contains partition which will not be present in "
+                               + "the obfuscated design.");
         }
-        
+
         return obfuscatedDesign;
     }
-    
+
     public void writeObfuscationMapFile(String fileName) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName))) {
             for (Entry<String, String> e : obfuscatedMap.entrySet()) {
@@ -322,7 +321,7 @@ public class DesignObfuscator {
         DesignObfuscator o = new DesignObfuscator();
         Design obfuscated = o.obfuscateDesign(d);
         obfuscated.writeCheckpoint(args[1]);
-        
+
         if (args.length == 3) {
             o.writeObfuscationMapFile(args[2]);
         }

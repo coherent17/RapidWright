@@ -33,6 +33,6 @@ public class TestCheckOpenFilesInstalled {
     @Test
     @ExtendWith(CheckOpenFilesExtension.CheckOpenFilesWorkingExtension.class)
     public void test() throws IOException {
-        //Actual test is in extension
+        // Actual test is in extension
     }
 }

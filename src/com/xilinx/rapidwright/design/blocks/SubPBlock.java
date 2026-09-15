@@ -34,7 +34,6 @@ import com.xilinx.rapidwright.device.Device;
  * Created on: Jul 12, 2017
  */
 public class SubPBlock extends PBlock {
-
     /**
      *
      */
@@ -62,6 +61,4 @@ public class SubPBlock extends PBlock {
     public void setGetCellsArgs(String getCellsArgs) {
         this.getCellsArgs = getCellsArgs;
     }
-
-
 }

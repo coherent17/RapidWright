@@ -34,20 +34,19 @@ import org.junit.jupiter.api.io.TempDir;
  * Created on: Mar 25, 2024
  */
 public class TestSLRCrosserGenerator {
-
     @Test
     public void testSLRCrosserGenerator(@TempDir Path dir) {
         Path outputDCP = dir.resolve("slr_crosser.dcp");
-        final String[] args0 = new String[] { "-j", "1440", "-k", "1", "-o", outputDCP.toString() };
+        final String[] args0 = new String[] {"-j", "1440", "-k", "1", "-o", outputDCP.toString()};
         Assertions.assertThrows(RuntimeException.class, () -> SLRCrosserGenerator.main(args0));
 
-        final String[] args1 = new String[] { "-w", "2", "-j", "1440", "-k", "1", "-o", outputDCP.toString() };
+        final String[] args1 = new String[] {"-w", "2", "-j", "1440", "-k", "1", "-o", outputDCP.toString()};
         Assertions.assertThrows(RuntimeException.class, () -> SLRCrosserGenerator.main(args1));
 
-        final String[] args2 = new String[] { "-j", "-5", "-k", "1", "-o", outputDCP.toString() };
+        final String[] args2 = new String[] {"-j", "-5", "-k", "1", "-o", outputDCP.toString()};
         Assertions.assertThrows(RuntimeException.class, () -> SLRCrosserGenerator.main(args2));
 
-        String[] args = new String[] { "-j", "512", "-k", "256", "-o", outputDCP.toString() };
+        String[] args = new String[] {"-j", "512", "-k", "256", "-o", outputDCP.toString()};
         SLRCrosserGenerator.main(args);
 
         VivadoToolsHelper.assertFullyRouted(outputDCP);

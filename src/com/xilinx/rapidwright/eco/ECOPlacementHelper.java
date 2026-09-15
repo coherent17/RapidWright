@@ -33,8 +33,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.DesignTools;
@@ -60,6 +58,7 @@ import com.xilinx.rapidwright.edif.EDIFHierNet;
 import com.xilinx.rapidwright.edif.EDIFHierPortInst;
 import com.xilinx.rapidwright.placer.blockplacer.Point;
 import com.xilinx.rapidwright.util.Pair;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Class for aiding with ECO placement activities.
@@ -72,10 +71,13 @@ public class ECOPlacementHelper {
 
     /** Set of all sites determined to not have any unused FFs, associated by clock net */
     private final Map<Net, Set<Site>> flopLessSitesByClk = new HashMap<>();
-    /** Set of all bypass site pins (which are used to reach an FF) that are already used for routing
-     *  and thus blocks use of its associated FF */
+    /**
+     * Set of all bypass site pins (which are used to reach an FF) that are already used for
+     * routing and thus blocks use of its associated FF
+     */
     private final Set<SitePin> blockedPinBounces = new HashSet<>();
-    /** An optional map populated with the site pins marked for removal.
+    /**
+     * An optional map populated with the site pins marked for removal.
      *  Sites with pins queued for removal will be treated as if the pin
      *  was already removed for the purposes of finding unused flops.
      */
@@ -101,9 +103,9 @@ public class ECOPlacementHelper {
         ultraScaleFlopNames.add("GFF");
         ultraScaleFlopNames.add("HFF");
 
-        CLK_SITEPINS.put(Series.Series7, new String[] { "CLK" });
-        CLK_SITEPINS.put(Series.UltraScale, new String[] { "CLK_B1", "CLK_B2" });
-        CLK_SITEPINS.put(Series.UltraScalePlus, new String[] { "CLK1", "CLK2" });
+        CLK_SITEPINS.put(Series.Series7, new String[] {"CLK"});
+        CLK_SITEPINS.put(Series.UltraScale, new String[] {"CLK_B1", "CLK_B2"});
+        CLK_SITEPINS.put(Series.UltraScalePlus, new String[] {"CLK1", "CLK2"});
         CLK_SITEPINS.put(Series.Versal, CLK_SITEPINS.get(Series.Series7));
     }
 
@@ -180,7 +182,8 @@ public class ECOPlacementHelper {
             for (String belFlop : ultraScaleFlopNames) {
                 // check flop availability
                 Cell currentlyUsed = siteInst.getCell(belFlop);
-                if (currentlyUsed != null) continue;
+                if (currentlyUsed != null)
+                    continue;
                 char pairID = belFlop.charAt(0);
 
                 // Check bypass input isn't already being used
@@ -206,9 +209,9 @@ public class ECOPlacementHelper {
                 Net existingClk = existingClkSpi != null ? existingClkSpi.getNet() : null;
                 if (existingClk != null && existingClk != clk) {
                     // Allow pre-existing SitePinInsts if they were deferred for removal
-                    if (deferredRemovals == null || (deferredRemovals != null
-                            && !deferredRemovals.getOrDefault(existingClk, Collections.emptySet())
-                                    .contains(existingClkSpi))) {
+                    if (deferredRemovals == null ||
+                        (deferredRemovals != null && !deferredRemovals.getOrDefault(existingClk, Collections.emptySet())
+                                                          .contains(existingClkSpi))) {
                         continue;
                     }
                 }
@@ -243,7 +246,7 @@ public class ECOPlacementHelper {
         NetType staticDefault = isRst ? NetType.GND : NetType.VCC;
         if (existingNet != null) {
             if ((ctrlNet == null && existingNet.getType() != staticDefault) ||
-                    (ctrlNet != null && !ctrlNet.equals(existingNet))) {
+                (ctrlNet != null && !ctrlNet.equals(existingNet))) {
                 return false;
             }
         } else {
@@ -260,7 +263,7 @@ public class ECOPlacementHelper {
                     }
                     EDIFHierNet net = portInst.getHierarchicalNet();
                     if ((net.getNet().isGND() && staticDefault != NetType.GND) ||
-                        (net.getNet().isVCC() && staticDefault != NetType.VCC) || 
+                        (net.getNet().isVCC() && staticDefault != NetType.VCC) ||
                         (ctrlNet != null && !net.toString().equals(ctrlNet.getName()))) {
                         return false;
                     }
@@ -269,7 +272,7 @@ public class ECOPlacementHelper {
         }
         return true;
     }
-    
+
     /**
      * Given a SiteInst, find an unused LUT BEL that can host a new LUT6 cell.
      *
@@ -278,20 +281,24 @@ public class ECOPlacementHelper {
      */
     public BEL getUnusedLUT(SiteInst siteInst) {
         Site site = siteInst.getSite();
-        if (lutLessSites.contains(site)) return null;
+        if (lutLessSites.contains(site))
+            return null;
         if (!siteInst.getName().startsWith(SiteInst.STATIC_SOURCE)) {
             for (Character belLUT : LUTTools.lutLetters) {
                 // Check both LUTs are unoccupied, try something fancy later (TODO)
                 String lut6Name = belLUT + "6LUT";
                 Cell lut6 = siteInst.getCell(lut6Name);
                 Cell lut5 = siteInst.getCell(belLUT + "5LUT");
-                if (lut6 != null || lut5 != null) continue;
+                if (lut6 != null || lut5 != null)
+                    continue;
 
                 // Check if LUT is supplying GND/VCC
                 String lutOutput = belLUT + "_O";
                 SitePinInst pinInst = siteInst.getSitePinInst(belLUT + "_O");
-                if (pinInst != null) continue;
-                if (siteInst.getNetFromSiteWire(lutOutput) != null) continue;
+                if (pinInst != null)
+                    continue;
+                if (siteInst.getNetFromSiteWire(lutOutput) != null)
+                    continue;
 
                 // Assume not being used as a thru-site PIP (TODO)
                 return siteInst.getBEL(lut6Name);
@@ -312,7 +319,8 @@ public class ECOPlacementHelper {
     }
 
     public static Site getCentroidOfPoints(Device device, List<Point> points, Set<SiteTypeEnum> targetSiteTypes) {
-        if (points.size() == 0) return null;
+        if (points.size() == 0)
+            return null;
         Point centroid = KMeans.calculateCentroid(points);
         Tile centroidTile = device.getTile(centroid.y, centroid.x);
 
@@ -340,7 +348,7 @@ public class ECOPlacementHelper {
                 }
             }
         }
-        return closest;        
+        return closest;
     }
 
     public static Site getCentroidOfNet(Net net, Set<SiteTypeEnum> targetSiteTypes) {
@@ -367,11 +375,11 @@ public class ECOPlacementHelper {
      * encountered when walking outwards in a spiral fashion. To be used in
      * conjunction with {@link #getUnusedLUT(SiteInst)} and
      * {@link #getUnusedFlop(SiteInst, Net)}.
-     * 
+     *
      * @param site   Originating Site.
      * @param pblock Also check to ensure the proposed sites are inside the provided
      *               pblock.
-     * 
+     *
      * @return Iterable<Site> of neighbouring sites.
      */
     public static Iterable<Site> spiralOutFrom(Site site, PBlock pblock) {
@@ -383,13 +391,13 @@ public class ECOPlacementHelper {
      * encountered when walking outwards in a spiral fashion. To be used in
      * conjunction with {@link #getUnusedLUT(SiteInst)} and
      * {@link #getUnusedFlop(SiteInst, Net)}.
-     * 
+     *
      * @param site    Originating Site.
      * @param pblock  Also check to ensure the proposed sites are inside the
      *                provided pblock.
      * @param exclude If this flag is true, any sites inside the pblock are
      *                excluded.
-     * 
+     *
      * @return Iterable<Site> of neighbouring sites.
      */
     public static Iterable<Site> spiralOutFrom(Site site, PBlock pblock, boolean exclude) {
@@ -437,7 +445,7 @@ public class ECOPlacementHelper {
                                 }
                             }
                             if (++watchdog == 1000000) {
-                                assert(nextSite == null);
+                                assert (nextSite == null);
                                 break;
                             }
                             nextSite = home.getNeighborSite(dx, dy);
@@ -452,17 +460,17 @@ public class ECOPlacementHelper {
             }
         };
     }
-    
+
     /**
      * Given a home Tile, return an Iterable that yields the neighbouring tiles
-     * encountered when walking outwards in a spiral fashion. 
-     * 
+     * encountered when walking outwards in a spiral fashion.
+     *
      * @param tile    Originating Tile.
      * @param pblock  Also check to ensure the proposed tiles are inside the
      *                provided pblock.
      * @param exclude If this flag is true, any sites inside the pblock are
      *                excluded.
-     * 
+     *
      * @return Iterable<Tile> of neighbouring tiles.
      */
     public static Iterable<Tile> spiralOutFrom(Tile tile, PBlock pblock, boolean exclude) {
@@ -510,7 +518,7 @@ public class ECOPlacementHelper {
                                 }
                             }
                             if (++watchdog == 1000000) {
-                                assert(nextTile == null);
+                                assert (nextTile == null);
                                 break;
                             }
                             nextTile = home.getTileNeighbor(dx, dy);

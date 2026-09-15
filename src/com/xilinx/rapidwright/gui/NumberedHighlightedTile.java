@@ -28,7 +28,7 @@ import com.trolltech.qt.gui.QGraphicsRectItem;
 import com.trolltech.qt.gui.QGraphicsTextItem;
 import com.xilinx.rapidwright.device.Tile;
 
-public class NumberedHighlightedTile  extends QGraphicsRectItem{
+public class NumberedHighlightedTile extends QGraphicsRectItem {
     /** */
     protected QGraphicsTextItem text;
     /** */
@@ -39,7 +39,6 @@ public class NumberedHighlightedTile  extends QGraphicsRectItem{
     protected static QFont font6 = new QFont("Arial", 6);
     /** */
     protected static QFont font8 = new QFont("Arial", 8);
-
 
     public NumberedHighlightedTile(Tile t, TileScene scene, Integer number) {
         super(0, 0, scene.tileSize - 2, scene.tileSize - 2);

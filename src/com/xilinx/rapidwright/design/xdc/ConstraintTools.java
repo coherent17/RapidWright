@@ -40,15 +40,13 @@ import com.xilinx.rapidwright.design.xdc.parser.RegularEdifCellLookup;
  * Created on: Oct 31, 2025
  */
 public class ConstraintTools {
-
     public static Map<String, PBlock> getPBlocksFromXDC(Design d) {
         Map<String, PBlock> pblockMap = new HashMap<>();
 
         for (ConstraintGroup cg : ConstraintGroup.values()) {
-            XDCConstraints xdcConstraints = XDCParser.parseXDC(d.getDevice(), d.getXDCConstraints(cg), new RegularEdifCellLookup(d.getNetlist()));
-            xdcConstraints.getPBlockConstraints().forEach((k,v)->{
-                pblockMap.put(k, v.getPblock());
-            });
+            XDCConstraints xdcConstraints =
+                XDCParser.parseXDC(d.getDevice(), d.getXDCConstraints(cg), new RegularEdifCellLookup(d.getNetlist()));
+            xdcConstraints.getPBlockConstraints().forEach((k, v) -> { pblockMap.put(k, v.getPblock()); });
         }
 
         return pblockMap;
@@ -58,10 +56,9 @@ public class ConstraintTools {
         Set<String> clockNets = new HashSet<>();
 
         for (ConstraintGroup cg : ConstraintGroup.values()) {
-            XDCConstraints xdcConstraints = XDCParser.parseXDC(d.getDevice(), d.getXDCConstraints(cg), new RegularEdifCellLookup(d.getNetlist()));
-            xdcConstraints.getClockConstraints().values().forEach((v) -> {
-                clockNets.add(v.getPortName());
-            });
+            XDCConstraints xdcConstraints =
+                XDCParser.parseXDC(d.getDevice(), d.getXDCConstraints(cg), new RegularEdifCellLookup(d.getNetlist()));
+            xdcConstraints.getClockConstraints().values().forEach((v) -> { clockNets.add(v.getPortName()); });
         }
         return new ArrayList<>(clockNets);
     }

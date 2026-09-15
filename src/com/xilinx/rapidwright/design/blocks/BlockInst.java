@@ -91,6 +91,4 @@ public class BlockInst {
     public void setPlacement(Site placement) {
         this.placement = placement;
     }
-
-
 }

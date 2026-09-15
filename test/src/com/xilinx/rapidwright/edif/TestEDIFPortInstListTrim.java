@@ -27,13 +27,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.xilinx.rapidwright.design.Design;
+import com.xilinx.rapidwright.support.RapidWrightDCP;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-
-import com.xilinx.rapidwright.design.Design;
-import com.xilinx.rapidwright.support.RapidWrightDCP;
 
 /**
  * Validates optimization "C": trimming the backing capacity of every
@@ -47,7 +46,6 @@ import com.xilinx.rapidwright.support.RapidWrightDCP;
  * always run.</p>
  */
 public class TestEDIFPortInstListTrim {
-
     private static final Field ELEMENT_DATA;
     private static final boolean CAN_READ_CAPACITY;
     static {
@@ -66,7 +64,7 @@ public class TestEDIFPortInstListTrim {
 
     private static int capacityOf(ArrayList<?> list) {
         try {
-            return ((Object[]) ELEMENT_DATA.get(list)).length;
+            return ((Object[])ELEMENT_DATA.get(list)).length;
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
@@ -96,22 +94,20 @@ public class TestEDIFPortInstListTrim {
 
         // Capacity assertion (only where ArrayList internals are accessible)
         if (CAN_READ_CAPACITY) {
-            Assertions.assertEquals(list.size(), capacityOf(list),
-                    "After trimToSize, capacity should equal size");
+            Assertions.assertEquals(list.size(), capacityOf(list), "After trimToSize, capacity should equal size");
         }
     }
 
     @Test
     public void testCapacityHadSlackBeforeTrim() {
-        Assumptions.assumeTrue(CAN_READ_CAPACITY,
-                "Skipped: java.base/java.util not open for reflection");
+        Assumptions.assumeTrue(CAN_READ_CAPACITY, "Skipped: java.base/java.util not open for reflection");
         EDIFPortInstList list = new EDIFPortInstList();
         TestEDIFPortInstList helper = new TestEDIFPortInstList();
         for (int i = 0; i < 5; i++) {
             list.add(helper.makeEDIFPortInst("inst" + i + "/I"));
         }
         Assertions.assertTrue(capacityOf(list) > list.size(),
-                "Expected ArrayList to carry capacity slack before trimming");
+                              "Expected ArrayList to carry capacity slack before trimming");
         list.trimToSize();
         Assertions.assertEquals(list.size(), capacityOf(list));
     }
@@ -159,8 +155,7 @@ public class TestEDIFPortInstListTrim {
 
     @Test
     public void testParserProducesTrimmedLists(@TempDir Path dir) {
-        Assumptions.assumeTrue(CAN_READ_CAPACITY,
-                "Skipped: java.base/java.util not open for reflection");
+        Assumptions.assumeTrue(CAN_READ_CAPACITY, "Skipped: java.base/java.util not open for reflection");
         // Validate the pure EDIF parse path: export a netlist and read it back.
         // (Design.loadDCP additionally expands macros AFTER parsing, which creates
         // new untrimmed lists; optimization C targets the parse itself, which is
@@ -176,19 +171,24 @@ public class TestEDIFPortInstListTrim {
             for (EDIFCell cell : lib.getCells()) {
                 for (EDIFNet net : cell.getNets()) {
                     EDIFPortInstList l = net.getEDIFPortInstList();
-                    if (l == null) continue;
+                    if (l == null)
+                        continue;
                     Assertions.assertEquals(l.size(), capacityOf(l),
-                            "Net port inst list not trimmed: " + cell.getName() + "/" + net.getName());
+                                            "Net port inst list not trimmed: " + cell.getName() + "/" + net.getName());
                     listsChecked++;
-                    if (l.size() > 1) nonTrivial++;
+                    if (l.size() > 1)
+                        nonTrivial++;
                 }
                 for (EDIFCellInst inst : cell.getCellInsts()) {
                     EDIFPortInstList l = inst.getEDIFPortInstList();
-                    if (l == null) continue;
+                    if (l == null)
+                        continue;
                     Assertions.assertEquals(l.size(), capacityOf(l),
-                            "Inst port inst list not trimmed: " + cell.getName() + "/" + inst.getName());
+                                            "Inst port inst list not trimmed: " + cell.getName() + "/" +
+                                                inst.getName());
                     listsChecked++;
-                    if (l.size() > 1) nonTrivial++;
+                    if (l.size() > 1)
+                        nonTrivial++;
                 }
             }
         }

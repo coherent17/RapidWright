@@ -32,10 +32,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.xilinx.rapidwright.design.xdc.PBlockConstraint;
-import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.design.xdc.PackagePinConstraint;
 import com.xilinx.rapidwright.design.xdc.UnsupportedConstraintElement;
 import com.xilinx.rapidwright.design.xdc.XDCConstraints;
+import com.xilinx.rapidwright.device.Device;
 import tcl.lang.Command;
 import tcl.lang.Interp;
 import tcl.lang.TclException;
@@ -48,7 +48,7 @@ import tcl.lang.TclObject;
 public class SetPropertyCommand<T> implements Command {
     private final XDCConstraints constraints;
     private final Device dev;
-    private final  EdifCellLookup<T> cellLookup;
+    private final EdifCellLookup<T> cellLookup;
 
     public SetPropertyCommand(XDCConstraints constraints, Device dev, EdifCellLookup<T> cellLookup) {
         this.constraints = constraints;
@@ -56,8 +56,7 @@ public class SetPropertyCommand<T> implements Command {
         this.cellLookup = cellLookup;
     }
 
-    public void cmdProc(Interp interp, TclObject[] argv)
-            throws TclException {
+    public void cmdProc(Interp interp, TclObject[] argv) throws TclException {
         String k = argv[1].toString();
         String v = argv[2].toString();
         DesignObject<?> obj = DesignObject.requireUnwrapTclObject(interp, argv[argv.length - 1], cellLookup);
@@ -79,32 +78,32 @@ public class SetPropertyCommand<T> implements Command {
 
     private void eachPin(NameDesignObject<?> pins, BiConsumer<PackagePinConstraint, String> setter, String value) {
         for (String object : pins.getObjects()) {
-            PackagePinConstraint ppc = constraints.getPinConstraints().computeIfAbsent(object, PackagePinConstraint::new);
+            PackagePinConstraint ppc =
+                constraints.getPinConstraints().computeIfAbsent(object, PackagePinConstraint::new);
             setter.accept(ppc, value);
         }
     }
 
     private void addUnsupportedKV(String k, String v, DesignObject<?> someObj) {
         boolean needsBraces = XDCTools.stringNeedsBraces(v);
-        Stream<UnsupportedConstraintElement> line = Stream.concat(
-                Stream.of(
-                        new UnsupportedConstraintElement.NameConstraintElement("set_property"),
-                        new UnsupportedConstraintElement.SyntaxConstraintElement(" "),
-                        new UnsupportedConstraintElement.NameConstraintElement(k),
-                        new UnsupportedConstraintElement.SyntaxConstraintElement(needsBraces ? " {" : " "),
-                        new UnsupportedConstraintElement.NameConstraintElement(v),
-                        new UnsupportedConstraintElement.SyntaxConstraintElement(needsBraces ? "} " : " ")
-                ),
-                someObj.toUnsupportedConstraintElement()
-        );
+        Stream<UnsupportedConstraintElement> line =
+            Stream.concat(Stream.of(new UnsupportedConstraintElement.NameConstraintElement("set_property"),
+                                    new UnsupportedConstraintElement.SyntaxConstraintElement(" "),
+                                    new UnsupportedConstraintElement.NameConstraintElement(k),
+                                    new UnsupportedConstraintElement.SyntaxConstraintElement(needsBraces ? " {" : " "),
+                                    new UnsupportedConstraintElement.NameConstraintElement(v),
+                                    new UnsupportedConstraintElement.SyntaxConstraintElement(needsBraces ? "} " : " ")),
+                          someObj.toUnsupportedConstraintElement());
         List<UnsupportedConstraintElement> l = line.collect(Collectors.toList());
         constraints.getUnsupportedConstraints().add(l);
     }
 
     private void storeKV(String k, String v, DesignObject<?> someObj) {
         if (someObj instanceof CellObject) {
-            for (T cell : ((CellObject<T>) someObj).getCells()) {
-                constraints.getCellProperties().computeIfAbsent(cellLookup.getAbsoluteFinalName(cell), x -> new HashMap<>()).put(k, v);
+            for (T cell : ((CellObject<T>)someObj).getCells()) {
+                constraints.getCellProperties()
+                    .computeIfAbsent(cellLookup.getAbsoluteFinalName(cell), x -> new HashMap<>())
+                    .put(k, v);
             }
             return;
         }
@@ -113,16 +112,16 @@ public class SetPropertyCommand<T> implements Command {
             return;
         }
         if (!(someObj instanceof NameDesignObject<?>)) {
-            throw new RuntimeException("expected NameDesignObject but got "+someObj.getClass()+": "+someObj);
+            throw new RuntimeException("expected NameDesignObject but got " + someObj.getClass() + ": " + someObj);
         }
-        NameDesignObject<?> obj = (NameDesignObject<?>) someObj;
+        NameDesignObject<?> obj = (NameDesignObject<?>)someObj;
         switch (obj.getType()) {
             case Design:
                 addUnsupportedKV(k, v, obj);
                 break;
             case Cell:
                 if (k.equals("ASYNC_REG")) {
-                    addUnsupportedKV(k,v,obj);
+                    addUnsupportedKV(k, v, obj);
                 } else {
                     for (String object : obj.getObjects()) {
                         constraints.getCellProperties().computeIfAbsent(object, x -> new HashMap<>()).put(k, v);
@@ -136,18 +135,18 @@ public class SetPropertyCommand<T> implements Command {
                         break;
                     case "PACKAGE_PIN":
                     case "LOC":
-                        if (dev !=null && !dev.getActivePackage().getPackagePinMap().containsKey(v)) {
+                        if (dev != null && !dev.getActivePackage().getPackagePinMap().containsKey(v)) {
                             throw new RuntimeException("Invalid pin for " + obj + ": " + v);
                         }
                         eachPin(obj, PackagePinConstraint::setPackagePin, v);
                         break;
                     default:
                         addUnsupportedKV(k, v, obj);
-
                 }
                 break;
             case PBlock:
-                PBlockConstraint pBlockConstraint = Objects.requireNonNull(constraints.getPBlockConstraints().get(obj.requireOneObject()));
+                PBlockConstraint pBlockConstraint =
+                    Objects.requireNonNull(constraints.getPBlockConstraints().get(obj.requireOneObject()));
                 switch (k) {
                     case "CONTAIN_ROUTING":
                         pBlockConstraint.getPblock().setContainRouting(parseBool(v));
@@ -159,11 +158,12 @@ public class SetPropertyCommand<T> implements Command {
                         pBlockConstraint.getPblock().setExcludePlacement(parseBool(v));
                         break;
                     default:
-                        throw new RuntimeException("Trying to set unknown property "+k+" on pblock "+obj.requireOneObject());
+                        throw new RuntimeException("Trying to set unknown property " + k + " on pblock " +
+                                                   obj.requireOneObject());
                 }
                 break;
             default:
-                throw new RuntimeException("Unexpected obj type "+obj.getType());
+                throw new RuntimeException("Unexpected obj type " + obj.getType());
         }
     }
 
@@ -176,7 +176,7 @@ public class SetPropertyCommand<T> implements Command {
             case "0":
                 return false;
             default:
-                throw new RuntimeException("invalid bool: "+v);
+                throw new RuntimeException("invalid bool: " + v);
         }
     }
 }

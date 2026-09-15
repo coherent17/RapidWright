@@ -37,7 +37,6 @@ import com.xilinx.rapidwright.device.PartNameTools;
  * compatible SLRs.
  */
 public class PartRetargeter {
-    
     public static void main(String[] args) {
         if (args.length != 4) {
             System.out.println("USAGE: <input.dcp> <output.dcp> <target part name> <target SLR index>");
@@ -49,15 +48,15 @@ public class PartRetargeter {
         }
         Device targetDevice = Device.getDevice(targetPart);
 
-        int targetSLR = Integer.parseInt(args[3]); 
+        int targetSLR = Integer.parseInt(args[3]);
         if (targetSLR < 0 || targetSLR >= targetDevice.getNumOfSLRs()) {
-            throw new RuntimeException("ERROR: Invalid SLR index '" + args[3] + "', should be one of "
-                    + Arrays.toString(targetDevice.getSLRs()));
+            throw new RuntimeException("ERROR: Invalid SLR index '" + args[3] + "', should be one of " +
+                                       Arrays.toString(targetDevice.getSLRs()));
         }
         int tileXOffset = 0;
-        int tileYOffset = targetSLR * (targetDevice.getMasterSLR().getNumOfClockRegionRows()
-                                    * targetPart.getSeries().getCLEHeight());
-        
+        int tileYOffset =
+            targetSLR * (targetDevice.getMasterSLR().getNumOfClockRegionRows() * targetPart.getSeries().getCLEHeight());
+
         Design d = Design.readCheckpoint(args[0]);
         boolean result = d.retargetPart(targetPart, tileXOffset, tileYOffset);
         if (!result) {

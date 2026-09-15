@@ -41,8 +41,7 @@ import com.xilinx.rapidwright.device.Tile;
  * @author Chris Lavin
  * Created on: Jun 22, 2010
  */
-public class Port implements Serializable, Cloneable{
-
+public class Port implements Serializable, Cloneable {
     private static final long serialVersionUID = -8961782654770650827L;
     /** Name of the Port of the current module, this is the port of an instance in the module. */
     private String name;
@@ -66,7 +65,6 @@ public class Port implements Serializable, Cloneable{
         name = null;
     }
 
-
     /**
      * @param name Name of the port.
      * @param sitePinInst Pin which the port references
@@ -86,7 +84,6 @@ public class Port implements Serializable, Cloneable{
             addSitePinInst(sitePinInst);
         }
     }
-
 
     /**
      * Special constructor when creating a port that has a pass-thru connection
@@ -129,7 +126,9 @@ public class Port implements Serializable, Cloneable{
      */
     public String getSingleSiteInstName() {
         SitePinInst singleSitePinInst = getSingleSitePinInst();
-        return singleSitePinInst == null ? "null" : (singleSitePinInst.getSiteInst() == null ? "null" : singleSitePinInst.getSiteInstName());
+        return singleSitePinInst == null
+            ? "null"
+            : (singleSitePinInst.getSiteInst() == null ? "null" : singleSitePinInst.getSiteInstName());
     }
 
     /**
@@ -155,11 +154,10 @@ public class Port implements Serializable, Cloneable{
             }
         }
         if (hasOutputPin && hasInputPin) {
-            throw new IllegalStateException("Port "+getName()+" is a mix of input and output pins");
+            throw new IllegalStateException("Port " + getName() + " is a mix of input and output pins");
         }
         isOutputPort = hasOutputPin;
     }
-
 
     /**
      * @param sitePinInst the pin to add
@@ -173,8 +171,8 @@ public class Port implements Serializable, Cloneable{
     }
 
     /**
-     * Convenience method for ports with at most one SitePinInst. Get the single SitePinInst associated with this
-     * Port or null if there are none. Throws if there are multiple.
+     * Convenience method for ports with at most one SitePinInst. Get the single SitePinInst
+     * associated with this Port or null if there are none. Throws if there are multiple.
      * @return the pin
      */
     public SitePinInst getSingleSitePinInst() {
@@ -182,7 +180,8 @@ public class Port implements Serializable, Cloneable{
             return null;
         }
         if (sitePinInsts.size() > 1) {
-            throw new IllegalStateException("Tried getting single SitePinInst in port "+getName()+", but there are "+sitePinInsts.size()+" pins");
+            throw new IllegalStateException("Tried getting single SitePinInst in port " + getName() +
+                                            ", but there are " + sitePinInsts.size() + " pins");
         }
         return sitePinInsts.iterator().next();
     }
@@ -208,7 +207,6 @@ public class Port implements Serializable, Cloneable{
         return isOutputPort;
     }
 
-
     /**
      * @param isOutputPort the isOutputPort to set
      */
@@ -216,14 +214,12 @@ public class Port implements Serializable, Cloneable{
         this.isOutputPort = isOutputPort;
     }
 
-
     /**
      * @return the passThruPortNames
      */
     public List<String> getPassThruPortNames() {
         return passThruPortNames == null ? Collections.emptyList() : passThruPortNames;
     }
-
 
     /**
      * @param passThruPinNames the passThruPinNames to set
@@ -233,7 +229,8 @@ public class Port implements Serializable, Cloneable{
     }
 
     public void addPassThruPortName(String portName) {
-        if (passThruPortNames == null) passThruPortNames = new ArrayList<String>();
+        if (passThruPortNames == null)
+            passThruPortNames = new ArrayList<String>();
         passThruPortNames.add(portName);
     }
 
@@ -241,11 +238,9 @@ public class Port implements Serializable, Cloneable{
         return partitionPinLoc;
     }
 
-
     public void setPartitionPinLoc(Tile partitionPinLoc) {
         this.partitionPinLoc = partitionPinLoc;
     }
-
 
     /**
      * @return the worstCasePortDelay
@@ -254,14 +249,12 @@ public class Port implements Serializable, Cloneable{
         return worstCasePortDelay;
     }
 
-
     /**
      * @param worstCasePortDelay the worstCasePortDelay to set
      */
     public void setWorstCasePortDelay(float worstCasePortDelay) {
         this.worstCasePortDelay = worstCasePortDelay;
     }
-
 
     /**
      * Generates hashCode for this port based on instance name, port name, and pin name.
@@ -286,14 +279,13 @@ public class Port implements Serializable, Cloneable{
             return false;
         if (getClass() != obj.getClass())
             return false;
-        Port other = (Port) obj;
+        Port other = (Port)obj;
         if (!sitePinInsts.equals(other.sitePinInsts))
             return false;
         if (name == null) {
             if (other.name != null)
                 return false;
-        }
-        else if (!name.equals(other.name))
+        } else if (!name.equals(other.name))
             return false;
         return true;
     }
@@ -307,9 +299,9 @@ public class Port implements Serializable, Cloneable{
         if (passThruPortNames != null && passThruPortNames.size() > 0)
             sb.append(" [PASSTHRU: " + passThruPortNames + "]");
         return sb.toString();
-        //return "  port \"" + name + "\" \"" + pin.getSiteInstName() + "\" \"" + pin.getName() +"\";";
+        // return "  port \"" + name + "\" \"" + pin.getSiteInstName() + "\" \"" + pin.getName()
+        // +"\";";
     }
-
 
     /**
      * @return the type
@@ -317,7 +309,6 @@ public class Port implements Serializable, Cloneable{
     public PortType getType() {
         return type;
     }
-
 
     /**
      * @param type the type to set
@@ -327,7 +318,8 @@ public class Port implements Serializable, Cloneable{
     }
 
     public Net getNet() {
-        //All SitePinInsts in the port are required to have the same net, so just grab any pin's net
+        // All SitePinInsts in the port are required to have the same net, so just grab any pin's
+        // net
         if (sitePinInsts.isEmpty()) {
             return null;
         }

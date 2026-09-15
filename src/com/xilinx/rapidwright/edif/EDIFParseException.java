@@ -23,9 +23,9 @@
 
 package com.xilinx.rapidwright.edif;
 
-public class EDIFParseException extends RuntimeException{
+public class EDIFParseException extends RuntimeException {
     public EDIFParseException(EDIFToken token, String message) {
-        super(message+" at "+token);
+        super(message + " at " + token);
     }
 
     public EDIFParseException(String message) {

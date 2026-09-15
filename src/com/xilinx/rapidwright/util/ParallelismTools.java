@@ -61,8 +61,10 @@ public class ParallelismTools {
 
     private static final AtomicInteger threadId = new AtomicInteger(0);
 
-    /** A fixed-size thread pool with as many threads as there are processors
-     * minus one, fed by a single task queue */
+    /**
+     * A fixed-size thread pool with as many threads as there are processors
+     * minus one, fed by a single task queue
+     */
     private static final ThreadPoolExecutor pool;
 
     private static boolean parallel;
@@ -80,16 +82,12 @@ public class ParallelismTools {
 
         if (parallel) {
             pool = new ThreadPoolExecutor(
-                    maxParallelism - 1,
-                    maxParallelism - 1,
-                    0, TimeUnit.MILLISECONDS,
-                    new LinkedBlockingQueue<>(),
-                    (r) -> {
-                        Thread t = Executors.defaultThreadFactory().newThread(r);
-                        t.setDaemon(true);
-                        t.setName("RapidWright-ParallelismTools-Worker-" + threadId.getAndIncrement());
-                        return t;
-                    });
+                maxParallelism - 1, maxParallelism - 1, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), (r) -> {
+                    Thread t = Executors.defaultThreadFactory().newThread(r);
+                    t.setDaemon(true);
+                    t.setName("RapidWright-ParallelismTools-Worker-" + threadId.getAndIncrement());
+                    return t;
+                });
             pool.prestartAllCoreThreads();
         } else {
             pool = null;
@@ -155,7 +153,7 @@ public class ParallelismTools {
                 return f;
             }
         }
-        return  pool.submit(task);
+        return pool.submit(task);
     }
 
     /**
@@ -224,7 +222,7 @@ public class ParallelismTools {
         if (!getParallel()) {
             if (!first.isDone()) {
                 if (first instanceof Runnable) {
-                    ((Runnable) first).run();
+                    ((Runnable)first).run();
                 } else {
                     throw new RuntimeException();
                 }
@@ -274,9 +272,9 @@ public class ParallelismTools {
     private static <T> boolean trySteal(Future<T> future) {
         boolean doneOrStolen = future.isDone();
         if (!doneOrStolen && (future instanceof Runnable)) {
-            doneOrStolen = pool.remove((Runnable) future);
+            doneOrStolen = pool.remove((Runnable)future);
             if (doneOrStolen) {
-                ((Runnable) future).run();
+                ((Runnable)future).run();
             }
         }
         return doneOrStolen;
@@ -289,9 +287,7 @@ public class ParallelismTools {
      * @param <T> item type
      */
     public static <T> void invokeAllRunnable(Collection<T> items, Consumer<T> task) {
-        final Runnable[] runnables = items.stream()
-                .map(i -> (Runnable)() -> task.accept(i))
-                .toArray(Runnable[]::new);
+        final Runnable[] runnables = items.stream().map(i -> (Runnable)() -> task.accept(i)).toArray(Runnable[] ::new);
         invokeAll(runnables);
     }
 
@@ -344,11 +340,13 @@ public class ParallelismTools {
      * @param task the task that should be executed for all items
      * @param <T> item type
      */
-    public static <T,R> List<Future<R>> invokeAll(Collection<T> items, Function<T,R> task) {
+    public static <T, R> List<Future<R>> invokeAll(Collection<T> items, Function<T, R> task) {
         @SuppressWarnings("unchecked")
-        final Callable<R>[] callables = items.stream()
+        final Callable<R>[] callables =
+            items.stream()
                 .map(i -> (Callable<R>)() -> task.apply(i))
-                .toArray(value -> (Callable<R>[])new Callable[value]); //Can't create generic arrays, so we need to cast
+                .toArray(value -> (Callable<R>[]) new Callable[value]); // Can't create generic arrays,
+                                                                        // so we need to cast
         return invokeAll(callables);
     }
     /**

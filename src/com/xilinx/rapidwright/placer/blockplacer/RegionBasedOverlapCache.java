@@ -37,11 +37,13 @@ import com.xilinx.rapidwright.device.Device;
 /**
  * Optimized Detection of overlaps between modules
  *
- * This divides the fabric into square regions of a given side length. For each region, all modules that touch
- * the region are stored. When a module is moved, overlap detection only needs to be performed for modules that
- * touch the same regions as the module that is being moved.
+ * This divides the fabric into square regions of a given side length. For each region, all modules
+ * that touch the region are stored. When a module is moved, overlap detection only needs to be
+ * performed for modules that touch the same regions as the module that is being moved.
  */
-public class RegionBasedOverlapCache<PlacementT, ModuleInstT extends AbstractModuleInst<?,PlacementT,? super ModuleInstT>>  extends AbstractOverlapCache<PlacementT, ModuleInstT> {
+public class RegionBasedOverlapCache<PlacementT, ModuleInstT
+                                         extends AbstractModuleInst<?, PlacementT, ? super ModuleInstT>>
+    extends AbstractOverlapCache<PlacementT, ModuleInstT> {
     private final Device device;
     private final List<? extends ModuleInstT> instances;
     private final Collection<ModuleInstT>[][] modulesInArea;
@@ -55,19 +57,18 @@ public class RegionBasedOverlapCache<PlacementT, ModuleInstT extends AbstractMod
     private final int rowDivider;
 
     private int getColumn(int fabricColumn) {
-        return fabricColumn /columnDivider;
+        return fabricColumn / columnDivider;
     }
 
     private int getRow(int fabricRow) {
         return fabricRow / rowDivider;
     }
 
-
     private int getColumns() {
-        return getColumn(device.getColumns()-1)+1;
+        return getColumn(device.getColumns() - 1) + 1;
     }
     private int getRows() {
-        return getRow(device.getRows()-1)+1;
+        return getRow(device.getRows() - 1) + 1;
     }
 
     private boolean allTouchedRegionsMatch(ModuleInstT mii, Predicate<Collection<ModuleInstT>> predicate) {
@@ -95,7 +96,10 @@ public class RegionBasedOverlapCache<PlacementT, ModuleInstT extends AbstractMod
      */
     @Override
     public void unplace(ModuleInstT mii) {
-        allTouchedRegionsMatch(mii,l->{l.remove(mii); return true;});
+        allTouchedRegionsMatch(mii, l -> {
+            l.remove(mii);
+            return true;
+        });
     }
 
     /**
@@ -104,7 +108,10 @@ public class RegionBasedOverlapCache<PlacementT, ModuleInstT extends AbstractMod
      */
     @Override
     public void place(ModuleInstT mii) {
-        allTouchedRegionsMatch(mii,l->{l.add(mii); return true;});
+        allTouchedRegionsMatch(mii, l -> {
+            l.add(mii);
+            return true;
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -120,12 +127,11 @@ public class RegionBasedOverlapCache<PlacementT, ModuleInstT extends AbstractMod
             }
         }
         for (ModuleInstT instance : instances) {
-            if (instance.getPlacement()!= null) {
+            if (instance.getPlacement() != null) {
                 place(instance);
             }
         }
     }
-
 
     public RegionBasedOverlapCache(Device device, List<? extends ModuleInstT> instances) {
         this(device, instances, DEFAULT_REGION_SIZE);
@@ -142,9 +148,9 @@ public class RegionBasedOverlapCache<PlacementT, ModuleInstT extends AbstractMod
             for (int row = 0; row < modulesInArea[col].length; row++) {
                 Collection<ModuleInstT> c = modulesInArea[col][row];
                 for (ModuleInstT moduleImplsInst : c) {
-
                     if (moduleImplsInst.getPlacement() == null) {
-                        System.out.println(moduleImplsInst +" is wrongly in "+col+"/"+row+", is not placed at all");
+                        System.out.println(moduleImplsInst + " is wrongly in " + col + "/" + row +
+                                           ", is not placed at all");
                         error = true;
                         continue;
                     }
@@ -156,21 +162,19 @@ public class RegionBasedOverlapCache<PlacementT, ModuleInstT extends AbstractMod
                     boolean shouldBeIn = minCol <= col && col <= maxCol && minRow <= row && row <= maxRow;
 
                     if (!shouldBeIn) {
-                        System.out.println(moduleImplsInst +" is wrongly in "+col+"/"+row);
+                        System.out.println(moduleImplsInst + " is wrongly in " + col + "/" + row);
                         error = true;
                     }
                 }
-
             }
         }
 
         for (ModuleInstT moduleImplsInst : instances) {
             for (ModuleInstT other : instances) {
                 if (other != moduleImplsInst && other.overlaps(moduleImplsInst)) {
-                    System.out.println(moduleImplsInst +" overlaps "+other);
+                    System.out.println(moduleImplsInst + " overlaps " + other);
                     error = true;
                 }
-
             }
 
             if (moduleImplsInst.getPlacement() == null) {
@@ -183,11 +187,11 @@ public class RegionBasedOverlapCache<PlacementT, ModuleInstT extends AbstractMod
             final int crMinRow = getRow(bb.getMinRow());
             final int crMaxRow = getRow(bb.getMaxRow());
 
-            for (int col = crMinCol ; col <= crMaxCol; col++) {
+            for (int col = crMinCol; col <= crMaxCol; col++) {
                 for (int row = crMinRow; row <= crMaxRow; row++) {
                     Collection<ModuleInstT> c = modulesInArea[col][row];
                     if (!c.contains(moduleImplsInst)) {
-                        System.out.println(moduleImplsInst +" should be in "+col+"/"+row);
+                        System.out.println(moduleImplsInst + " should be in " + col + "/" + row);
                         error = true;
                     }
                 }
@@ -202,21 +206,22 @@ public class RegionBasedOverlapCache<PlacementT, ModuleInstT extends AbstractMod
     @Override
     public void printStats() {
         checkCorrectness();
-        System.out.println("Fabric: "+device.getColumns()+"x"+device.getRows());
-        System.out.println("Regions: "+getColumns()+"x"+getRows());
-        final IntSummaryStatistics instsPerArea = Arrays.stream(modulesInArea).flatMap(Arrays::stream)
-                .mapToInt(Collection::size).summaryStatistics();
-        System.out.println("Insts per Area: "+instsPerArea);
-        final IntSummaryStatistics areasPerInst = instances.stream().mapToInt(inst -> {
-            final int[] c = {0};
-            allTouchedRegionsMatch(inst, l -> {
-                c[0]++;
-                return true;
-            });
-            return c[0];
-        }).summaryStatistics();
-        System.out.println("Areas per Inst: "+areasPerInst);
-
+        System.out.println("Fabric: " + device.getColumns() + "x" + device.getRows());
+        System.out.println("Regions: " + getColumns() + "x" + getRows());
+        final IntSummaryStatistics instsPerArea =
+            Arrays.stream(modulesInArea).flatMap(Arrays::stream).mapToInt(Collection::size).summaryStatistics();
+        System.out.println("Insts per Area: " + instsPerArea);
+        final IntSummaryStatistics areasPerInst = instances.stream()
+                                                      .mapToInt(inst -> {
+                                                          final int[] c = {0};
+                                                          allTouchedRegionsMatch(inst, l -> {
+                                                              c[0]++;
+                                                              return true;
+                                                          });
+                                                          return c[0];
+                                                      })
+                                                      .summaryStatistics();
+        System.out.println("Areas per Inst: " + areasPerInst);
     }
 
     @Override

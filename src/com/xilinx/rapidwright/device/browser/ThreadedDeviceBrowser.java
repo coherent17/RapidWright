@@ -29,7 +29,6 @@ import com.trolltech.qt.gui.QApplication;
  * when using an interpreter.
  */
 public class ThreadedDeviceBrowser extends Thread {
-
     private DeviceBrowser deviceBrowser;
 
     private String[] args;

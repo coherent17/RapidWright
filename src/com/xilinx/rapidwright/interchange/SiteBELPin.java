@@ -23,13 +23,12 @@
 
 package com.xilinx.rapidwright.interchange;
 
+import java.util.Objects;
+
 import com.xilinx.rapidwright.device.BELPin;
 import com.xilinx.rapidwright.device.Site;
 
-import java.util.Objects;
-
 public class SiteBELPin {
-
     Site site;
     BELPin belPin;
 
@@ -55,7 +54,7 @@ public class SiteBELPin {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        SiteBELPin other = (SiteBELPin) obj;
+        SiteBELPin other = (SiteBELPin)obj;
         if (!site.equals(other.site))
             return false;
         if (!belPin.equals(other.belPin))

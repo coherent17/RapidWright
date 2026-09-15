@@ -37,10 +37,9 @@ import com.xilinx.rapidwright.design.AbstractModuleInst;
  * @author clavin
  *
  */
-public class Move2<ModuleInstT extends AbstractModuleInst<?,?,?>, PlacementT, PathT extends AbstractPath<?, ModuleInstT>> {
-
+public class Move2<ModuleInstT extends AbstractModuleInst<?, ?, ?>, PlacementT, PathT
+                       extends AbstractPath<?, ModuleInstT>> {
     private final BlockPlacer2<?, ModuleInstT, PlacementT, PathT> placer;
-
 
     List<ModuleInstT> blocks = new ArrayList<>();
     Set<ModuleInstT> blocksSet = new HashSet<>();
@@ -50,9 +49,7 @@ public class Move2<ModuleInstT extends AbstractModuleInst<?,?,?>, PlacementT, Pa
 
     private int deltaCost;
 
-
     public Move2(BlockPlacer2<?, ModuleInstT, PlacementT, PathT> placer) {
-
         this.placer = placer;
     }
 
@@ -61,7 +58,7 @@ public class Move2<ModuleInstT extends AbstractModuleInst<?,?,?>, PlacementT, Pa
             placer.setTempAnchorSite(blocks.get(i), placements.get(i));
         }
 
-        //Have we even changed the paths?
+        // Have we even changed the paths?
         if (paths != null) {
             for (PathT path : paths) {
                 path.restoreUndo();
@@ -75,7 +72,6 @@ public class Move2<ModuleInstT extends AbstractModuleInst<?,?,?>, PlacementT, Pa
             }
             paths = null;
         }
-
     }
 
     public void clear() {
@@ -104,7 +100,7 @@ public class Move2<ModuleInstT extends AbstractModuleInst<?,?,?>, PlacementT, Pa
         int undoCount = placer.incUndoCount();
         for (ModuleInstT block : blocks) {
             for (PathT path : placer.getConnectedPaths(block)) {
-                if (path.undoCount==undoCount) {
+                if (path.undoCount == undoCount) {
                     continue;
                 }
                 path.undoCount = undoCount;
@@ -115,7 +111,6 @@ public class Move2<ModuleInstT extends AbstractModuleInst<?,?,?>, PlacementT, Pa
                 deltaCost += path.getLength();
                 paths.add(path);
             }
-
         }
     }
 
@@ -124,18 +119,19 @@ public class Move2<ModuleInstT extends AbstractModuleInst<?,?,?>, PlacementT, Pa
     }
 
     public void removeLastBlock() {
-        placer.setTempAnchorSite(blocks.remove(blocks.size()-1), placements.remove(placements.size()-1));
+        placer.setTempAnchorSite(blocks.remove(blocks.size() - 1), placements.remove(placements.size() - 1));
     }
 
     @Override
     public String toString() {
         return IntStream.range(0, blocks.size())
-                .mapToObj(i-> {
-                    final ModuleInstT block = blocks.get(i);
-                    final PlacementT from = placements.get(i);
-                    final PlacementT to = placer.getCurrentPlacement(block);
-                    return block.getName()+": "+from+"->"+to;
-                }).collect(Collectors.joining(", ", "[","]"));
+            .mapToObj(i -> {
+                final ModuleInstT block = blocks.get(i);
+                final PlacementT from = placements.get(i);
+                final PlacementT to = placer.getCurrentPlacement(block);
+                return block.getName() + ": " + from + "->" + to;
+            })
+            .collect(Collectors.joining(", ", "[", "]"));
     }
 
     public int countBlocks() {

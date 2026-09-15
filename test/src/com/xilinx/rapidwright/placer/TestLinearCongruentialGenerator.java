@@ -39,7 +39,6 @@ public class TestLinearCongruentialGenerator {
         System.out.println(list);
         Assertions.assertEquals(max, list.size());
 
-
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < max; i++) {
             if (!list.contains(i)) {
@@ -53,17 +52,18 @@ public class TestLinearCongruentialGenerator {
     }
     @Test
     public void testLcg() {
-        for (int i=1;i<100;i++) {
-            final IntStream stream = StreamSupport.intStream(new LinearCongruentialGenerator(i, new Random(42)).spliterator(), false);
+        for (int i = 1; i < 100; i++) {
+            final IntStream stream =
+                StreamSupport.intStream(new LinearCongruentialGenerator(i, new Random(42)).spliterator(), false);
             verifyOutput(i, stream);
         }
     }
 
     @Test
     public void testLargeList() {
-
         final int max = 36516;
-        final IntStream stream = StreamSupport.intStream(new LinearCongruentialGenerator(max, new Random(42)).spliterator(), false);
+        final IntStream stream =
+            StreamSupport.intStream(new LinearCongruentialGenerator(max, new Random(42)).spliterator(), false);
         verifyOutput(max, stream);
     }
 }

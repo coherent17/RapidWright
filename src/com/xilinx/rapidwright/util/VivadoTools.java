@@ -37,7 +37,6 @@ import com.xilinx.rapidwright.edif.EDIFTools;
  *
  */
 public class VivadoTools {
-
     public static final String REPORT_ROUTE_STATUS = "report_route_status";
     public static final String REPORT_PLACE_STATUS = "report_place_status";
     public static final String PLACE_DESIGN = "place_design";
@@ -47,7 +46,7 @@ public class VivadoTools {
 
     /**
      * method to search a vivado log for a specific key phrase
-     * 
+     *
      * @param log Vivado log as list of strings
      * @param key Key phrase to search for
      * @return List of lines that contain the key phrase
@@ -64,7 +63,7 @@ public class VivadoTools {
 
     /**
      * method to run a single Tcl command in vivado
-     * 
+     *
      * @param outputLog Path to the log file that vivado will generate
      * @param tclCmd    Tcl command to run
      * @param verbose   If true vivado command line and std.out/err will be printed
@@ -81,7 +80,7 @@ public class VivadoTools {
 
     /**
      * method to run a Tcl script in vivado
-     * 
+     *
      * @param outputLog Path to the log file that vivado will generate
      * @param tclScript Path to the Tcl script that will be run
      * @param verbose   If true vivado command line and std.out/err will be printed
@@ -94,7 +93,7 @@ public class VivadoTools {
 
     /**
      * method to run a Tcl script in vivado
-     * 
+     *
      * @param outputLog Path to the log file that vivado will generate
      * @param tclScript Path to the Tcl script that will be run
      * @param verbose   If true vivado command line and std.out/err will be printed
@@ -110,11 +109,11 @@ public class VivadoTools {
      */
     public static List<String> runTcl(Path outputLog, Path tclScript, boolean verbose, String[] environ, File runDir) {
         if (!FileTools.isVivadoOnPath()) {
-            throw new RuntimeException(
-                    "ERROR: Could not find vivado executable, current PATH=" + System.getenv("PATH"));
+            throw new RuntimeException("ERROR: Could not find vivado executable, current PATH=" +
+                                       System.getenv("PATH"));
         }
-        final String vivadoCmd = FileTools.getVivadoPath() + " -log " + outputLog.toString() + " -nojournal -mode batch -source "
-                + tclScript.toString();
+        final String vivadoCmd = FileTools.getVivadoPath() + " -log " + outputLog.toString() +
+                                 " -nojournal -mode batch -source " + tclScript.toString();
         Integer exitCode = FileTools.runCommand(vivadoCmd, verbose, environ, runDir);
         if (exitCode != 0) {
             if (Files.exists(outputLog)) {
@@ -170,7 +169,7 @@ public class VivadoTools {
 
     /**
      * Creates a unique, temporary work directory for Vivado interaction.
-     * 
+     *
      * @return
      */
     public static Path createTempVivadoToolsWorkDir() {
@@ -184,7 +183,7 @@ public class VivadoTools {
     /**
      * Run Vivado's `write_bitstream` on the provided DCP file to generate a bit
      * file at the specified location.
-     * 
+     *
      * @param dcp            The DCP file from which to generate a bitstream.
      * @param bitFile        The location of the bit file to generate
      * @param hasEncryptedIP Flag indicating if the provided DCP contains encrypted
@@ -194,15 +193,14 @@ public class VivadoTools {
      *                       (null for no preamble).
      * @return The output of Vivado as a list of Strings
      */
-    public static List<String> writeBitstream(Path dcp, Path bitFile, boolean hasEncryptedIP,
-            String tclPreamble) {
+    public static List<String> writeBitstream(Path dcp, Path bitFile, boolean hasEncryptedIP, String tclPreamble) {
         return writeBitstream(dcp, bitFile, hasEncryptedIP, tclPreamble);
     }
 
     /**
      * Run Vivado's `write_bitstream` on the provided DCP file to generate a bit
      * file at the specified location.
-     * 
+     *
      * @param dcp            The DCP file from which to generate a bitstream.
      * @param bitFile        The location of the bit file to generate
      * @param hasEncryptedIP Flag indicating if the provided DCP contains encrypted
@@ -214,10 +212,10 @@ public class VivadoTools {
      *                       DFX bitstream.
      * @return The output of Vivado as a list of Strings
      */
-    public static List<String> writeBitstream(Path dcp, Path bitFile, boolean hasEncryptedIP,
-            String tclPreamble, String rmCell) {
-        final Path workdir = FileSystems.getDefault()
-                .getPath("vivadoToolsWorkdir" + FileTools.getUniqueProcessAndHostID());
+    public static List<String> writeBitstream(Path dcp, Path bitFile, boolean hasEncryptedIP, String tclPreamble,
+                                              String rmCell) {
+        final Path workdir =
+            FileSystems.getDefault().getPath("vivadoToolsWorkdir" + FileTools.getUniqueProcessAndHostID());
         File workdirHandle = new File(workdir.toString());
         workdirHandle.mkdirs();
         final Path outputLog = workdir.resolve("outputLog.log");
@@ -258,7 +256,7 @@ public class VivadoTools {
     /**
      * Run Vivado's `write_bitstream` on the provided design to generate a bit file
      * at the specified location.
-     * 
+     *
      * @param design  The design from which to generate a bitstream.
      * @param bitFile The location of the bit file to generate
      * @return The output of Vivado as a list of Strings
@@ -446,7 +444,7 @@ public class VivadoTools {
      * Run Vivado's `route_design` command on the design provided and get the
      * `report_route_status` results. Note: this method does not preserve the routed
      * output from Vivado.
-     * 
+     *
      * @param design  The design to route and report on.
      * @param workdir Directory to work within.
      * @return The results of `report_route_status`.
@@ -462,7 +460,7 @@ public class VivadoTools {
      * Run Vivado's `place_design` and `route_design` command on the design provided
      * and get the `report_route_status` results. Note: this method does not
      * preserve the routed output from Vivado.
-     * 
+     *
      * @param design  The design to route and report on.
      * @param workdir Directory to work within.
      * @return The results of `report_route_status`.
@@ -547,7 +545,7 @@ public class VivadoTools {
     /**
      * Creates a utilization report and shapes report for a given synthesized DCP
      * file.
-     * 
+     *
      * @param design       The input DCP to measure and extract reports from.
      * @param utilReport   The desired path to a utilization report from Vivado
      *                     (report_utilization -file <utilReport>).
@@ -568,7 +566,7 @@ public class VivadoTools {
 
         FileTools.deleteFolder(workDir.toString());
     }
-  
+
     /**
      * Open a DCP in Vivado and write a new DCP.
      *

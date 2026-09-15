@@ -22,14 +22,6 @@
  */
 package com.xilinx.rapidwright.design.noc;
 
-import com.xilinx.rapidwright.design.Design;
-import com.xilinx.rapidwright.device.Device;
-import com.xilinx.rapidwright.device.Site;
-import com.xilinx.rapidwright.device.SiteTypeEnum;
-import com.xilinx.rapidwright.util.FileTools;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -42,28 +34,35 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.xilinx.rapidwright.design.Design;
+import com.xilinx.rapidwright.device.Device;
+import com.xilinx.rapidwright.device.Site;
+import com.xilinx.rapidwright.device.SiteTypeEnum;
+import com.xilinx.rapidwright.util.FileTools;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 /**
  * Represents the Network-on-Chip solution for the current design
  * @since 2022.1.0
  */
 public class NOCDesign implements Serializable {
-
     private static final long serialVersionUID = -1303425805455056695L;
 
     private Design design;
 
     private int nocFrequency;
 
-    private Map<String,NOCMaster> masterClients;
-    private Map<String,NOCSlave> slaveClients;
-    private Map<String,Integer> switchDestIDs;
+    private Map<String, NOCMaster> masterClients;
+    private Map<String, NOCSlave> slaveClients;
+    private Map<String, Integer> switchDestIDs;
     private List<NOCConnection> nocConnections;
-    private List<String> dfxPaths; //List of RP cell names
+    private List<String> dfxPaths; // List of RP cell names
 
     private boolean lockAllDestIDs;
     private SolutionType solutionType;
 
-    private boolean isRouted; //Has any routing, even partial. Triggers NCR.
+    private boolean isRouted; // Has any routing, even partial. Triggers NCR.
 
     private static final Set<SiteTypeEnum> switchSiteTypes = new HashSet<SiteTypeEnum>();
 
@@ -78,11 +77,11 @@ public class NOCDesign implements Serializable {
      * @since 2026.1.0
      */
     public NOCDesign() {
-        masterClients = new HashMap<String,NOCMaster>();
-        slaveClients = new HashMap<String,NOCSlave>();
+        masterClients = new HashMap<String, NOCMaster>();
+        slaveClients = new HashMap<String, NOCSlave>();
         nocConnections = new ArrayList<NOCConnection>();
         dfxPaths = new ArrayList<String>();
-        switchDestIDs = new HashMap<String,Integer>();
+        switchDestIDs = new HashMap<String, Integer>();
         isRouted = false;
         lockAllDestIDs = false;
         solutionType = SolutionType.NO_SOLUTION;
@@ -122,7 +121,7 @@ public class NOCDesign implements Serializable {
      * @return The map (keyed by client name) of master clients in this NOC design.
      * @since 2022.1.0
      */
-    public Map<String,NOCMaster> getMasterClients() {
+    public Map<String, NOCMaster> getMasterClients() {
         return masterClients;
     }
 
@@ -131,7 +130,7 @@ public class NOCDesign implements Serializable {
      * @return The map (keyed by client name) of slave clients in this NOC design.
      * @since 2022.1.0
      */
-    public Map<String,NOCSlave> getSlaveClients() {
+    public Map<String, NOCSlave> getSlaveClients() {
         return slaveClients;
     }
 
@@ -250,9 +249,9 @@ public class NOCDesign implements Serializable {
      */
     public void addClient(NOCClient nc) {
         if (nc instanceof NOCMaster) {
-            masterClients.put(nc.getName(), (NOCMaster) nc);
+            masterClients.put(nc.getName(), (NOCMaster)nc);
         } else {
-            slaveClients.put(nc.getName(), (NOCSlave) nc);
+            slaveClients.put(nc.getName(), (NOCSlave)nc);
         }
     }
 
@@ -285,10 +284,10 @@ public class NOCDesign implements Serializable {
         NOCMaster source = np.getSource();
         NOCSlave dest = np.getDest();
         if (masterClients.get(source.getName()) != null) {
-            masterClients.put(source.getName(),source);
+            masterClients.put(source.getName(), source);
         }
         if (slaveClients.get(dest.getName()) != null) {
-            slaveClients.put(dest.getName(),dest);
+            slaveClients.put(dest.getName(), dest);
         }
         source.addConnection(np);
         dest.addConnection(np);
@@ -320,8 +319,8 @@ public class NOCDesign implements Serializable {
      * @return A new map of all NOC clients part of this design.  The map is keyed by client name.
      * @since 2022.1.0
      */
-    public Map<String,NOCClient> getClients() {
-        HashMap<String,NOCClient> allClients = new HashMap<String,NOCClient>();
+    public Map<String, NOCClient> getClients() {
+        HashMap<String, NOCClient> allClients = new HashMap<String, NOCClient>();
         allClients.putAll(masterClients);
         allClients.putAll(slaveClients);
         return allClients;
@@ -333,42 +332,42 @@ public class NOCDesign implements Serializable {
      * @since 2026.1.0
      */
     public void loadTraffic(InputStream in) {
-
-        //Read JSON File
+        // Read JSON File
         JSONObject jsonTraffic = new JSONObject(String.join("\n", FileTools.getLinesFromInputStream(in)));
 
-        //System Properties
+        // System Properties
         JSONObject sysProps = jsonTraffic.getJSONObject(NOCJSONUtil.JSON_FIELD_SYSTEM_PROPERTIES);
         if (sysProps.has(NOCJSONUtil.JSON_FIELD_FREQUENCY)) {
             nocFrequency = sysProps.getInt(NOCJSONUtil.JSON_FIELD_FREQUENCY);
         }
         if (sysProps.has(NOCJSONUtil.JSON_FIELD_DFX_PATHS)) {
-            //System.out.println("Unsupported NoC traffic encountered: " + NOCJSONUtil.JSON_FIELD_DFX_PATHS);
+            // System.out.println("Unsupported NoC traffic encountered: " +
+            // NOCJSONUtil.JSON_FIELD_DFX_PATHS);
             JSONArray dfxPathsArray = sysProps.getJSONArray(NOCJSONUtil.JSON_FIELD_DFX_PATHS);
-            for (int i=0; i<dfxPathsArray.length(); i++) {
+            for (int i = 0; i < dfxPathsArray.length(); i++) {
                 dfxPaths.add(dfxPathsArray.getString(i));
             }
         }
 
-        //Logical Instances
+        // Logical Instances
         JSONArray instances = jsonTraffic.getJSONArray(NOCJSONUtil.JSON_FIELD_CLIENT_INSTANCES);
-        for (int i=0; i<instances.length(); i++) {
+        for (int i = 0; i < instances.length(); i++) {
             JSONObject inst = instances.getJSONObject(i);
             boolean isMaster = inst.getBoolean(NOCJSONUtil.JSON_FIELD_IS_MASTER);
             if (isMaster) {
-                masterClients.put(inst.getString(NOCJSONUtil.JSON_FIELD_NAME),new NOCMaster(inst));
+                masterClients.put(inst.getString(NOCJSONUtil.JSON_FIELD_NAME), new NOCMaster(inst));
             } else {
-                slaveClients.put(inst.getString(NOCJSONUtil.JSON_FIELD_NAME),new NOCSlave(inst));
+                slaveClients.put(inst.getString(NOCJSONUtil.JSON_FIELD_NAME), new NOCSlave(inst));
             }
         }
 
-        //Paths
+        // Paths
         nocConnections = new ArrayList<NOCConnection>();
         if (jsonTraffic.has(NOCJSONUtil.JSON_FIELD_PATHS)) {
             JSONArray paths = jsonTraffic.getJSONArray(NOCJSONUtil.JSON_FIELD_PATHS);
-            for (int i=0; i<paths.length(); i++) {
+            for (int i = 0; i < paths.length(); i++) {
                 JSONObject path = paths.getJSONObject(i);
-                NOCConnection np = new NOCConnection(path,this);
+                NOCConnection np = new NOCConnection(path, this);
                 nocConnections.add(np);
                 np.getSource().addConnection(np);
                 np.getDest().addConnection(np);
@@ -382,10 +381,10 @@ public class NOCDesign implements Serializable {
      * @since 2026.1.0
      */
     public void loadSolution(InputStream in) {
-        //Read JSON File
+        // Read JSON File
         JSONObject jsonSolution = new JSONObject(String.join("\n", FileTools.getLinesFromInputStream(in)));
 
-        //Solution Properties
+        // Solution Properties
         if (!jsonSolution.has(NOCJSONUtil.JSON_FIELD_SOLUTION_TYPE)) {
             return;
         }
@@ -393,9 +392,9 @@ public class NOCDesign implements Serializable {
         if (jsonSolution.has(NOCJSONUtil.JSON_FIELD_LOCK_DEST_IDS))
             lockAllDestIDs = jsonSolution.getBoolean(NOCJSONUtil.JSON_FIELD_LOCK_DEST_IDS);
 
-        //Components
+        // Components
         JSONArray componentArray = jsonSolution.getJSONArray(NOCJSONUtil.JSON_FIELD_COMPONENTS);
-        for (int i=0; i<componentArray.length(); i++) {
+        for (int i = 0; i < componentArray.length(); i++) {
             JSONObject component = componentArray.getJSONObject(i);
             if (!component.has(NOCJSONUtil.JSON_FIELD_DEST_ID) || !component.has(NOCJSONUtil.JSON_FIELD_NAME)) {
                 continue;
@@ -409,24 +408,29 @@ public class NOCDesign implements Serializable {
             if (cellName == null)
                 continue;
             NOCClient nc = slaveClients.get(cellName);
-            if (nc == null) nc = masterClients.get(cellName);
-            if (nc == null) {System.out.println("Component in NCR " + cellName + " not found."); continue;}
+            if (nc == null)
+                nc = masterClients.get(cellName);
+            if (nc == null) {
+                System.out.println("Component in NCR " + cellName + " not found.");
+                continue;
+            }
             nc.setLocation(component.getString(NOCJSONUtil.JSON_FIELD_NAME));
             nc.setDestID(destID);
             if (nc.isDDRC()) {
-                String portName = NOCJSONUtil.JSON_FIELD_PORT_PREFIX + component.getInt(NOCJSONUtil.JSON_FIELD_PORT_INDEX);
-                NOCSlave ns = (NOCSlave) nc;
+                String portName =
+                    NOCJSONUtil.JSON_FIELD_PORT_PREFIX + component.getInt(NOCJSONUtil.JSON_FIELD_PORT_INDEX);
+                NOCSlave ns = (NOCSlave)nc;
                 if (ns.getPorts().contains(portName))
-                    ns.setPortDestID(portName,destID);
+                    ns.setPortDestID(portName, destID);
                 else
                     continue;
             }
         }
 
-        //Paths
+        // Paths
         if (jsonSolution.has(NOCJSONUtil.JSON_FIELD_PATHS)) {
             JSONArray pathArray = jsonSolution.getJSONArray(NOCJSONUtil.JSON_FIELD_PATHS);
-            for (int i=0; i<pathArray.length(); i++) {
+            for (int i = 0; i < pathArray.length(); i++) {
                 JSONObject pathSolution = pathArray.getJSONObject(i);
                 NOCMaster master = masterClients.get(pathSolution.getString(NOCJSONUtil.JSON_FIELD_FROM_CELL));
                 NOCConnection path = master.getConnectionTo(pathSolution.getString(NOCJSONUtil.JSON_FIELD_TO_CELL));
@@ -444,19 +448,19 @@ public class NOCDesign implements Serializable {
     public void writeTraffic(OutputStream out) {
         JSONObject nocTraffic = NOCJSONUtil.createOrderedJSONObject();
         JSONObject sysProps = NOCJSONUtil.createOrderedJSONObject();
-        sysProps.put(NOCJSONUtil.JSON_FIELD_FREQUENCY,nocFrequency);
-        if (!dfxPaths.isEmpty() ) {
+        sysProps.put(NOCJSONUtil.JSON_FIELD_FREQUENCY, nocFrequency);
+        if (!dfxPaths.isEmpty()) {
             JSONArray dfxPathsArray = new JSONArray();
             for (String rpCellName : dfxPaths)
                 dfxPathsArray.put(rpCellName);
-            sysProps.put(NOCJSONUtil.JSON_FIELD_DFX_PATHS,dfxPathsArray);
+            sysProps.put(NOCJSONUtil.JSON_FIELD_DFX_PATHS, dfxPathsArray);
         }
         nocTraffic.put(NOCJSONUtil.JSON_FIELD_SYSTEM_PROPERTIES, sysProps);
         for (NOCClient nc : getClients().values()) {
             nocTraffic.append(NOCJSONUtil.JSON_FIELD_CLIENT_INSTANCES, nc.toJSONObject());
         }
         for (NOCConnection connection : nocConnections) {
-            nocTraffic.append(NOCJSONUtil.JSON_FIELD_PATHS,connection.getTrafficJSONObject());
+            nocTraffic.append(NOCJSONUtil.JSON_FIELD_PATHS, connection.getTrafficJSONObject());
         }
         NOCJSONUtil.writeFormattedJSONString(nocTraffic, out);
     }
@@ -493,7 +497,7 @@ public class NOCDesign implements Serializable {
                     int destID = clt.getDestID();
                     if (clt.isDDRC()) {
                         String portName = NOCJSONUtil.JSON_FIELD_PORT_PREFIX + i;
-                        NOCSlave ns = (NOCSlave) clt;
+                        NOCSlave ns = (NOCSlave)clt;
                         if (ns.getPorts().contains(portName))
                             destID = ns.getPortDestID(portName);
                         else
@@ -511,11 +515,11 @@ public class NOCDesign implements Serializable {
                 component.put(NOCJSONUtil.JSON_FIELD_DEST_ID, e.getValue().intValue());
                 nocSolution.append(NOCJSONUtil.JSON_FIELD_COMPONENTS, component);
             }
-            //Write out all routing components, not just those used in the solution.
+            // Write out all routing components, not just those used in the solution.
             for (SiteTypeEnum type : switchSiteTypes) {
                 for (Site site : Arrays.asList(dev.getAllSitesOfType(type))) {
                     if (!switchDestIDs.containsKey(site.getName())) {
-                        //phyComponents.add(site.getName());
+                        // phyComponents.add(site.getName());
                         JSONObject component = NOCJSONUtil.createOrderedJSONObject();
                         component.put(NOCJSONUtil.JSON_FIELD_NAME, site.getName());
                         component.put(NOCJSONUtil.JSON_FIELD_DEST_ID, 0);

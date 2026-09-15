@@ -25,10 +25,6 @@ package com.xilinx.rapidwright.eco;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.Net;
@@ -36,14 +32,14 @@ import com.xilinx.rapidwright.edif.EDIFHierPortInst;
 import com.xilinx.rapidwright.rwroute.RWRoute;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
 import com.xilinx.rapidwright.util.VivadoToolsHelper;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 public class TestFanOutOptimization {
-
-    private void runAndValidateCut(Design design, String netName, boolean useOnlyEmptySites,
-            int partitionCount) {
+    private void runAndValidateCut(Design design, String netName, boolean useOnlyEmptySites, int partitionCount) {
         Net net = design.getNet(netName);
-        List<EDIFHierPortInst> srcs = net.getLogicalHierNet().getLeafHierPortInsts(true, false,
-                false);
+        List<EDIFHierPortInst> srcs = net.getLogicalHierNet().getLeafHierPortInsts(true, false, false);
         Assertions.assertEquals(1, srcs.size());
         Cell driverCell = design.getCell(srcs.get(0).getFullHierarchicalInstName());
         int sinkCount = net.getSinkPins().size();

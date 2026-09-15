@@ -23,6 +23,14 @@
 
 package com.xilinx.rapidwright.interchange;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.Unisim;
 import com.xilinx.rapidwright.device.PartNameTools;
@@ -52,14 +60,6 @@ import org.capnproto.PrimitiveList;
 import org.capnproto.ReaderOptions;
 import org.capnproto.StructList;
 import org.capnproto.TextList;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
 
 public class LogNetlistReader {
     public static boolean CHECK_UNISIM_DEFINITIONS = false;
@@ -144,15 +144,14 @@ public class LogNetlistReader {
      */
     protected void extractPropertyMap(PropertyMap.Reader reader, EDIFPropertyObject obj) {
         StructList.Reader<PropertyMap.Entry.Reader> entries = reader.getEntries();
-        for (int i=0; i < entries.size(); i++) {
+        for (int i = 0; i < entries.size(); i++) {
             PropertyMap.Entry.Reader entryReader = entries.get(i);
             String key = getString(entryReader.getKey());
             if (entryReader.isTextValue()) {
                 String textValue = getString(entryReader.getTextValue());
                 if (textValue.contains("\"")) {
-                    throw new RuntimeException("ERROR: String '"+textValue+
-                            "'\n\t value contains unescaped '\"' "
-                            + "character. Please replace with EDIF escape value '%34%'.");
+                    throw new RuntimeException("ERROR: String '" + textValue + "'\n\t value contains unescaped '\"' "
+                                               + "character. Please replace with EDIF escape value '%34%'.");
                 }
                 obj.addProperty(key, textValue);
             } else if (entryReader.isIntValue()) {
@@ -162,7 +161,6 @@ public class LogNetlistReader {
             } else {
                 throw new RuntimeException("ERROR: Unknown property type for key " + key);
             }
-
         }
     }
 
@@ -174,14 +172,14 @@ public class LogNetlistReader {
      */
     protected static Direction getDirection(EDIFPort port) {
         switch (port.getDirection()) {
-        case INPUT:
-            return Direction.INPUT;
-        case OUTPUT:
-            return Direction.OUTPUT;
-        case INOUT:
-            return Direction.INOUT;
-        default:
-            return Direction._NOT_IN_SCHEMA;
+            case INPUT:
+                return Direction.INPUT;
+            case OUTPUT:
+                return Direction.OUTPUT;
+            case INOUT:
+                return Direction.INOUT;
+            default:
+                return Direction._NOT_IN_SCHEMA;
         }
     }
 
@@ -192,27 +190,27 @@ public class LogNetlistReader {
      */
     protected static EDIFDirection getEDIFDirection(Port.Reader port) {
         switch (port.getDir()) {
-        case INPUT:
-            return EDIFDirection.INPUT;
-        case OUTPUT:
-            return EDIFDirection.OUTPUT;
-        case INOUT:
-            return EDIFDirection.INOUT;
-        default:
-            return null;
+            case INPUT:
+                return EDIFDirection.INPUT;
+            case OUTPUT:
+                return EDIFDirection.OUTPUT;
+            case INOUT:
+                return EDIFDirection.INOUT;
+            default:
+                return null;
         }
     }
 
     protected void readEDIFCell(Cell.Reader cellReader) {
         EDIFCell edifCell = allCells[cellReader.getIndex()];
-        assert(edifCell != null);
+        assert (edifCell != null);
 
         boolean deferSort = true;
 
         // Instances
         PrimitiveList.Int.Reader cellInstsReader = cellReader.getInsts();
         int instCount = cellInstsReader.size();
-        for (int j=0; j < instCount; j++) {
+        for (int j = 0; j < instCount; j++) {
             EDIFCellInst eci = getInst(cellInstsReader.get(j));
             edifCell.addCellInst(eci);
             eci.setParentCell(edifCell);
@@ -255,19 +253,19 @@ public class LogNetlistReader {
                 Unisim cellType = Unisim.valueOf(edifCell.getName());
                 EDIFCell cell = Design.getUnisimCell(cellType);
                 if (cell.getPorts().size() != edifCell.getPorts().size()) {
-                    System.err.println("[WARNING]: Unisim mismatch found in EDIF Library: "
-                            + EDIFTools.EDIF_LIBRARY_HDI_PRIMITIVES_NAME + ", Cell: "
-                            + edifCell.getName() + ", port names/widths mismatch, should be: \n\t"
-                            + cell.getPorts() + ",\n\tbut found: \n\t\t" + edifCell.getPorts());
+                    System.err.println("[WARNING]: Unisim mismatch found in EDIF Library: " +
+                                       EDIFTools.EDIF_LIBRARY_HDI_PRIMITIVES_NAME + ", Cell: " + edifCell.getName() +
+                                       ", port names/widths mismatch, should be: \n\t" + cell.getPorts() +
+                                       ",\n\tbut found: \n\t\t" + edifCell.getPorts());
                 }
                 for (EDIFPort port : cell.getPorts()) {
                     String portKey = port.getBusName();
                     EDIFPort portMatch = edifCell.getPort(portKey);
                     if (portMatch == null || portMatch.getWidth() != port.getWidth()) {
-                        System.err.println("[WARNING]: Unisim mismatch found in EDIF Library: "
-                                + EDIFTools.EDIF_LIBRARY_HDI_PRIMITIVES_NAME + ", Cell: "
-                                + edifCell.getName() + ", port names/widths mismatch, should be: \n\t"
-                                + cell.getPorts() + ",\nbut found: \n\t" + edifCell.getPorts());
+                        System.err.println("[WARNING]: Unisim mismatch found in EDIF Library: " +
+                                           EDIFTools.EDIF_LIBRARY_HDI_PRIMITIVES_NAME + ", Cell: " +
+                                           edifCell.getName() + ", port names/widths mismatch, should be: \n\t" +
+                                           cell.getPorts() + ",\nbut found: \n\t" + edifCell.getPorts());
                     }
                 }
             }
@@ -278,7 +276,7 @@ public class LogNetlistReader {
         String instName = getString(instReader.getName());
 
         EDIFCell cell = allCells[instReader.getCell()];
-        assert(cell != null);
+        assert (cell != null);
 
         EDIFCell parent = null;
         EDIFCellInst edifCellInst = new EDIFCellInst(instName, cell, parent);
@@ -310,7 +308,8 @@ public class LogNetlistReader {
     }
 
     /**
-     * Reads Cap'n Proto serialized netlist into a RapidWright netlist in memory, with macros expanded.
+     * Reads Cap'n Proto serialized netlist into a RapidWright netlist in memory, with macros
+     * expanded.
      * @param fileName Name of the serialized netlist file
      * @return EDIFNetlist object in RapidWright framework
      * @throws IOException
@@ -320,9 +319,11 @@ public class LogNetlistReader {
     }
 
     /**
-     * Reads Cap'n Proto serialized netlist into a RapidWright netlist in memory, with macros expanded.
+     * Reads Cap'n Proto serialized netlist into a RapidWright netlist in memory, with macros
+     * expanded.
      * @param fileName Name of the serialized netlist file
-     * @param expandMacros If true, expands the macros in the netlist before returning it to the caller.
+     * @param expandMacros If true, expands the macros in the netlist before returning it to the
+     *     caller.
      * @return EDIFNetlist object in RapidWright framework
      * @throws IOException
      */
@@ -344,15 +345,13 @@ public class LogNetlistReader {
         if (portReader.hasBus()) {
             int start = portReader.getBus().getBusStart();
             int end = portReader.getBus().getBusEnd();
-            width = Math.abs(start-end) + 1;
+            width = Math.abs(start - end) + 1;
         }
         String portBusName = getString(portReader.getName());
         if (portReader.isBus()) {
-            portBusName += "["+ portReader.getBus().getBusStart() +
-                    ":" + portReader.getBus().getBusEnd() + "]";
+            portBusName += "[" + portReader.getBus().getBusStart() + ":" + portReader.getBus().getBusEnd() + "]";
         }
-        EDIFPort edifPort = new EDIFPort(portBusName,
-                                     getEDIFDirection(portReader), width);
+        EDIFPort edifPort = new EDIFPort(portBusName, getEDIFDirection(portReader), width);
         if (portReader.hasPropMap()) {
             extractPropertyMap(portReader.getPropMap(), edifPort);
         }
@@ -371,7 +370,7 @@ public class LogNetlistReader {
     }
 
     protected EDIFCell createCell(Netlist.CellDeclaration.Reader cellReader,
-                                  BiFunction<EDIFLibrary,String,EDIFCell> createCell) {
+                                  BiFunction<EDIFLibrary, String, EDIFCell> createCell) {
         EDIFLibrary library = getLibrary(cellReader.getLib());
         String cellName = getString(cellReader.getName());
 
@@ -383,7 +382,7 @@ public class LogNetlistReader {
 
         PrimitiveList.Int.Reader ports = cellReader.getPorts();
         int portCount = ports.size();
-        for (int j=0; j < portCount; j++) {
+        for (int j = 0; j < portCount; j++) {
             cell.addPort(getPort(ports.get(j)));
         }
 
@@ -418,7 +417,8 @@ public class LogNetlistReader {
      * Reads an Interchange netlist from Cap'n Proto reader.
      * @param netlist The Cap'n Proto netlist reader
      * @param skipTopStuff If true, skips netlist design object
-     * @param expandMacros If true, expands the macros in the netlist before returning it to the caller.
+     * @param expandMacros If true, expands the macros in the netlist before returning it to the
+     *     caller.
      * @return The logical netlist.
      */
     public EDIFNetlist readLogNetlist(Netlist.Reader netlist, boolean skipTopStuff, boolean expandMacros) {
@@ -430,11 +430,13 @@ public class LogNetlistReader {
      * Reads an Interchange netlist from Cap'n Proto reader.
      * @param netlist The Cap'n Proto netlist reader
      * @param skipTopStuff If true, skips netlist design object
-     * @param expandMacros If true, expands the macros in the netlist before returning it to the caller.
+     * @param expandMacros If true, expands the macros in the netlist before returning it to the
+     *     caller.
      * @param t CodePerfTracker object.
      * @return The logical netlist.
      */
-    public EDIFNetlist readLogNetlist(Netlist.Reader netlist, boolean skipTopStuff, boolean expandMacros, CodePerfTracker t) {
+    public EDIFNetlist readLogNetlist(Netlist.Reader netlist, boolean skipTopStuff, boolean expandMacros,
+                                      CodePerfTracker t) {
         n = new EDIFNetlist(netlist.getName().toString());
 
         t.start("Read Strings");
@@ -478,9 +480,9 @@ public class LogNetlistReader {
                 n.expandMacroUnisims(PartNameTools.getPart(partName).getSeries());
             } else {
                 System.err.println("WARNING: Could not determine target device from netlist.  Macro "
-                        + "unisims are not expanded.  Please add a top netlist property to indicate the "
-                        + "target part such as [part=xcvu095-ffva2104-2-e].  Macro expansion can also be"
-                        + " run manually with EDIFNetlist.expandMacroUnisims(Series)");
+                                   + "unisims are not expanded.  Please add a top netlist property to indicate the "
+                                   + "target part such as [part=xcvu095-ffva2104-2-e].  Macro expansion can also be"
+                                   + " run manually with EDIFNetlist.expandMacroUnisims(Series)");
             }
         }
         t.stop().printSummary();

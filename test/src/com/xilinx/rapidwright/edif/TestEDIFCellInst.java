@@ -22,6 +22,8 @@
 
 package com.xilinx.rapidwright.edif;
 
+import java.util.Arrays;
+
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
 import org.junit.jupiter.api.Assertions;
@@ -29,16 +31,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.Arrays;
-
 public class TestEDIFCellInst {
     @ParameterizedTest
-    @ValueSource(strings = {
-            "picoblaze_ooc_X10Y235.dcp",
-            "optical-flow.dcp",
-            "bnn.dcp",
-    })
-    public void testIsUniquified(String path) {
+    @ValueSource(strings =
+                     {
+                         "picoblaze_ooc_X10Y235.dcp",
+                         "optical-flow.dcp",
+                         "bnn.dcp",
+                     })
+    public void
+    testIsUniquified(String path) {
         Design design = RapidWrightDCP.loadDCP(path, true);
         EDIFNetlist netlist = design.getNetlist();
 
@@ -48,7 +50,8 @@ public class TestEDIFCellInst {
             }
             for (EDIFCell cell : library.getCells()) {
                 for (EDIFCellInst eci : cell.getCellInsts()) {
-                    Assertions.assertTrue(eci.isUniquified() || eci.getCellType().getLibrary().isHDIPrimitivesLibrary());
+                    Assertions.assertTrue(eci.isUniquified() ||
+                                          eci.getCellType().getLibrary().isHDIPrimitivesLibrary());
                 }
             }
         }
@@ -60,22 +63,14 @@ public class TestEDIFCellInst {
         EDIFNetlist netlist = design.getNetlist();
         Assertions.assertTrue(netlist.getTopCell().isUniquified());
 
-        for (String name : Arrays.asList(
-                "picoblaze_0_12",
-                "picoblaze_0_13",
-                "picoblaze_1_12",
-                "picoblaze_1_13"
-        )) {
+        for (String name : Arrays.asList("picoblaze_0_12", "picoblaze_0_13", "picoblaze_1_12", "picoblaze_1_13")) {
             EDIFCellInst eci = netlist.getTopCell().getCellInst(name);
             Assertions.assertFalse(eci.isUniquified());
         }
 
         EDIFCell picoblazeTop = netlist.getCell("picoblaze_top");
         Assertions.assertFalse(picoblazeTop.isUniquified());
-        for (String name : Arrays.asList(
-                "processor",
-                "your_program"
-        )) {
+        for (String name : Arrays.asList("processor", "your_program")) {
             EDIFCellInst eci = picoblazeTop.getCellInst(name);
             // Only checks that this cell instance is unique (e.g. that there is only
             // one instantiation) but does not check that all parents on a full

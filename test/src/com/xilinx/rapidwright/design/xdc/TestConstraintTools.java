@@ -25,26 +25,26 @@ package com.xilinx.rapidwright.design.xdc;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.ConstraintGroup;
+import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.blocks.PBlock;
 import com.xilinx.rapidwright.design.blocks.PblockProperty;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class TestConstraintTools {
-
     @ParameterizedTest
     @EnumSource(TestXDCParser.RoundtripMode.class)
     public void testGetPBlockFromXDCConstraints(TestXDCParser.RoundtripMode roundtripMode) {
         Design d = RapidWrightDCP.loadDCP("microblazeAndILA_3pblocks.dcp");
-        d.getXDCConstraints(ConstraintGroup.LATE).add("set_property " + PblockProperty.IS_SOFT + " 1 [get_pblocks pblock_dbg_hub]");
-        d.getXDCConstraints(ConstraintGroup.LATE).add("set_property " + PblockProperty.EXCLUDE_PLACEMENT + " 1 [get_pblocks pblock_u_ila_0]");
+        d.getXDCConstraints(ConstraintGroup.LATE)
+            .add("set_property " + PblockProperty.IS_SOFT + " 1 [get_pblocks pblock_dbg_hub]");
+        d.getXDCConstraints(ConstraintGroup.LATE)
+            .add("set_property " + PblockProperty.EXCLUDE_PLACEMENT + " 1 [get_pblocks pblock_u_ila_0]");
         roundtripMode.doRoundtrip(d);
 
         Map<String, PBlock> pblockMap = ConstraintTools.getPBlocksFromXDC(d);
@@ -60,32 +60,26 @@ public class TestConstraintTools {
         Assertions.assertTrue(dbgHub.isSoft());
         Assertions.assertFalse(dbgHub.excludePlacement());
         TclConstraints = String.join(" ", dbgHub.getTclConstraints());
-        Assertions.assertTrue(
-            TclConstraints.contains(PblockProperty.CONTAIN_ROUTING.toString())
-            && TclConstraints.contains(PblockProperty.IS_SOFT.toString())
-            && !TclConstraints.contains(PblockProperty.EXCLUDE_PLACEMENT.toString())
-        );
+        Assertions.assertTrue(TclConstraints.contains(PblockProperty.CONTAIN_ROUTING.toString()) &&
+                              TclConstraints.contains(PblockProperty.IS_SOFT.toString()) &&
+                              !TclConstraints.contains(PblockProperty.EXCLUDE_PLACEMENT.toString()));
 
         PBlock baseMb = pblockMap.get("pblock_base_mb_i");
         Assertions.assertTrue(baseMb.containRouting());
         Assertions.assertFalse(baseMb.isSoft());
         Assertions.assertFalse(baseMb.excludePlacement());
         TclConstraints = String.join(" ", baseMb.getTclConstraints());
-        Assertions.assertTrue(
-            TclConstraints.contains(PblockProperty.CONTAIN_ROUTING.toString())
-            && !TclConstraints.contains(PblockProperty.IS_SOFT.toString())
-            && !TclConstraints.contains(PblockProperty.EXCLUDE_PLACEMENT.toString())
-        );
+        Assertions.assertTrue(TclConstraints.contains(PblockProperty.CONTAIN_ROUTING.toString()) &&
+                              !TclConstraints.contains(PblockProperty.IS_SOFT.toString()) &&
+                              !TclConstraints.contains(PblockProperty.EXCLUDE_PLACEMENT.toString()));
 
         PBlock uila0 = pblockMap.get("pblock_u_ila_0");
         Assertions.assertTrue(uila0.containRouting());
         Assertions.assertFalse(uila0.isSoft());
         Assertions.assertTrue(uila0.excludePlacement());
         TclConstraints = String.join(" ", uila0.getTclConstraints());
-        Assertions.assertTrue(
-            TclConstraints.contains(PblockProperty.CONTAIN_ROUTING.toString())
-            && !TclConstraints.contains(PblockProperty.IS_SOFT.toString())
-            && TclConstraints.contains(PblockProperty.EXCLUDE_PLACEMENT.toString())
-        );
+        Assertions.assertTrue(TclConstraints.contains(PblockProperty.CONTAIN_ROUTING.toString()) &&
+                              !TclConstraints.contains(PblockProperty.IS_SOFT.toString()) &&
+                              TclConstraints.contains(PblockProperty.EXCLUDE_PLACEMENT.toString()));
     }
 }

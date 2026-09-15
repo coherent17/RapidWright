@@ -28,7 +28,7 @@ public class XDCTools {
     }
     public static String braceEnclosedIfNeeded(String s) {
         if (stringNeedsBraces(s)) {
-            return '{'+s+'}';
+            return '{' + s + '}';
         }
         return s;
     }

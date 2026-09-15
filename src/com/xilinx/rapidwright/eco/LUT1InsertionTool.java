@@ -22,6 +22,8 @@
 
 package com.xilinx.rapidwright.eco;
 
+import java.util.Iterator;
+
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.Net;
@@ -35,14 +37,12 @@ import com.xilinx.rapidwright.edif.EDIFCell;
 import com.xilinx.rapidwright.edif.EDIFNet;
 import com.xilinx.rapidwright.edif.EDIFPort;
 import com.xilinx.rapidwright.util.Pair;
-import java.util.Iterator;
 
 /**
  * Helper class when instantiating designs in an abstract/DFX shell. LUT1s must
  * be used to tie of any shell outputs.
  */
 public class LUT1InsertionTool {
-
     private Design design;
 
     private EDIFCell top;
@@ -73,7 +73,7 @@ public class LUT1InsertionTool {
      * Creates and places a LUT1 (logically and physically) as a sink on the
      * provided input port. It will also create a logical and physical net inside
      * the top cell.
-     * 
+     *
      * @param portInstName Name of the input port instance.
      * @param port         The corresponding input port object
      * @param i            If the port is a bus, the specific bus index.
@@ -91,8 +91,8 @@ public class LUT1InsertionTool {
             net.createPortInst(port);
         }
         Pair<Site, BEL> loc = getFreeLUTLocation();
-        Cell lut1 = design.createAndPlaceCell(top, lutPrefix + portInstName, Unisim.LUT1, loc.getFirst(),
-                loc.getSecond());
+        Cell lut1 =
+            design.createAndPlaceCell(top, lutPrefix + portInstName, Unisim.LUT1, loc.getFirst(), loc.getSecond());
         lut1.addProperty("INIT", "2'h2");
         lut1.addProperty(lutProp, true);
         net.createPortInst("I0", lut1);
@@ -112,7 +112,7 @@ public class LUT1InsertionTool {
 
     /**
      * Finds the next free LUT and returns it.
-     * 
+     *
      * @return A pair object containing the site and BEL that are available for LUT
      *         placement.
      */
@@ -132,7 +132,7 @@ public class LUT1InsertionTool {
 
     /**
      * Checks a specific site if there are any BELs available for LUT placement.
-     * 
+     *
      * @param site The site to check.
      * @return An available and compatible LUT placement BEL site, or null if none
      *         are available in this site.

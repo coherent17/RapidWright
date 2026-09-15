@@ -31,11 +31,12 @@ import java.util.List;
 import java.util.Map.Entry;
 
 /**
- * An {@link EDIFCellInst} with its hierarchy, described by all the {@link EDIFCellInst}s that sit above it within
- * the netlist.
+ * An {@link EDIFCellInst} with its hierarchy, described by all the {@link EDIFCellInst}s that sit
+ * above it within the netlist.
  *
- * Instances of this class do not necessarily describe a complete hierarchy from the top level cell to a leaf instance.
- * They may also be used to describe a partial hierarchy starting at an arbitrary point in the design.
+ * Instances of this class do not necessarily describe a complete hierarchy from the top level cell
+ * to a leaf instance. They may also be used to describe a partial hierarchy starting at an
+ * arbitrary point in the design.
  *
  * Instances of this class are immutable: Once created, it cannot be changed.
  *
@@ -50,7 +51,7 @@ public class EDIFHierCellInst implements Comparable<EDIFHierCellInst> {
         }
         this.cellInsts = Arrays.copyOf(cellInsts, newLength);
         if (relativeChild != null) {
-            this.cellInsts[this.cellInsts.length-1] = relativeChild;
+            this.cellInsts[this.cellInsts.length - 1] = relativeChild;
         }
     }
 
@@ -63,7 +64,7 @@ public class EDIFHierCellInst implements Comparable<EDIFHierCellInst> {
             topCellInst = netlist.getTopCellInst();
         }
         if (topCellInst != null) {
-            return topCellInst==eci;
+            return topCellInst == eci;
         } else {
             return false;
         }
@@ -71,7 +72,8 @@ public class EDIFHierCellInst implements Comparable<EDIFHierCellInst> {
 
     /**
      * Create an absolute EDIFHierCellInst.
-     * The first cellInst is required to be the top cell inst as returned by {@link EDIFNetlist#getTopCellInst()}
+     * The first cellInst is required to be the top cell inst as returned by {@link
+     * EDIFNetlist#getTopCellInst()}
      * @param cellInsts the hierarchy of cell insts
      * @return a new instance
      */
@@ -80,17 +82,20 @@ public class EDIFHierCellInst implements Comparable<EDIFHierCellInst> {
             throw new RuntimeException("Cannot create empty EDIFHierCellInst");
         }
         if (!isToplevelInst(cellInsts[0])) {
-            throw new RuntimeException("Tried to create absolute EDIFHierCellInst, but is not rooted at top instance: "+ Arrays.toString(cellInsts));
+            throw new RuntimeException(
+                "Tried to create absolute EDIFHierCellInst, but is not rooted at top instance: " +
+                Arrays.toString(cellInsts));
         }
         return createRelative(cellInsts);
     }
 
     public static EDIFHierCellInst createTopInst(EDIFCellInst topCell) {
-        return new EDIFHierCellInst(new EDIFCellInst[]{topCell});
+        return new EDIFHierCellInst(new EDIFCellInst[] {topCell});
     }
 
     /**
-     * Create an EDIFHierCellInst. This may be absolute (first item is the top cell inst) or relative (starting at an arbitrary point in the hierarchy).
+     * Create an EDIFHierCellInst. This may be absolute (first item is the top cell inst) or
+     * relative (starting at an arbitrary point in the hierarchy).
      * @param cellInsts the hierarchy of cell insts
      * @return a new top instance
      */
@@ -115,14 +120,16 @@ public class EDIFHierCellInst implements Comparable<EDIFHierCellInst> {
     }
 
     public EDIFCellInst getInst() {
-        return cellInsts[cellInsts.length-1];
+        return cellInsts[cellInsts.length - 1];
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        EDIFHierCellInst that = (EDIFHierCellInst) o;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        EDIFHierCellInst that = (EDIFHierCellInst)o;
         return Arrays.equals(cellInsts, that.cellInsts);
     }
 
@@ -135,11 +142,11 @@ public class EDIFHierCellInst implements Comparable<EDIFHierCellInst> {
         if (cellInsts.length == 1) {
             return null;
         }
-        return new EDIFHierCellInst(cellInsts, cellInsts.length-1, null);
+        return new EDIFHierCellInst(cellInsts, cellInsts.length - 1, null);
     }
 
     public EDIFHierCellInst getChild(EDIFCellInst relativeChild) {
-        return new EDIFHierCellInst(cellInsts, cellInsts.length+1, relativeChild);
+        return new EDIFHierCellInst(cellInsts, cellInsts.length + 1, relativeChild);
     }
 
     public EDIFHierCellInst getSibling(EDIFCellInst relativeSibling) {
@@ -157,8 +164,9 @@ public class EDIFHierCellInst implements Comparable<EDIFHierCellInst> {
      */
     public boolean isDescendantOf(EDIFHierCellInst potentialAncestor) {
         EDIFCellInst[] other = potentialAncestor.cellInsts;
-        if (other.length >= cellInsts.length) return false;
-        for (int i=0; i < other.length; i++) {
+        if (other.length >= cellInsts.length)
+            return false;
+        for (int i = 0; i < other.length; i++) {
             if (cellInsts.length > i) {
                 if (!cellInsts[i].getName().equals(other[i].getName())) {
                     return false;
@@ -178,13 +186,13 @@ public class EDIFHierCellInst implements Comparable<EDIFHierCellInst> {
     public EDIFHierCellInst getCommonAncestor(EDIFHierCellInst o) {
         if (!isAbsolute() || !o.isAbsolute()) {
             throw new RuntimeException("ERROR: Can only get a common ancestor of absolute "
-                    + "EDIFHierCellInsts. this.isAbsolute()=" + this.isAbsolute()
-                    + ", o.isAbsolute()=" + o.isAbsolute());
+                                       + "EDIFHierCellInsts. this.isAbsolute()=" + this.isAbsolute() +
+                                       ", o.isAbsolute()=" + o.isAbsolute());
         }
         EDIFCellInst[] oCellInsts = o.cellInsts;
         int min = Integer.min(cellInsts.length, oCellInsts.length);
         int idx = 0;
-        for (int i=0; i< min; i++) {
+        for (int i = 0; i < min; i++) {
             if (cellInsts[i] == oCellInsts[i]) {
                 idx++;
             } else {
@@ -199,8 +207,8 @@ public class EDIFHierCellInst implements Comparable<EDIFHierCellInst> {
     }
 
     public List<EDIFCellInst> getFullHierarchy() {
-        //We can't just return the internal array, as users could then change it.
-        //Return an unmodifiable list that uses the same backing array instead
+        // We can't just return the internal array, as users could then change it.
+        // Return an unmodifiable list that uses the same backing array instead
         return Collections.unmodifiableList(Arrays.asList(cellInsts));
     }
 
@@ -211,7 +219,7 @@ public class EDIFHierCellInst implements Comparable<EDIFHierCellInst> {
     public boolean enterHierarchicalName(StringBuilder sb) {
         int start = isAbsolute() ? 1 : 0;
         for (int i = start; i < cellInsts.length; i++) {
-            if (i>start) {
+            if (i > start) {
                 sb.append(EDIFTools.EDIF_HIER_SEP);
             }
             sb.append(cellInsts[i].getName());
@@ -231,13 +239,12 @@ public class EDIFHierCellInst implements Comparable<EDIFHierCellInst> {
      * @return True if this is the top instance, false otherwise.
      */
     public boolean isTopLevelInst() {
-        //Has multiple levels?
+        // Has multiple levels?
         if (hasParent()) {
             return false;
         }
-        //HierCellInsts need not be absolute, so check the cell
+        // HierCellInsts need not be absolute, so check the cell
         return isToplevelInst(getInst());
-
     }
 
     public EDIFCell getCellType() {
@@ -256,7 +263,8 @@ public class EDIFHierCellInst implements Comparable<EDIFHierCellInst> {
     public EDIFHierCellInst getChild(String relativeChildName) {
         final EDIFCellInst cellInst = getCellType().getCellInst(relativeChildName);
         if (cellInst == null) {
-            //throw new IllegalStateException(this + " does not have a child named "+relativeChildName);
+            // throw new IllegalStateException(this + " does not have a child named
+            // "+relativeChildName);
             return null;
         }
         return getChild(cellInst);
@@ -313,7 +321,7 @@ public class EDIFHierCellInst implements Comparable<EDIFHierCellInst> {
     /**
      * Creates a reference copy of this cell instance--a deep copy of the instance
      * without this new instance being referenced in the design or netlist object.
-     * 
+     *
      * @return The newly created reference copy of this instance.
      */
     public EDIFHierCellInst getReferenceCopy() {
@@ -335,7 +343,7 @@ public class EDIFHierCellInst implements Comparable<EDIFHierCellInst> {
      * True if all cells on this path are the only instantiations of its cell.
      */
     public boolean isUniquified() {
-        assert(isToplevelInst(cellInsts[0]));
+        assert (isToplevelInst(cellInsts[0]));
         for (int i = cellInsts.length - 1; i > 0; i--) {
             if (!cellInsts[i].isUniquified()) {
                 return false;

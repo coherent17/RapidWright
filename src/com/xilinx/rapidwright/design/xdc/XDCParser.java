@@ -58,46 +58,42 @@ import tcl.lang.TclObject;
 import tcl.lang.Var;
 import tcl.lang.WrappedCommand;
 
-
 /**
  * Parses an XDC file for a limited subset of constraint types. It uses a full Tcl interpreter, so
  * complex language constructs are possible.
  * <p />
- * If the Parser encounters unsupported commands or command options, the parsed TCL code is converted back to strings
- * and returned as UnsupportedConstraintElements.
- * <p />
- * The parser can match cell references in constraints to modified designs. Users can supply their own
+ * If the Parser encounters unsupported commands or command options, the parsed TCL code is
+ * converted back to strings and returned as UnsupportedConstraintElements. <p /> The parser can
+ * match cell references in constraints to modified designs. Users can supply their own
  * {@link EdifCellLookup} to specify how to rewrite constraints.
  * <p />
  * For a regular, non-rewritten netlist, users should use {@link RegularEdifCellLookup}.
  * <p />
- * If no netlist is present, a <code>null</code> lookup will leave more complex <code>get_cells</code> calls unevaluated
- * as unsupported constraints.
- * <p />
- * Created on: Jul 27, 2015
+ * If no netlist is present, a <code>null</code> lookup will leave more complex
+ * <code>get_cells</code> calls unevaluated as unsupported constraints. <p /> Created on: Jul 27,
+ * 2015
  */
 public class XDCParser {
-
-
     /**
      * Create a tcl interpreter with XDC parsing commands
      *
      * Cell references are intentionally never disposed
-     * (see {@link com.xilinx.rapidwright.design.xdc.parser.TclHashIdentifiedObject}), so lifetime of this interpreter
-     * should be limited.
+     * (see {@link com.xilinx.rapidwright.design.xdc.parser.TclHashIdentifiedObject}), so lifetime
+     * of this interpreter should be limited.
      *
      * @param constraints Constraints object to output to
      * @param dev Device
-     * @param cellLookup the cell lookup (see  {@link XDCParser class level documentation} for parameter details)
+     * @param cellLookup the cell lookup (see  {@link XDCParser class level documentation} for
+     *     parameter details)
      * @return interpreter
      * @param <T> lookup's cell representation
      */
     public static <T> Interp makeTclInterp(XDCConstraints constraints, Device dev, EdifCellLookup<T> cellLookup) {
         Interp interp = new Interp();
         interp.createCommand("set_property", new SetPropertyCommand<>(constraints, dev, cellLookup));
-        interp.createCommand("current_design", new ObjectGetterCommand(cellLookup, false,ObjType.Design));
+        interp.createCommand("current_design", new ObjectGetterCommand(cellLookup, false, ObjType.Design));
 
-        if (cellLookup!=null) {
+        if (cellLookup != null) {
             interp.createCommand("get_cells", new GetCellsCommand<>(cellLookup));
         } else {
             interp.createCommand("get_cells", new ObjectGetterCommand(cellLookup, true, ObjType.Cell));
@@ -134,26 +130,28 @@ public class XDCParser {
         interp.createCommand("get_wires", unsupportedGetterCommand);
         interp.createCommand("get_nodes", unsupportedGetterCommand);
         UnsupportedGetterCommand.replaceInInterp(interp, cellLookup, "llength");
-        UnsupportedGetterCommand.replaceInInterp(interp, cellLookup,  "expr");
+        UnsupportedGetterCommand.replaceInInterp(interp, cellLookup, "expr");
 
         UnsupportedIfCommand.replaceInInterp(interp, constraints, cellLookup);
         UnsupportedSetterCommand.replaceInInterp(interp, constraints, cellLookup, "foreach");
 
         interp.createCommand("debugDump", new DebugDumpCommand());
 
-        //We need to allow [*] and bracketed numbers (e.h. [1] ) as suffix on quoted strings, so we need to hook into the command lookup
-        //This actually mirrors Vivado's behaviour very closely! Just enter * on Vivado's tcl prompt to see
+        // We need to allow [*] and bracketed numbers (e.h. [1] ) as suffix on quoted strings, so we
+        // need to hook into the command lookup This actually mirrors Vivado's behaviour very
+        // closely! Just enter * on Vivado's tcl prompt to see
         interp.createCommand("wrapInput", new Command() {
             @Override
             public void cmdProc(Interp interp, TclObject[] objv) throws TclException {
-                interp.setResult("["+objv[0]+"]");
+                interp.setResult("[" + objv[0] + "]");
             }
         });
         try {
             WrappedCommand wrapInputCmd = Objects.requireNonNull(Namespace.findCommand(interp, "wrapInput", null, 0));
             interp.addInterpResolver("", new Resolver() {
                 @Override
-                public WrappedCommand resolveCmd(Interp interp, String name, Namespace context, int flags) throws TclException {
+                public WrappedCommand resolveCmd(Interp interp, String name, Namespace context, int flags)
+                    throws TclException {
                     if (name.matches("\\d+") || name.equals("*")) {
                         return wrapInputCmd;
                     }
@@ -176,12 +174,12 @@ public class XDCParser {
      * Parse XDC
      * @param dev the device
      * @param lines XDC content
-     * @param cellLookup the cell lookup (see  {@link XDCParser class level documentation} for parameter details)
+     * @param cellLookup the cell lookup (see  {@link XDCParser class level documentation} for
+     *     parameter details)
      * @return parsed constraints
      */
     public static XDCConstraints parseXDC(Device dev, List<String> lines, EdifCellLookup<?> cellLookup) {
         XDCConstraints constraints = new XDCConstraints();
-
 
         Interp interp = makeTclInterp(constraints, dev, cellLookup);
         try {
@@ -192,34 +190,31 @@ public class XDCParser {
                 int code = ex.getCompletionCode();
                 switch (code) {
                     case TCL.ERROR:
-                        throw new RuntimeException(interp.getResult().toString()+" in line "+interp.getErrorLine(), ex);
+                        throw new RuntimeException(interp.getResult().toString() + " in line " + interp.getErrorLine(),
+                                                   ex);
                     case TCL.BREAK:
-                        throw new RuntimeException(
-                                "invoked \"break\" outside of a loop", ex);
+                        throw new RuntimeException("invoked \"break\" outside of a loop", ex);
                     case TCL.CONTINUE:
-                        throw new RuntimeException(
-                                "invoked \"continue\" outside of a loop", ex);
+                        throw new RuntimeException("invoked \"continue\" outside of a loop", ex);
                     default:
-                        throw new RuntimeException(
-                                "command returned bad error code: " + code, ex);
+                        throw new RuntimeException("command returned bad error code: " + code, ex);
                 }
             }
-        }  finally {
+        } finally {
             interp.dispose();
         }
 
         return constraints;
     }
 
-
-
     /**
      * @param fileName Name of the XDC file to parse
      * @param dev the design
-     * @param cellLookup the cell lookup (see  {@link XDCParser class level documentation} for parameter details)
+     * @param cellLookup the cell lookup (see  {@link XDCParser class level documentation} for
+     *     parameter details)
      * @return A map of port names to package pin information.
      */
-    public static XDCConstraints parseXDC(String fileName, Device dev, EdifCellLookup<?> cellLookup){
+    public static XDCConstraints parseXDC(String fileName, Device dev, EdifCellLookup<?> cellLookup) {
         return parseXDC(dev, FileTools.getLinesFromTextFile(fileName), cellLookup);
     }
 
@@ -229,7 +224,7 @@ public class XDCParser {
      * @param netlist optional netlist to enable more advanced get_cells calls
      * @return A map of port names to package pin information.
      */
-    public static XDCConstraints parseXDC(String fileName, Device dev, EDIFNetlist netlist){
+    public static XDCConstraints parseXDC(String fileName, Device dev, EDIFNetlist netlist) {
         return parseXDC(dev, FileTools.getLinesFromTextFile(fileName), new RegularEdifCellLookup(netlist));
     }
 
@@ -238,8 +233,9 @@ public class XDCParser {
      * @param design The design
      * @return A map of port names to package pin information.
      */
-    public static XDCConstraints parseXDC(String fileName, Design design){
-        return parseXDC(design.getDevice(), FileTools.getLinesFromTextFile(fileName), new RegularEdifCellLookup(design.getNetlist()));
+    public static XDCConstraints parseXDC(String fileName, Design design) {
+        return parseXDC(design.getDevice(), FileTools.getLinesFromTextFile(fileName),
+                        new RegularEdifCellLookup(design.getNetlist()));
     }
 
     /**
@@ -247,14 +243,15 @@ public class XDCParser {
      * @param dev the device
      * @return A map of port names to package pin information.
      */
-    public static XDCConstraints parseXDC(String fileName, Device dev){
+    public static XDCConstraints parseXDC(String fileName, Device dev) {
         return parseXDC(dev, FileTools.getLinesFromTextFile(fileName), null);
     }
 
-    public static void writeXDC(List<String> constraints, OutputStream out){
-        if(constraints == null) return;
+    public static void writeXDC(List<String> constraints, OutputStream out) {
+        if (constraints == null)
+            return;
         try {
-            for(String s : constraints){
+            for (String s : constraints) {
                 out.write(s.getBytes());
                 out.write('\n');
             }

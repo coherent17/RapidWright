@@ -38,20 +38,16 @@ import com.xilinx.rapidwright.device.Tile;
  * Created on: Jun 18, 2015
  */
 public class PBlockGenScene extends DeviceBrowserScene {
-
-    public PBlockGenScene(Device device, boolean hideTiles,
-            boolean drawPrimitives, DeviceBrowser browser) {
+    public PBlockGenScene(Device device, boolean hideTiles, boolean drawPrimitives, DeviceBrowser browser) {
         super(device, hideTiles, drawPrimitives, browser);
     }
-
 
     private static QColor highlightColor = new QColor(0, 255, 0, 190);
     private static QPen highlightPen = new QPen(highlightColor);
     private static QBrush highlightBrush = new QBrush(highlightColor);
 
     public void highlightTile(Tile t) {
-        QGraphicsRectItem rect = addRect(tileSize,tileSize, tileSize - 2, tileSize - 2, highlightPen, highlightBrush);
+        QGraphicsRectItem rect = addRect(tileSize, tileSize, tileSize - 2, tileSize - 2, highlightPen, highlightBrush);
         rect.setPos(t.getColumn() * tileSize, t.getRow() * tileSize);
     }
-
 }

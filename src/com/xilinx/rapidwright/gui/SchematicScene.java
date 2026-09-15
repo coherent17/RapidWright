@@ -33,30 +33,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.eclipse.elk.alg.layered.options.GreedySwitchType;
-import org.eclipse.elk.alg.layered.options.LayeredOptions;
-import org.eclipse.elk.core.IGraphLayoutEngine;
-import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
-import org.eclipse.elk.core.math.ElkPadding;
-import org.eclipse.elk.core.options.CoreOptions;
-import org.eclipse.elk.core.options.NodeLabelPlacement;
-import org.eclipse.elk.core.options.PortConstraints;
-import org.eclipse.elk.core.options.PortSide;
-import org.eclipse.elk.core.util.BasicProgressMonitor;
-import org.eclipse.elk.core.util.IElkProgressMonitor;
-import org.eclipse.elk.graph.ElkBendPoint;
-import org.eclipse.elk.graph.ElkEdge;
-import org.eclipse.elk.graph.ElkEdgeSection;
-import org.eclipse.elk.graph.ElkGraphElement;
-import org.eclipse.elk.graph.ElkGraphFactory;
-import org.eclipse.elk.graph.ElkLabel;
-import org.eclipse.elk.graph.ElkNode;
-import org.eclipse.elk.graph.ElkPort;
-
 import com.trolltech.qt.core.QPointF;
 import com.trolltech.qt.core.QRectF;
-import com.trolltech.qt.core.QTimer;
 import com.trolltech.qt.core.QSizeF;
+import com.trolltech.qt.core.QTimer;
 import com.trolltech.qt.core.Qt.ItemSelectionMode;
 import com.trolltech.qt.core.Qt.KeyboardModifier;
 import com.trolltech.qt.gui.QAbstractGraphicsShapeItem;
@@ -86,9 +66,27 @@ import com.xilinx.rapidwright.edif.EDIFNet;
 import com.xilinx.rapidwright.edif.EDIFNetlist;
 import com.xilinx.rapidwright.edif.EDIFPort;
 import com.xilinx.rapidwright.edif.EDIFPortInst;
+import org.eclipse.elk.alg.layered.options.GreedySwitchType;
+import org.eclipse.elk.alg.layered.options.LayeredOptions;
+import org.eclipse.elk.core.IGraphLayoutEngine;
+import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
+import org.eclipse.elk.core.math.ElkPadding;
+import org.eclipse.elk.core.options.CoreOptions;
+import org.eclipse.elk.core.options.NodeLabelPlacement;
+import org.eclipse.elk.core.options.PortConstraints;
+import org.eclipse.elk.core.options.PortSide;
+import org.eclipse.elk.core.util.BasicProgressMonitor;
+import org.eclipse.elk.core.util.IElkProgressMonitor;
+import org.eclipse.elk.graph.ElkBendPoint;
+import org.eclipse.elk.graph.ElkEdge;
+import org.eclipse.elk.graph.ElkEdgeSection;
+import org.eclipse.elk.graph.ElkGraphElement;
+import org.eclipse.elk.graph.ElkGraphFactory;
+import org.eclipse.elk.graph.ElkLabel;
+import org.eclipse.elk.graph.ElkNode;
+import org.eclipse.elk.graph.ElkPort;
 
 public class SchematicScene extends QGraphicsScene {
-
     private EDIFNetlist netlist;
 
     private EDIFHierCellInst currCellInst;
@@ -172,7 +170,6 @@ public class SchematicScene extends QGraphicsScene {
     private static final double NODE_TO_NODE_SPACING = 40.0;
     private static final double EDGE_TO_NODE_SPACING = 20.0;
     private static final double SIDE_PADDING = 10.0;
-
 
     private static final double POINT_DIST = TOP_PORT_HEIGHT * 0.2; // Pointy part of the port
 
@@ -373,8 +370,8 @@ public class SchematicScene extends QGraphicsScene {
         estimatedItemCount = estimateItemCount(elkRoot);
         double extraWidthBuffer = elkRoot.getWidth() * 0.25 + 100;
         double extraHeightBuffer = elkRoot.getHeight() * 0.25 + 100;
-        setSceneRect(new QRectF(new QPointF(0, 0),
-                new QSizeF(elkRoot.getWidth() + extraWidthBuffer, elkRoot.getHeight() + extraHeightBuffer)));
+        setSceneRect(new QRectF(new QPointF(0, 0), new QSizeF(elkRoot.getWidth() + extraWidthBuffer,
+                                                              elkRoot.getHeight() + extraHeightBuffer)));
 
         // Let the view fit the new schematic first so that, on a large cell, the region rendered
         // below is the one the user is about to be looking at. Fitting scrolls the view several
@@ -497,14 +494,14 @@ public class SchematicScene extends QGraphicsScene {
             QRectF visible = visibleSceneRect();
             zoom = currentZoom();
             // Nothing to do while the view stays inside what is already drawn at this detail level
-            if (renderedRegion != null && renderedRegion.contains(visible)
-                    && detailLevel(zoom) == detailLevel(renderedZoom)) {
+            if (renderedRegion != null && renderedRegion.contains(visible) &&
+                detailLevel(zoom) == detailLevel(renderedZoom)) {
                 return;
             }
             double marginX = visible.width() * VIEWPORT_MARGIN;
             double marginY = visible.height() * VIEWPORT_MARGIN;
-            region = new QRectF(visible.x() - marginX, visible.y() - marginY,
-                    visible.width() + 2 * marginX, visible.height() + 2 * marginY);
+            region = new QRectF(visible.x() - marginX, visible.y() - marginY, visible.width() + 2 * marginX,
+                                visible.height() + 2 * marginY);
         } else {
             if (renderedRegion != null) {
                 return;
@@ -553,16 +550,15 @@ public class SchematicScene extends QGraphicsScene {
     private boolean isRendered(double x, double y, double width, double height) {
         // Deliberately plain arithmetic: this runs for every node and every edge in the graph on
         // every render, so building a QRectF here to ask Qt would cost more than the render itself
-        return !culling
-                || (x <= cullMaxX && x + width >= cullMinX && y <= cullMaxY && y + height >= cullMinY);
+        return !culling || (x <= cullMaxX && x + width >= cullMinX && y <= cullMaxY && y + height >= cullMinY);
     }
 
     public void renderSchematic() {
         // We create arrow-shaped top port ElkNodes to serve as targets for top ports
         for (ElkNode topPort : elkRoot.getChildren()) {
             EDIFHierPortInst hierPortInst = elkNodeTopPortMap.get(topPort);
-            if (hierPortInst != null
-                    && isRendered(topPort.getX(), topPort.getY(), topPort.getWidth(), topPort.getHeight())) {
+            if (hierPortInst != null &&
+                isRendered(topPort.getX(), topPort.getY(), topPort.getWidth(), topPort.getHeight())) {
                 QPolygonF portShape = createPortShape(topPort, hierPortInst.isOutput());
                 QGraphicsPolygonItem port = addPolygon(portShape, PORT_PEN, PORT_BRUSH);
                 String lookup = NetlistTreeWidget.PORT_ID + hierPortInst.toString();
@@ -660,7 +656,7 @@ public class SchematicScene extends QGraphicsScene {
 
             if (showLabels()) {
                 drawCellLabels(instNameLabel.getText(), cellTypeLabel.getText(), x, y, child.getWidth(),
-                        child.getHeight());
+                               child.getHeight());
             }
 
             for (ElkPort port : child.getPorts()) {
@@ -682,20 +678,20 @@ public class SchematicScene extends QGraphicsScene {
                 double textHeight = pinLabel.boundingRect().height();
                 double labelX = x;
                 double labelY = y;
-                
+
                 if (!isLeaf) {
-                    labelX += side == PortSide.EAST ? child.getWidth() + LABEL_BUFFER : - textWidth - LABEL_BUFFER;
+                    labelX += side == PortSide.EAST ? child.getWidth() + LABEL_BUFFER : -textWidth - LABEL_BUFFER;
                     labelY = yPort - textHeight + LABEL_BUFFER;
                 } else {
-                    labelX += side == PortSide.EAST ? child.getWidth() - textWidth - 2*LABEL_BUFFER : 2*LABEL_BUFFER;
+                    labelX +=
+                        side == PortSide.EAST ? child.getWidth() - textWidth - 2 * LABEL_BUFFER : 2 * LABEL_BUFFER;
                     labelY = yPort - textHeight / 2.0;
                 }
                 pinLabel.setPos(labelX, labelY);
 
                 String unroutedNet = unroutedNets.get(port);
                 if (unroutedNet != null) {
-                    drawUnroutedNetName(unroutedNet, elkNodeCellMap.get(parent), x, yPort, side,
-                            child.getWidth());
+                    drawUnroutedNetName(unroutedNet, elkNodeCellMap.get(parent), x, yPort, side, child.getWidth());
                 }
             }
 
@@ -715,13 +711,12 @@ public class SchematicScene extends QGraphicsScene {
      * @param width    Width of the cell.
      * @param height   Height of the cell.
      */
-    private void drawCellLabels(String instName, String cellName, double x, double y, double width,
-            double height) {
+    private void drawCellLabels(String instName, String cellName, double x, double y, double width, double height) {
         QGraphicsSimpleTextItem instLabel = addSimpleText(instName);
         instLabel.setBrush(BLACK_BRUSH);
         instLabel.setFont(FONT);
         instLabel.setPos(x + (width - instLabel.boundingRect().width()) / 2.0,
-                y - instLabel.boundingRect().height() - LABEL_BUFFER);
+                         y - instLabel.boundingRect().height() - LABEL_BUFFER);
         instLabel.setZValue(5);
 
         QGraphicsSimpleTextItem cellLabel = addSimpleText(cellName);
@@ -744,7 +739,7 @@ public class SchematicScene extends QGraphicsScene {
      * @param cellWidth  Width of the cell the pin belongs to.
      */
     private void drawUnroutedNetName(String netName, EDIFHierCellInst parentInst, double cellX, double pinY,
-            PortSide side, double cellWidth) {
+                                     PortSide side, double cellWidth) {
         QGraphicsSimpleTextItem netLabel = addSimpleText(netName);
         netLabel.setBrush(NET_BRUSH);
         netLabel.setFont(FONT);
@@ -753,7 +748,7 @@ public class SchematicScene extends QGraphicsScene {
         double textHeight = netLabel.boundingRect().height();
         // Sits just past the end of the pin line, where the wire would otherwise have gone
         double labelX = side == PortSide.EAST ? cellX + cellWidth + PIN_LINE_LENGTH + LABEL_BUFFER
-                : cellX - PIN_LINE_LENGTH - textWidth - LABEL_BUFFER;
+                                              : cellX - PIN_LINE_LENGTH - textWidth - LABEL_BUFFER;
         netLabel.setPos(labelX, pinY - textHeight / 2.0);
         netLabel.setToolTip(netName + " (not routed, too many connections)");
 
@@ -763,7 +758,8 @@ public class SchematicScene extends QGraphicsScene {
         lookupMap.computeIfAbsent(lookup, l -> new ArrayList<>()).add(netLabel);
     }
 
-    private void drawPin(ElkNode cell, ElkPort port, double y, PortSide side, boolean isExpanded, double xOffset, String parentInst) {
+    private void drawPin(ElkNode cell, ElkPort port, double y, PortSide side, boolean isExpanded, double xOffset,
+                         String parentInst) {
         double x1 = cell.getX() + xOffset + (side == PortSide.EAST ? cell.getWidth() : -PIN_LINE_LENGTH);
         double x2 = cell.getX() + xOffset + (side == PortSide.EAST ? cell.getWidth() + PIN_LINE_LENGTH : 0);
 
@@ -785,7 +781,8 @@ public class SchematicScene extends QGraphicsScene {
         }
     }
 
-    private QGraphicsPathItem createHierButton(ElkNode node, boolean isExpanded, String expandedCellName, double xOffset, double yOffset) {
+    private QGraphicsPathItem createHierButton(ElkNode node, boolean isExpanded, String expandedCellName,
+                                               double xOffset, double yOffset) {
         double buttonX = xOffset + node.getX() + BUTTON_SIZE / 2;
         double buttonY = yOffset + node.getY() + BUTTON_SIZE / 2;
         QPainterPath path = new QPainterPath();
@@ -817,7 +814,8 @@ public class SchematicScene extends QGraphicsScene {
 
     private void renderEdges(ElkNode parent, double xOffset, double yOffset) {
         for (ElkEdge e : parent.getContainedEdges()) {
-            if (e.getSections().isEmpty()) continue;
+            if (e.getSections().isEmpty())
+                continue;
             ElkEdgeSection s = e.getSections().get(0);
 
             double startX = xOffset + s.getStartX();
@@ -826,8 +824,8 @@ public class SchematicScene extends QGraphicsScene {
             double endY = yOffset + s.getEndY();
 
             if (!e.getSources().isEmpty()) {
-                ElkPort srcPort = (ElkPort) e.getSources().get(0);
-                ElkNode portParent = (ElkNode) srcPort.getParent();
+                ElkPort srcPort = (ElkPort)e.getSources().get(0);
+                ElkNode portParent = (ElkNode)srcPort.getParent();
                 EDIFHierPortInst portInst = elkNodeTopPortMap.get(portParent);
                 if (portInst != null && portInst.getPortInst().isTopLevelPort()) {
                     QPointF topPortLoc = getTopPortConnectionPoint(portParent, portInst.isOutput());
@@ -837,8 +835,8 @@ public class SchematicScene extends QGraphicsScene {
             }
 
             if (!e.getTargets().isEmpty()) {
-                ElkPort snkPort = (ElkPort) e.getTargets().get(0);
-                ElkNode portParent = (ElkNode) snkPort.getParent();
+                ElkPort snkPort = (ElkPort)e.getTargets().get(0);
+                ElkNode portParent = (ElkNode)snkPort.getParent();
                 EDIFHierPortInst portInst = elkNodeTopPortMap.get(portParent);
                 if (portInst != null && portInst.getPortInst().isTopLevelPort()) {
                     QPointF topPortLoc = getTopPortConnectionPoint(portParent, portInst.isOutput());
@@ -939,8 +937,8 @@ public class SchematicScene extends QGraphicsScene {
                     ElkNode elkTopPortNode = f.createElkNode();
                     EDIFHierPortInst hierPortInst = cellInst.getPortInst(portInstName);
                     if (hierPortInst == null) {
-                        EDIFPortInst portInst = topPort.isBus() ? topPort.getInternalPortInstFromIndex(i)
-                                : topPort.getInternalPortInst();
+                        EDIFPortInst portInst =
+                            topPort.isBus() ? topPort.getInternalPortInstFromIndex(i) : topPort.getInternalPortInst();
                         if (portInst == null) {
                             portInst = new EDIFPortInst(topPort, null, topPort.isBus() ? i : -1);
                         }
@@ -952,8 +950,9 @@ public class SchematicScene extends QGraphicsScene {
                     elkTopPortNode.setParent(parent);
                     parent.getChildren().add(elkTopPortNode);
                     labelElkNode(elkTopPortNode, portInstName);
-                    elkTopPortNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT,
-                            EnumSet.of(topPort.isOutput() ? NodeLabelPlacement.H_RIGHT : NodeLabelPlacement.H_LEFT));
+                    elkTopPortNode.setProperty(
+                        CoreOptions.NODE_LABELS_PLACEMENT,
+                        EnumSet.of(topPort.isOutput() ? NodeLabelPlacement.H_RIGHT : NodeLabelPlacement.H_LEFT));
                     ElkPort elkTopPort = f.createElkPort();
                     elkTopPort.setParent(elkTopPortNode);
                     elkTopPort.setIdentifier(portInstName);
@@ -1014,12 +1013,11 @@ public class SchematicScene extends QGraphicsScene {
             if (isHierCell && expandedCellInsts.contains(prefix + inst.getName())) {
                 applyElkNodeProperties(elkInst);
                 // Extra spacing for button placement
-                elkInst.setProperty(CoreOptions.PADDING, new ElkPadding(
-                        BUTTON_SIZE * 2, // Top
-                        SIDE_PADDING, // Side
-                        fm.height() + LABEL_BUFFER * 2, // Bottom
-                        SIDE_PADDING // Side
-                ));
+                elkInst.setProperty(CoreOptions.PADDING, new ElkPadding(BUTTON_SIZE * 2,                // Top
+                                                                        SIDE_PADDING,                   // Side
+                                                                        fm.height() + LABEL_BUFFER * 2, // Bottom
+                                                                        SIDE_PADDING                    // Side
+                                                                        ));
                 createExpandedCellInnerPorts(childInst);
                 populateCellContent(childInst, elkInst, prefix + inst.getName() + "/");
             }
@@ -1046,7 +1044,7 @@ public class SchematicScene extends QGraphicsScene {
                 }
             }
 
-            if ((long) drivers.size() * sinks.size() > MAX_ROUTED_FANOUT) {
+            if ((long)drivers.size() * sinks.size() > MAX_ROUTED_FANOUT) {
                 // Too expensive to route and not worth reading (see MAX_ROUTED_FANOUT); the net
                 // name is drawn on each of its pins by renderNode() instead
                 for (EDIFHierPortInst p : drivers) {
@@ -1110,7 +1108,7 @@ public class SchematicScene extends QGraphicsScene {
      * draw the net's name beside the pin.
      */
     private void markUnroutedNet(EDIFHierPortInst portInst, EDIFNet net, String prefix,
-            Map<EDIFHierCellInst, ElkNode> instNodeMap, EDIFHierCellInst cellInst) {
+                                 Map<EDIFHierCellInst, ElkNode> instNodeMap, EDIFHierCellInst cellInst) {
         ElkPort port = getOrCreateElkPort(portInst, prefix, instNodeMap, cellInst);
         if (port != null) {
             unroutedNets.put(port, net.getName());
@@ -1118,7 +1116,7 @@ public class SchematicScene extends QGraphicsScene {
     }
 
     private ElkPort getOrCreateElkPort(EDIFHierPortInst p, String prefix, Map<EDIFHierCellInst, ElkNode> instNodeMap,
-            EDIFHierCellInst cellInst) {
+                                       EDIFHierCellInst cellInst) {
         ElkPort port = portInstMap.get(p);
         if (port == null) {
             port = ElkGraphFactory.eINSTANCE.createElkPort();
@@ -1139,8 +1137,8 @@ public class SchematicScene extends QGraphicsScene {
         return port;
     }
 
-    private int createElkPorts(int startIdx, boolean isHierCell, ElkNode parent, Map<String, EDIFHierPortInst> portNames,
-            PortSide side) {
+    private int createElkPorts(int startIdx, boolean isHierCell, ElkNode parent,
+                               Map<String, EDIFHierPortInst> portNames, PortSide side) {
         for (Entry<String, EDIFHierPortInst> e : portNames.entrySet()) {
             ElkPort port = ElkGraphFactory.eINSTANCE.createElkPort();
             portInstMap.put(e.getValue(), port);
@@ -1154,7 +1152,6 @@ public class SchematicScene extends QGraphicsScene {
             if (isHierCell) {
                 labelElkNode(port, e.getKey());
             }
-
         }
         return startIdx;
     }
@@ -1176,8 +1173,8 @@ public class SchematicScene extends QGraphicsScene {
      * @return The item that should receive the click, or null if there isn't one.
      */
     private QGraphicsItemInterface pickItem(QPointF pos) {
-        QRectF box = new QRectF(pos.x() - PICK_TOLERANCE, pos.y() - PICK_TOLERANCE, 2 * PICK_TOLERANCE,
-                2 * PICK_TOLERANCE);
+        QRectF box =
+            new QRectF(pos.x() - PICK_TOLERANCE, pos.y() - PICK_TOLERANCE, 2 * PICK_TOLERANCE, 2 * PICK_TOLERANCE);
         QGraphicsItemInterface picked = null;
         int pickedPriority = Integer.MIN_VALUE;
         double pickedDistance = 0.0;
@@ -1189,21 +1186,21 @@ public class SchematicScene extends QGraphicsScene {
                 continue;
             }
             double distance = 0.0;
-            if ((Integer) priority == PICK_NET && item instanceof QGraphicsPathItem) {
+            if ((Integer)priority == PICK_NET && item instanceof QGraphicsPathItem) {
                 // Qt hit tests a path item by filling its path, and an open polyline gets
                 // implicitly closed -- so the box test above reports a net as hit anywhere inside
                 // the area its route encloses, which can be most of the schematic. Measure the
                 // real distance to the wire instead, and among the nets that are actually within
                 // reach let the closest one win. (An unrouted net is a text label rather than a
                 // path, and is hit tested normally.)
-                distance = distanceToRoute(((QGraphicsPathItem) item).path(), pos.x(), pos.y());
+                distance = distanceToRoute(((QGraphicsPathItem)item).path(), pos.x(), pos.y());
                 if (distance > PICK_TOLERANCE) {
                     continue;
                 }
             }
-            if ((Integer) priority > pickedPriority
-                    || ((Integer) priority == pickedPriority && distance < pickedDistance)) {
-                pickedPriority = (Integer) priority;
+            if ((Integer)priority > pickedPriority ||
+                ((Integer)priority == pickedPriority && distance < pickedDistance)) {
+                pickedPriority = (Integer)priority;
                 pickedDistance = distance;
                 picked = item;
             }
@@ -1251,8 +1248,8 @@ public class SchematicScene extends QGraphicsScene {
             if (data.startsWith(HIER_BUTTON)) {
                 String[] parts = data.split(":");
                 toggleCellInstExpansion(parts[1].trim());
-            } else if (data.startsWith(NetlistTreeWidget.INST_ID) || data.startsWith(NetlistTreeWidget.NET_ID)
-                    || data.startsWith(NetlistTreeWidget.PORT_ID)) {
+            } else if (data.startsWith(NetlistTreeWidget.INST_ID) || data.startsWith(NetlistTreeWidget.NET_ID) ||
+                       data.startsWith(NetlistTreeWidget.PORT_ID)) {
                 boolean ctrlPressed = event.modifiers().isSet(KeyboardModifier.ControlModifier);
                 toggleSelection(data, ctrlPressed);
             }
@@ -1274,7 +1271,7 @@ public class SchematicScene extends QGraphicsScene {
         if (!multipleSelection) {
             clearSelections();
         }
-        
+
         if (selectedObjects.contains(lookup)) {
             updateSelectionHighlight(lookup, false);
             selectedObjects.remove(lookup);
@@ -1282,7 +1279,7 @@ public class SchematicScene extends QGraphicsScene {
             updateSelectionHighlight(lookup, true);
             selectedObjects.add(lookup);
         }
-        
+
         objectSelected.emit(lookup);
     }
 
@@ -1378,15 +1375,14 @@ public class SchematicScene extends QGraphicsScene {
         for (Object guiObject : guiObjects == null ? Collections.EMPTY_LIST : guiObjects) {
             if (guiObject instanceof QGraphicsSimpleTextItem) {
                 // The net names drawn for unrouted nets are the only selectable text items
-                ((QGraphicsSimpleTextItem) guiObject).setBrush(isSelected ? SELECTED_BRUSH : NET_BRUSH);
+                ((QGraphicsSimpleTextItem)guiObject).setBrush(isSelected ? SELECTED_BRUSH : NET_BRUSH);
             } else if (guiObject instanceof QAbstractGraphicsShapeItem) {
-                QAbstractGraphicsShapeItem shape = (QAbstractGraphicsShapeItem) guiObject;
-                shape.setPen(isSelected ? SELECTED_PEN : (QPen) shape.data(UNSELECTED_PEN));
+                QAbstractGraphicsShapeItem shape = (QAbstractGraphicsShapeItem)guiObject;
+                shape.setPen(isSelected ? SELECTED_PEN : (QPen)shape.data(UNSELECTED_PEN));
             } else if (guiObject instanceof QGraphicsLineItem) {
-                QGraphicsLineItem line = (QGraphicsLineItem) guiObject;
-                line.setPen(isSelected ? SELECTED_PEN : (QPen) line.data(UNSELECTED_PEN));
+                QGraphicsLineItem line = (QGraphicsLineItem)guiObject;
+                line.setPen(isSelected ? SELECTED_PEN : (QPen)line.data(UNSELECTED_PEN));
             }
-
         }
     }
 }

@@ -29,22 +29,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.xilinx.rapidwright.util.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import com.xilinx.rapidwright.util.Pair;
 
 /**
  * Represents an AXI Slave instance of the NOC
  * @since 2022.1.0
  */
 public class NOCSlave extends NOCClient implements Serializable {
-
     private static final long serialVersionUID = 8335421544122786673L;
-    private TreeMap<String,String> memParams;
+    private TreeMap<String, String> memParams;
     private ArrayList<String> ports;
-    private ArrayList<Pair<String,String>> sysAddresses;
-    private Map<String,Integer> portDestIDs;
+    private ArrayList<Pair<String, String>> sysAddresses;
+    private Map<String, Integer> portDestIDs;
     private int interleaveSize;
 
     /**
@@ -58,8 +56,8 @@ public class NOCSlave extends NOCClient implements Serializable {
 
     private void init() {
         ports = new ArrayList<String>();
-        sysAddresses = new ArrayList<Pair<String,String>>();
-        portDestIDs =  new HashMap<String,Integer>();
+        sysAddresses = new ArrayList<Pair<String, String>>();
+        portDestIDs = new HashMap<String, Integer>();
         interleaveSize = 0;
     }
 
@@ -74,7 +72,7 @@ public class NOCSlave extends NOCClient implements Serializable {
         this.ports.addAll(ns.ports);
         this.sysAddresses.addAll(ns.sysAddresses);
         if (this.isDDRC()) {
-            memParams = new TreeMap<String,String>();
+            memParams = new TreeMap<String, String>();
             memParams.putAll(ns.memParams);
             this.portDestIDs.putAll(ns.portDestIDs);
         }
@@ -88,21 +86,22 @@ public class NOCSlave extends NOCClient implements Serializable {
     public NOCSlave(JSONObject json) {
         super(json);
         ports = new ArrayList<String>();
-        sysAddresses = new ArrayList<Pair<String,String>>();
-        portDestIDs = new HashMap<String,Integer>();
+        sysAddresses = new ArrayList<Pair<String, String>>();
+        portDestIDs = new HashMap<String, Integer>();
         JSONArray apertures = json.getJSONArray(NOCJSONUtil.JSON_FIELD_MEMORY_APERTURES);
-        for (int i=0; i<apertures.length(); i++) {
+        for (int i = 0; i < apertures.length(); i++) {
             JSONObject segment = apertures.getJSONObject(i);
-            sysAddresses.add(new Pair<String,String>(segment.getString(NOCJSONUtil.JSON_FIELD_ADDRESS_BASE), segment.getString(NOCJSONUtil.JSON_FIELD_ADDRESS_SIZE)));
+            sysAddresses.add(new Pair<String, String>(segment.getString(NOCJSONUtil.JSON_FIELD_ADDRESS_BASE),
+                                                      segment.getString(NOCJSONUtil.JSON_FIELD_ADDRESS_SIZE)));
         }
         if (this.isDDRC()) {
-            memParams = new TreeMap<String,String>();
+            memParams = new TreeMap<String, String>();
             JSONObject memParamArray = json.getJSONObject(NOCJSONUtil.JSON_FIELD_DDRC_PARAMS);
             for (String key : memParamArray.keySet()) {
-                memParams.put(key,memParamArray.getString(key));
+                memParams.put(key, memParamArray.getString(key));
             }
             JSONArray portArray = json.getJSONArray(NOCJSONUtil.JSON_FIELD_LOGICAL_PORTS);
-            for (int i=0; i<portArray.length(); i++) {
+            for (int i = 0; i < portArray.length(); i++) {
                 ports.add(portArray.getString(i));
             }
             if (json.has(NOCJSONUtil.JSON_FIELD_INTERLEAVE_SIZE)) {
@@ -116,7 +115,7 @@ public class NOCSlave extends NOCClient implements Serializable {
      * @return The memory parameters for this slave client.
      * @since 2026.1.0
      */
-    public TreeMap<String,String> getMemParams() {
+    public TreeMap<String, String> getMemParams() {
         return memParams;
     }
 
@@ -125,7 +124,7 @@ public class NOCSlave extends NOCClient implements Serializable {
      * @param memParams The memory parameters to set.
      * @since 2026.1.0
      */
-    public void setMemParams(TreeMap<String,String> memParams) {
+    public void setMemParams(TreeMap<String, String> memParams) {
         this.memParams = memParams;
     }
 
@@ -170,7 +169,7 @@ public class NOCSlave extends NOCClient implements Serializable {
      * @return The system address ranges for this slave client.
      * @since 2026.1.0
      */
-    public List<Pair<String,String>> getSysAddresses() {
+    public List<Pair<String, String>> getSysAddresses() {
         return sysAddresses;
     }
 
@@ -181,7 +180,7 @@ public class NOCSlave extends NOCClient implements Serializable {
      * @since 2026.1.0
      */
     public void addSysAddress(String base, String size) {
-        sysAddresses.add(new Pair<String,String>(base,size));
+        sysAddresses.add(new Pair<String, String>(base, size));
     }
 
     /**
@@ -190,7 +189,7 @@ public class NOCSlave extends NOCClient implements Serializable {
      * @since 2026.1.0
      */
     public void removeSysAddress(String base) {
-        for (Pair<String,String> addr : sysAddresses) {
+        for (Pair<String, String> addr : sysAddresses) {
             if (addr.getFirst().equals(base)) {
                 sysAddresses.remove(addr);
             }
@@ -202,7 +201,7 @@ public class NOCSlave extends NOCClient implements Serializable {
      * @return The map of logical ports to destination IDs.
      * @since 2026.1.0
      */
-    public Map<String,Integer> getPortDestIDMap() {
+    public Map<String, Integer> getPortDestIDMap() {
         return portDestIDs;
     }
 
@@ -221,7 +220,7 @@ public class NOCSlave extends NOCClient implements Serializable {
      * @param portDestIDs The map of logical ports to destination IDs.
      * @since 2026.1.0
      */
-    public void setPortDestIDMap(Map<String,Integer> portDestIDs) {
+    public void setPortDestIDMap(Map<String, Integer> portDestIDs) {
         this.portDestIDs = portDestIDs;
     }
 
@@ -232,7 +231,8 @@ public class NOCSlave extends NOCClient implements Serializable {
      * @since 2026.1.0
      */
     public void setPortDestID(String portName, int destID) {
-        if (!ports.contains(portName)) return;
+        if (!ports.contains(portName))
+            return;
         portDestIDs.put(portName, destID);
     }
 
@@ -259,9 +259,9 @@ public class NOCSlave extends NOCClient implements Serializable {
      * @return The JSON representation of this slave client.
      * @since 2026.1.0
      */
-     public JSONObject toJSONObject() {
+    public JSONObject toJSONObject() {
         JSONObject obj = super.toJSONObject();
-        obj.put(NOCJSONUtil.JSON_FIELD_IS_MASTER,false);
+        obj.put(NOCJSONUtil.JSON_FIELD_IS_MASTER, false);
         if (ports != null && !ports.isEmpty()) {
             JSONArray portArray = new JSONArray();
             for (String port : ports) {
@@ -270,17 +270,17 @@ public class NOCSlave extends NOCClient implements Serializable {
             obj.put(NOCJSONUtil.JSON_FIELD_LOGICAL_PORTS, portArray);
         }
         JSONArray addressArray = new JSONArray();
-        for (Pair<String,String> addr : sysAddresses) {
+        for (Pair<String, String> addr : sysAddresses) {
             JSONObject addrObj = NOCJSONUtil.createOrderedJSONObject();
-            addrObj.put(NOCJSONUtil.JSON_FIELD_ADDRESS_BASE,addr.getFirst());
-            addrObj.put(NOCJSONUtil.JSON_FIELD_ADDRESS_SIZE,addr.getSecond());
+            addrObj.put(NOCJSONUtil.JSON_FIELD_ADDRESS_BASE, addr.getFirst());
+            addrObj.put(NOCJSONUtil.JSON_FIELD_ADDRESS_SIZE, addr.getSecond());
             addressArray.put(addrObj);
         }
         obj.put(NOCJSONUtil.JSON_FIELD_MEMORY_APERTURES, addressArray);
         if (this.isDDRC()) {
             JSONObject memParamArray = NOCJSONUtil.createOrderedJSONObject();
-            for (Map.Entry<String,String> param : memParams.entrySet()) {
-                memParamArray.put(param.getKey(),param.getValue());
+            for (Map.Entry<String, String> param : memParams.entrySet()) {
+                memParamArray.put(param.getKey(), param.getValue());
             }
             obj.put(NOCJSONUtil.JSON_FIELD_DDRC_PARAMS, memParamArray);
             if (interleaveSize != 0) {
@@ -304,5 +304,4 @@ public class NOCSlave extends NOCClient implements Serializable {
         }
         return null;
     }
-
 }

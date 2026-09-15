@@ -64,7 +64,7 @@ import com.xilinx.rapidwright.gui.WidgetMaker;
  * @author Chris Lavin and Marc Padilla
  * Created on: Nov 26, 2010
  */
-public class DeviceBrowser extends QMainWindow{
+public class DeviceBrowser extends QMainWindow {
     /** The Qt View for the browser */
     protected TileView view;
     /** The Qt Scene for the browser */
@@ -105,7 +105,7 @@ public class DeviceBrowser extends QMainWindow{
         QApplication.initialize(args);
 
         String defaultPart = null;
-        if (args.length>0) {
+        if (args.length > 0) {
             defaultPart = args[0];
         }
 
@@ -129,8 +129,8 @@ public class DeviceBrowser extends QMainWindow{
         // Gets the available parts in RapidWright and populates the selection tree
         Set<String> parts = WidgetMaker.getSupportedDevices();
         if (parts.size() < 1) {
-            throw new RuntimeException("Error: No available parts. " +
-                    "Please generate part database files.");
+            throw new RuntimeException("Error: No available parts. "
+                                       + "Please generate part database files.");
         }
 
         if (defaultPart == null) {
@@ -140,7 +140,7 @@ public class DeviceBrowser extends QMainWindow{
             currPart = defaultPart;
         } else {
             currPart = parts.iterator().next();
-            System.out.println(defaultPart+" not available, showing "+currPart);
+            System.out.println(defaultPart + " not available, showing " + currPart);
         }
 
         device = Device.getDevice(currPart);
@@ -176,7 +176,7 @@ public class DeviceBrowser extends QMainWindow{
      */
     private void initializeSideBar() {
         treeWidget = WidgetMaker.createAvailablePartTreeWidget("Select a part...");
-        treeWidget.doubleClicked.connect(this,"showPart(QModelIndex)");
+        treeWidget.doubleClicked.connect(this, "showPart(QModelIndex)");
 
         QDockWidget dockWidget = new QDockWidget(tr("Part Browser"), this);
         dockWidget.setWidget(treeWidget);
@@ -230,10 +230,13 @@ public class DeviceBrowser extends QMainWindow{
      */
     public void wireDoubleClicked(QModelIndex index) {
         scene.clearCurrentLines();
-        if (currTile == null) return;
+        if (currTile == null)
+            return;
         int currWire = currTile.getWireIndex(index.data().toString());
-        if (currWire < 0) return;
-        if (currTile.getWireConnections(index.data().toString()) == null) return;
+        if (currWire < 0)
+            return;
+        if (currTile.getWireConnections(index.data().toString()) == null)
+            return;
         for (Wire wire : currTile.getWireConnections(index.data().toString())) {
             scene.drawWire(currTile, currWire, wire.getTile(), wire.getWireIndex());
         }
@@ -242,14 +245,14 @@ public class DeviceBrowser extends QMainWindow{
     /**
      * Expands items in the node tree to add children nodes under uphill and
      * downhill.
-     * 
+     *
      * @param item  The GUI widget object
      * @param value Index to locate name on the item.
      */
     public void nodeClicked(QTreeWidgetItem item, Integer value) {
         String currNodeName = item.text(value);
-        if (!expandedItems.contains(currNodeName) && !currNodeName.equals(DOWNHILL_NODES)
-                && !currNodeName.equals(UPHILL_NODES)) {
+        if (!expandedItems.contains(currNodeName) && !currNodeName.equals(DOWNHILL_NODES) &&
+            !currNodeName.equals(UPHILL_NODES)) {
             QTreeWidgetItem parent = nodeMap.get(item.text(value));
             updateNodeItem(currTile.getDevice().getNode(currNodeName), parent);
         }
@@ -271,7 +274,8 @@ public class DeviceBrowser extends QMainWindow{
      */
     protected void updatePrimitiveList() {
         primitiveList.clear();
-        if (currTile == null) return;
+        if (currTile == null)
+            return;
         for (Site ps : currTile.getSites()) {
             QTreeWidgetItem treeItem = new QTreeWidgetItem();
             treeItem.setText(0, ps.getName());
@@ -286,7 +290,8 @@ public class DeviceBrowser extends QMainWindow{
      */
     protected void updateWireList() {
         wireList.clear();
-        if (currTile == null || currTile.getWireNames() == null) return;
+        if (currTile == null || currTile.getWireNames() == null)
+            return;
         for (String wire : currTile.getWireNames()) {
             QTreeWidgetItem treeItem = new QTreeWidgetItem();
             treeItem.setText(0, wire);
@@ -341,10 +346,10 @@ public class DeviceBrowser extends QMainWindow{
      */
     protected void showPart(QModelIndex qmIndex) {
         Object data = qmIndex.data(ItemDataRole.AccessibleDescriptionRole);
-        if ( data != null) {
+        if (data != null) {
             if (currPart.equals(data))
                 return;
-            setPart((String) data);
+            setPart((String)data);
         }
     }
 
@@ -362,8 +367,8 @@ public class DeviceBrowser extends QMainWindow{
      */
     protected void updateStatus(String text, Tile tile) {
         statusLabel.setText(text);
-        //currTile = tile;
-        //System.out.println("currTile=" + tile);
+        // currTile = tile;
+        // System.out.println("currTile=" + tile);
     }
 
     public Device getDevice() {
@@ -385,7 +390,7 @@ public class DeviceBrowser extends QMainWindow{
     /**
      * Populates the scene with the tile group and triggers a highlight event on the
      * scene object to highlight the perimeter tiles of the tile groups
-     * 
+     *
      * @param tileGroup The tile group to highlight
      */
     public void highlightTileGroup(TileGroup tileGroup) {
@@ -397,7 +402,7 @@ public class DeviceBrowser extends QMainWindow{
     /**
      * Populates the scene with the tile groups and triggers a highlight event on
      * the scene object to highlight the perimeter tiles of the tile groups.
-     * 
+     *
      * @param tileGroups The tile groups to highlight
      */
     public void highlightTileGroups(List<TileGroup> tileGroups) {
@@ -412,7 +417,7 @@ public class DeviceBrowser extends QMainWindow{
     /**
      * Creates a new DeviceBrowser window in a separate thread so that it can be
      * called interactively from an interpreter.
-     * 
+     *
      * @param partName The device or part name to load
      * @return The DeviceBrowser window object
      * @throws InterruptedException
@@ -422,7 +427,7 @@ public class DeviceBrowser extends QMainWindow{
             System.err.println("ERROR: Only a single instance of the DeviceBrowser is currently supported");
             return null;
         }
-        threadedBrowser = new ThreadedDeviceBrowser(new String[] { partName });
+        threadedBrowser = new ThreadedDeviceBrowser(new String[] {partName});
         threadedBrowser.start();
         // Since start() returns immediately, we need to wait until the constructor has
         // finished populating class member variables before continuting

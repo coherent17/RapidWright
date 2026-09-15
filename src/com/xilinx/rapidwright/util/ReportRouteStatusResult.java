@@ -25,7 +25,6 @@ package com.xilinx.rapidwright.util;
 import java.util.List;
 
 public class ReportRouteStatusResult {
-
     public int logicalNets;
     public int netsWithNoPlacedPins;
     public int netsNotNeedingRouting;
@@ -104,7 +103,8 @@ public class ReportRouteStatusResult {
             sb.append(String.format("           # of nets with no loads............ : %11d :\n", netsWithNoLoads));
         }
         if (implicitlyRoutedPorts > 0) {
-            sb.append(String.format("           # of implicitly routed ports....... : %11d :\n", implicitlyRoutedPorts));
+            sb.append(
+                String.format("           # of implicitly routed ports....... : %11d :\n", implicitlyRoutedPorts));
         }
         sb.append(String.format("       # of routable nets..................... : %11d :\n", routableNets));
         if (netsWithFixedRouting > 0) {
@@ -119,13 +119,14 @@ public class ReportRouteStatusResult {
         sb.append(String.format("           # of fully routed nets............. : %11d :\n", fullyRoutedNets));
         sb.append(String.format("       # of nets with routing errors.......... : %11d :\n", netsWithRoutingErrors));
         if (netsWithSomeUnroutedPins > 0) {
-            sb.append(String.format("           # of nets with some unrouted pins.. : %11d :\n", netsWithSomeUnroutedPins));
+            sb.append(
+                String.format("           # of nets with some unrouted pins.. : %11d :\n", netsWithSomeUnroutedPins));
         }
         if (netsWithResourceConflicts > 0) {
-            sb.append(String.format("           # of nets with resource conflicts.. : %11d :\n", netsWithResourceConflicts));
+            sb.append(
+                String.format("           # of nets with resource conflicts.. : %11d :\n", netsWithResourceConflicts));
         }
         sb.append("   ------------------------------------------- : ----------- :");
         return sb.toString();
     }
-
 }

@@ -22,16 +22,14 @@
 
 package com.xilinx.rapidwright.timing;
 
+import com.xilinx.rapidwright.design.Design;
+import com.xilinx.rapidwright.edif.EDIFHierNet;
+import com.xilinx.rapidwright.support.RapidWrightDCP;
 import org.jgrapht.GraphPath;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.xilinx.rapidwright.design.Design;
-import com.xilinx.rapidwright.edif.EDIFHierNet;
-import com.xilinx.rapidwright.support.RapidWrightDCP;
-
 public class TestTimingGraph {
-
     @Test
     public void testGetTimingPaths() {
         Design d = RapidWrightDCP.loadDCP("picoblaze_ooc_X10Y235_2022_1.dcp");
@@ -48,15 +46,14 @@ public class TestTimingGraph {
 
         Assertions.assertEquals(2437.7f, tg.getPathDelay(criticalPath));
 
-        GraphPath<TimingVertex, TimingEdge> otherPath = tg.getTimingPath(
-                "processor/sx_addr4_flop/Q",
-                "output_port_w_reg[6]/D");
+        GraphPath<TimingVertex, TimingEdge> otherPath =
+            tg.getTimingPath("processor/sx_addr4_flop/Q", "output_port_w_reg[6]/D");
 
         clk = tg.getClockNet(otherPath);
         Assertions.assertEquals("clk", clk.toString());
 
         tg.prettyPrintPathDelays(otherPath);
-        
+
         Assertions.assertEquals(1611.1f, tg.getPathDelay(otherPath));
     }
 }

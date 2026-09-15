@@ -48,10 +48,10 @@ public class LsfInterceptor implements InvocationInterceptor {
         } else {
             invocation.skip();
         }
-
     }
     @Override
-    public void interceptTestMethod(Invocation<Void> invocation, ReflectiveInvocationContext<Method> invocationContext, ExtensionContext extensionContext) throws Throwable {
+    public void interceptTestMethod(Invocation<Void> invocation, ReflectiveInvocationContext<Method> invocationContext,
+                                    ExtensionContext extensionContext) throws Throwable {
         intercept(invocation, extensionContext);
     }
 
@@ -61,7 +61,9 @@ public class LsfInterceptor implements InvocationInterceptor {
     }
 
     @Override
-    public void interceptTestTemplateMethod(Invocation<Void> invocation, ReflectiveInvocationContext<Method> invocationContext, ExtensionContext extensionContext) throws Throwable {
+    public void interceptTestTemplateMethod(Invocation<Void> invocation,
+                                            ReflectiveInvocationContext<Method> invocationContext,
+                                            ExtensionContext extensionContext) throws Throwable {
         intercept(invocation, extensionContext);
     }
 }

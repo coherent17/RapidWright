@@ -23,6 +23,16 @@
 
 package com.xilinx.rapidwright.interchange;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Queue;
+
 import com.xilinx.rapidwright.design.AltPinMapping;
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.Design;
@@ -66,18 +76,7 @@ import org.capnproto.StructList.Builder;
 import org.capnproto.Text;
 import org.capnproto.TextList;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Queue;
-
 public class PhysNetlistWriter {
-
     /**
      * By default, routing for physical nets will be written as a list of (connected)
      * trees of routing resources. Disabling this feature will save runtime but write
@@ -88,17 +87,17 @@ public class PhysNetlistWriter {
     /**
      * The Interchange format allows for all physical routing resources to be
      * specified, e.g.
-     *   {@code ... -> PIP -> SitePin -> BELPin(output) -> BELPin(input) -> SitePIP -> BELPin(output) -> BELPin(input)}
-     * It may not be necessary to use specify all such resources, as many are implied:
-     *   {@code ... -> PIP -> SitePin -> (implied)      -> (implied)     -> SitePIP -> (implied)      -> (implied)}
-     * Disabling this flag allows such implied resources to be omitted.
+     *   {@code ... -> PIP -> SitePin -> BELPin(output) -> BELPin(input) -> SitePIP ->
+     * BELPin(output) -> BELPin(input)} It may not be necessary to use specify all such resources,
+     * as many are implied:
+     *   {@code ... -> PIP -> SitePin -> (implied)      -> (implied)     -> SitePIP -> (implied) ->
+     * (implied)} Disabling this flag allows such implied resources to be omitted.
      */
     public static boolean VERBOSE_PHYSICAL_NET_ROUTING = true;
 
-    protected static void writeSiteInsts(PhysNetlist.Builder physNetlist, Design design,
-                                         StringEnumerator strings) {
+    protected static void writeSiteInsts(PhysNetlist.Builder physNetlist, Design design, StringEnumerator strings) {
         Builder<SiteInstance.Builder> siteInsts = physNetlist.initSiteInsts(design.getSiteInsts().size());
-        int i=0;
+        int i = 0;
         for (SiteInst si : design.getSiteInsts()) {
             SiteInstance.Builder siBuilder = siteInsts.get(i);
             siBuilder.setSite(strings.getIndex(si.getSiteName()));
@@ -107,44 +106,44 @@ public class PhysNetlistWriter {
         }
     }
 
-    protected static String getUniqueLockedCellName(Cell cell, Map<String,PhysCellType> physCells) {
+    protected static String getUniqueLockedCellName(Cell cell, Map<String, PhysCellType> physCells) {
         String cellName = cell.getName();
         if (cellName.equals(Cell.LOCKED)) {
             cellName = cell.getSiteName() + "_" + cell.getBELName() + "_" + Cell.LOCKED;
-            physCells.put(cellName,PhysCellType.LOCKED);
+            physCells.put(cellName, PhysCellType.LOCKED);
         } else if (cell.isPortCell()) {
-            physCells.put(cellName,PhysCellType.PORT);
+            physCells.put(cellName, PhysCellType.PORT);
         }
         return cellName;
     }
 
-    protected static void writePlacement(PhysNetlist.Builder physNetlist, Design design,
-                                         StringEnumerator strings) {
+    protected static void writePlacement(PhysNetlist.Builder physNetlist, Design design, StringEnumerator strings) {
         writePlacement(physNetlist, design, strings, design.getSiteInsts());
     }
 
-    public static void writePlacement(PhysNetlist.Builder physNetlist, Design design,
-                                      StringEnumerator strings, Collection<SiteInst> siteInsts) {
-        Map<String,PhysCellType> physCells = new HashMap<>();
+    public static void writePlacement(PhysNetlist.Builder physNetlist, Design design, StringEnumerator strings,
+                                      Collection<SiteInst> siteInsts) {
+        Map<String, PhysCellType> physCells = new HashMap<>();
         ArrayList<Cell> allCells = new ArrayList<>();
-        Map<String,ArrayList<Cell>> multiBelCells = new HashMap<>();
-        int i=0;
+        Map<String, ArrayList<Cell>> multiBelCells = new HashMap<>();
+        int i = 0;
         for (SiteInst siteInst : siteInsts) {
-            if (!siteInst.isPlaced()) continue;
+            if (!siteInst.isPlaced())
+                continue;
             for (Cell cell : siteInst.getCells()) {
                 allCells.add(cell);
-                if (!cell.isPlaced()) continue;
+                if (!cell.isPlaced())
+                    continue;
                 String cellName = cell.getName();
-                if (cellName.equals(Cell.LOCKED)) continue;
+                if (cellName.equals(Cell.LOCKED))
+                    continue;
                 Cell multiCell = design.getCell(cellName);
                 if (multiCell == null) {
-                    assert(cell.isFFRoutethruCell());
-                }
-                else if (!multiCell.getBELName().equals(cell.getBELName())) {
-                    multiBelCells.computeIfAbsent(cellName, (k) -> new ArrayList<>())
-                            .add(cell);
+                    assert (cell.isFFRoutethruCell());
+                } else if (!multiCell.getBELName().equals(cell.getBELName())) {
+                    multiBelCells.computeIfAbsent(cellName, (k) -> new ArrayList<>()).add(cell);
                     // Don't add multi-bel cells, store relevant info in pin placements
-                    allCells.remove(allCells.size()-1);
+                    allCells.remove(allCells.size() - 1);
                 }
             }
         }
@@ -166,7 +165,7 @@ public class PhysNetlistWriter {
             int additionalPinMappings = 0;
             if (otherBels != null) {
                 PrimitiveList.Int.Builder others = physCell.initOtherBels(otherBels.size());
-                int j=0;
+                int j = 0;
                 for (Cell c : otherBels) {
                     additionalPinMappings += c.getPinMappingsP2L().size();
                     if (c.hasAltPinMappings()) {
@@ -176,8 +175,8 @@ public class PhysNetlistWriter {
                     j++;
                 }
             }
-            Builder<PinMapping.Builder> pinMap = physCell.initPinMap(cell.getPinMappingsP2L().size()
-                 + additionalPinMappings);
+            Builder<PinMapping.Builder> pinMap =
+                physCell.initPinMap(cell.getPinMappingsP2L().size() + additionalPinMappings);
             int idx = addCellPinMappings(cell, strings, pinMap, 0);
             if (otherBels != null) {
                 for (Cell c : otherBels) {
@@ -190,8 +189,8 @@ public class PhysNetlistWriter {
 
         // Add PhysCells
         Builder<PhysCell.Builder> physCellBuilders = physNetlist.initPhysCells(physCells.size());
-        int j=0;
-        for (Entry<String,PhysCellType> e : physCells.entrySet()) {
+        int j = 0;
+        for (Entry<String, PhysCellType> e : physCells.entrySet()) {
             String physCellName = e.getKey();
             PhysCellType type = e.getValue();
             PhysCell.Builder physCellBuilder = physCellBuilders.get(j);
@@ -201,9 +200,9 @@ public class PhysNetlistWriter {
         }
     }
 
-    private static int addCellPinMappings(Cell cell, StringEnumerator strings,
-                                            Builder<PinMapping.Builder> pinMap, Integer idx) {
-        for (Entry<String,String> e : cell.getPinMappingsP2L().entrySet()) {
+    private static int addCellPinMappings(Cell cell, StringEnumerator strings, Builder<PinMapping.Builder> pinMap,
+                                          Integer idx) {
+        for (Entry<String, String> e : cell.getPinMappingsP2L().entrySet()) {
             PinMapping.Builder pinMapping = pinMap.get(idx);
             pinMapping.setBel(strings.getIndex(cell.getBELName()));
             pinMapping.setCellPin(strings.getIndex(e.getValue()));
@@ -212,7 +211,7 @@ public class PhysNetlistWriter {
             idx++;
         }
         if (cell.hasAltPinMappings()) {
-            for (Entry<String,AltPinMapping> e : cell.getAltPinMappings().entrySet()) {
+            for (Entry<String, AltPinMapping> e : cell.getAltPinMappings().entrySet()) {
                 PinMapping.Builder pinMapping = pinMap.get(idx);
                 pinMapping.setBel(strings.getIndex(cell.getBELName()));
                 AltPinMapping altPinMapping = e.getValue();
@@ -228,8 +227,7 @@ public class PhysNetlistWriter {
         return idx;
     }
 
-    private static void writePhysNets(PhysNetlist.Builder physNetlist, Design design,
-                                      StringEnumerator strings) {
+    private static void writePhysNets(PhysNetlist.Builder physNetlist, Design design, StringEnumerator strings) {
         writeNullNet(physNetlist, design, strings);
 
         int physNetCount = design.getNets().size();
@@ -238,20 +236,18 @@ public class PhysNetlistWriter {
         writePhysNetsRange(nets, keys, design, strings, 0, keys.length - 1);
     }
 
-   protected static void writePhysNetsRange(Builder<PhysNet.Builder> nets, Net[] keys,
-                                            Design design, StringEnumerator strings, int start,
-                                            int end) {
+    protected static void writePhysNetsRange(Builder<PhysNet.Builder> nets, Net[] keys, Design design,
+                                             StringEnumerator strings, int start, int end) {
         for (int i = start; i <= end; i++) {
             String netName = keys[i].getName();
             Net net = design.getNet(netName);
-            assert(net != null);
+            assert (net != null);
             PhysNet.Builder physNet = nets.get(i - start);
             buildNet(net, physNet, strings);
         }
     }
 
-    protected static void writeNullNet(PhysNetlist.Builder physNetlist, Design design,
-                                       StringEnumerator strings) {
+    protected static void writeNullNet(PhysNetlist.Builder physNetlist, Design design, StringEnumerator strings) {
         List<RouteBranchNode> nullNetStubs = new ArrayList<>();
         for (SiteInst siteInst : design.getSiteInsts()) {
             Site site = siteInst.getSite();
@@ -290,14 +286,14 @@ public class PhysNetlistWriter {
     private static void buildNet(Net net, PhysNet.Builder physNet, StringEnumerator strings) {
         physNet.setName(strings.getIndex(net.getName()));
         switch (net.getType()) {
-        case GND:
-            physNet.setType(NetType.GND);
-            break;
-        case VCC:
-            physNet.setType(NetType.VCC);
-            break;
-        default:
-            physNet.setType(NetType.SIGNAL);
+            case GND:
+                physNet.setType(NetType.GND);
+                break;
+            case VCC:
+                physNet.setType(NetType.VCC);
+                break;
+            default:
+                physNet.setType(NetType.SIGNAL);
         }
 
         // We need to traverse the net inside sites to fully populate routing spec
@@ -333,7 +329,7 @@ public class PhysNetlistWriter {
                 if (stubPIP.isEndWireNull()) {
                     physNode.setWire(strings.getIndex(stubPIP.getStartWireName()));
                 } else {
-                    assert(stubPIP.isStub());
+                    assert (stubPIP.isStub());
                     physNode.setWire(strings.getIndex(stubPIP.getEndWireName()));
                 }
                 physNode.setIsFixed(stubPIP.isPIPFixed());
@@ -361,23 +357,22 @@ public class PhysNetlistWriter {
                             // Skip if nothing placed here
                             continue;
                         } else {
-                            assert(belPin.isOutput());
+                            assert (belPin.isOutput());
 
                             if (isStaticNet) {
                                 // Must be a static source; allow
-                                assert(bel.isLUT() || // LUTs can be a GND or VCC source
-                                        (net.isGNDNet() && bel.isGndSource()) ||
-                                        (net.isVCCNet() && bel.isVccSource()));
+                                assert (bel.isLUT() || // LUTs can be a GND or VCC source
+                                        (net.isGNDNet() && bel.isGndSource()) || (net.isVCCNet() && bel.isVccSource()));
                             } else {
                                 // Check for routethru
 
                                 BELPin possibleRoutethruInputPin = null;
                                 if (series == Series.Versal) {
                                     if (belName.equals("LOOKAHEAD8")) {
-                                        assert(belPin.getName().startsWith("COUT"));
+                                        assert (belPin.getName().startsWith("COUT"));
                                         possibleRoutethruInputPin = bel.getPin("CY" + belPin.getName().charAt(4));
                                     } else if (belName.equals("FF_CLK_MOD")) {
-                                        assert(belPin.getName().startsWith("CLK_OUT"));
+                                        assert (belPin.getName().startsWith("CLK_OUT"));
                                         possibleRoutethruInputPin = bel.getPin("CLK");
                                     } else {
                                         // Not a known routethru
@@ -389,12 +384,13 @@ public class PhysNetlistWriter {
                                 }
 
                                 if (possibleRoutethruInputPin != null) {
-                                    if (siteInst.getNetFromSiteWire(possibleRoutethruInputPin.getSiteWireName()) != net) {
+                                    if (siteInst.getNetFromSiteWire(possibleRoutethruInputPin.getSiteWireName()) !=
+                                        net) {
                                         // Net on routethru input is not the same; not a routethru
                                         continue;
                                     }
 
-                                    assert(!routethru);
+                                    assert (!routethru);
                                     nodes.add(new RouteBranchNode(site, possibleRoutethruInputPin, routethru));
                                     routethru = true;
 
@@ -428,7 +424,8 @@ public class PhysNetlistWriter {
                                         // OBUF* cell exists, thus PAD must be input
                                         bidirPinIsInput = true;
                                     } else {
-                                        throw new RuntimeException("ERROR: Unrecognized cell type: " + iobCell.getType());
+                                        throw new RuntimeException("ERROR: Unrecognized cell type: " +
+                                                                   iobCell.getType());
                                     }
                                 } else {
                                     assert (belName.equals("PAD"));
@@ -436,7 +433,8 @@ public class PhysNetlistWriter {
                                     if (series == Series.UltraScalePlus || series == Series.UltraScale) {
                                         BEL padout = siteInst.getBEL("PADOUT");
                                         if (padout == null) {
-                                            // HPIOB_SNGL site types do not contain this SitePIP; ignore
+                                            // HPIOB_SNGL site types do not contain this SitePIP;
+                                            // ignore
                                             continue;
                                         }
                                         sitePIP = siteInst.getSitePIP(padout.getPin("IN"));
@@ -463,7 +461,8 @@ public class PhysNetlistWriter {
                                 Cell obufdsCell = siteInst.getCell(obufdsBel);
                                 bidirPinIsInput = (obufdsCell != null);
                             } else {
-                                throw new RuntimeException("Unable to process PORT cell at site " + siteInst.getSiteName());
+                                throw new RuntimeException("Unable to process PORT cell at site " +
+                                                           siteInst.getSiteName());
                             }
                         } else {
                             String cellType = cell.getType();
@@ -522,7 +521,7 @@ public class PhysNetlistWriter {
                             continue;
                         }
                     } else {
-                        assert(bel.getBELClass() == BELClass.PORT);
+                        assert (bel.getBELClass() == BELClass.PORT);
                         SitePinInst spi = siteInst.getSitePinInst(siteWire);
                         if (spi == null) {
                             // Skip if pin is not used by site port
@@ -536,16 +535,16 @@ public class PhysNetlistWriter {
                         }
                     }
                 } else {
-                    assert(belPin.isOutput() || bidirPinIsOutput);
+                    assert (belPin.isOutput() || bidirPinIsOutput);
 
                     if (bel.getBELClass() == BELClass.BEL) {
                         if (cell != null) {
-                            assert(!routethru);
+                            assert (!routethru);
                             routethru = cell.isRoutethru();
                         }
                     } else if (bel.getBELClass() == BELClass.RBEL) {
                         if (isStaticNet && bel.isStaticSource()) {
-                            assert(belPin.isOutput());
+                            assert (belPin.isOutput());
                             // Skip output pins on static source BELs (e.g. SLICE.HARD0GND)
                             continue;
                         }
@@ -555,10 +554,10 @@ public class PhysNetlistWriter {
                                 continue;
                             }
                         } else {
-                            assert(net.isStaticNet() || isUsedNet);
+                            assert (net.isStaticNet() || isUsedNet);
                         }
                     } else {
-                        assert(bel.getBELClass() == BELClass.PORT);
+                        assert (bel.getBELClass() == BELClass.PORT);
 
                         if (!VERBOSE_PHYSICAL_NET_ROUTING) {
                             // Skip output pins on site ports (will be set when site pin is added
@@ -586,9 +585,8 @@ public class PhysNetlistWriter {
         }
     }
 
-    private static void populateRouting(List<RouteBranchNode> routingBranches,
-                                        PhysNet.Builder physNet, StringEnumerator strings) {
-
+    private static void populateRouting(List<RouteBranchNode> routingBranches, PhysNet.Builder physNet,
+                                        StringEnumerator strings) {
         List<RouteBranchNode> sources;
         List<RouteBranchNode> stubs;
 
@@ -596,19 +594,22 @@ public class PhysNetlistWriter {
             sources = new ArrayList<>();
             stubs = new ArrayList<>();
 
-            // To be used in conjunction with the "rapidwright.rwroute.lutPinSwapping.deferIntraSiteRoutingUpdates"
-            // property (which allows RWRoute to perform LUT pin swapping but not move the swapped SitePinInst nor
-            // perform any intra-site routing updates). With the aforementioned RWRoute option, for swapped LUT pins
-            // default PhysNetlistWriter would not be able to identify the site pin that the routing services, thus
-            // causing any deferred site pin updates to appear as unconnected stubs.
-            // Enabling this following option allows the PhysNetlistWriter to simulate LUT pin swapping such that
-            // any routes that service an incorrect LUT input site pin are allowed to have a fake branch to the
-            // correct site pin on the same LUT for the purposes of simulating (prior to applying deferred updates)
-            // a fully routed net.
-            // This feature -- despite intra-site routing updates being deferred -- enables a stub-free physical
-            // netlist to be output. In addition, when reading this netlist back into RapidWright using PhysNetlistReader,
-            // any simulated branches will be discarded allowing deferred updates to continue as before.
-            final boolean simulateSwappedLutPins = Boolean.getBoolean("rapidwright.physNetlistWriter.simulateSwappedLutPins");
+            // To be used in conjunction with the
+            // "rapidwright.rwroute.lutPinSwapping.deferIntraSiteRoutingUpdates" property (which
+            // allows RWRoute to perform LUT pin swapping but not move the swapped SitePinInst nor
+            // perform any intra-site routing updates). With the aforementioned RWRoute option, for
+            // swapped LUT pins default PhysNetlistWriter would not be able to identify the site pin
+            // that the routing services, thus causing any deferred site pin updates to appear as
+            // unconnected stubs. Enabling this following option allows the PhysNetlistWriter to
+            // simulate LUT pin swapping such that any routes that service an incorrect LUT input
+            // site pin are allowed to have a fake branch to the correct site pin on the same LUT
+            // for the purposes of simulating (prior to applying deferred updates) a fully routed
+            // net. This feature -- despite intra-site routing updates being deferred -- enables a
+            // stub-free physical netlist to be output. In addition, when reading this netlist back
+            // into RapidWright using PhysNetlistReader, any simulated branches will be discarded
+            // allowing deferred updates to continue as before.
+            final boolean simulateSwappedLutPins =
+                Boolean.getBoolean("rapidwright.physNetlistWriter.simulateSwappedLutPins");
 
             Map<String, RouteBranchNode> map = new HashMap<>();
             for (RouteBranchNode rb : routingBranches) {
@@ -621,20 +622,19 @@ public class PhysNetlistWriter {
                     sources.add(rb);
                 } else {
                     boolean simulateThisSwappedLutPin = simulateSwappedLutPins &&
-                        rb.getType() == RouteSegmentType.SITE_PIN &&
-                        rb.getSitePin().isLUTInputPin();
+                                                        rb.getType() == RouteSegmentType.SITE_PIN &&
+                                                        rb.getSitePin().isLUTInputPin();
 
                     for (String driver : rb.getDrivers(simulateSwappedLutPins)) {
                         RouteBranchNode driverBranch = map.get(driver);
-                        if (driverBranch == null) continue;
+                        if (driverBranch == null)
+                            continue;
                         if (driverBranch.getType() == RouteSegmentType.PIP) {
                             PIP pip = driverBranch.getPIP();
                             if (pip.isBidirectional() && rb.getType() == RouteSegmentType.PIP) {
                                 PIP curr = rb.getPIP();
-                                Node currNode = !curr.isReversed() ?
-                                                curr.getStartNode() : curr.getEndNode();
-                                Node driverNode = pip.isReversed() ?
-                                                  pip.getStartNode() : pip.getEndNode();
+                                Node currNode = !curr.isReversed() ? curr.getStartNode() : curr.getEndNode();
+                                Node driverNode = pip.isReversed() ? pip.getStartNode() : pip.getEndNode();
                                 if (!currNode.equals(driverNode)) {
                                     continue;
                                 }
@@ -643,11 +643,12 @@ public class PhysNetlistWriter {
                         if (simulateThisSwappedLutPin) {
                             List<RouteBranchNode> branches = driverBranch.getBranches();
                             if (!branches.isEmpty()) {
-                                // driver is already driving something, which must be a (LUT) site pin
-                                // that can't be the current site pin. Since it's already servicing a LUT
-                                // input, it can't be used to service this one so skip it.
-                                assert(branches.get(0).getType() == RouteSegmentType.SITE_PIN);
-                                assert(branches.get(0) != rb);
+                                // driver is already driving something, which must be a (LUT) site
+                                // pin that can't be the current site pin. Since it's already
+                                // servicing a LUT input, it can't be used to service this one so
+                                // skip it.
+                                assert (branches.get(0).getType() == RouteSegmentType.SITE_PIN);
+                                assert (branches.get(0) != rb);
                                 continue;
                             }
                         }
@@ -679,9 +680,8 @@ public class PhysNetlistWriter {
                     continue;
                 }
 
-                if (isStaticNet &&
-                        ((rb.getType() == RouteSegmentType.SITE_PIN && rb.getSitePin().isOutPin()) ||
-                         (rb.getType() == RouteSegmentType.BEL_PIN && rb.getBELPin().belPin.isOutput()))) {
+                if (isStaticNet && ((rb.getType() == RouteSegmentType.SITE_PIN && rb.getSitePin().isOutPin()) ||
+                                    (rb.getType() == RouteSegmentType.BEL_PIN && rb.getBELPin().belPin.isOutput()))) {
                     // Assume that output site/bel pin stubs on static nets are static sources
                     // (e.g. LUT outputs, VCC -> GND inverters, etc.)
                     sources.add(rb);
@@ -695,12 +695,12 @@ public class PhysNetlistWriter {
             stubs = routingBranches;
         }
 
-        //if (strings.get(physNet.getName()).equals("")) debugPrintRouteBranchNodes(sources, "");
+        // if (strings.get(physNet.getName()).equals("")) debugPrintRouteBranchNodes(sources, "");
 
         // Serialize...
         if (sources != null && sources.size() > 0) {
             Builder<RouteBranch.Builder> routeSrcs = physNet.initSources(sources.size());
-            for (int i=0; i < sources.size(); i++) {
+            for (int i = 0; i < sources.size(); i++) {
                 RouteBranch.Builder srcBuilder = routeSrcs.get(i);
                 RouteBranchNode src = sources.get(i);
                 writeRouteBranch(srcBuilder, src, strings);
@@ -708,7 +708,7 @@ public class PhysNetlistWriter {
         }
         if (stubs.size() > 0) {
             Builder<RouteBranch.Builder> routeStubs = physNet.initStubs(stubs.size());
-            for (int i=0; i < stubs.size(); i++) {
+            for (int i = 0; i < stubs.size(); i++) {
                 RouteBranch.Builder stubBuilder = routeStubs.get(i);
                 RouteBranchNode src = stubs.get(i);
                 writeRouteBranch(stubBuilder, src, strings);
@@ -716,11 +716,10 @@ public class PhysNetlistWriter {
         }
     }
 
-    public static void writeRouteBranch(RouteBranch.Builder srcBuilder, RouteBranchNode src,
-                                        StringEnumerator strings) {
+    public static void writeRouteBranch(RouteBranch.Builder srcBuilder, RouteBranchNode src, StringEnumerator strings) {
         RouteSegment.Builder segment = srcBuilder.getRouteSegment();
-        switch(src.getType()) {
-            case PIP:{
+        switch (src.getType()) {
+            case PIP: {
                 PIP pip = src.getPIP();
                 PhysPIP.Builder physPIP = segment.initPip();
                 physPIP.setTile(strings.getIndex(pip.getTile().getName()));
@@ -730,7 +729,7 @@ public class PhysNetlistWriter {
                 physPIP.setForward(!pip.isReversed());
                 break;
             }
-            case BEL_PIN:{
+            case BEL_PIN: {
                 SiteBELPin sbp = src.getBELPin();
                 PhysBelPin.Builder physPin = segment.initBelPin();
                 physPin.setBel(strings.getIndex(sbp.belPin.getBEL().getName()));
@@ -738,7 +737,7 @@ public class PhysNetlistWriter {
                 physPin.setSite(strings.getIndex(sbp.site.getName()));
                 break;
             }
-            case SITE_PIN:{
+            case SITE_PIN: {
                 SitePinInst spi = src.getSitePin();
                 PhysSitePin.Builder physSitePin = segment.initSitePin();
                 physSitePin.setSite(strings.getIndex(spi.getSite().getName()));
@@ -755,8 +754,7 @@ public class PhysNetlistWriter {
                 break;
             }
             default:
-                throw new RuntimeException("Unhandled class in routing representation: " +
-                        src.getType());
+                throw new RuntimeException("Unhandled class in routing representation: " + src.getType());
         }
         int size = src.getBranches().size();
         if (size > 0) {
@@ -787,7 +785,7 @@ public class PhysNetlistWriter {
     public static void writeStrings(PhysNetlist.Builder physNetlist, List<String> strings) {
         TextList.Builder strList = physNetlist.initStrList(strings.size());
         int stringCount = strList.size();
-        for (int i=0; i < stringCount; i++) {
+        for (int i = 0; i < stringCount; i++) {
             strList.set(i, new Text.Reader(strings.get(i)));
         }
     }

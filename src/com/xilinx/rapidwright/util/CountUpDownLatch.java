@@ -51,5 +51,4 @@ public class CountUpDownLatch {
         sem.acquireUninterruptibly(count);
         count = 0;
     }
-
 }

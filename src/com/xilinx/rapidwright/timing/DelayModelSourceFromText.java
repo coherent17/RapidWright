@@ -46,12 +46,11 @@ import com.xilinx.rapidwright.util.FileTools;
  * An implementation of DelayModelSource, used to provide data source to DelayModel class.
  */
 class DelayModelSourceFromText extends DelayModelSource {
-
     // These members are built by collectConfigs and used by storeArcs
     /**
      * Map a config value to a unique index.
      */
-    protected Map<String,Integer> configName2Idx;
+    protected Map<String, Integer> configName2Idx;
     /**
      * Contain all possible configs names of this bel.
      */
@@ -60,7 +59,7 @@ class DelayModelSourceFromText extends DelayModelSource {
      * Contain all config values for this bel. Each entry is the array of possible values of the
      * corresponding configName.
      */
-    protected List<List<String>>   configValues;
+    protected List<List<String>> configValues;
 
     /**
      * Extract the bel name from the given line. If the line contains config values,
@@ -73,46 +72,47 @@ class DelayModelSourceFromText extends DelayModelSource {
         final short max_num_configs = 32;
         short num_configs = 0;
 
-        configName2Idx = new HashMap<String,Integer>();
-        configNames    = new ArrayList<String>();
-        configValues   = new ArrayList<List<String>>();
+        configName2Idx = new HashMap<String, Integer>();
+        configNames = new ArrayList<String>();
+        configValues = new ArrayList<List<String>>();
 
-        List<String> items  = Arrays.asList(line.trim().split("\\s+"));
+        List<String> items = Arrays.asList(line.trim().split("\\s+"));
         // TODO: get equivalent bel from the line
-        String[] belNames   = items.get(1).split(",");
-        String belName      = belNames[0];
-        String configName   = null;
+        String[] belNames = items.get(1).split(",");
+        String belName = belNames[0];
+        String configName = null;
         List<String> values = null;
 
         int i = 2;
         // look for config
-        for (; i < items.size() ; i++ ) { // bel <belName> is ignored
+        for (; i < items.size(); i++) { // bel <belName> is ignored
             String e = items.get(i);
             if (e.matches("(.*):")) {
                 break;
             }
         }
 
-        for (; i < items.size() ; i++ ) { // bel <belName> is ignored
+        for (; i < items.size(); i++) { // bel <belName> is ignored
             String e = items.get(i);
             if (e.matches("(.*):")) {
                 configName = e;
-                configName2Idx.put(e,configNames.size());
+                configName2Idx.put(e, configNames.size());
                 configNames.add(e);
-                if (values != null)  {
-                    configValues.add(values);  // Store values of previous configName
+                if (values != null) {
+                    configValues.add(values); // Store values of previous configName
                 }
-                values  = new ArrayList<String>();
+                values = new ArrayList<String>();
             } else { // this is value of a config
-                configCodeMap.put(belName + ":" + configName + e, (int) (1<<num_configs));
+                configCodeMap.put(belName + ":" + configName + e, (int)(1 << num_configs));
                 num_configs++;
                 values.add(e);
-                assert num_configs <= max_num_configs :
-                        "num_configs is too high. Please change data type to accommodate " + num_configs + ".";
+                assert num_configs <= max_num_configs
+                    : "num_configs is too high. Please change data type to accommodate " +
+                      num_configs + ".";
             }
         }
         if (values != null) {
-            configValues.add(values);  // Store values of the last configName
+            configValues.add(values); // Store values of the last configName
         }
 
         return belName;
@@ -133,21 +133,19 @@ class DelayModelSourceFromText extends DelayModelSource {
      * @param line    The line to be processed.
      */
     private void storeLogicDelayArc(String belName, String line) {
-
         List<String> items = Arrays.asList(line.trim().split("\\s+"));
 
         String src = items.get(0);
         String dst = items.get(1);
-        Short  dly = Short.parseShort(items.get(2));
+        Short dly = Short.parseShort(items.get(2));
 
-        int  config = -1; // all 1
-
+        int config = -1; // all 1
 
         String key = null;
         List<String> vals = new ArrayList<>();
 
         if (items.size() > 3) {
-            Short[] cfgArray  = new Short[configNames.size()]; // initialize to null
+            Short[] cfgArray = new Short[configNames.size()]; // initialize to null
             String configName = null;
             config = 0;
             int configStartAt = 3;
@@ -156,7 +154,6 @@ class DelayModelSourceFromText extends DelayModelSource {
             if (!configName2Idx.containsKey(items.get(configStartAt))) {
                 // this is not a config, it must be a substitution
                 key = items.get(configStartAt).replaceAll(":", "");
-
 
                 configStartAt++;
                 for (; configStartAt < items.size(); configStartAt++) {
@@ -193,17 +190,18 @@ class DelayModelSourceFromText extends DelayModelSource {
                     }
                 } else { // this is value of a config
                     int tconfig = configCodeMap.get(belName + ":" + configName + e);
-                    config = (int) (config | tconfig);
+                    config = (int)(config | tconfig);
                 }
             }
 
-            // fill out absence configName, which mean all values of the configName is applicable to this arc.
+            // fill out absence configName, which mean all values of the configName is applicable to
+            // this arc.
             for (int i = 0; i < cfgArray.length; i++) {
                 if (cfgArray[i] == null) {
                     configName = configNames.get(i);
                     for (String e : configValues.get(i)) {
                         int tconfig = configCodeMap.get(belName + ":" + configName + e);
-                        config = (int) (config | tconfig);
+                        config = (int)(config | tconfig);
                     }
                 }
             }
@@ -220,8 +218,8 @@ class DelayModelSourceFromText extends DelayModelSource {
         for (String s : srcs) {
             for (String t : dsts) {
                 for (String val : vals) {
-                    String ss  = s.replaceAll(key, val);
-                    String st  = t.replaceAll(key, val);
+                    String ss = s.replaceAll(key, val);
+                    String st = t.replaceAll(key, val);
                     logicDelays.add(new DelayEntry(belName, ss, st, dly, config));
                 }
             }
@@ -235,19 +233,19 @@ class DelayModelSourceFromText extends DelayModelSource {
      */
     private void storeIntraSiteDelayArc(String siteName, String line) {
         String[] items = line.split("\\s+");
-        String[] src   = items[0].split(",");
-        String[] dst   = items[1].split(",");
-        Short    dly   = Short.parseShort(items[2]);
+        String[] src = items[0].split(",");
+        String[] dst = items[1].split(",");
+        Short dly = Short.parseShort(items[2]);
 
-        String   key         = null;
+        String key = null;
         String[] replacement = null;
-        if ( items.length > 3 ) {
-            key = items[3].substring(0, items[3].length()-1); // remove trailing :
+        if (items.length > 3) {
+            key = items[3].substring(0, items[3].length() - 1); // remove trailing :
         }
 
-        int  config = -1; // all 1
+        int config = -1; // all 1
 
-        for ( String f : src) {
+        for (String f : src) {
             for (String t : dst) {
                 // TODO: remove the key itself from the replacement to allow adding
                 //  the original one first followed by substition loop without if
@@ -256,8 +254,8 @@ class DelayModelSourceFromText extends DelayModelSource {
                 } else {
                     for (int i = 4; i < items.length; i++) {
                         String val = items[i];
-                        String tf  = f.replaceAll(key, val);
-                        String tt  = t.replaceAll(key, val);
+                        String tf = f.replaceAll(key, val);
+                        String tt = t.replaceAll(key, val);
                         intraSiteDelays.add(new DelayEntry(siteName, tf, tt, dly, config));
                     }
                 }
@@ -266,29 +264,28 @@ class DelayModelSourceFromText extends DelayModelSource {
     }
 
     /**
-     * Parse and dispatch each line of the given file to either  storeLogicDelayArc or storeIntraSiteDelayArc.
+     * Parse and dispatch each line of the given file to either  storeLogicDelayArc or
+     * storeIntraSiteDelayArc.
      * @param fileName Specify the text file to load logic and intra-site delays from.
      */
     private void readIntraSiteDelays(String fileName) {
-
-
         Scanner sc = null;
 
         String siteName = null;
-        String belName  = null;
+        String belName = null;
 
-        try (InputStream inputStream = new FileInputStream(FileTools.getRapidWrightPath() + File.separator + fileName)) {
+        try (InputStream inputStream =
+                 new FileInputStream(FileTools.getRapidWrightPath() + File.separator + fileName)) {
             sc = new Scanner(inputStream, "UTF-8");
             while (sc.hasNextLine()) {
                 // Make canonical from "," without spaces
-                String line = sc.nextLine().trim().replaceAll(",\\s+",",");
-
+                String line = sc.nextLine().trim().replaceAll(",\\s+", ",");
 
                 String testLine = line.replaceAll("\\s+", "");
                 boolean lineIsBlank = testLine.isEmpty();
 
                 if (lineIsBlank || line.trim().matches("^#.*")) { // if not a comment line
-//                    System.out.println("skip " + line);
+                    //                    System.out.println("skip " + line);
                 } else {
                     // TODO: consider changing this construct so that only the keywords (bel,site)
                     //  are specified in only one place.
@@ -316,21 +313,20 @@ class DelayModelSourceFromText extends DelayModelSource {
                 throw sc.ioException();
             }
         } catch (IOException ex) {
-            System.out.println (ex.toString());
+            System.out.println(ex.toString());
             System.out.println("IOException during reading file " + fileName);
             throw new UncheckedIOException(ex);
         }
     }
-
 
     /**
      * Constructor for  DelayModelSourceFromText class.
      * @param fileName Specify the text file to load logic and intra-site delays from.
      */
     public DelayModelSourceFromText(String fileName) {
-        logicDelays     = new ArrayList<>();
+        logicDelays = new ArrayList<>();
         intraSiteDelays = new ArrayList<>();
-        configCodeMap   = new HashMap<>();
+        configCodeMap = new HashMap<>();
         readIntraSiteDelays(fileName);
     }
 
@@ -342,7 +338,7 @@ class DelayModelSourceFromText extends DelayModelSource {
         System.out.println("\n");
         SortedSet<String> keys = new TreeSet<>(configCodeMap.keySet());
         for (String key : keys) {
-            System.out.println("Key = " + key + " : values " +  Integer.toBinaryString(configCodeMap.get(key)));
+            System.out.println("Key = " + key + " : values " + Integer.toBinaryString(configCodeMap.get(key)));
         }
     }
     /**

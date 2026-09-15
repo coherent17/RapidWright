@@ -29,7 +29,6 @@ package com.xilinx.rapidwright.edif;
  *
  */
 public class EDIFChange {
-
     private EDIFChangeType type;
 
     private String name;
@@ -65,7 +64,7 @@ public class EDIFChange {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        EDIFChange other = (EDIFChange) obj;
+        EDIFChange other = (EDIFChange)obj;
         if (name == null) {
             if (other.name != null)
                 return false;

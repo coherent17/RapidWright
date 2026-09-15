@@ -37,7 +37,6 @@ import java.util.List;
  * Created on: May 11, 2017
  */
 public class EDIFPort extends EDIFPropertyObject {
-
     private EDIFCell parentCell;
 
     private EDIFDirection direction;
@@ -68,7 +67,6 @@ public class EDIFPort extends EDIFPropertyObject {
     }
 
     protected EDIFPort() {
-
     }
 
     /**
@@ -92,16 +90,18 @@ public class EDIFPort extends EDIFPropertyObject {
     }
 
     protected void setIsLittleEndian() {
-        if (width == 1) return;
+        if (width == 1)
+            return;
         String name = getName();
-        if (name.charAt(name.length()-1) != ']' || !Character.isDigit(name.charAt(name.length()-2))) {
+        if (name.charAt(name.length() - 1) != ']' || !Character.isDigit(name.charAt(name.length() - 2))) {
             throw new RuntimeException("ERROR: Port " + getName() + " does not have proper bus suffix");
         }
         int colonIdx = -1;
         int leftBracket = -1;
-        for (int i=name.length()-3; i >= 0; i--) {
+        for (int i = name.length() - 3; i >= 0; i--) {
             char c = name.charAt(i);
-            if (c == ':') colonIdx = i;
+            if (c == ':')
+                colonIdx = i;
             else if (c == '[') {
                 leftBracket = i;
                 break;
@@ -111,8 +111,8 @@ public class EDIFPort extends EDIFPropertyObject {
             throw new RuntimeException("ERROR: Interpreting port " + getName() + ", couldn't identify indices.");
         }
 
-        int left = Integer.parseInt(name.substring(leftBracket+1, colonIdx));
-        int right = Integer.parseInt(name.substring(colonIdx+1, name.length()-1));
+        int left = Integer.parseInt(name.substring(leftBracket + 1, colonIdx));
+        int right = Integer.parseInt(name.substring(colonIdx + 1, name.length() - 1));
         isLittleEndian = left > right;
     }
 
@@ -165,7 +165,8 @@ public class EDIFPort extends EDIFPropertyObject {
     }
 
     public Integer getLeft() {
-        if (!isBus()) return null;
+        if (!isBus())
+            return null;
         int leftBracket = getName().lastIndexOf('[');
         int separator = getName().lastIndexOf(':');
         if (separator == -1) {
@@ -175,9 +176,9 @@ public class EDIFPort extends EDIFPropertyObject {
         return value;
     }
 
-
     public Integer getRight() {
-        if (!isBus()) return null;
+        if (!isBus())
+            return null;
         int rightBracket = getName().lastIndexOf(']');
         int separator = getName().lastIndexOf(':');
         if (separator == -1) {
@@ -196,7 +197,7 @@ public class EDIFPort extends EDIFPropertyObject {
      */
     public List<EDIFNet> getInternalNets() {
         List<EDIFNet> nets = new ArrayList<>(width);
-        for (int i=0; i < width; i++) {
+        for (int i = 0; i < width; i++) {
             nets.add(getInternalNet(i));
         }
         return nets;
@@ -228,7 +229,8 @@ public class EDIFPort extends EDIFPropertyObject {
      * @return The name of the PortInst for the specified index
      */
     public String getPortInstNameFromPort(int index) {
-        if (!isBus()) return getBusName();
+        if (!isBus())
+            return getBusName();
         index = getPortIndexFromNameIndex(index);
         return getBusName(true) + index + "]";
     }
@@ -236,7 +238,7 @@ public class EDIFPort extends EDIFPropertyObject {
     /**
      * Gets the internal port instance connected to this port at the specified
      * index.
-     * 
+     *
      * @param index Index of the bussed port instance to get.
      * @return The EDIFPortInst connected to this port at the specified index, or
      *         null if none exists.
@@ -250,7 +252,7 @@ public class EDIFPort extends EDIFPropertyObject {
     /**
      * Gets the internal port instance connect to this port. Assumes this is a
      * single bit port.
-     * 
+     *
      * @return The EDIFPortInst connected to this port, or null if none exists.
      */
     public EDIFPortInst getInternalPortInst() {
@@ -267,7 +269,7 @@ public class EDIFPort extends EDIFPropertyObject {
      * and port index match if the bus range starts at 0. However, buses can begin
      * with a non-zero index, such as 'bus[2:5]' ([2, 3, 4, 5]), in which case the
      * port index for the named 'bus[3]' is actually offset and is 5.
-     * 
+     *
      * @param namedIndex The named index as what appears in the port instance name.
      * @return The internal port index stored as a class member variable in the port
      *         instance.
@@ -282,7 +284,7 @@ public class EDIFPort extends EDIFPropertyObject {
     public static final byte[] EXPORT_CONST_INDENT = "        ".getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_CHILD_INDENT = "           ".getBytes(StandardCharsets.UTF_8);
 
-    public void exportEDIF(OutputStream os, EDIFWriteLegalNameCache<?> cache, boolean stable) throws IOException{
+    public void exportEDIF(OutputStream os, EDIFWriteLegalNameCache<?> cache, boolean stable) throws IOException {
         os.write(EXPORT_CONST_INDENT);
         os.write(EXPORT_CONST_PORT_BEGIN);
         if (isBus()) {
@@ -312,7 +314,7 @@ public class EDIFPort extends EDIFPropertyObject {
     /**
      * Writes out valid EDIF syntax the name and/or rename of this port to the
      * provided output writer.
-     * 
+     *
      * @param os The stream to export the EDIF syntax to.
      * @throws IOException
      */
@@ -323,7 +325,7 @@ public class EDIFPort extends EDIFPropertyObject {
     /**
      * Handles bus name collisions with single bit ports (same root name) to avoid
      * EDIF export name legalization collisions.
-     * 
+     *
      * @param cache The current EDIF name legalization cache
      * @return The legalize EDIF bus name for this port
      */
@@ -333,7 +335,7 @@ public class EDIFPort extends EDIFPropertyObject {
         byte[] rename = collision ? cache.getBusCollisionEDIFRename(busName) : cache.getEDIFRename(busName);
         return rename == null ? busName.getBytes(StandardCharsets.UTF_8) : rename;
     }
-    
+
     /**
      * @return the parentCell
      */
@@ -356,7 +358,7 @@ public class EDIFPort extends EDIFPropertyObject {
         return width > 1 || !getName().equals(busName);
     }
 
-    private static final int[] SINGLE_BIT_INDICES = new int[] { 0 };
+    private static final int[] SINGLE_BIT_INDICES = new int[] {0};
 
     /**
      * @see #getBitBlastedIndicies()
@@ -370,17 +372,17 @@ public class EDIFPort extends EDIFPropertyObject {
      * Returns an array of all the integer indices of this port. If the port is a
      * single bit it returns an array with a single entry of '0'. This is useful
      * when needing to iterate over a port's PortInst objects.
-     * 
+     *
      * @return The integer list of indices of this port, or {0} for a single bit
      *         port.
      */
     public int[] getBitBlastedIndices() {
         if (isBus()) {
             int lastLeftBracket = getName().lastIndexOf('[');
-            assert(lastLeftBracket != -1);
-            return getName().indexOf(':', lastLeftBracket) != -1 ? 
-                EDIFTools.bitBlastBus(getName().substring(lastLeftBracket)) : 
-                new int[] { Integer.parseInt(getName().substring(lastLeftBracket, getName().length() - 1)) };
+            assert (lastLeftBracket != -1);
+            return getName().indexOf(':', lastLeftBracket) != -1
+                ? EDIFTools.bitBlastBus(getName().substring(lastLeftBracket))
+                : new int[] {Integer.parseInt(getName().substring(lastLeftBracket, getName().length() - 1))};
         }
         return SINGLE_BIT_INDICES;
     }
@@ -388,10 +390,11 @@ public class EDIFPort extends EDIFPropertyObject {
     public boolean isBusRangeEqual(EDIFPort otherPort) {
         String name = getName();
         int leftBracket = name.lastIndexOf('[');
-        int len = name.length()-leftBracket;
+        int len = name.length() - leftBracket;
         String otherName = otherPort.getName();
         int otherLeftBracket = otherName.lastIndexOf('[');
-        if (leftBracket == -1 && otherLeftBracket == -1) return true;
+        if (leftBracket == -1 && otherLeftBracket == -1)
+            return true;
         return name.regionMatches(leftBracket, otherName, otherLeftBracket, len);
     }
 
@@ -404,4 +407,3 @@ public class EDIFPort extends EDIFPropertyObject {
         return name.substring(leftBracket);
     }
 }
-

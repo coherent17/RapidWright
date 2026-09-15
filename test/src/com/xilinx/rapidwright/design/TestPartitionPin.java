@@ -23,18 +23,16 @@
 
 package com.xilinx.rapidwright.design;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import com.xilinx.rapidwright.device.Node;
 import com.xilinx.rapidwright.device.Tile;
 import com.xilinx.rapidwright.edif.EDIFHierCellInst;
 import com.xilinx.rapidwright.edif.EDIFHierPortInst;
 import com.xilinx.rapidwright.edif.EDIFPort;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestPartitionPin {
-
     private void testPortPartitionPin(Design design, PartitionPin ppin, EDIFPort port, int idx, Node node) {
         Assertions.assertNull(ppin.getInstanceName());
         Assertions.assertNull(ppin.getLibCellName());
@@ -89,7 +87,6 @@ public class TestPartitionPin {
             }
         }
         Assertions.assertEquals(count, design.getPartitionPins().size());
-
 
         EDIFHierCellInst memory = design.getNetlist().getHierCellInstFromName("your_program");
         for (EDIFHierPortInst hierPortInst : memory.getHierPortInsts()) {

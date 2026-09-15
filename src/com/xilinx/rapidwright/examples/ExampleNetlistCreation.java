@@ -40,19 +40,18 @@ import com.xilinx.rapidwright.edif.EDIFTools;
  * Demonstrates basic EDIF netlist functionality with RapidWright APIs.
  */
 public class ExampleNetlistCreation {
-
     public static final String clk = "clk";
 
     public static void main(String[] args) {
-        Design design = new Design("HelloWorld",Device.PYNQ_Z1);
+        Design design = new Design("HelloWorld", Device.PYNQ_Z1);
         EDIFNetlist netlist = design.getNetlist();
 
         EDIFCell top = netlist.getTopCell();
 
-        EDIFDirection in  = EDIFDirection.INPUT;
+        EDIFDirection in = EDIFDirection.INPUT;
         EDIFDirection out = EDIFDirection.OUTPUT;
-        String[]        pinNames = new String[]       {clk, "in0", "in1", "out0"};
-        EDIFDirection[] pinDirs  = new EDIFDirection[]{in , in   , in   , out   };
+        String[] pinNames = new String[] {clk, "in0", "in1", "out0"};
+        EDIFDirection[] pinDirs = new EDIFDirection[] {in, in, in, out};
 
         // Add FDRE to our library of cells
         EDIFCell ff = netlist.getHDIPrimitive(Unisim.FDRE);
@@ -68,7 +67,7 @@ public class ExampleNetlistCreation {
         EDIFNet gnd = EDIFTools.getStaticNet(NetType.GND, top, netlist);
         EDIFNet vcc = EDIFTools.getStaticNet(NetType.VCC, top, netlist);
 
-        for (int i=0; i < pinNames.length; i++) {
+        for (int i = 0; i < pinNames.length; i++) {
             // Create net to connect top-level pin to FF
             EDIFNet top2ffNet = top.createNet(pinNames[i]);
 
@@ -79,10 +78,11 @@ public class ExampleNetlistCreation {
             top2ffNet.createPortInst(port);
 
             // Clk is a special case
-            if (pinNames[i].equals(clk)) continue;
+            if (pinNames[i].equals(clk))
+                continue;
 
             // Create an FDRE instance
-            EDIFCellInst ffInst = top.createChildCellInst(pinNames[i]+"FF", ff);
+            EDIFCellInst ffInst = top.createChildCellInst(pinNames[i] + "FF", ff);
             gnd.createPortInst("R", ffInst);
             vcc.createPortInst("CE", ffInst);
             top.getNet(clk).createPortInst("C", ffInst);
@@ -100,11 +100,10 @@ public class ExampleNetlistCreation {
 
             EDIFNet innerNet = and2Wrapper.createNet(pinNames[i]);
             innerNet.createPortInst(innerPort);
-            innerNet.createPortInst(i== pinNames.length-1 ? "O" : ("I" + (i-1)), and2Inst);
+            innerNet.createPortInst(i == pinNames.length - 1 ? "O" : ("I" + (i - 1)), and2Inst);
         }
 
         design.setAutoIOBuffers(false);
         design.writeCheckpoint("test.dcp");
-
     }
 }

@@ -44,12 +44,17 @@ import org.junit.platform.reporting.legacy.xml.LegacyXmlReportGeneratingListener
  * Writes a junit report
  */
 public class StaticReportGenerator {
-
     public static void writeMasterXmlLog(String message, Map<String, String> perTestMessages, TestPlan testPlan) {
-        LegacyXmlReportGeneratingListener xmlListener = new LegacyXmlReportGeneratingListener(Paths.get("."), new PrintWriter(System.out));
-        ModifyingExecutionListener listener = new ModifyingExecutionListener(null, Collections.singletonList(xmlListener), ModifyingExecutionListener::modifyLegacyName);
-        TestDescriptor engineDescriptor = new CustomTestDescriptor(UniqueId.forEngine("rapidwright-junit-runner"),"Rapidwright Junit Runner", TestDescriptor.Type.CONTAINER, null);
-        TestDescriptor testDescriptor = new CustomTestDescriptor(engineDescriptor.getUniqueId().append("test", "execution-message"),"Test Execution", TestDescriptor.Type.TEST, engineDescriptor);
+        LegacyXmlReportGeneratingListener xmlListener =
+            new LegacyXmlReportGeneratingListener(Paths.get("."), new PrintWriter(System.out));
+        ModifyingExecutionListener listener = new ModifyingExecutionListener(
+            null, Collections.singletonList(xmlListener), ModifyingExecutionListener::modifyLegacyName);
+        TestDescriptor engineDescriptor =
+            new CustomTestDescriptor(UniqueId.forEngine("rapidwright-junit-runner"), "Rapidwright Junit Runner",
+                                     TestDescriptor.Type.CONTAINER, null);
+        TestDescriptor testDescriptor =
+            new CustomTestDescriptor(engineDescriptor.getUniqueId().append("test", "execution-message"),
+                                     "Test Execution", TestDescriptor.Type.TEST, engineDescriptor);
         engineDescriptor.addChild(testDescriptor);
 
         TestIdentifier engine = TestIdentifier.from(engineDescriptor);
@@ -109,20 +114,27 @@ public class StaticReportGenerator {
         listener.testPlanExecutionFinished(dummyPlan);
 
         if (!perTestMessages.isEmpty()) {
-            ModifyingTestPlan filteredPlan = new ModifyingTestPlan(testPlan, other -> perTestMessages.keySet().stream().anyMatch(id -> UniqueId.parse(id).hasPrefix(UniqueId.parse(other))), Function.identity());
+            ModifyingTestPlan filteredPlan =
+                new ModifyingTestPlan(testPlan,
+                                      other
+                                      -> perTestMessages.keySet().stream().anyMatch(
+                                          id -> UniqueId.parse(id).hasPrefix(UniqueId.parse(other))),
+                                      Function.identity());
             listener.testPlanExecutionStarted(filteredPlan);
             doFakeExecution(filteredPlan, perTestMessages, listener);
             listener.testPlanExecutionFinished(filteredPlan);
         }
     }
 
-    private static void doFakeExecution(TestPlan filteredPlan, Map<String, String> perTestMessages, TestExecutionListener listener) {
+    private static void doFakeExecution(TestPlan filteredPlan, Map<String, String> perTestMessages,
+                                        TestExecutionListener listener) {
         for (TestIdentifier root : filteredPlan.getRoots()) {
             doFakeExecution(filteredPlan, perTestMessages, listener, root);
         }
     }
 
-    private static void doFakeExecution(TestPlan filteredPlan, Map<String, String> perTestMessages, TestExecutionListener listener, TestIdentifier testIdentifier) {
+    private static void doFakeExecution(TestPlan filteredPlan, Map<String, String> perTestMessages,
+                                        TestExecutionListener listener, TestIdentifier testIdentifier) {
         listener.executionStarted(testIdentifier);
 
         for (TestIdentifier child : filteredPlan.getChildren(testIdentifier)) {
@@ -136,5 +148,4 @@ public class StaticReportGenerator {
             listener.executionFinished(testIdentifier, TestExecutionResult.failed(new AssertionError(message)));
         }
     }
-
 }

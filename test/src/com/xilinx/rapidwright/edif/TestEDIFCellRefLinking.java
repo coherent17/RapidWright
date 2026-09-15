@@ -34,34 +34,33 @@ import org.junit.jupiter.api.io.TempDir;
  * including when the library it names carries a (rename ...).
  */
 public class TestEDIFCellRefLinking {
-
     private static String netlist(String libraryNameDef, String libraryRef) {
         return "(edif test\n"
-                + "  (edifVersion 2 0 0)\n"
-                + "  (edifLevel 0)\n"
-                + "  (keywordMap (keywordLevel 0))\n"
-                + "  (status (written (timeStamp 2024 1 1 0 0 0)"
-                + " (program \"Vivado\" (version \"2024.1\"))))\n"
-                + "  (library " + libraryNameDef + "\n"
-                + "    (edifLevel 0)\n"
-                + "    (technology (numberDefinition))\n"
-                + "    (cell sub (cellType GENERIC)\n"
-                + "      (view netlist (viewType NETLIST)\n"
-                + "        (interface (port i (direction INPUT)) (port o (direction OUTPUT)))\n"
-                + "      )\n"
-                + "    )\n"
-                + "    (cell top (cellType GENERIC)\n"
-                + "      (view netlist (viewType NETLIST)\n"
-                + "        (interface (port a (direction INPUT)))\n"
-                + "        (contents\n"
-                + "          (instance inst1 (viewRef netlist"
-                + " (cellRef sub (libraryRef " + libraryRef + "))))\n"
-                + "        )\n"
-                + "      )\n"
-                + "    )\n"
-                + "  )\n"
-                + "  (design top (cellRef top (libraryRef " + libraryRef + ")))\n"
-                + ")\n";
+            + "  (edifVersion 2 0 0)\n"
+            + "  (edifLevel 0)\n"
+            + "  (keywordMap (keywordLevel 0))\n"
+            + "  (status (written (timeStamp 2024 1 1 0 0 0)"
+            + " (program \"Vivado\" (version \"2024.1\"))))\n"
+            + "  (library " + libraryNameDef + "\n"
+            + "    (edifLevel 0)\n"
+            + "    (technology (numberDefinition))\n"
+            + "    (cell sub (cellType GENERIC)\n"
+            + "      (view netlist (viewType NETLIST)\n"
+            + "        (interface (port i (direction INPUT)) (port o (direction OUTPUT)))\n"
+            + "      )\n"
+            + "    )\n"
+            + "    (cell top (cellType GENERIC)\n"
+            + "      (view netlist (viewType NETLIST)\n"
+            + "        (interface (port a (direction INPUT)))\n"
+            + "        (contents\n"
+            + "          (instance inst1 (viewRef netlist"
+            + " (cellRef sub (libraryRef " + libraryRef + "))))\n"
+            + "        )\n"
+            + "      )\n"
+            + "    )\n"
+            + "  )\n"
+            + "  (design top (cellRef top (libraryRef " + libraryRef + ")))\n"
+            + ")\n";
     }
 
     private static EDIFNetlist parse(Path dir, String name, String content) throws IOException {
@@ -86,7 +85,6 @@ public class TestEDIFCellRefLinking {
 
     @Test
     public void testRenamedLibrary(@TempDir Path dir) throws IOException {
-        assertCellRefResolved(parse(dir, "renamed.edf",
-                netlist("(rename work_lib \"Work Library\")", "work_lib")));
+        assertCellRefResolved(parse(dir, "renamed.edf", netlist("(rename work_lib \"Work Library\")", "work_lib")));
     }
 }

@@ -26,15 +26,14 @@ package com.xilinx.rapidwright.util;
 import java.security.Permission;
 
 /**
- * A custom SecurityManager to enable catching System.exit() calls and throwing an exception instead.
- * Since the SecurityManager is being deprecated in Java 17, it will not be used by default but can
- * be invoked by 'PythonSecurityManager.blockSystemExitCalls()'.
+ * A custom SecurityManager to enable catching System.exit() calls and throwing an exception
+ * instead. Since the SecurityManager is being deprecated in Java 17, it will not be used by default
+ * but can be invoked by 'PythonSecurityManager.blockSystemExitCalls()'.
  * @see <a href="https://openjdk.java.net/jeps/411">JEPS 411</a>
  * @see <a href="https://bugs.openjdk.java.net/browse/JDK-8199704">JDK-8199704</a>
  */
 @SuppressWarnings("removal")
 public class BlockExitSecurityManager extends SecurityManager {
-
     private static BlockExitSecurityManager singleton = null;
 
     @Override

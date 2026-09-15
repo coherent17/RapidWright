@@ -34,7 +34,7 @@ public enum TrafficClass {
     ISOCHRONOUS("ISOC"),
     BANDWIDTH("BW");
 
-    private static Map<String,TrafficClass> map;
+    private static Map<String, TrafficClass> map;
 
     static {
         map = new HashMap<>();

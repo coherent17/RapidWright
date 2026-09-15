@@ -33,7 +33,6 @@ import com.trolltech.qt.gui.QPolygonF;
  * Created on: Sep 16, 2015
  */
 public class ValidPlacementPolygon extends QGraphicsPolygonItem {
-
     private QPointF anchorOffset;
 
     public ValidPlacementPolygon(QPolygonF polygon, QPointF anchorOffset) {

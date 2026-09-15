@@ -48,7 +48,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public class TestMergeDesigns {
-
     private static final String partName = "xczu3eg-sfva625-2-e";
 
     public static Pair<Design, Design> createDesignsToMerge(boolean reverse) {
@@ -56,17 +55,17 @@ public class TestMergeDesigns {
         for (String name : new String[] {"a", "b"}) {
             Design a = new Design(name, partName);
             int i = name.equals("a") ? 0 : 1;
-            Cell ff0 = a.createAndPlaceCell("ff" + i, Unisim.FDRE, "SLICE_X"+i+"Y0/AFF");
-            Cell ff1 = a.createAndPlaceCell("ff" + (i+1), Unisim.FDRE, "SLICE_X"+(i+1)+"Y0/AFF");
+            Cell ff0 = a.createAndPlaceCell("ff" + i, Unisim.FDRE, "SLICE_X" + i + "Y0/AFF");
+            Cell ff1 = a.createAndPlaceCell("ff" + (i + 1), Unisim.FDRE, "SLICE_X" + (i + 1) + "Y0/AFF");
             Cell testBufg = a.createAndPlaceCell("test_bufg", Unisim.BUFGCE, "BUFGCE_X0Y0/BUFCE");
 
-            Net ff0Out = a.createNet("ff"+i+"_q");
+            Net ff0Out = a.createNet("ff" + i + "_q");
             ff0Out.connect(ff0, "Q");
             ff0Out.connect(ff1, "D");
 
-            Net ff1Out = a.createNet("ff"+(i+1)+"_q");
+            Net ff1Out = a.createNet("ff" + (i + 1) + "_q");
             ff1Out.connect(ff1, "Q");
-            Net ff0In = a.createNet("ff"+i+"_d");
+            Net ff0In = a.createNet("ff" + i + "_d");
             ff0In.connect(ff0, "D");
 
             Net clkIn = a.createNet("clk_in");
@@ -81,7 +80,7 @@ public class TestMergeDesigns {
             ff1Out.getLogicalNet().createPortInst(out0);
             clkIn.getLogicalNet().createPortInst(clkPort);
             clkIn.connect(testBufg, "I");
-            clk.connect(testBufg,"O");
+            clk.connect(testBufg, "O");
             clk.connect(ff0, "C");
             clk.connect(ff1, "C");
 
@@ -107,7 +106,6 @@ public class TestMergeDesigns {
             } else {
                 designs.setSecond(a);
             }
-
         }
         if (reverse) {
             Design tmp = designs.getFirst();
@@ -118,7 +116,7 @@ public class TestMergeDesigns {
         return designs;
     }
 
-    private static int countMergedNets(EDIFCell ... topCells) {
+    private static int countMergedNets(EDIFCell... topCells) {
         HashSet<String> nets = new HashSet<>();
         for (EDIFCell top : topCells) {
             for (EDIFNet net : top.getNets()) {
@@ -128,7 +126,7 @@ public class TestMergeDesigns {
         return nets.size();
     }
 
-    private static int countMergedInsts(EDIFCell ... topCells) {
+    private static int countMergedInsts(EDIFCell... topCells) {
         HashSet<String> insts = new HashSet<>();
         for (EDIFCell top : topCells) {
             for (EDIFCellInst inst : top.getCellInsts()) {
@@ -138,7 +136,7 @@ public class TestMergeDesigns {
         return insts.size();
     }
 
-    private static int countMergedPorts(EDIFCell ... topCells) {
+    private static int countMergedPorts(EDIFCell... topCells) {
         HashSet<String> ports = new HashSet<>();
         for (EDIFCell top : topCells) {
             for (EDIFPort port : top.getPorts()) {
@@ -148,7 +146,7 @@ public class TestMergeDesigns {
         return ports.size();
     }
 
-    private static int countMergedSiteInsts(Design ... designs) {
+    private static int countMergedSiteInsts(Design... designs) {
         HashSet<String> sites = new HashSet<>();
         for (Design design : designs) {
             for (SiteInst siteInst : design.getSiteInsts()) {
@@ -173,9 +171,9 @@ public class TestMergeDesigns {
 
         // Check the merged 'reset' net
         String reset = "reset";
-        Assertions.assertEquals(top.getNet(reset).getPortInsts().size(),
-                                top0.getNet(reset).getPortInsts().size() +
-                                top1.getNet(reset).getPortInsts().size() - 1);
+        Assertions.assertEquals(top.getNet(reset).getPortInsts().size(), top0.getNet(reset).getPortInsts().size() +
+                                                                             top1.getNet(reset).getPortInsts().size() -
+                                                                             1);
 
         Assertions.assertEquals(top.getCellInsts().size(), countMergedInsts(top0, top1));
         Assertions.assertEquals(top.getNets().size(), countMergedNets(top0, top1));
@@ -186,7 +184,7 @@ public class TestMergeDesigns {
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     public void testMergeDesign(boolean reverseDesignOrder) {
-        Pair<Design,Design> designs = createDesignsToMerge(reverseDesignOrder);
+        Pair<Design, Design> designs = createDesignsToMerge(reverseDesignOrder);
         Design merged = MergeDesigns.mergeDesigns(designs.getFirst(), designs.getSecond());
 
         EDIFCell top = merged.getNetlist().getTopCell();
@@ -197,8 +195,7 @@ public class TestMergeDesigns {
         Assertions.assertEquals(top.getNets().size(), countMergedNets(top0, top1));
         Assertions.assertEquals(top.getPorts().size(), countMergedPorts(top0, top1));
         Assertions.assertEquals(merged.getSiteInsts().size(),
-                countMergedSiteInsts(designs.getFirst(), designs.getSecond()));
-
+                                countMergedSiteInsts(designs.getFirst(), designs.getSecond()));
 
         Assertions.assertNull(top.getNet("ff1_d"));
     }

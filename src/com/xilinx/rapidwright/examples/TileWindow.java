@@ -24,6 +24,10 @@ package com.xilinx.rapidwright.examples;
  *
  */
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import com.trolltech.qt.gui.QAction;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QFileDialog;
@@ -43,14 +47,10 @@ import com.xilinx.rapidwright.gui.TileView;
 import com.xilinx.rapidwright.gui.UiTools;
 import com.xilinx.rapidwright.util.FileTools;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 /**
  * Creates a zoomable UI view of a provided TileScene
  */
-public class TileWindow extends QMainWindow{
+public class TileWindow extends QMainWindow {
     /** This is the Qt View object  */
     private TileView view;
     /** This is the container for the text in the Status Bar at the bottom of the screen */
@@ -58,14 +58,13 @@ public class TileWindow extends QMainWindow{
     /** This is the Qt Scene object */
     private TileScene scene;
 
-
     /**
      * Constructor of a new PartTileBrowser
      * @param parent Parent widget to which this object belongs.
      */
     public TileWindow(QWidget parent, TileScene scene) {
         super(parent);
-        setWindowTitle("Tile View - " +scene.getClass().getSimpleName());
+        setWindowTitle("Tile View - " + scene.getClass().getSimpleName());
 
         this.scene = scene;
 
@@ -81,18 +80,23 @@ public class TileWindow extends QMainWindow{
         setStatusBar(statusBar);
 
         setupMenu();
-
     }
 
     @SuppressWarnings("unused")
     void updateStatus() {
-        int x = (int) scene.getCurrX();
-        int y = (int) scene.getCurrY();
+        int x = (int)scene.getCurrX();
+        int y = (int)scene.getCurrY();
         if (x >= 0 && x < scene.getDevice().getColumns() && y >= 0 && y < scene.getDevice().getRows()) {
             final Tile tile = scene.getDevice().getTile(y, x);
             String tileName = tile.getName();
-            final String sites = tile.getSites() ==null ? "" : tile.getSites().length>5 ? "too may too show" : Arrays.stream(tile.getSites()).map(Site::getName).sorted().collect(Collectors.joining(", "));
-            statusLabel.setText("Part: "+scene.getDevice().getName().toUpperCase() +"  Tile: "+ tileName+" ("+x+","+y+")"+", Sites: "+sites);
+            final String sites =
+                tile.getSites() == null ? ""
+                : tile.getSites().length > 5
+                    ? "too may too show"
+                    : Arrays.stream(tile.getSites()).map(Site::getName).sorted().collect(Collectors.joining(", "));
+            statusLabel.setText("Part: " + scene.getDevice().getName().toUpperCase() + "  Tile: " + tileName + " (" +
+                                x + "," + y + ")"
+                                + ", Sites: " + sites);
         }
     }
 
@@ -105,18 +109,18 @@ public class TileWindow extends QMainWindow{
     protected void saveAsPDFDesign() {
         if (scene.getDesign() == null)
             return;
-        String fileName = QFileDialog.getSaveFileName(this, tr("Save As PDF"),".", FileFilters.pdfFilter);
+        String fileName = QFileDialog.getSaveFileName(this, tr("Save As PDF"), ".", FileFilters.pdfFilter);
         if (fileName.length() == 0)
             return;
         UiTools.saveAsPdf(scene, new File(fileName));
         statusBar().showMessage(fileName + " saved.", 2000);
     }
-    private QAction action(String name, String image, Object shortcut,
-                           String slot, QMenu menu, QToolBar toolBar) {
+    private QAction action(String name, String image, Object shortcut, String slot, QMenu menu, QToolBar toolBar) {
         QAction a = new QAction(name, this);
 
         if (image != null)
-            a.setIcon(new QIcon(FileTools.getRapidWrightPath()+File.separator+FileTools.IMAGES_FOLDER_NAME + File.separator + image + ".png"));
+            a.setIcon(new QIcon(FileTools.getRapidWrightPath() + File.separator + FileTools.IMAGES_FOLDER_NAME +
+                                File.separator + image + ".png"));
         if (menu != null)
             menu.addAction(a);
         if (toolBar != null)
@@ -125,9 +129,9 @@ public class TileWindow extends QMainWindow{
             a.triggered.connect(this, slot);
 
         if (shortcut instanceof String)
-            a.setShortcut((String) shortcut);
+            a.setShortcut((String)shortcut);
         else if (shortcut instanceof QKeySequence.StandardKey)
-            a.setShortcuts((QKeySequence.StandardKey) shortcut);
+            a.setShortcuts((QKeySequence.StandardKey)shortcut);
 
         return a;
     }
@@ -143,6 +147,4 @@ public class TileWindow extends QMainWindow{
         fileMenu.addSeparator();
         action(tr("&Quit"), null, "Ctrl+Q", "close()", fileMenu, null);
     }
-
 }
-

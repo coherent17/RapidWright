@@ -23,27 +23,25 @@
 
 package com.xilinx.rapidwright.design;
 
-import com.xilinx.rapidwright.device.Site;
-import com.xilinx.rapidwright.device.Tile;
-
 import java.util.Objects;
 import java.util.stream.Collector;
+
+import com.xilinx.rapidwright.device.Site;
+import com.xilinx.rapidwright.device.Tile;
 
 /**
  * A {@link TileRectangle} that is relocatable.
  * <p>
- * As padding tiles may be inserted when relocating Rectangles, we do not store coordinates of tiles but rather the
- * tiles themselves. For every border (top/bottom/left/right) we save one example tile. When Relocation is not needed,
- * use {@link SimpleTileRectangle} instead
+ * As padding tiles may be inserted when relocating Rectangles, we do not store coordinates of tiles
+ * but rather the tiles themselves. For every border (top/bottom/left/right) we save one example
+ * tile. When Relocation is not needed, use {@link SimpleTileRectangle} instead
  */
 public class RelocatableTileRectangle extends TileRectangle {
-
     private Tile minColumn;
     private Tile maxColumn;
     private Tile minRow;
     private Tile maxRow;
     private boolean empty = true;
-
 
     public RelocatableTileRectangle(Tile tile) {
         this.minColumn = tile;
@@ -83,23 +81,20 @@ public class RelocatableTileRectangle extends TileRectangle {
 
     @Override
     public String toString() {
-        return "RelocatableTileRectangle{" +
-                "minColumn=" + minColumn +
-                ", maxColumn=" + maxColumn +
-                ", minRow=" + minRow +
-                ", maxRow=" + maxRow +
-                '}';
+        return "RelocatableTileRectangle{"
+            + "minColumn=" + minColumn + ", maxColumn=" + maxColumn + ", minRow=" + minRow + ", maxRow=" + maxRow + '}';
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        RelocatableTileRectangle that = (RelocatableTileRectangle) o;
-        return minColumn.getColumn() == that.minColumn.getColumn()
-                && maxColumn.getColumn() == that.maxColumn.getColumn()
-                && minRow.getRow() == that.minRow.getRow()
-                && maxRow.getRow() == that.maxRow.getRow();
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        RelocatableTileRectangle that = (RelocatableTileRectangle)o;
+        return minColumn.getColumn() == that.minColumn.getColumn() &&
+            maxColumn.getColumn() == that.maxColumn.getColumn() && minRow.getRow() == that.minRow.getRow() &&
+            maxRow.getRow() == that.maxRow.getRow();
     }
 
     @Override
@@ -112,9 +107,8 @@ public class RelocatableTileRectangle extends TileRectangle {
     private Tile[][] minRowArr;
     private Tile[][] maxRowArr;
 
-
     private String failedReloc(Tile template, Tile newAnchor, Tile originalAnchor, Tile[][] arr) {
-        //We try to find the name the new tile would have
+        // We try to find the name the new tile would have
         int tileXOffset = template.getTileXCoordinate() - originalAnchor.getTileXCoordinate();
         int tileYOffset = template.getTileYCoordinate() - originalAnchor.getTileYCoordinate();
         int newTileX = newAnchor.getTileXCoordinate() + tileXOffset;
@@ -122,8 +116,8 @@ public class RelocatableTileRectangle extends TileRectangle {
 
         String newName = template.getRootName() + "_X" + newTileX + "Y" + newTileY;
 
-
-        return "Failed to find corresponding tile \""+newName+"\" for "+template+" when relocating from "+originalAnchor+" to "+newAnchor+". Rect: "+ this;
+        return "Failed to find corresponding tile \"" + newName + "\" for " + template + " when relocating from " +
+            originalAnchor + " to " + newAnchor + ". Rect: " + this;
     }
 
     public RelocatableTileRectangle getCorresponding(Tile newAnchor, Tile originalAnchor) {
@@ -135,13 +129,15 @@ public class RelocatableTileRectangle extends TileRectangle {
         }
 
         return new RelocatableTileRectangle(
-                Objects.requireNonNull(Module.getCorrespondingTile(minColumn, newAnchor, originalAnchor, minColumnArr), ()->failedReloc(minColumn, newAnchor, originalAnchor, minColumnArr)),
-                Objects.requireNonNull(Module.getCorrespondingTile(maxColumn, newAnchor, originalAnchor, maxColumnArr), ()->failedReloc(maxColumn, newAnchor, originalAnchor, maxColumnArr)),
-                Objects.requireNonNull(Module.getCorrespondingTile(minRow, newAnchor, originalAnchor, minRowArr), ()->failedReloc(minRow, newAnchor, originalAnchor, minRowArr)),
-                Objects.requireNonNull(Module.getCorrespondingTile(maxRow, newAnchor, originalAnchor, maxRowArr), ()->failedReloc(maxRow, newAnchor, originalAnchor, maxRowArr))
-        );
+            Objects.requireNonNull(Module.getCorrespondingTile(minColumn, newAnchor, originalAnchor, minColumnArr),
+                                   () -> failedReloc(minColumn, newAnchor, originalAnchor, minColumnArr)),
+            Objects.requireNonNull(Module.getCorrespondingTile(maxColumn, newAnchor, originalAnchor, maxColumnArr),
+                                   () -> failedReloc(maxColumn, newAnchor, originalAnchor, maxColumnArr)),
+            Objects.requireNonNull(Module.getCorrespondingTile(minRow, newAnchor, originalAnchor, minRowArr),
+                                   () -> failedReloc(minRow, newAnchor, originalAnchor, minRowArr)),
+            Objects.requireNonNull(Module.getCorrespondingTile(maxRow, newAnchor, originalAnchor, maxRowArr),
+                                   () -> failedReloc(maxRow, newAnchor, originalAnchor, maxRowArr)));
     }
-
 
     private void extendToRect(Tile otherMinX, Tile otherMaxX, Tile otherMinY, Tile otherMaxY) {
         minColumnArr = null;
@@ -192,11 +188,10 @@ public class RelocatableTileRectangle extends TileRectangle {
         extendToRect(rect.minColumn, rect.maxColumn, rect.minRow, rect.maxRow);
     }
 
-
     /**
-     * Extend the Rectangle so that a shifted tile is inside. The Tile is assumed to be located relative to some anchor.
-     * The anchor is shifted from {@code templateAnchor} to {@code currentAnchor}. This location relative to the new
-     * anchor is then included in the Rectangle.
+     * Extend the Rectangle so that a shifted tile is inside. The Tile is assumed to be located
+     * relative to some anchor. The anchor is shifted from {@code templateAnchor} to {@code
+     * currentAnchor}. This location relative to the new anchor is then included in the Rectangle.
      *
      * @param tile           tile to include after shifting
      * @param currentAnchor  target anchor
@@ -204,18 +199,13 @@ public class RelocatableTileRectangle extends TileRectangle {
      */
     public void extendToCorresponding(Tile tile, Site currentAnchor, SiteInst templateAnchor) {
         Tile corresponding = Module.getCorrespondingTile(tile, currentAnchor.getTile(), templateAnchor.getTile());
-        extendToRect(
-                corresponding,
-                corresponding,
-                corresponding,
-                corresponding
-        );
+        extendToRect(corresponding, corresponding, corresponding, corresponding);
     }
 
     /**
-     * Extend the Rectangle so that a shifted rectangle is inside. The Rectangle is assumed to be located relative to some anchor.
-     * The anchor is shifted from {@code templateAnchor} to {@code currentAnchor}. This location relative to the new
-     * anchor is then included in the Rectangle.
+     * Extend the Rectangle so that a shifted rectangle is inside. The Rectangle is assumed to be
+     * located relative to some anchor. The anchor is shifted from {@code templateAnchor} to {@code
+     * currentAnchor}. This location relative to the new anchor is then included in the Rectangle.
      *
      * @param rect           Rectangle to include after shifting
      * @param currentAnchor  target anchor
@@ -223,12 +213,14 @@ public class RelocatableTileRectangle extends TileRectangle {
      */
     @Override
     public void extendToCorresponding(RelocatableTileRectangle rect, Site currentAnchor, SiteInst templateAnchor) {
-        extendToRect(
-                Objects.requireNonNull(Module.getCorrespondingTile(rect.minColumn, currentAnchor.getTile(), templateAnchor.getTile())),
-                Objects.requireNonNull(Module.getCorrespondingTile(rect.maxColumn, currentAnchor.getTile(), templateAnchor.getTile())),
-                Objects.requireNonNull(Module.getCorrespondingTile(rect.minRow, currentAnchor.getTile(), templateAnchor.getTile())),
-                Objects.requireNonNull(Module.getCorrespondingTile(rect.maxRow, currentAnchor.getTile(), templateAnchor.getTile()))
-        );
+        extendToRect(Objects.requireNonNull(Module.getCorrespondingTile(rect.minColumn, currentAnchor.getTile(),
+                                                                        templateAnchor.getTile())),
+                     Objects.requireNonNull(Module.getCorrespondingTile(rect.maxColumn, currentAnchor.getTile(),
+                                                                        templateAnchor.getTile())),
+                     Objects.requireNonNull(
+                         Module.getCorrespondingTile(rect.minRow, currentAnchor.getTile(), templateAnchor.getTile())),
+                     Objects.requireNonNull(
+                         Module.getCorrespondingTile(rect.maxRow, currentAnchor.getTile(), templateAnchor.getTile())));
     }
 
     @Override

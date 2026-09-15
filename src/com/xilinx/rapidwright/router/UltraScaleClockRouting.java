@@ -24,6 +24,20 @@
 
 package com.xilinx.rapidwright.router;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.DesignTools;
 import com.xilinx.rapidwright.design.Net;
@@ -39,20 +53,6 @@ import com.xilinx.rapidwright.device.Wire;
 import com.xilinx.rapidwright.rwroute.GlobalSignalRouting;
 import com.xilinx.rapidwright.rwroute.NodeStatus;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Queue;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Predicate;
-
 /**
  * A collection of utility methods for routing clocks on
  * the UltraScale architecture.
@@ -60,7 +60,6 @@ import java.util.function.Predicate;
  * Created on: Feb 1, 2018
  */
 public class UltraScaleClockRouting {
-
     public static RouteNode routeBUFGToNearestRoutingTrack(Net clk) {
         Queue<RouteNode> q = new LinkedList<>();
         q.add(new RouteNode(clk.getSource()));
@@ -73,9 +72,10 @@ public class UltraScaleClockRouting {
                 return curr;
             }
             for (Wire w : curr.getWireConnections()) {
-                q.add(new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel()+1));
+                q.add(new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel() + 1));
             }
-            if (watchDog-- == 0) break;
+            if (watchDog-- == 0)
+                break;
         }
         return null;
     }
@@ -96,11 +96,15 @@ public class UltraScaleClockRouting {
      * fans out and transitions from clock routing tracks to clock distribution.
      * @param clk The current clock net to contribute routing.
      * @param startingRouteNode The intermediate start point of the clock route.
-     * @param clockRegion The center clock region or the clock region that is one row above or below the center.
-     * @param adjusted A flag to guard the default functionality when routing to centroid clock region.
-     * @param findCentroidHroute The flag to indicate the returned RouteNode should be HROUTE in the center or VROUTE going up or down.
+     * @param clockRegion The center clock region or the clock region that is one row above or below
+     *     the center.
+     * @param adjusted A flag to guard the default functionality when routing to centroid clock
+     *     region.
+     * @param findCentroidHroute The flag to indicate the returned RouteNode should be HROUTE in the
+     *     center or VROUTE going up or down.
      */
-    public static RouteNode routeToCentroid(Net clk, RouteNode startingRouteNode, ClockRegion clockRegion, boolean adjusted, boolean findCentroidHroute) {
+    public static RouteNode routeToCentroid(Net clk, RouteNode startingRouteNode, ClockRegion clockRegion,
+                                            boolean adjusted, boolean findCentroidHroute) {
         Queue<RouteNode> q = RouteNode.createPriorityQueue();
         HashSet<RouteNode> visited = new HashSet<>();
         startingRouteNode.setParent(null);
@@ -118,17 +122,16 @@ public class UltraScaleClockRouting {
                 RouteNode parent = curr.getParent();
                 if (parent != null) {
                     if (parent.getIntentCode() == IntentCode.NODE_GLOBAL_VROUTE &&
-                            w.getIntentCode() == IntentCode.NODE_GLOBAL_HROUTE) {
+                        w.getIntentCode() == IntentCode.NODE_GLOBAL_HROUTE) {
                         // Disallow ability to go from VROUTE back to HROUTE
                         continue;
                     }
-                    if (w.getIntentCode()     == IntentCode.NODE_GLOBAL_VDISTR &&
-                       curr.getIntentCode()   == IntentCode.NODE_GLOBAL_VROUTE &&
-                       parent.getIntentCode() == IntentCode.NODE_GLOBAL_VROUTE &&
-                       clockRegion.equals(w.getTile().getClockRegion()) &&
-                       clockRegion.equals(curr.getTile().getClockRegion()) &&
-                       clockRegion.equals(parent.getTile().getClockRegion()) &&
-                       parent.getWireName().contains("BOT")) {
+                    if (w.getIntentCode() == IntentCode.NODE_GLOBAL_VDISTR &&
+                        curr.getIntentCode() == IntentCode.NODE_GLOBAL_VROUTE &&
+                        parent.getIntentCode() == IntentCode.NODE_GLOBAL_VROUTE &&
+                        clockRegion.equals(w.getTile().getClockRegion()) &&
+                        clockRegion.equals(curr.getTile().getClockRegion()) &&
+                        clockRegion.equals(parent.getTile().getClockRegion()) && parent.getWireName().contains("BOT")) {
                         if (adjusted) {
                             if (findCentroidHroute) {
                                 centroidHRouteNode = curr.getParent();
@@ -149,17 +152,20 @@ public class UltraScaleClockRouting {
                 }
 
                 // Only using routing lines to get to centroid
-                if (!w.getIntentCode().isUltraScaleClockRouting()) continue;
+                if (!w.getIntentCode().isUltraScaleClockRouting())
+                    continue;
                 if (adjusted && !findCentroidHroute && w.getIntentCode() == IntentCode.NODE_GLOBAL_HROUTE) {
                     continue;
                 }
-                RouteNode rn = new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel()+1);
-                if (visited.contains(rn)) continue;
+                RouteNode rn = new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel() + 1);
+                if (visited.contains(rn))
+                    continue;
                 rn.setCost(rn.getTile().getManhattanDistance(approxTarget));
                 q.add(rn);
             }
             if (watchDog-- == 0) {
-                throw new RuntimeException("ERROR: Could not route from " + startingRouteNode + " to clock region " + clockRegion);
+                throw new RuntimeException("ERROR: Could not route from " + startingRouteNode + " to clock region " +
+                                           clockRegion);
             }
         }
         return null;
@@ -187,26 +193,31 @@ public class UltraScaleClockRouting {
 
             for (Wire w : curr.getWireConnections()) {
                 // Only using clk routing network to reach centroid
-                if (!w.getIntentCode().isUltraScaleClocking()) continue;
+                if (!w.getIntentCode().isUltraScaleClocking())
+                    continue;
 
-                if (w.getWireName().equals(centroid.getWireName())
-                        && w.getTile().equals(centroid.getTile())) {
+                if (w.getWireName().equals(centroid.getWireName()) && w.getTile().equals(centroid.getTile())) {
                     // curr is not the target, build the target
-                    RouteNode routeNodeTarget = new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel()+1);
+                    RouteNode routeNodeTarget = new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel() + 1);
                     clk.getPIPs().addAll(routeNodeTarget.getPIPsBackToSource());
                     return routeNodeTarget;
                 }
 
-                RouteNode rn = new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel()+1);
-                if (visited.contains(rn)) continue;
-                // using column & row based distance is more accurate than tile x/y coordinate based distance
-                int md = Math.abs(rn.getTile().getColumn() - tileTarget.getColumn()) + Math.abs(rn.getTile().getRow() - tileTarget.getRow());
+                RouteNode rn = new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel() + 1);
+                if (visited.contains(rn))
+                    continue;
+                // using column & row based distance is more accurate than tile x/y coordinate based
+                // distance
+                int md = Math.abs(rn.getTile().getColumn() - tileTarget.getColumn()) +
+                         Math.abs(rn.getTile().getRow() - tileTarget.getRow());
                 rn.setCost(md);
                 q.add(rn);
             }
             if (watchDog-- == 0) {
-                throw new RuntimeException("ERROR: Could not route from " + startingRouteNode + "\n       to the given centroid: " + centroid
-                                            + ".\n       Please check if BUFGCE is correctly placed in line with the reference.");
+                throw new RuntimeException("ERROR: Could not route from " + startingRouteNode +
+                                           "\n       to the given centroid: " + centroid +
+                                           (".\n       Please check if BUFGCE is correctly "
+                                            + "placed in line with the reference."));
             }
         }
         return null;
@@ -228,7 +239,8 @@ public class UltraScaleClockRouting {
         return transitionCentroidToDistributionLine(clk, centroidRouteLine, currCR);
     }
 
-    public static RouteNode transitionCentroidToVerticalDistributionLine(Net clk, RouteNode centroidRouteLine, boolean down) {
+    public static RouteNode transitionCentroidToVerticalDistributionLine(Net clk, RouteNode centroidRouteLine,
+                                                                         boolean down) {
         centroidRouteLine.setParent(null);
         if (centroidRouteLine.getIntentCode() == IntentCode.NODE_GLOBAL_VDISTR) {
             return centroidRouteLine;
@@ -254,27 +266,29 @@ public class UltraScaleClockRouting {
             }
             for (Wire w : curr.getWireConnections()) {
                 // Stay in this clock region to transition from
-                if (!cr.equals(w.getTile().getClockRegion())) continue;
-                if (!w.getIntentCode().isUltraScaleClocking()) continue;
-                q.add(new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel()+1));
+                if (!cr.equals(w.getTile().getClockRegion()))
+                    continue;
+                if (!w.getIntentCode().isUltraScaleClocking())
+                    continue;
+                q.add(new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel() + 1));
             }
-            if (watchDog-- == 0) break;
+            if (watchDog-- == 0)
+                break;
         }
         return null;
     }
 
     /**
-     * Routes the vertical distribution path and generates a map between each target clock region and the vertical distribution line to
-     * start from.
+     * Routes the vertical distribution path and generates a map between each target clock region
+     * and the vertical distribution line to start from.
      * @param clk The clock net.
      * @param centroidDistNode Starting point vertical distribution line
      * @param clockRegions The target clock regions.
      * @return A map of target clock regions and their respective vertical distribution lines
      */
-    public static Map<ClockRegion, RouteNode> routeCentroidToVerticalDistributionLines(Net clk,
-                                                                                       RouteNode centroidDistNode,
-                                                                                       Collection<ClockRegion> clockRegions,
-                                                                                       Function<Node, NodeStatus> getNodeStatus) {
+    public static Map<ClockRegion, RouteNode>
+    routeCentroidToVerticalDistributionLines(Net clk, RouteNode centroidDistNode, Collection<ClockRegion> clockRegions,
+                                             Function<Node, NodeStatus> getNodeStatus) {
         Map<ClockRegion, RouteNode> crToVdist = new HashMap<>();
         centroidDistNode.setParent(null);
         Queue<RouteNode> q = RouteNode.createPriorityQueue();
@@ -282,8 +296,9 @@ public class UltraScaleClockRouting {
         Set<PIP> allPIPs = new HashSet<>();
         Set<RouteNode> startingPoints = new HashSet<>();
         startingPoints.add(centroidDistNode);
-        assert(centroidDistNode.getParent() == null);
-        nextClockRegion: for (ClockRegion cr : clockRegions) {
+        assert (centroidDistNode.getParent() == null);
+    nextClockRegion:
+        for (ClockRegion cr : clockRegions) {
             q.clear();
             visited.clear();
             q.addAll(startingPoints);
@@ -312,9 +327,11 @@ public class UltraScaleClockRouting {
                     continue nextClockRegion;
                 }
                 for (Wire w : curr.getWireConnections()) {
-                    if (w.getIntentCode() != IntentCode.NODE_GLOBAL_VDISTR) continue;
-                    RouteNode rn = new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel()+1);
-                    if (visited.contains(rn)) continue;
+                    if (w.getIntentCode() != IntentCode.NODE_GLOBAL_VDISTR)
+                        continue;
+                    RouteNode rn = new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel() + 1);
+                    if (visited.contains(rn))
+                        continue;
                     rn.setCost(w.getTile().getManhattanDistance(crTarget));
                     q.add(rn);
                 }
@@ -333,16 +350,16 @@ public class UltraScaleClockRouting {
      * @param crMap A map that provides a RouteNode reference for each ClockRegion
      * @return The List of nodes from the centroid to the horizontal distribution line.
      */
-    public static List<RouteNode> routeVerticalToHorizontalDistributionLines(Net clk,
-                                                                             Map<ClockRegion,RouteNode> crMap,
+    public static List<RouteNode> routeVerticalToHorizontalDistributionLines(Net clk, Map<ClockRegion, RouteNode> crMap,
                                                                              Function<Node, NodeStatus> getNodeStatus) {
         List<RouteNode> distLines = new ArrayList<>();
         Queue<RouteNode> q = new LinkedList<>();
         Set<PIP> allPIPs = new HashSet<>();
-        nextClockRegion: for (Entry<ClockRegion,RouteNode> e : crMap.entrySet()) {
+    nextClockRegion:
+        for (Entry<ClockRegion, RouteNode> e : crMap.entrySet()) {
             q.clear();
             RouteNode vertDistLine = e.getValue();
-            assert(vertDistLine.getParent() == null);
+            assert (vertDistLine.getParent() == null);
             q.add(vertDistLine);
             ClockRegion targetCR = e.getKey();
             while (!q.isEmpty()) {
@@ -356,15 +373,16 @@ public class UltraScaleClockRouting {
                         if (status == NodeStatus.INUSE) {
                             break;
                         }
-                        assert(status == NodeStatus.AVAILABLE);
+                        assert (status == NodeStatus.AVAILABLE);
                     }
                     curr.setParent(null);
                     distLines.add(curr);
                     continue nextClockRegion;
                 }
                 for (Wire w : curr.getWireConnections()) {
-                    if (!w.getIntentCode().isUltraScaleClocking()) continue;
-                    q.add(new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel()+1));
+                    if (!w.getIntentCode().isUltraScaleClocking())
+                        continue;
+                    q.add(new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel() + 1));
                 }
             }
             throw new RuntimeException("ERROR: Couldn't route to distribution line in clock region " + targetCR);
@@ -387,24 +405,25 @@ public class UltraScaleClockRouting {
         Map<ClockRegion, Set<RouteNode>> startingPoints = new HashMap<>();
         for (RouteNode rn : distLines) {
             ClockRegion cr = rn.getTile().getClockRegion();
-            startingPoints.computeIfAbsent(cr, k -> new HashSet<>())
-                    .add(rn);
+            startingPoints.computeIfAbsent(cr, k -> new HashSet<>()).add(rn);
         }
         return startingPoints;
     }
 
-    public static void routeToLCBs(Net clk, Map<ClockRegion, Set<RouteNode>> startingPoints, Set<RouteNode> lcbTargets) {
+    public static void routeToLCBs(Net clk, Map<ClockRegion, Set<RouteNode>> startingPoints,
+                                   Set<RouteNode> lcbTargets) {
         Queue<RouteNode> q = RouteNode.createPriorityQueue();
         Set<PIP> allPIPs = new HashSet<>();
         HashSet<RouteNode> visited = new HashSet<>();
 
-        nextLCB: for (RouteNode lcb : lcbTargets) {
+    nextLCB:
+        for (RouteNode lcb : lcbTargets) {
             q.clear();
             visited.clear();
             ClockRegion currCR = lcb.getTile().getClockRegion();
             Set<RouteNode> starts = startingPoints.getOrDefault(currCR, Collections.emptySet());
             for (RouteNode rn : starts) {
-                assert(rn.getParent() == null);
+                assert (rn.getParent() == null);
             }
             q.addAll(starts);
             while (!q.isEmpty()) {
@@ -416,23 +435,28 @@ public class UltraScaleClockRouting {
 
                     Set<RouteNode> s = startingPoints.get(currCR);
                     for (PIP p : pips) {
-                        s.add(new RouteNode(p.getTile(),p.getStartWireIndex()));
-                        s.add(new RouteNode(p.getTile(),p.getEndWireIndex()));
+                        s.add(new RouteNode(p.getTile(), p.getStartWireIndex()));
+                        s.add(new RouteNode(p.getTile(), p.getEndWireIndex()));
                     }
                     continue nextLCB;
                 }
                 for (Wire w : curr.getWireConnections()) {
                     // Stay in this clock region
-                    if (!currCR.equals(w.getTile().getClockRegion())) continue;
+                    if (!currCR.equals(w.getTile().getClockRegion()))
+                        continue;
                     if (!w.getIntentCode().isUltraScaleClocking()) {
                         // Final node will not be clocking intent code
                         SitePin p = w.getSitePin();
-                        if (p == null) continue;
-                        if (p.getSite().getSiteTypeEnum() != SiteTypeEnum.BUFCE_LEAF) continue;
+                        if (p == null)
+                            continue;
+                        if (p.getSite().getSiteTypeEnum() != SiteTypeEnum.BUFCE_LEAF)
+                            continue;
                     }
-                    RouteNode rn = new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel()+1);
-                    if (visited.contains(rn)) continue;
-                    if (rn.getWireName().endsWith("_CLK_CASC_OUT")) continue;
+                    RouteNode rn = new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel() + 1);
+                    if (visited.contains(rn))
+                        continue;
+                    if (rn.getWireName().endsWith("_CLK_CASC_OUT"))
+                        continue;
                     rn.setCost(rn.getManhattanDistance(lcb));
                     q.add(rn);
                 }
@@ -446,7 +470,8 @@ public class UltraScaleClockRouting {
      * @param clk
      * @param lcbMappings
      * @param getNodeStatus Lambda for indicating the status of a Node: available, in-use (preserved
-     *                      for same net as we're routing), or unavailable (preserved for other net).
+     *                      for same net as we're routing), or unavailable (preserved for other
+     * net).
      */
     public static void routeLCBsToSinks(Net clk, Map<RouteNode, List<SitePinInst>> lcbMappings,
                                         Function<Node, NodeStatus> getNodeStatus) {
@@ -456,12 +481,13 @@ public class UltraScaleClockRouting {
 
         Predicate<Node> isNodeUnavailable = (node) -> getNodeStatus.apply(node) == NodeStatus.UNAVAILABLE;
 
-        for (Entry<RouteNode,List<SitePinInst>> e : lcbMappings.entrySet()) {
+        for (Entry<RouteNode, List<SitePinInst>> e : lcbMappings.entrySet()) {
             Set<PIP> currPIPs = new HashSet<>();
             RouteNode lcb = e.getKey();
-            assert(lcb.getParent() == null);
+            assert (lcb.getParent() == null);
 
-            nextPin: for (SitePinInst sink : e.getValue()) {
+        nextPin:
+            for (SitePinInst sink : e.getValue()) {
                 RouteNode target = sink.getRouteNode();
                 q.clear();
                 q.add(lcb);
@@ -472,7 +498,7 @@ public class UltraScaleClockRouting {
                         boolean inuse = false;
                         for (PIP pip : curr.getPIPsBackToSource()) {
                             if (inuse) {
-                                assert(getNodeStatus.apply(pip.getStartNode()) == NodeStatus.INUSE);
+                                assert (getNodeStatus.apply(pip.getStartNode()) == NodeStatus.INUSE);
                                 continue;
                             }
                             currPIPs.add(pip);
@@ -482,18 +508,22 @@ public class UltraScaleClockRouting {
                                 inuse = true;
                                 continue;
                             }
-                            assert(status == NodeStatus.AVAILABLE);
+                            assert (status == NodeStatus.AVAILABLE);
                         }
                         sink.setRouted(true);
                         visited.clear();
                         continue nextPin;
                     }
                     for (Wire w : curr.getWireConnections()) {
-                        if (!visited.add(w)) continue;
-                        if (used.contains(w)) continue;
-                        if (w.isRouteThru()) continue;
-                        if (isNodeUnavailable.test(w.getNode())) continue;
-                        q.add(new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel()+1));
+                        if (!visited.add(w))
+                            continue;
+                        if (used.contains(w))
+                            continue;
+                        if (w.isRouteThru())
+                            continue;
+                        if (isNodeUnavailable.test(w.getNode()))
+                            continue;
+                        q.add(new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel() + 1));
                     }
                 }
                 throw new RuntimeException("ERROR: Couldn't route LCB " + e.getKey() + " to Pin " + sink);
@@ -501,8 +531,8 @@ public class UltraScaleClockRouting {
 
             List<PIP> clkPIPs = clk.getPIPs();
             for (PIP p : currPIPs) {
-                used.add(new Wire(p.getTile(),p.getStartWireIndex()));
-                used.add(new Wire(p.getTile(),p.getEndWireIndex()));
+                used.add(new Wire(p.getTile(), p.getStartWireIndex()));
+                used.add(new Wire(p.getTile(), p.getEndWireIndex()));
                 clkPIPs.add(p);
             }
         }
@@ -516,15 +546,16 @@ public class UltraScaleClockRouting {
      * @param down To indicate if it is routing to the group of top clock regions.
      * @return A list of RouteNodes indicating the reached horizontal distribution lines.
      */
-    public static List<RouteNode> routeToHorizontalDistributionLines(Net clk,
-                                                                     RouteNode vroute,
-                                                                     Collection<ClockRegion> clockRegions,
-                                                                     boolean down,
+    public static List<RouteNode> routeToHorizontalDistributionLines(Net clk, RouteNode vroute,
+                                                                     Collection<ClockRegion> clockRegions, boolean down,
                                                                      Function<Node, NodeStatus> getNodeStatus) {
-        RouteNode centroidDistNode = UltraScaleClockRouting.transitionCentroidToVerticalDistributionLine(clk, vroute, down);
-        if (centroidDistNode == null) return null;
+        RouteNode centroidDistNode =
+            UltraScaleClockRouting.transitionCentroidToVerticalDistributionLine(clk, vroute, down);
+        if (centroidDistNode == null)
+            return null;
 
-        Map<ClockRegion, RouteNode> vertDistLines = routeCentroidToVerticalDistributionLines(clk, centroidDistNode, clockRegions, getNodeStatus);
+        Map<ClockRegion, RouteNode> vertDistLines =
+            routeCentroidToVerticalDistributionLines(clk, centroidDistNode, clockRegions, getNodeStatus);
 
         return routeVerticalToHorizontalDistributionLines(clk, vertDistLines, getNodeStatus);
     }
@@ -537,11 +568,10 @@ public class UltraScaleClockRouting {
      * @param design  The current design
      * @param clkNet The partially routed clock net to make fully routed
      * @param getNodeStatus Lambda for indicating the status of a Node: available, in-use (preserved
-     *                      for same net as we're routing), or unavailable (preserved for other net).
+     *                      for same net as we're routing), or unavailable (preserved for other
+     * net).
      */
-    public static void incrementalClockRouter(Design design,
-                                              Net clkNet,
-                                              Function<Node,NodeStatus> getNodeStatus) {
+    public static void incrementalClockRouter(Design design, Net clkNet, Function<Node, NodeStatus> getNodeStatus) {
         // Assume all existing site pins are already routed
         Set<SitePinInst> existingPins = new HashSet<>(clkNet.getSinkPins());
 
@@ -562,14 +592,14 @@ public class UltraScaleClockRouting {
      * @param clkNet The partially routed clock net to make fully routed
      * @param clkPins A list of unrouted pins on the clock net to route
      * @param getNodeStatus Lambda for indicating the status of a Node: available, in-use (preserved
-     *                      for same net as we're routing), or unavailable (preserved for other net).
+     *                      for same net as we're routing), or unavailable (preserved for other
+     * net).
      */
-    public static void incrementalClockRouter(Net clkNet,
-                                              List<SitePinInst> clkPins,
-                                              Function<Node,NodeStatus> getNodeStatus) {
+    public static void incrementalClockRouter(Net clkNet, List<SitePinInst> clkPins,
+                                              Function<Node, NodeStatus> getNodeStatus) {
         // Find all horizontal distribution lines to be used as starting points and create a map
         // lookup by clock region
-        Map<ClockRegion,Set<RouteNode>> startingPoints = new HashMap<>();
+        Map<ClockRegion, Set<RouteNode>> startingPoints = new HashMap<>();
         Set<Node> vroutesUp = new HashSet<>();
         Set<Node> vroutesDown = new HashSet<>();
         int centroidY = -1;
@@ -577,22 +607,22 @@ public class UltraScaleClockRouting {
             Node startNode = p.getStartNode();
             Node endNode = p.getEndNode();
             for (Node node : new Node[] {startNode, endNode}) {
-                if (node == null) continue;
+                if (node == null)
+                    continue;
                 IntentCode ic = node.getIntentCode();
                 if (ic == IntentCode.NODE_GLOBAL_HDISTR) {
                     for (Wire w : node.getAllWiresInNode()) {
                         RouteNode rn = new RouteNode(w.getTile(), w.getWireIndex());
                         ClockRegion cr = w.getTile().getClockRegion();
                         if (cr != null) {
-                            assert(rn.getParent() == null);
-                            startingPoints.computeIfAbsent(cr, n -> new HashSet<>())
-                                    .add(rn);
+                            assert (rn.getParent() == null);
+                            startingPoints.computeIfAbsent(cr, n -> new HashSet<>()).add(rn);
                         }
                     }
                 } else if (node == startNode && endNode.getIntentCode() == IntentCode.NODE_GLOBAL_VDISTR) {
                     if (ic == IntentCode.NODE_GLOBAL_VROUTE || ic == IntentCode.NODE_GLOBAL_HROUTE) {
                         // Centroid lays where {HROUTE, VROUTE} -> VDISTR
-                        assert(centroidY == -1);
+                        assert (centroidY == -1);
                         centroidY = p.getTile().getTileYCoordinate();
                     } else {
                         Tile startTile = startNode.getTile();
@@ -617,13 +647,13 @@ public class UltraScaleClockRouting {
                 }
             }
         }
-        assert(centroidY != -1);
+        assert (centroidY != -1);
 
         Node currNode = null;
         int currDelta = Integer.MAX_VALUE;
         for (Node node : vroutesUp) {
             int delta = node.getTile().getTileYCoordinate() - centroidY;
-            assert(delta >= 0);
+            assert (delta >= 0);
             if (delta < currDelta) {
                 currDelta = delta;
                 currNode = node;
@@ -635,7 +665,7 @@ public class UltraScaleClockRouting {
         currDelta = Integer.MAX_VALUE;
         for (Node node : vroutesDown) {
             int delta = centroidY - node.getTile().getTileYCoordinate();
-            assert(delta >= 0);
+            assert (delta >= 0);
             if (delta < currDelta) {
                 currDelta = delta;
                 currNode = node;
@@ -662,11 +692,8 @@ public class UltraScaleClockRouting {
             });
         }
         if (!newUpClockRegions.isEmpty()) {
-            List<RouteNode> upLines = UltraScaleClockRouting.routeToHorizontalDistributionLines(clkNet,
-                    vrouteUp,
-                    newUpClockRegions,
-                    false,
-                    getNodeStatus);
+            List<RouteNode> upLines = UltraScaleClockRouting.routeToHorizontalDistributionLines(
+                clkNet, vrouteUp, newUpClockRegions, false, getNodeStatus);
             if (upLines != null) {
                 for (RouteNode rnode : upLines) {
                     rnode.setParent(null);
@@ -675,11 +702,8 @@ public class UltraScaleClockRouting {
             }
         }
         if (!newDownClockRegions.isEmpty()) {
-            List<RouteNode> downLines = UltraScaleClockRouting.routeToHorizontalDistributionLines(clkNet,
-                    vrouteDown,
-                    newDownClockRegions,
-                    true,
-                    getNodeStatus);
+            List<RouteNode> downLines = UltraScaleClockRouting.routeToHorizontalDistributionLines(
+                clkNet, vrouteDown, newDownClockRegions, true, getNodeStatus);
             if (downLines != null) {
                 for (RouteNode rnode : downLines) {
                     rnode.setParent(null);

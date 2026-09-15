@@ -50,12 +50,10 @@ class MoveCommand extends QUndoCommand {
     private int tileSize;
     private FloorPlanScene scene;
 
-    public MoveCommand(List<GUIModuleInst> ghmList, List<QPointF> oldPosList,
-            FloorPlanScene scene) {
+    public MoveCommand(List<GUIModuleInst> ghmList, List<QPointF> oldPosList, FloorPlanScene scene) {
         this.scene = scene;
         this.design = scene.getDesign();
         this.tileSize = scene.tileSize;
-
 
         newPosList = new ArrayList<QPointF>();
         myGhmList = new ArrayList<GUIModuleInst>(ghmList);
@@ -66,7 +64,6 @@ class MoveCommand extends QUndoCommand {
         prevAnchorSiteList = new ArrayList<Site>();
         newAnchorSiteList = new ArrayList<Site>();
         updateDesign();
-
     }
 
     @Override
@@ -93,18 +90,14 @@ class MoveCommand extends QUndoCommand {
         setText(tr("Move " + createCommandString(myGhmList, newPosList)));
     }
 
-
-
     @Override
     public boolean mergeWith(QUndoCommand other) {
         return false;
     }
 
-    public static String createCommandString(List<GUIModuleInst> ghmList,
-            List<QPointF> posList) {
+    public static String createCommandString(List<GUIModuleInst> ghmList, List<QPointF> posList) {
         if (ghmList.size() == 1)
-            return "Moved " + ghmList.get(0).getModuleInst().getName() + " from "
-                    + posList.get(0);
+            return "Moved " + ghmList.get(0).getModuleInst().getName() + " from " + posList.get(0);
         return "Moved " + ghmList.size() + " items from " + posList.get(0);
     }
 
@@ -115,20 +108,20 @@ class MoveCommand extends QUndoCommand {
             prevAnchorSiteList.add(ghm.getModuleInst().getAnchor().getSite());
             // only update placement of hard macro if its validly placed (green)
             if (ghm.isValidlyPlaced()) {
-                double tileXd = ((ghm.pos().x()+ghm.getAnchorOffset().x())/tileSize);
-                double tileYd = ((ghm.pos().y()+ghm.getAnchorOffset().y())/tileSize);
+                double tileXd = ((ghm.pos().x() + ghm.getAnchorOffset().x()) / tileSize);
+                double tileYd = ((ghm.pos().y() + ghm.getAnchorOffset().y()) / tileSize);
                 int tileX = (int)tileXd;
                 int tileY = (int)tileYd;
-                //Tile newAnchorTile = device.getTile(tileY, tileX);
+                // Tile newAnchorTile = device.getTile(tileY, tileX);
                 Tile newAnchorTile = scene.drawnTiles[tileY][tileX];
-                Site newAnchorSite = ghm.getModuleInst().getModule().getAnchor().getCorrespondingSite(ghm.getModuleInst().getModule().getAnchor().getSiteTypeEnum(), newAnchorTile);
+                Site newAnchorSite = ghm.getModuleInst().getModule().getAnchor().getCorrespondingSite(
+                    ghm.getModuleInst().getModule().getAnchor().getSiteTypeEnum(), newAnchorTile);
                 newAnchorSiteList.add(newAnchorSite);
                 ghm.getModuleInst().place(newAnchorSite);
             } else {
                 newAnchorSiteList.add(null);
                 ghm.getModuleInst().unplace();
             }
-
         }
     }
 

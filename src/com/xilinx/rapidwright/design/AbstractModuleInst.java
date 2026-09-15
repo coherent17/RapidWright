@@ -31,7 +31,6 @@ import com.xilinx.rapidwright.edif.EDIFPort;
  * Abstract base class for {@link ModuleInst} and {@link ModuleImplsInst}
  */
 public abstract class AbstractModuleInst<ModuleT, PlacementT, T extends AbstractModuleInst<ModuleT, PlacementT, T>> {
-
     /** Name of the module instance */
     private String name;
     /** Reference to the logical cell instance in the netlist */
@@ -64,7 +63,6 @@ public abstract class AbstractModuleInst<ModuleT, PlacementT, T extends Abstract
         this.name = name;
     }
 
-
     public EDIFCellInst getCellInst() {
         return cellInst;
     }
@@ -95,19 +93,17 @@ public abstract class AbstractModuleInst<ModuleT, PlacementT, T extends Abstract
             return false;
         if (getClass() != obj.getClass())
             return false;
-        AbstractModuleInst<?,?,?> other = (AbstractModuleInst<?,?,?>) obj;
+        AbstractModuleInst<?, ?, ?> other = (AbstractModuleInst<?, ?, ?>)obj;
         if (name == null) {
             if (other.name != null)
                 return false;
-        }
-        else if (!name.equals(other.name))
+        } else if (!name.equals(other.name))
             return false;
         return true;
     }
     public String toString() {
         return name;
     }
-
 
     /**
      * Connects two signals by port name between this module instance and a top-level port.
@@ -127,7 +123,8 @@ public abstract class AbstractModuleInst<ModuleT, PlacementT, T extends Abstract
      * a logical net (EDIFNet) and physical net (Net).
      * @param portName This module instance's port name to connect.
      * @param otherPortName The top-level port of the the cell instance.
-     * @param busIndex If the port is multi-bit, specify the index to connect or -1 if single bit bus.
+     * @param busIndex If the port is multi-bit, specify the index to connect or -1 if single bit
+     *     bus.
      */
     public void connect(String portName, String otherPortName, int busIndex) {
         connect(portName, null, otherPortName, busIndex);
@@ -156,7 +153,8 @@ public abstract class AbstractModuleInst<ModuleT, PlacementT, T extends Abstract
      * connect it to an existing parent cell port named otherPortName
      * @param otherPortName The port name on the other module instance to connect to or
      * the top-level port of the the cell instance.
-     * @param busIndex If the port is multi-bit, specify the index to connect or -1 if single bit bus.
+     * @param busIndex If the port is multi-bit, specify the index to connect or -1 if single bit
+     *     bus.
      */
     public void connect(String portName, T other, String otherPortName, int busIndex) {
         connect(portName, busIndex, other, otherPortName, busIndex);
@@ -173,13 +171,15 @@ public abstract class AbstractModuleInst<ModuleT, PlacementT, T extends Abstract
      * connect it to an existing parent cell port named otherPortName
      * @param otherPortName The port name on the other module instance to connect to or
      * the top-level port of the the cell instance.
-     * @param busIndex1 If the port (of the other module instance or the existing parent cell) is multi-bit,
+     * @param busIndex1 If the port (of the other module instance or the existing parent cell) is
+     *     multi-bit,
      * specify the index to connect or -1 if single bit bus.
      */
 
     public void connect(String portName, int busIndex0, T other, String otherPortName, int busIndex1) {
         EDIFCell top = cellInst.getParentCell();
-        if (cellInst == null) throw new RuntimeException("ERROR: Couldn't find logical cell instance for " + getName());
+        if (cellInst == null)
+            throw new RuntimeException("ERROR: Couldn't find logical cell instance for " + getName());
         if (other == null) {
             // Connect to a top-level port
             EDIFPort port = top.getPort(otherPortName);
@@ -197,7 +197,8 @@ public abstract class AbstractModuleInst<ModuleT, PlacementT, T extends Abstract
             return;
         }
         EDIFCellInst eci1 = other.getCellInst();
-        if (eci1 == null) throw new RuntimeException("ERROR: Couldn't find logical cell instance for " + getName());
+        if (eci1 == null)
+            throw new RuntimeException("ERROR: Couldn't find logical cell instance for " + getName());
 
         String netName = getNewNetName(portName, busIndex0, other, otherPortName, busIndex1);
         EDIFNet net = top.createNet(netName);
@@ -210,12 +211,11 @@ public abstract class AbstractModuleInst<ModuleT, PlacementT, T extends Abstract
             EDIFPort port = cellInst.getParentCell().getPort(otherPortName);
             return busIndex1 == -1 ? otherPortName : port.getBusName() + "[" + busIndex1 + "]";
         } else {
-            return busIndex0 == -1 ? getName() + "_" + portName : getName() + "_" + portName + "["+busIndex0+"]";
+            return busIndex0 == -1 ? getName() + "_" + portName : getName() + "_" + portName + "[" + busIndex0 + "]";
         }
     }
 
     public abstract RelocatableTileRectangle getBoundingBox();
-
 
     public abstract PlacementT getPlacement();
     public abstract boolean overlaps(T hm);

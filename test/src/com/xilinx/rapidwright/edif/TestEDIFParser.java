@@ -23,6 +23,18 @@
 
 package com.xilinx.rapidwright.edif;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import java.util.zip.Deflater;
+
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
 import com.xilinx.rapidwright.tests.CodePerfTracker;
@@ -39,18 +51,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.python.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.python.apache.commons.compress.compressors.gzip.GzipParameters;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-import java.util.zip.Deflater;
 
 public class TestEDIFParser {
     private static final Path input = RapidWrightDCP.getPath("edif_parsing_stress_test.edf");
@@ -69,24 +69,23 @@ public class TestEDIFParser {
      * List of byte offsets that cause interesting behaviour if we start parsing there
      */
     private static final List<ParseStart> interestingOffsets = Arrays.asList(
-      new ParseStart("Mismatch in First Evil Cell", 577L, false),
-      new ParseStart("Mismatch in Second Evil Cell", 919L, false),
-      new ParseStart("Totally Misaligned", 1115L, false),
-      new ParseStart("After Evil", 1181L, true),
-      new ParseStart("At EOF", FILE_SIZE-2, false)
-    );
+        new ParseStart("Mismatch in First Evil Cell", 577L, false),
+        new ParseStart("Mismatch in Second Evil Cell", 919L, false), new ParseStart("Totally Misaligned", 1115L, false),
+        new ParseStart("After Evil", 1181L, true), new ParseStart("At EOF", FILE_SIZE - 2, false));
 
     /**
      * Check that we can recover from misdetected token starts.
      *
-     * Deliberately set a very low max token length for the tokenizer. Then run the parallel EDIF parser with very
-     * specific start offsets to generate interesting behavior.
+     * Deliberately set a very low max token length for the tokenizer. Then run the parallel EDIF
+     * parser with very specific start offsets to generate interesting behavior.
      */
-    @ParameterizedTest(name="{0}")
+    @ParameterizedTest(name = "{0}")
     @MethodSource("testParallelArgs")
-    public void testParallel(String ignoredDescription, List<ParseStart> offsets, int expectedSuccessfulThreads) throws IOException {
+    public void testParallel(String ignoredDescription, List<ParseStart> offsets, int expectedSuccessfulThreads)
+        throws IOException {
         EDIFNetlist netlist;
-        try (ParallelEDIFParserTestSpecificOffsets parser = new ParallelEDIFParserTestSpecificOffsets(input, 128, offsets)) {
+        try (ParallelEDIFParserTestSpecificOffsets parser =
+                 new ParallelEDIFParserTestSpecificOffsets(input, 128, offsets)) {
             netlist = parser.parseEDIFNetlist(new CodePerfTracker("parse edif"));
             Assertions.assertEquals(expectedSuccessfulThreads, parser.getSuccessfulThreads());
         }
@@ -94,7 +93,8 @@ public class TestEDIFParser {
     }
 
     /**
-     * Use listIndex as a bitfield to select which of the items in interestingOffsets to include in the testcase run
+     * Use listIndex as a bitfield to select which of the items in interestingOffsets to include in
+     * the testcase run
      */
     private static Arguments makeArgs(int listIndex) {
         Stream.Builder<String> names = Stream.builder();
@@ -102,8 +102,8 @@ public class TestEDIFParser {
         offsets.add(new ParseStart("Start of file", 0L, true));
 
         int expectedSuccessfulThreads = 1;
-        for (int i=0;i<interestingOffsets.size();i++) {
-            if (((1<<i)&listIndex) != 0) {
+        for (int i = 0; i < interestingOffsets.size(); i++) {
+            if (((1 << i) & listIndex) != 0) {
                 final ParseStart offs = interestingOffsets.get(i);
                 offsets.add(offs);
                 names.add(offs.name);
@@ -120,9 +120,8 @@ public class TestEDIFParser {
     }
 
     public static Stream<Arguments> testParallelArgs() {
-        //Build all combinations of interesting starts
-        return IntStream.range(0, 1<<interestingOffsets.size())
-                .mapToObj(TestEDIFParser::makeArgs);
+        // Build all combinations of interesting starts
+        return IntStream.range(0, 1 << interestingOffsets.size()).mapToObj(TestEDIFParser::makeArgs);
     }
 
     @Test
@@ -135,14 +134,9 @@ public class TestEDIFParser {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "false,false",
-            "false,true",
-            "true,false",
-            "true,true"
-    })
+    @CsvSource({"false,false", "false,true", "true,false", "true,true"})
     public void testGZIPEDIFParsing(boolean parallel, boolean decompressToDisk, @TempDir Path tempDir)
-            throws IOException {
+        throws IOException {
         Params.RW_DECOMPRESS_GZIPPED_EDIF_TO_DISK = decompressToDisk;
         Assumptions.assumeTrue(!parallel || ParallelismTools.getParallel());
 
@@ -155,7 +149,8 @@ public class TestEDIFParser {
         // a valid Gzip stream) in order to get the largest file size possible
         GzipParameters params = new GzipParameters();
         params.setCompressionLevel(Deflater.NO_COMPRESSION);
-        try (GzipCompressorOutputStream gzos = new GzipCompressorOutputStream(new FileOutputStream(compressed.toFile()), params)) {
+        try (GzipCompressorOutputStream gzos =
+                 new GzipCompressorOutputStream(new FileOutputStream(compressed.toFile()), params)) {
             design.getNetlist().exportEDIF(gzos);
         }
 

@@ -40,7 +40,7 @@ public class RuntimeTrackerTree {
     public RuntimeTrackerTree(String rootName, boolean verbose) {
         this.verbose = verbose;
         this.runtimeTrackers = new HashMap<>();
-        this.root = new RuntimeTracker(rootName, (short) 0);
+        this.root = new RuntimeTracker(rootName, (short)0);
         this.runtimeTrackers.put(this.root.getName(), this.root);
     }
 
@@ -58,12 +58,13 @@ public class RuntimeTrackerTree {
         }
         RuntimeTracker parentTracker = this.runtimeTrackers.get(parent);
         if (parentTracker == null) {
-            throw new RuntimeException("ERROR: No parent runtime tracker under name " + parent +
-                    ".\n Please refer to one of the created runtime trackers: " + this.runtimeTrackers.keySet());
+            throw new RuntimeException(
+                "ERROR: No parent runtime tracker under name " + parent +
+                ".\n Please refer to one of the created runtime trackers: " + this.runtimeTrackers.keySet());
         }
         RuntimeTracker newTracker = this.runtimeTrackers.get(name);
         if (newTracker == null) {
-            newTracker = new RuntimeTracker(name, (short) (parentTracker.getLevel() + 1));
+            newTracker = new RuntimeTracker(name, (short)(parentTracker.getLevel() + 1));
             parentTracker.addChild(newTracker);
             this.runtimeTrackers.put(name, newTracker);
         }
@@ -78,8 +79,10 @@ public class RuntimeTrackerTree {
     public RuntimeTracker getRuntimeTracker(String name) {
         RuntimeTracker tracker = this.runtimeTrackers.get(name);
         if (tracker == null) {
-            throw new IllegalArgumentException("ERROR: No runtime tracker instance under name " + name + "."
-                        + "\n Please check if the name is correct. Runtime trackers created: " + this.runtimeTrackers.keySet());
+            throw new IllegalArgumentException(
+                "ERROR: No runtime tracker instance under name " + name + "."
+                +
+                "\n Please check if the name is correct. Runtime trackers created: " + this.runtimeTrackers.keySet());
         }
         return tracker;
     }
@@ -105,5 +108,4 @@ public class RuntimeTrackerTree {
         }
         return this.root.trackerWithOneLevelChidren();
     }
-
 }

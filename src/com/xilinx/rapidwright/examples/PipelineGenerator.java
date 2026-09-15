@@ -54,7 +54,6 @@ import com.xilinx.rapidwright.edif.EDIFValueType;
 import com.xilinx.rapidwright.router.Router;
 import com.xilinx.rapidwright.tests.CodePerfTracker;
 import com.xilinx.rapidwright.util.MessageGenerator;
-
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
@@ -78,7 +77,6 @@ public class PipelineGenerator {
     protected static final String VERBOSE_OPT = "v";
     protected static final String HELP_OPT = "h";
 
-
     public static final int BITS_PER_CLE = 8;
 
     private static final String SLICE_SITES_OPT = "s";
@@ -86,32 +84,37 @@ public class PipelineGenerator {
     public static String INPUT_NAME = "IN";
     public static String OUTPUT_NAME = "OUT";
 
-    enum direction {vertical, horizontal;}
+    enum direction {
+        vertical,
+        horizontal;
+    }
 
-
-    public static PBlock createPipeline(Design d, Site startingPoint, int width, int depth, int distance, direction dir, boolean route) {
-
-        if (dir == direction.vertical && (distance < Math.ceil(width/8))) {
-            System.err.println("Error: the width (="+width+") and distance (="+distance+") parameters conflict in a way "+
-                    "that would result in an overlap in the veritical direction.  "+
-                    "Please choose different parameters or modify this example.");
+    public static PBlock createPipeline(Design d, Site startingPoint, int width, int depth, int distance, direction dir,
+                                        boolean route) {
+        if (dir == direction.vertical && (distance < Math.ceil(width / 8))) {
+            System.err.println("Error: the width (=" + width + ") and distance (=" + distance +
+                               ") parameters conflict in a way "
+                               + "that would result in an overlap in the veritical direction.  "
+                               + "Please choose different parameters or modify this example.");
 
             /* Note: Sites is the term for the locations on the device for placing instances.
-            When getting neighboring sites, e.g. when using adjacent slices, the function takes in a dx and dy as parameters.
-            This is also noted further below within the nested for loops.  The dx and dy can be modified to help control placement.
+            When getting neighboring sites, e.g. when using adjacent slices, the function takes in a
+            dx and dy as parameters. This is also noted further below within the nested for loops.
+            The dx and dy can be modified to help control placement.
              */
             System.exit(1);
         }
 
         EDIFCell top = d.getNetlist().getTopCell();
         Set<Site> used = new HashSet<>();
-        String bus = "["+(width-1)+":0]";
+        String bus = "[" + (width - 1) + ":0]";
 
-        /* Note: some of the first objects below are the EDIFNet objects, having to do with the logical connections
-         * of modules.  In general, the EDIF-related objects are used for capturing the logical representation.
-         * We are creating the I/O for this module below.
+        /* Note: some of the first objects below are the EDIFNet objects, having to do with the
+         * logical connections of modules.  In general, the EDIF-related objects are used for
+         * capturing the logical representation. We are creating the I/O for this module below.
          *
-         * Some of the conditions below were added in case the pipeline is later instantiated within a larger design.
+         * Some of the conditions below were added in case the pipeline is later instantiated within
+         * a larger design.
          * */
         EDIFPort inputPort = top.createPort(INPUT_NAME + bus, EDIFDirection.INPUT, width);
         EDIFPort outputPort = top.createPort(OUTPUT_NAME + bus, EDIFDirection.OUTPUT, width);
@@ -165,20 +168,19 @@ public class PipelineGenerator {
             rst = top.getNet(rstPort.getName());
         }
 
-        /* The "Net" objects below are used later for representing the physical connections in the implementation of the design. */
+        /* The "Net" objects below are used later for representing the physical connections in the
+         * implementation of the design. */
         Net clkNet = d.createNet(clk.getName());
         Net rstNet = d.createNet(rst.getName());
         Net ceNet = d.createNet(ce.getName());
 
-
         EDIFNet gnd = EDIFTools.getStaticNet(NetType.GND, top, d.getNetlist());
         EDIFNet vcc = EDIFTools.getStaticNet(NetType.VCC, top, d.getNetlist());
 
+        EDIFNet[][] ic = new EDIFNet[depth + 1][width];
+        boolean[][] ic_net_created = new boolean[depth + 1][width];
 
-        EDIFNet[][] ic = new EDIFNet[depth+1][width];
-        boolean[][] ic_net_created = new boolean[depth+1][width];
-
-        for (int j=0; j <= depth; j++) {
+        for (int j = 0; j <= depth; j++) {
             for (int i = width - 1; i >= 0; i--) {
                 String index = "[" + i + "]";
                 String ic_name;
@@ -193,14 +195,13 @@ public class PipelineGenerator {
             }
         }
 
-        /* The starting point was passed into the constructor for this object as slice coordinates.  It was set in the CreateOptionParser() method. */
+        /* The starting point was passed into the constructor for this object as slice coordinates.
+         * It was set in the CreateOptionParser() method. */
         Site prevSite = startingPoint;
         Site newSite = startingPoint;
 
-
         // Note: the outer loop replicates flops for having multiple cycles
-        for (int j=0; j < depth; j++) {
-
+        for (int j = 0; j < depth; j++) {
             int newSiteRow = newSite.getTile().getRow();
             int newSiteCol = newSite.getTile().getColumn();
 
@@ -211,29 +212,32 @@ public class PipelineGenerator {
                 Tile testTile = null;
 
                 if (dir == direction.vertical)
-                    testTile = d.getDevice().getTile(newSiteRow-tmpDistance, newSiteCol);
+                    testTile = d.getDevice().getTile(newSiteRow - tmpDistance, newSiteCol);
                 else if (dir == direction.horizontal)
-                    testTile = d.getDevice().getTile(newSiteRow, newSiteCol+tmpDistance);
+                    testTile = d.getDevice().getTile(newSiteRow, newSiteCol + tmpDistance);
 
                 boolean invalid = testTile.getSites().length == 0;
                 while (invalid) {
-                        tmpDistance++;
+                    tmpDistance++;
 
                     if (dir == direction.vertical)
-                        testTile = d.getDevice().getTile(newSiteRow-tmpDistance, newSiteCol);
+                        testTile = d.getDevice().getTile(newSiteRow - tmpDistance, newSiteCol);
                     else if (dir == direction.horizontal)
-                        testTile = d.getDevice().getTile(newSiteRow, newSiteCol+tmpDistance);
+                        testTile = d.getDevice().getTile(newSiteRow, newSiteCol + tmpDistance);
 
-                    // here we are checking that we are selecting a valid site type containing flops.
+                    // here we are checking that we are selecting a valid site type containing
+                    // flops.
                     invalid = testTile.getSites().length == 0;
                     invalid = invalid || !(testTile.getSites()[0].isCompatibleSiteType(SiteTypeEnum.SLICEL) ||
-                            testTile.getSites()[0].isCompatibleSiteType(SiteTypeEnum.SLICEM));
+                                           testTile.getSites()[0].isCompatibleSiteType(SiteTypeEnum.SLICEM));
 
                     newDistance = tmpDistance;
                 }
                 if (newDistance > distance) {
-                    System.out.println("Info: please note the tile distance for row "+j +" was adjusted to "+newDistance+
-                            " tiles from previous row.  This example did this to find the next occurring slice.");
+                    System.out.println("Info: please note the tile distance for row " + j + " was adjusted to " +
+                                       newDistance +
+                                       (" tiles from previous row.  This example did this to "
+                                        + "find the next occurring slice."));
                 }
                 newSite = testTile.getSites()[0];
             }
@@ -241,37 +245,42 @@ public class PipelineGenerator {
 
             // the inner for loop creates flops for one cycle, having the width of the bus
             for (int i = width - 1; i >= 0; i--) {
-
                 EDIFNet inputNet = ic[j][i];
                 EDIFNet outputNet = ic[j + 1][i];
 
                 /*
-                 *  Note: as mentioned above, when we get the next "neighbor site", we pass it a dx and dy each time.
+                 *  Note: as mentioned above, when we get the next "neighbor site", we pass it a dx
+                 * and dy each time.
                  */
                 Site currSlice = prevSite.getNeighborSite(0, i / BITS_PER_CLE);
 
-                /* Below is a check in case we have reached some site type that doesn't contain flops
-                * */
+                /* Below is a check in case we have reached some site type that doesn't contain
+                 * flops
+                 * */
                 int v = 0;
-                while (!currSlice.isCompatibleSiteType(SiteTypeEnum.SLICEL) && !currSlice.isCompatibleSiteType(SiteTypeEnum.SLICEM)) {
+                while (!currSlice.isCompatibleSiteType(SiteTypeEnum.SLICEL) &&
+                       !currSlice.isCompatibleSiteType(SiteTypeEnum.SLICEM)) {
                     v++;
-                    int dy = (i+v) / BITS_PER_CLE;
+                    int dy = (i + v) / BITS_PER_CLE;
                     currSlice = prevSite.getNeighborSite(0, dy);
                     if (currSlice == null) {
-                        System.err.println("Unable to find a suitable site for placing flop ["+j+"]["+i+"] " +
-                                "based on the current set of parameters with the starting location: "+startingPoint.toString()+".");
+                        System.err.println("Unable to find a suitable site for placing flop [" + j + "][" + i + "] " +
+                                           ("based on the current set of parameters with the "
+                                            + "starting location: ") +
+                                           startingPoint.toString() + ".");
                         System.exit(1);
                     }
                 }
 
                 used.add(currSlice);
 
-                /* Below picks the letter site containing pairs of flops.  The first flop is called "FF".  The second flop is called "FF2".
+                /* Below picks the letter site containing pairs of flops.  The first flop is called
+                 * "FF".  The second flop is called "FF2".
                  */
-                String letter = Character.toString((char) ('A' + i % 8));
+                String letter = Character.toString((char)('A' + i % 8));
                 BEL ff = currSlice.getBEL(letter + "FF");
                 char[] letter_char = new char[1];
-                letter.getChars(0,1,letter_char,0);
+                letter.getChars(0, 1, letter_char, 0);
                 boolean isFF2 = ff.getName().endsWith("2");
                 boolean isLowerSlice = 'A' <= letter_char[0] && letter_char[0] <= 'D';
                 String clkPinName = isLowerSlice ? "CLK1" : "CLK2";
@@ -287,10 +296,13 @@ public class PipelineGenerator {
                 inputNet.createPortInst("D", ffCell);
                 outputNet.createPortInst("Q", ffCell);
 
-                if (i ==0) prevSite = currSlice;
+                if (i == 0)
+                    prevSite = currSlice;
 
-                if (j==0) inputNet.createPortInst(inputPort, (width - 1) - i);
-                if (j==depth-1) outputNet.createPortInst(outputPort, (width - 1) - i);
+                if (j == 0)
+                    inputNet.createPortInst(inputPort, (width - 1) - i);
+                if (j == depth - 1)
+                    outputNet.createPortInst(outputPort, (width - 1) - i);
 
                 clkNet.getLogicalNet().createPortInst("C", ffCell);
                 rstNet.getLogicalNet().createPortInst("R", ffCell);
@@ -298,11 +310,11 @@ public class PipelineGenerator {
 
                 if (ff_si.getSitePinInst(clkPinName) == null) {
                     clkNet.createPin(clkPinName, ff_si);
-                    ff_si.addSitePIP(clkPinName + "INV","CLK");
+                    ff_si.addSitePIP(clkPinName + "INV", "CLK");
                 }
                 if (ff_si.getSitePinInst(rstPinName) == null) {
                     rstNet.createPin(rstPinName, ff_si);
-                    ff_si.addSitePIP("RST_"+(isLowerSlice ? "ABCD" : "EFGH")+"INV","RST");
+                    ff_si.addSitePIP("RST_" + (isLowerSlice ? "ABCD" : "EFGH") + "INV", "RST");
                 }
                 if (ff_si.getSitePinInst(cePinName) == null) {
                     ceNet.createPin(cePinName, ff_si);
@@ -310,12 +322,13 @@ public class PipelineGenerator {
             }
         }
 
-        /* In the case that the design uses "intra-sites", for example this design uses the "letter sites" inside of a slice,
-        * then it becomes necessary to call the routeSites() method below.  */
+        /* In the case that the design uses "intra-sites", for example this design uses the "letter
+         * sites" inside of a slice, then it becomes necessary to call the routeSites() method
+         * below.  */
         d.routeSites();
 
         // Find rectangular area consumed
-        PBlock footprint = new PBlock(d.getDevice(),used);
+        PBlock footprint = new PBlock(d.getDevice(), used);
 
         if (route) {
             Router r = new Router(d); // the Manhattan distance router
@@ -328,11 +341,10 @@ public class PipelineGenerator {
     }
 
     private static OptionParser createOptionParser() {
-
         // Defaults, please modify these to experiment
         String partName = "xcvu3p-ffvc1517-2-e";
         String designName = "pipeline";
-        String outputDCPFileName = System.getProperty("user.dir") + File.separator + designName +".dcp";
+        String outputDCPFileName = System.getProperty("user.dir") + File.separator + designName + ".dcp";
         String clkName = "clk";
         double clkPeriodConstraint = 1.291; // 775 MHz
 
@@ -344,27 +356,49 @@ public class PipelineGenerator {
         boolean verbose = true;
 
         // example code for command
-        OptionParser p = new OptionParser() {{
-            accepts(PART_OPT).withOptionalArg().defaultsTo(partName).describedAs("Ultrascale/UltraScale+ Part Name");
-            accepts(DESIGN_NAME_OPT).withOptionalArg().defaultsTo(designName).describedAs("Design Name");
-            accepts(OUT_DCP_OPT).withOptionalArg().defaultsTo(outputDCPFileName).describedAs("Output DCP File Name");
-            accepts(CLK_NAME_OPT).withOptionalArg().defaultsTo(clkName).describedAs("Clk net name");
-            accepts(CLK_CONSTRAINT_OPT).withOptionalArg().ofType(Double.class).defaultsTo(clkPeriodConstraint).describedAs("Clk period constraint (ns)");
-            accepts(WIDTH_OPT).withOptionalArg().ofType(Integer.class).defaultsTo(width).describedAs("width");
-            accepts(DEPTH_OPT).withOptionalArg().ofType(Integer.class).defaultsTo(depth).describedAs("depth");
-            accepts(DISTANCE_OPT).withOptionalArg().ofType(Integer.class).defaultsTo(distance).describedAs("distance");
-            accepts(SLICE_SITES_OPT).withOptionalArg().defaultsTo(sliceSite).describedAs("Lower left slice to be used for pipeline");
-            accepts(VERBOSE_OPT).withOptionalArg().ofType(Boolean.class).defaultsTo(verbose).describedAs("Print verbose output");
-            acceptsAll( Arrays.asList(HELP_OPT, "?"), "Print Help" ).forHelp();
-        }};
+        OptionParser p = new OptionParser() {
+            {
+                accepts(PART_OPT).withOptionalArg().defaultsTo(partName).describedAs(
+                    "Ultrascale/UltraScale+ Part Name");
+                accepts(DESIGN_NAME_OPT).withOptionalArg().defaultsTo(designName).describedAs("Design Name");
+                accepts(OUT_DCP_OPT)
+                    .withOptionalArg()
+                    .defaultsTo(outputDCPFileName)
+                    .describedAs("Output DCP File Name");
+                accepts(CLK_NAME_OPT).withOptionalArg().defaultsTo(clkName).describedAs("Clk net name");
+                accepts(CLK_CONSTRAINT_OPT)
+                    .withOptionalArg()
+                    .ofType(Double.class)
+                    .defaultsTo(clkPeriodConstraint)
+                    .describedAs("Clk period constraint (ns)");
+                accepts(WIDTH_OPT).withOptionalArg().ofType(Integer.class).defaultsTo(width).describedAs("width");
+                accepts(DEPTH_OPT).withOptionalArg().ofType(Integer.class).defaultsTo(depth).describedAs("depth");
+                accepts(DISTANCE_OPT)
+                    .withOptionalArg()
+                    .ofType(Integer.class)
+                    .defaultsTo(distance)
+                    .describedAs("distance");
+                accepts(SLICE_SITES_OPT)
+                    .withOptionalArg()
+                    .defaultsTo(sliceSite)
+                    .describedAs("Lower left slice to be used for pipeline");
+                accepts(VERBOSE_OPT)
+                    .withOptionalArg()
+                    .ofType(Boolean.class)
+                    .defaultsTo(verbose)
+                    .describedAs("Print verbose output");
+                acceptsAll(Arrays.asList(HELP_OPT, "?"), "Print Help").forHelp();
+            }
+        };
 
         return p;
     }
 
     private static void printHelp(OptionParser p) {
         MessageGenerator.printHeader("Pipeline Generator");
-        System.out.println("This RapidWright program creates an example pipelined bus as a placed and routed DCP. \n"
-            + "See the RapidWright documentation for more information.\n");
+        System.out.println("This RapidWright program creates an example pipelined bus as a "
+                           + "placed and routed DCP. \n"
+                           + "See the RapidWright documentation for more information.\n");
         try {
             p.accepts(OUT_DCP_OPT).withOptionalArg().defaultsTo("pipeline.dcp").describedAs("Output DCP File Name");
             p.printHelpOn(System.out);
@@ -378,52 +412,55 @@ public class PipelineGenerator {
         // Extract program options
         OptionParser p = createOptionParser();
         OptionSet opts = p.parse(args);
-        boolean verbose = (boolean) opts.valueOf(VERBOSE_OPT);
+        boolean verbose = (boolean)opts.valueOf(VERBOSE_OPT);
         if (opts.has(HELP_OPT)) {
             printHelp(p);
             return;
         }
-        CodePerfTracker t = verbose ? new CodePerfTracker(PipelineGenerator.class.getSimpleName(),true).start("Init") : null;
+        CodePerfTracker t =
+            verbose ? new CodePerfTracker(PipelineGenerator.class.getSimpleName(), true).start("Init") : null;
 
-        String partName = (String) opts.valueOf(PART_OPT);
-        String designName = (String) opts.valueOf(DESIGN_NAME_OPT);
-        String outputDCPFileName = (String) opts.valueOf(OUT_DCP_OPT);
-        String clkName = (String) opts.valueOf(CLK_NAME_OPT);
-        double clkPeriodConstraint = (double) opts.valueOf(CLK_CONSTRAINT_OPT);
+        String partName = (String)opts.valueOf(PART_OPT);
+        String designName = (String)opts.valueOf(DESIGN_NAME_OPT);
+        String outputDCPFileName = (String)opts.valueOf(OUT_DCP_OPT);
+        String clkName = (String)opts.valueOf(CLK_NAME_OPT);
+        double clkPeriodConstraint = (double)opts.valueOf(CLK_CONSTRAINT_OPT);
 
-        int width = (int) opts.valueOf(WIDTH_OPT);
-        int depth = (int) opts.valueOf(DEPTH_OPT);
-        int distance = (int) opts.valueOf(DISTANCE_OPT);
+        int width = (int)opts.valueOf(WIDTH_OPT);
+        int depth = (int)opts.valueOf(DEPTH_OPT);
+        int distance = (int)opts.valueOf(DISTANCE_OPT);
 
         /******** SET THE DIRECTION HERE ********/
         direction dir = direction.horizontal;
 
-        String sliceName = (String) opts.valueOf(SLICE_SITES_OPT);
+        String sliceName = (String)opts.valueOf(SLICE_SITES_OPT);
 
         // Perform some error checking on inputs
         Part part = PartNameTools.getPart(partName);
         if (part == null || part.isSeries7()) {
-            throw new RuntimeException("ERROR: Invalid/unsupported part " + partName + ".  This example was coded "+
-                              "for UltraScale or UltraScale+ devices.");
+            throw new RuntimeException("ERROR: Invalid/unsupported part " + partName + ".  This example was coded "
+                                       + "for UltraScale or UltraScale+ devices.");
         }
 
-        Design d = new Design(designName,partName);
+        Design d = new Design(designName, partName);
         d.setAutoIOBuffers(false);
         Device dev = d.getDevice();
 
         t.stop().start("Create Pipeline");
         Site slice = dev.getSite(sliceName);
-        createPipeline(d, slice, width, depth, distance, dir,true);
+        createPipeline(d, slice, width, depth, distance, dir, true);
 
         // Add a clock constraint
-        String tcl = "create_clock -name "+clkName+" -period "+clkPeriodConstraint+" [get_ports "+clkName+"]";
-        d.addXDCConstraint(ConstraintGroup.LATE,tcl);
+        String tcl =
+            "create_clock -name " + clkName + " -period " + clkPeriodConstraint + " [get_ports " + clkName + "]";
+        d.addXDCConstraint(ConstraintGroup.LATE, tcl);
         d.setAutoIOBuffers(false);
 
         t.stop();
         if (!outputDCPFileName.equals("/dev/null")) {
             d.writeCheckpoint(outputDCPFileName, t);
-            if (verbose) System.out.println("Wrote final DCP: " + outputDCPFileName);
+            if (verbose)
+                System.out.println("Wrote final DCP: " + outputDCPFileName);
         }
     }
 }

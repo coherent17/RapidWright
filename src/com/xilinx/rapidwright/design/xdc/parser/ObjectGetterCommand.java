@@ -33,10 +33,10 @@ import tcl.lang.TclNumArgsException;
 import tcl.lang.TclObject;
 
 /**
- * Tcl command to get something that will probably be passed onto a <code>set_property</code> call later
+ * Tcl command to get something that will probably be passed onto a <code>set_property</code> call
+ * later
  */
 public class ObjectGetterCommand implements Command {
-
     private final EdifCellLookup<?> lookup;
     private final boolean takesObjects;
     private final ObjType objType;
@@ -57,13 +57,13 @@ public class ObjectGetterCommand implements Command {
             }
             res = new NameDesignObject(objType, null);
         } else {
-            boolean argCountOk = argv.length == 2 || (argv.length==3 && argv[1].toString().equals("-quiet"));
+            boolean argCountOk = argv.length == 2 || (argv.length == 3 && argv[1].toString().equals("-quiet"));
             if (!argCountOk || TclHashIdentifiedObject.containsStringifiedObject(argv)) {
                 interp.setResult(UnsupportedCmdResult.makeTclObj(interp, argv, lookup, false, false));
                 return;
             }
 
-            TclObject objs = argv[argv.length-1];
+            TclObject objs = argv[argv.length - 1];
             if (objs.getInternalRep() instanceof TclList) {
                 TclObject[] elements = TclList.getElements(interp, objs);
                 List<String> strings = Arrays.stream(elements).map(Object::toString).collect(Collectors.toList());

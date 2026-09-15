@@ -28,21 +28,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.xilinx.rapidwright.design.Design;
+import com.xilinx.rapidwright.device.Device;
+import com.xilinx.rapidwright.support.RapidWrightDCP;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.xilinx.rapidwright.design.Design;
-import com.xilinx.rapidwright.device.Device;
-import com.xilinx.rapidwright.support.RapidWrightDCP;
-
 public class TestNOCDesign {
-
     public void sanityChecks(Design d) {
         Device dev = d.getDevice();
         NOCDesign nocDesign = d.getNOCDesign();
         for (NOCConnection conn : nocDesign.getAllConnections()) {
-            for (Entry<ChannelType,NOCChannel> e : conn.getChannels().entrySet()) {
+            for (Entry<ChannelType, NOCChannel> e : conn.getChannels().entrySet()) {
                 NOCChannel ch = e.getValue();
                 Assertions.assertNotNull(ch);
                 Assertions.assertEquals(ch.getRequiredLatency(), 300);
@@ -51,7 +49,7 @@ public class TestNOCDesign {
             }
         }
 
-        for (Entry<String,NOCClient> e : nocDesign.getClients().entrySet()) {
+        for (Entry<String, NOCClient> e : nocDesign.getClients().entrySet()) {
             Assertions.assertEquals(e.getKey(), e.getValue().getName());
             NOCClient client = e.getValue();
             Assertions.assertNotNull(client);
@@ -60,13 +58,13 @@ public class TestNOCDesign {
     }
 
     public void testClientsAreEqual(NOCClient gold, NOCClient test) {
-        Assertions.assertEquals(gold.getName(),test.getName());
-        Assertions.assertEquals(gold.getComponentType(),test.getComponentType());
-        Assertions.assertEquals(gold.getConnections().size(),test.getConnections().size());
-        Assertions.assertEquals(gold.getLocation(),test.getLocation());
-        Assertions.assertEquals(gold.getProtocol(),test.getProtocol());
-        Assertions.assertEquals(gold.isDDRC(),test.isDDRC());
-        Assertions.assertEquals(gold.isFabricClient(),test.isFabricClient());
+        Assertions.assertEquals(gold.getName(), test.getName());
+        Assertions.assertEquals(gold.getComponentType(), test.getComponentType());
+        Assertions.assertEquals(gold.getConnections().size(), test.getConnections().size());
+        Assertions.assertEquals(gold.getLocation(), test.getLocation());
+        Assertions.assertEquals(gold.getProtocol(), test.getProtocol());
+        Assertions.assertEquals(gold.isDDRC(), test.isDDRC());
+        Assertions.assertEquals(gold.isFabricClient(), test.isFabricClient());
     }
 
     @Test
@@ -88,31 +86,30 @@ public class TestNOCDesign {
         List<NOCConnection> goldConns = nocGold.getAllConnections();
         List<NOCConnection> testConns = nocTest.getAllConnections();
         Assertions.assertEquals(goldConns.size(), testConns.size());
-        for (int i=0; i < goldConns.size(); i++) {
+        for (int i = 0; i < goldConns.size(); i++) {
             NOCConnection goldConn = goldConns.get(i);
             NOCConnection testConn = testConns.get(i);
 
-            Assertions.assertEquals(goldConn.getCommType(),testConn.getCommType());
-            Assertions.assertEquals(goldConn.getEstimatedReadBandwidth(),testConn.getEstimatedReadBandwidth());
-            Assertions.assertEquals(goldConn.getEstimatedWriteBandwidth(),testConn.getEstimatedWriteBandwidth());
-            Assertions.assertEquals(goldConn.getPort(),testConn.getPort());
-            Assertions.assertEquals(goldConn.getReadBandwidth(),testConn.getReadBandwidth());
-            Assertions.assertEquals(goldConn.getReadLatency(),testConn.getReadLatency());
-            Assertions.assertEquals(goldConn.getWriteBandwidth(),testConn.getWriteBandwidth());
-            Assertions.assertEquals(goldConn.getWriteLatency(),testConn.getWriteLatency());
-            Assertions.assertEquals(goldConn.isRouted(),testConn.isRouted());
+            Assertions.assertEquals(goldConn.getCommType(), testConn.getCommType());
+            Assertions.assertEquals(goldConn.getEstimatedReadBandwidth(), testConn.getEstimatedReadBandwidth());
+            Assertions.assertEquals(goldConn.getEstimatedWriteBandwidth(), testConn.getEstimatedWriteBandwidth());
+            Assertions.assertEquals(goldConn.getPort(), testConn.getPort());
+            Assertions.assertEquals(goldConn.getReadBandwidth(), testConn.getReadBandwidth());
+            Assertions.assertEquals(goldConn.getReadLatency(), testConn.getReadLatency());
+            Assertions.assertEquals(goldConn.getWriteBandwidth(), testConn.getWriteBandwidth());
+            Assertions.assertEquals(goldConn.getWriteLatency(), testConn.getWriteLatency());
+            Assertions.assertEquals(goldConn.isRouted(), testConn.isRouted());
 
             NOCMaster goldMaster = goldConn.getSource();
             NOCMaster testMaster = testConn.getSource();
             testClientsAreEqual(goldMaster, testMaster);
-            Assertions.assertEquals(goldMaster.getReadTC(),testMaster.getReadTC());
-            Assertions.assertEquals(goldMaster.getWriteTC(),testMaster.getWriteTC());
+            Assertions.assertEquals(goldMaster.getReadTC(), testMaster.getReadTC());
+            Assertions.assertEquals(goldMaster.getWriteTC(), testMaster.getWriteTC());
 
             NOCSlave goldSlave = goldConn.getDest();
             NOCSlave testSlave = testConn.getDest();
             testClientsAreEqual(goldSlave, testSlave);
             Assertions.assertEquals(goldSlave.getPorts(), testSlave.getPorts());
-
 
             Map<ChannelType, NOCChannel> goldMap = goldConn.getChannels();
             Map<ChannelType, NOCChannel> testMap = goldConn.getChannels();
@@ -121,12 +118,12 @@ public class TestNOCDesign {
                 Assertions.assertTrue(testMap.containsKey(e.getKey()));
                 NOCChannel goldCh = e.getValue();
                 NOCChannel testCh = testMap.get(e.getKey());
-                Assertions.assertEquals(goldCh.getChannelPath(),testCh.getChannelPath());
-                Assertions.assertEquals(goldCh.getChannelType(),testCh.getChannelType());
-                Assertions.assertEquals(goldCh.getEstimatedBandwidth(),testCh.getEstimatedBandwidth());
-                Assertions.assertEquals(goldCh.getEstimatedLatency(),testCh.getEstimatedLatency());
-                Assertions.assertEquals(goldCh.getRequiredBandwidth(),testCh.getRequiredBandwidth());
-                Assertions.assertEquals(goldCh.getRequiredLatency(),testCh.getRequiredLatency());
+                Assertions.assertEquals(goldCh.getChannelPath(), testCh.getChannelPath());
+                Assertions.assertEquals(goldCh.getChannelType(), testCh.getChannelType());
+                Assertions.assertEquals(goldCh.getEstimatedBandwidth(), testCh.getEstimatedBandwidth());
+                Assertions.assertEquals(goldCh.getEstimatedLatency(), testCh.getEstimatedLatency());
+                Assertions.assertEquals(goldCh.getRequiredBandwidth(), testCh.getRequiredBandwidth());
+                Assertions.assertEquals(goldCh.getRequiredLatency(), testCh.getRequiredLatency());
             }
         }
     }

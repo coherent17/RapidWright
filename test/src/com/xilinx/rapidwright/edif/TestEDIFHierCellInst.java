@@ -27,17 +27,15 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import com.xilinx.rapidwright.design.Design;
+import com.xilinx.rapidwright.support.RapidWrightDCP;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.python.google.common.base.Strings;
 
-import com.xilinx.rapidwright.design.Design;
-import com.xilinx.rapidwright.support.RapidWrightDCP;
-
 public class TestEDIFHierCellInst {
-
     @Test
     public void testIsAncestor() {
         Design d = Design.readCheckpoint(RapidWrightDCP.getPath("microblazeAndILA_3pblocks.dcp"), true);
@@ -60,9 +58,9 @@ public class TestEDIFHierCellInst {
         EDIFNetlist netlist = d.getNetlist();
 
         String name0 = "base_mb_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/"
-                        + "Data_Flow_Logic_I/Gen_Bits[22].MEM_EX_Result_Inst/Using_FPGA.Native";
+                       + "Data_Flow_Logic_I/Gen_Bits[22].MEM_EX_Result_Inst/Using_FPGA.Native";
         String name1 = "base_mb_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Decode_I/"
-                + "PreFetch_Buffer_I1/Instruction_Prefetch_Mux[9].Gen_Instr_DFF/EX_Op3[22]_i_2";
+                       + "PreFetch_Buffer_I1/Instruction_Prefetch_Mux[9].Gen_Instr_DFF/EX_Op3[22]_i_2";
 
         EDIFHierCellInst inst0 = netlist.getHierCellInstFromName(name0);
         EDIFHierCellInst inst1 = netlist.getHierCellInstFromName(name1);
@@ -71,7 +69,7 @@ public class TestEDIFHierCellInst {
 
         String commonPrefix = Strings.commonPrefix(name0, name1);
         Assertions.assertEquals(commonAncestor.getFullHierarchicalInstName(),
-                commonPrefix.substring(0, commonPrefix.lastIndexOf('/')));
+                                commonPrefix.substring(0, commonPrefix.lastIndexOf('/')));
 
         String name2 = "u_ila_0/inst/ila_core_inst/basic_trigger_reg";
 
@@ -81,12 +79,14 @@ public class TestEDIFHierCellInst {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "picoblaze_ooc_X10Y235.dcp",
-            "optical-flow.dcp",
-            "bnn.dcp",
-    })
-    public void testIsUniquified(String path) {
+    @ValueSource(strings =
+                     {
+                         "picoblaze_ooc_X10Y235.dcp",
+                         "optical-flow.dcp",
+                         "bnn.dcp",
+                     })
+    public void
+    testIsUniquified(String path) {
         Design design = RapidWrightDCP.loadDCP(path, true);
         EDIFNetlist netlist = design.getNetlist();
 
@@ -102,14 +102,10 @@ public class TestEDIFHierCellInst {
         Assertions.assertTrue(netlist.getTopCell().isUniquified());
 
         for (String path : Arrays.asList(
-                "picoblaze_0_12",
-                "picoblaze_0_13",
-                "picoblaze_1_12",
-                "picoblaze_1_13",
-                "picoblaze_1_13/processor",
-                "picoblaze_1_13/processor/active_interrupt_lut",        // This is a LUT6_2 macro
-                "picoblaze_1_13/processor/active_interrupt_lut/LUT5"    // This is a LUT5 primitive
-        )) {
+                 "picoblaze_0_12", "picoblaze_0_13", "picoblaze_1_12", "picoblaze_1_13", "picoblaze_1_13/processor",
+                 "picoblaze_1_13/processor/active_interrupt_lut",     // This is a LUT6_2 macro
+                 "picoblaze_1_13/processor/active_interrupt_lut/LUT5" // This is a LUT5 primitive
+                 )) {
             EDIFHierCellInst ehci = netlist.getHierCellInstFromName(path);
             Assertions.assertFalse(ehci.isUniquified());
         }

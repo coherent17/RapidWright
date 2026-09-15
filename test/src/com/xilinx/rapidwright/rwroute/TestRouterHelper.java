@@ -22,6 +22,15 @@
 
 package com.xilinx.rapidwright.rwroute;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.Net;
@@ -50,31 +59,20 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
-
 public class TestRouterHelper {
     @ParameterizedTest
-    @CsvSource({
-            "xcvu3p,SLICE_X0Y0,COUT,null",
-            "xcvu3p,SLICE_X0Y299,COUT,null",
-            "xcvu3p,SLICE_X0Y0,A_O,CLEL_R_X0Y0/CLE_CLE_L_SITE_0_A_O",
-            "xcvu3p,GTYE4_CHANNEL_X0Y12,TXOUTCLK_INT,null",
-            "xcvu3p,IOB_X1Y95,I,INT_INTF_L_IO_X72Y109/LOGIC_OUTS_R23",
-            "xcvu3p,IOB_X1Y80,I,INT_INTF_L_IO_X72Y92/LOGIC_OUTS_R22",
-            "xcvu3p,IOB_X1Y179,I,INT_INTF_L_CMT_X72Y208/LOGIC_OUTS_R18",
-            "xcvu3p,IOB_X1Y75,I,INT_INTF_L_CMT_X72Y88/LOGIC_OUTS_R18",
-            "xcvu3p,IOB_X1Y184,I,INT_INTF_L_IO_X72Y212/LOGIC_OUTS_R22",
-            "xcvu3p,MMCM_X0Y0,LOCKED,INT_INTF_L_IO_X36Y54/LOGIC_OUTS_R0",
-            "xcvp1002,MMCM_X2Y0,LOCKED,BLI_CLE_BOT_CORE_X27Y0/LOGIC_OUTS_D23"
-    })
-    public void testProjectOutputPinToINTNode(String partName, String siteName, String pinName, String nodeAsString) {
+    @CsvSource({"xcvu3p,SLICE_X0Y0,COUT,null", "xcvu3p,SLICE_X0Y299,COUT,null",
+                "xcvu3p,SLICE_X0Y0,A_O,CLEL_R_X0Y0/CLE_CLE_L_SITE_0_A_O",
+                "xcvu3p,GTYE4_CHANNEL_X0Y12,TXOUTCLK_INT,null",
+                "xcvu3p,IOB_X1Y95,I,INT_INTF_L_IO_X72Y109/LOGIC_OUTS_R23",
+                "xcvu3p,IOB_X1Y80,I,INT_INTF_L_IO_X72Y92/LOGIC_OUTS_R22",
+                "xcvu3p,IOB_X1Y179,I,INT_INTF_L_CMT_X72Y208/LOGIC_OUTS_R18",
+                "xcvu3p,IOB_X1Y75,I,INT_INTF_L_CMT_X72Y88/LOGIC_OUTS_R18",
+                "xcvu3p,IOB_X1Y184,I,INT_INTF_L_IO_X72Y212/LOGIC_OUTS_R22",
+                "xcvu3p,MMCM_X0Y0,LOCKED,INT_INTF_L_IO_X36Y54/LOGIC_OUTS_R0",
+                "xcvp1002,MMCM_X2Y0,LOCKED,BLI_CLE_BOT_CORE_X27Y0/LOGIC_OUTS_D23"})
+    public void
+    testProjectOutputPinToINTNode(String partName, String siteName, String pinName, String nodeAsString) {
         Design design = new Design("design", partName);
         SiteInst si = design.createSiteInst(siteName);
         SitePinInst spi = new SitePinInst(pinName, si);
@@ -82,12 +80,10 @@ public class TestRouterHelper {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "xcvu3p,MMCM_X0Y0,PSEN,INT_X36Y56/IMUX_W0",
-            "xcvu3p,BUFGCE_X0Y58,CLK_IN,INT_X36Y151/IMUX_W34",
-            "xcvp1002,MMCM_X2Y0,PSEN,INT_X27Y0/IMUX_B_W24"
-    })
-    public void testProjectInputPinToINTNode(String partName, String siteName, String pinName, String nodeAsString) {
+    @CsvSource({"xcvu3p,MMCM_X0Y0,PSEN,INT_X36Y56/IMUX_W0", "xcvu3p,BUFGCE_X0Y58,CLK_IN,INT_X36Y151/IMUX_W34",
+                "xcvp1002,MMCM_X2Y0,PSEN,INT_X27Y0/IMUX_B_W24"})
+    public void
+    testProjectInputPinToINTNode(String partName, String siteName, String pinName, String nodeAsString) {
         Design design = new Design("design", partName);
         SiteInst si = design.createSiteInst(siteName);
         SitePinInst spi = new SitePinInst(pinName, si);
@@ -122,102 +118,40 @@ public class TestRouterHelper {
 
     public static Stream<Arguments> testInvertPossibleGndPinsToVccPins() {
         return Stream.of(
-                Arguments.of("xcvu3p", "RAMB36_X0Y0", Arrays.asList(
-                        "ENAL,true",
-                        "ENAU,true",
-                        "ENBL,true",
-                        "ENBU,true",
-                        "RSTFIFO,true",
-                        "RSTRAMAL,true",
-                        "RSTRAMAU,true",
-                        "RSTRAMBL,true",
-                        "RSTRAMBU,true",
-                        "RSTREGAL,true",
-                        "RSTREGAU,true",
-                        "RSTREGBL,true",
-                        "RSTREGBU,true",
+            Arguments.of("xcvu3p", "RAMB36_X0Y0",
+                         Arrays.asList("ENAL,true", "ENAU,true", "ENBL,true", "ENBU,true", "RSTFIFO,true",
+                                       "RSTRAMAL,true", "RSTRAMAU,true", "RSTRAMBL,true", "RSTRAMBU,true",
+                                       "RSTREGAL,true", "RSTREGAU,true", "RSTREGBL,true", "RSTREGBU,true",
 
-                        "CLKAL,false",
-                        "CLKAU,false",
-                        "CLKBL,false",
-                        "CLKBU,false",
-                        "ADDRENAL,false",
-                        "ADDRENAU,false",
-                        "REGCEAL,false",
-                        "REGCEAU,false"
-                        )),
-                Arguments.of("xcvu3p", "DSP48E2_X0Y0", Arrays.asList(
-                        "ALUMODE0,true",
-                        "ALUMODE1,true",
-                        "ALUMODE2,true",
-                        "ALUMODE3,true",
-                        "CARRYIN,true",
-                        "CLK,true",
-                        "INMODE0,true",
-                        "INMODE1,true",
-                        "INMODE2,true",
-                        "INMODE3,true",
-                        "INMODE4,true",
-                        "OPMODE0,true",
-                        "OPMODE1,true",
-                        "OPMODE2,true",
-                        "OPMODE3,true",
-                        "OPMODE4,true",
-                        "OPMODE5,true",
-                        "OPMODE6,true",
-                        "OPMODE7,true",
-                        "OPMODE8,true",
-                        "RSTA,true",
-                        "RSTALLCARRYIN,true",
-                        "RSTALUMODE,true",
-                        "RSTB,true",
-                        "RSTC,true",
-                        "RSTCTRL,true",
-                        "RSTD,true",
-                        "RSTINMODE,true",
-                        "RSTM,true",
-                        "RSTP,true",
+                                       "CLKAL,false", "CLKAU,false", "CLKBL,false", "CLKBU,false", "ADDRENAL,false",
+                                       "ADDRENAU,false", "REGCEAL,false", "REGCEAU,false")),
+            Arguments.of("xcvu3p", "DSP48E2_X0Y0",
+                         Arrays.asList("ALUMODE0,true", "ALUMODE1,true", "ALUMODE2,true", "ALUMODE3,true",
+                                       "CARRYIN,true", "CLK,true", "INMODE0,true", "INMODE1,true", "INMODE2,true",
+                                       "INMODE3,true", "INMODE4,true", "OPMODE0,true", "OPMODE1,true", "OPMODE2,true",
+                                       "OPMODE3,true", "OPMODE4,true", "OPMODE5,true", "OPMODE6,true", "OPMODE7,true",
+                                       "OPMODE8,true", "RSTA,true", "RSTALLCARRYIN,true", "RSTALUMODE,true",
+                                       "RSTB,true", "RSTC,true", "RSTCTRL,true", "RSTD,true", "RSTINMODE,true",
+                                       "RSTM,true", "RSTP,true",
 
-                        "CEINMODE,false",
-                        "CED,false",
-                        "CEAD,false"
-                )),
-                Arguments.of("xcvu3p", "URAM288_X0Y0", Arrays.asList(
-                        "CLK,true",
-                        "EN_A,true",
-                        "EN_B,true",
-                        "RDB_WR_A,true",
-                        "RDB_WR_B,true",
-                        "RST_A,true",
-                        "RST_B,true",
+                                       "CEINMODE,false", "CED,false", "CEAD,false")),
+            Arguments.of("xcvu3p", "URAM288_X0Y0",
+                         Arrays.asList("CLK,true", "EN_A,true", "EN_B,true", "RDB_WR_A,true", "RDB_WR_B,true",
+                                       "RST_A,true", "RST_B,true",
 
-                        "SLEEP,false",
-                        "ADDR_A0,false",
-                        "ADDR_A1,false",
-                        "ADDR_A2,false"
-                )),
-                Arguments.of("xcvu3p", "SLICE_X1Y0", Arrays.asList(
-                        "CLK1,true",
-                        "CLK2,true",
-                        "SRST1,true",
-                        "SRST2,true",
-                        "LCLK,true",
+                                       "SLEEP,false", "ADDR_A0,false", "ADDR_A1,false", "ADDR_A2,false")),
+            Arguments.of("xcvu3p", "SLICE_X1Y0",
+                         Arrays.asList("CLK1,true", "CLK2,true", "SRST1,true", "SRST2,true", "LCLK,true",
 
-                        "CKEN1,false",
-                        "CKEN2,false",
-                        "CKEN3,false",
-                        "CKEN4,false",
-                        "WCKEN,false",
-                        "CIN,false"
-                ))
-        );
+                                       "CKEN1,false", "CKEN2,false", "CKEN3,false", "CKEN4,false", "WCKEN,false",
+                                       "CIN,false")));
     }
 
     @Test
     public void testProjectOutputPinToINTNodeBitslice() {
         Design d = new Design("test", "xcvu19p-fsva3824-1-e");
 
-        String[] testSites = { "SLICE_X0Y1199", "SLICE_X1Y1199" };
+        String[] testSites = {"SLICE_X0Y1199", "SLICE_X1Y1199"};
         for (String siteName : testSites) {
             SiteInst si = d.createSiteInst(siteName);
             for (String pinName : si.getSitePinNames()) {
@@ -255,7 +189,8 @@ public class TestRouterHelper {
         Assertions.assertTrue(epi.getNet().isGND());
 
         // Check A6 was inverted, and it was moved off gndNet
-        Set<SitePinInst> invertedPins = RouterHelper.invertPossibleGndPinsToVccPins(design, gndNet.getPins(), invertLutInputs);
+        Set<SitePinInst> invertedPins =
+            RouterHelper.invertPossibleGndPinsToVccPins(design, gndNet.getPins(), invertLutInputs);
         if (invertLutInputs) {
             Assertions.assertEquals("[" + spi + "]", invertedPins.toString());
         } else {
@@ -289,13 +224,11 @@ public class TestRouterHelper {
     }
 
     @ParameterizedTest
-    @CsvSource({"" +
-            "false,false",
-            "false,true",
-            "true,false",
-            "true,true"
-    })
-    public void testInvertPossibleGndPinsToVccPinsLutInputOnlyIfFlattenedAndUniquified(boolean flatten, boolean uniquify) {
+    @CsvSource({""
+                    + "false,false",
+                "false,true", "true,false", "true,true"})
+    public void
+    testInvertPossibleGndPinsToVccPinsLutInputOnlyIfFlattenedAndUniquified(boolean flatten, boolean uniquify) {
         Design design = RapidWrightDCP.loadDCP("picoblaze4_ooc_X6Y60_X6Y65_X10Y60_X10Y65.dcp");
 
         Assertions.assertEquals(1, design.getModules().size());
@@ -346,10 +279,13 @@ public class TestRouterHelper {
 
     @ParameterizedTest
     @CsvSource({
-            "xcvp1002,XPIO_NIBBLE_SC_1_X9Y0/XPIO_IOBPAIR_5_RXOUT_M_PIN,CMT_MMCM_X11Y0/CMT_MMCM_TOP_0_CLKIN1_PIN",
-            "xcvp1002,CMT_MMCM_X11Y0/CMT_MMCM_TOP_0_CLKOUT0_PIN,CLK_REBUF_BUFGS_HSR_CORE_X8Y0/CLK_BUFGCE_59_I_PIN",
+        "xcvp1002,XPIO_NIBBLE_SC_1_X9Y0/XPIO_IOBPAIR_5_RXOUT_M_PIN,CMT_MMCM_X11Y0/"
+            + "CMT_MMCM_TOP_0_CLKIN1_PIN",
+        "xcvp1002,CMT_MMCM_X11Y0/CMT_MMCM_TOP_0_CLKOUT0_PIN,CLK_REBUF_BUFGS_HSR_CORE_X8Y0/"
+            + "CLK_BUFGCE_59_I_PIN",
     })
-    public void testFindPathBetweenNodes(String partName, String sourceNodeName, String sinkNodeName) {
+    public void
+    testFindPathBetweenNodes(String partName, String sourceNodeName, String sinkNodeName) {
         Device device = Device.getDevice(partName);
         Node sourceNode = device.getNode(sourceNodeName);
         Node sinkNode = device.getNode(sinkNodeName);
@@ -365,49 +301,43 @@ public class TestRouterHelper {
      * direction that {@link PIP#isReversed()} gives rather than the direction the device declares.
      */
     @ParameterizedTest
-    @CsvSource({
-            // Sink pin, the INT tile node it projects to, its expected delay, and whether to
-            // reverse the order that the net's PIPs are given in
-            "B3,INT_X54Y135/IMUX_W25,178,false",
-            "B3,INT_X54Y135/IMUX_W25,178,true",
-            "D5,INT_X54Y135/IMUX_W31,174,false",
-            "D5,INT_X54Y135/IMUX_W31,174,true",
-            "H3,INT_X54Y135/IMUX_W33,178,false",
-            "H3,INT_X54Y135/IMUX_W33,178,true",
-            // A1 is the only sink reached through the reversed PIP below; walking that PIP in the
-            // direction the device declares for it instead loses the two nodes ahead of it, and
-            // under-reports A1 as 204ps
-            "A1,INT_X54Y136/IMUX_W10,269,false",
-            "A1,INT_X54Y136/IMUX_W10,269,true"
-    })
-    public void testGetSourceToSinkINTNodeDelays(String sinkPinName, String sinkNodeName,
-                                                 short expectedDelay, boolean reversePipOrder) {
+    @CsvSource({// Sink pin, the INT tile node it projects to, its expected delay, and whether to
+                // reverse the order that the net's PIPs are given in
+                "B3,INT_X54Y135/IMUX_W25,178,false", "B3,INT_X54Y135/IMUX_W25,178,true",
+                "D5,INT_X54Y135/IMUX_W31,174,false", "D5,INT_X54Y135/IMUX_W31,174,true",
+                "H3,INT_X54Y135/IMUX_W33,178,false", "H3,INT_X54Y135/IMUX_W33,178,true",
+                // A1 is the only sink reached through the reversed PIP below; walking that PIP in
+                // the direction the device declares for it instead loses the two nodes ahead of it,
+                // and under-reports A1 as 204ps
+                "A1,INT_X54Y136/IMUX_W10,269,false", "A1,INT_X54Y136/IMUX_W10,269,true"})
+    public void
+    testGetSourceToSinkINTNodeDelays(String sinkPinName, String sinkNodeName, short expectedDelay,
+                                     boolean reversePipOrder) {
         Design design = new Design("design", "xcvu3p");
         Device device = design.getDevice();
 
         // A net taken from a Vivado-routed design, listed here in topological order, that fans out
         // to four sinks and that uses one bidirectional PIP in the reverse of the direction that
         // the device declares for it
-        String[] pips = new String[]{
-                "INT_X54Y135/INT.LOGIC_OUTS_W30->>INT_NODE_IMUX_60_INT_OUT1",
-                "INT_X54Y135/INT.INT_NODE_IMUX_60_INT_OUT1->>BYPASS_W14",
-                "INT_X54Y135/INT.BYPASS_W14->>INT_NODE_IMUX_50_INT_OUT1",
-                "INT_X54Y135/INT.INT_NODE_IMUX_50_INT_OUT1->>BYPASS_W10",
-                "INT_X54Y135/INT.BYPASS_W10->>INT_NODE_IMUX_41_INT_OUT1",
-                "INT_X54Y135/INT.INT_NODE_IMUX_41_INT_OUT1->>IMUX_W25",
-                "INT_X54Y135/INT.BYPASS_W10->>INT_NODE_IMUX_41_INT_OUT0",
-                "INT_X54Y135/INT.INT_NODE_IMUX_41_INT_OUT0->>IMUX_W31",
-                "INT_X54Y135/INT.BYPASS_W10->>INT_NODE_IMUX_40_INT_OUT0",
-                "INT_X54Y135/INT.INT_NODE_IMUX_40_INT_OUT0->>IMUX_W33",
-                "INT_X54Y135/INT.INT_NODE_IMUX_50_INT_OUT0<<->>BYPASS_W14",
-                "INT_X54Y135/INT.INT_NODE_IMUX_50_INT_OUT0->>BOUNCE_W_13_FT0",
-                "INT_X54Y136/INT.BOUNCE_W_BLN_13_FT1->>INT_NODE_IMUX_62_INT_OUT0",
-                "INT_X54Y136/INT.INT_NODE_IMUX_62_INT_OUT0->>BYPASS_W5",
-                "INT_X54Y136/INT.BYPASS_W5->>INT_NODE_IMUX_48_INT_OUT0",
-                "INT_X54Y136/INT.INT_NODE_IMUX_48_INT_OUT0->>IMUX_W10"
-        };
+        String[] pips = new String[] {"INT_X54Y135/INT.LOGIC_OUTS_W30->>INT_NODE_IMUX_60_INT_OUT1",
+                                      "INT_X54Y135/INT.INT_NODE_IMUX_60_INT_OUT1->>BYPASS_W14",
+                                      "INT_X54Y135/INT.BYPASS_W14->>INT_NODE_IMUX_50_INT_OUT1",
+                                      "INT_X54Y135/INT.INT_NODE_IMUX_50_INT_OUT1->>BYPASS_W10",
+                                      "INT_X54Y135/INT.BYPASS_W10->>INT_NODE_IMUX_41_INT_OUT1",
+                                      "INT_X54Y135/INT.INT_NODE_IMUX_41_INT_OUT1->>IMUX_W25",
+                                      "INT_X54Y135/INT.BYPASS_W10->>INT_NODE_IMUX_41_INT_OUT0",
+                                      "INT_X54Y135/INT.INT_NODE_IMUX_41_INT_OUT0->>IMUX_W31",
+                                      "INT_X54Y135/INT.BYPASS_W10->>INT_NODE_IMUX_40_INT_OUT0",
+                                      "INT_X54Y135/INT.INT_NODE_IMUX_40_INT_OUT0->>IMUX_W33",
+                                      "INT_X54Y135/INT.INT_NODE_IMUX_50_INT_OUT0<<->>BYPASS_W14",
+                                      "INT_X54Y135/INT.INT_NODE_IMUX_50_INT_OUT0->>BOUNCE_W_13_FT0",
+                                      "INT_X54Y136/INT.BOUNCE_W_BLN_13_FT1->>INT_NODE_IMUX_62_INT_OUT0",
+                                      "INT_X54Y136/INT.INT_NODE_IMUX_62_INT_OUT0->>BYPASS_W5",
+                                      "INT_X54Y136/INT.BYPASS_W5->>INT_NODE_IMUX_48_INT_OUT0",
+                                      "INT_X54Y136/INT.INT_NODE_IMUX_48_INT_OUT0->>IMUX_W10"};
         if (reversePipOrder) {
-            // Any permutation must give the same result; reversing puts every PIP ahead of its driver
+            // Any permutation must give the same result; reversing puts every PIP ahead of its
+            // driver
             Collections.reverse(Arrays.asList(pips));
         }
         Net net = TestDesignHelper.createTestNet(design, "net", pips);
@@ -422,17 +352,18 @@ public class TestRouterHelper {
         SiteInst si135 = design.createSiteInst("SLICE_X84Y135");
         SiteInst si136 = design.createSiteInst("SLICE_X84Y136");
         net.createPin("EQ", si135);
-        for (String pinName : new String[]{"B3", "D5", "H3"}) {
+        for (String pinName : new String[] {"B3", "D5", "H3"}) {
             net.createPin(pinName, si135);
         }
         net.createPin("A1", si136);
 
-        DelayEstimatorBase<InterconnectInfo> estimator = new DelayEstimatorBase<>(device, new InterconnectInfo(), false, 0);
-        Map<SitePinInst, Pair<Node,Short>> sinkNodeDelays = RouterHelper.getSourceToSinkINTNodeDelays(net, estimator);
+        DelayEstimatorBase<InterconnectInfo> estimator =
+            new DelayEstimatorBase<>(device, new InterconnectInfo(), false, 0);
+        Map<SitePinInst, Pair<Node, Short>> sinkNodeDelays = RouterHelper.getSourceToSinkINTNodeDelays(net, estimator);
         Assertions.assertEquals(net.getSinkPins().size(), sinkNodeDelays.size());
 
-        Pair<Node,Short> nodeDelay = null;
-        for (Map.Entry<SitePinInst, Pair<Node,Short>> e : sinkNodeDelays.entrySet()) {
+        Pair<Node, Short> nodeDelay = null;
+        for (Map.Entry<SitePinInst, Pair<Node, Short>> e : sinkNodeDelays.entrySet()) {
             if (e.getKey().getName().equals(sinkPinName)) {
                 nodeDelay = e.getValue();
                 break;
@@ -440,6 +371,6 @@ public class TestRouterHelper {
         }
         Assertions.assertNotNull(nodeDelay);
         Assertions.assertEquals(sinkNodeName, nodeDelay.getFirst().toString());
-        Assertions.assertEquals(expectedDelay, (short) nodeDelay.getSecond());
+        Assertions.assertEquals(expectedDelay, (short)nodeDelay.getSecond());
     }
 }

@@ -51,7 +51,6 @@ import com.xilinx.rapidwright.edif.compare.EDIFNetlistComparator;
  * ({@link EDIFNetlist}).
  */
 public class DesignComparator {
-
     /** Stored map of design differences detected and their specific instances */
     private Map<DesignDiffType, List<DesignDiff>> diffMap;
     /** Total running count of differences found */
@@ -76,11 +75,11 @@ public class DesignComparator {
      * encountered and an optional report can be created by subsequently calling
      * {@link #printDiffReportSummary(PrintStream)} or
      * {@link #printDiffReport(PrintStream)}.
-     * 
+     *
      * Note that the number of differences are stored in the class and can be
      * retrieved afterward by calling {@link #getDiffCount()}. Calling this method a
      * second and subsequent times will reset the counter and tracked diffs.
-     * 
+     *
      * @param gold The expected design or reference.
      * @param test The design being compared with the reference.
      * @return The total number of differences encountered.
@@ -90,7 +89,7 @@ public class DesignComparator {
         if (!gold.getPartName().equals(test.getPartName())) {
             addDiff(DesignDiffType.DESIGN_PARTNAME, gold, test, null, "");
         }
-        
+
         if (comparePlacement) {
             Map<String, SiteInst> goldMap = getSiteInstMap(gold);
             Map<String, SiteInst> testMap = getSiteInstMap(test);
@@ -127,14 +126,14 @@ public class DesignComparator {
 
         return getDiffCount();
     }
-    
-    private Map<String,SiteInst> getSiteInstMap(Design design) {
-        Map<String,SiteInst> map = new HashMap<>();
-        for(SiteInst si : design.getSiteInsts()) {
+
+    private Map<String, SiteInst> getSiteInstMap(Design design) {
+        Map<String, SiteInst> map = new HashMap<>();
+        for (SiteInst si : design.getSiteInsts()) {
             String siteName = si.getSiteName();
             if (siteName == null) {
-                System.out.println("WARNING: " + design.getName() 
-                    + " has at least one unplaced site instance: " + si.getName());
+                System.out.println("WARNING: " + design.getName() +
+                                   " has at least one unplaced site instance: " + si.getName());
             }
             map.put(si.getSiteName(), si);
         }
@@ -152,7 +151,7 @@ public class DesignComparator {
     /**
      * Gets the total number of differences encountered since the last call of
      * {@link #compareDesigns(Design, Design)}.
-     * 
+     *
      * @return Total number of design differences found.
      */
     public int getDiffCount() {
@@ -167,7 +166,7 @@ public class DesignComparator {
     /**
      * Gets the comparePIPFlags flag indicating if the routing flags on a design's
      * PIPs should be compared by DesignComparator.
-     * 
+     *
      * @return True if the flag is set, false otherwise (default: false).
      */
     public boolean comparePIPFlags() {
@@ -177,7 +176,7 @@ public class DesignComparator {
     /**
      * Sets a flag to tell the design comparator if PIP flags should also be
      * compared.
-     * 
+     *
      * @param comparePIPFlags Desired flag value (default: false).
      */
     public void setComparePIPFlags(boolean comparePIPFlags) {
@@ -186,7 +185,7 @@ public class DesignComparator {
 
     /**
      * Sets a flag to tell the design comparator if PIP should be compared.
-     * 
+     *
      * @param comparePIPs Desired flag value (default: true).
      */
     public void setComparePIPs(boolean comparePIPs) {
@@ -205,7 +204,7 @@ public class DesignComparator {
     /**
      * Gets the comparePlacement flag indicating if a design's placement (cells,
      * sitepips, sitewire to net mappings) should be compared by DesignComparator.
-     * 
+     *
      * @return True if the flag is set, false otherwise (default: true).
      */
     public boolean getComparePlacement() {
@@ -215,7 +214,7 @@ public class DesignComparator {
     /**
      * Sets the flag to tell the design comparator if placement (cell placements,
      * sitePIPs, and site wire to net mappings) should be compared.
-     * 
+     *
      * @param comparePlacement Desired flag value (default: true);
      */
     public void setComparePlacement(boolean comparePlacement) {
@@ -240,7 +239,7 @@ public class DesignComparator {
      * Compares two site instances for placement and site routing differences.
      * Specifically it detects differences in three categories, (1) cell placements,
      * (2) site PIPs, and (3) site wire to net mappings.
-     * 
+     *
      * @param gold The expected or reference site instance.
      * @param test The site instance being compared to the reference.
      * @return The number of differences encountered while comparing the provided
@@ -286,7 +285,6 @@ public class DesignComparator {
             addDiff(DesignDiffType.PLACED_CELL_EXTRA, null, extraCell, test, "");
         }
 
-        
         // SiteWire to Net mappings
         Map<String, Net> goldSiteWireMap = gold.getSiteWireToNetMap();
         Map<String, Net> testSiteWireMap = new HashMap<>(test.getSiteWireToNetMap());
@@ -298,18 +296,18 @@ public class DesignComparator {
                 continue;
             }
             if (!e.getValue().getName().equals(testNet.getName())) {
-                addDiff(DesignDiffType.SITEWIRE_NET_NAME, e.getKey(), testNet, gold , "");
+                addDiff(DesignDiffType.SITEWIRE_NET_NAME, e.getKey(), testNet, gold, "");
             }
         }
         for (Entry<String, Net> e : testSiteWireMap.entrySet()) {
             Net extraNet = e.getValue();
             addDiff(DesignDiffType.SITEWIRE_NET_EXTRA, null, e.getKey(), test, " extra Net " + extraNet);
         }
-        
+
         // Active SitePIPs
         Map<BEL, SitePIP> goldSitePIPs = getSitePIPMap(gold);
         Map<BEL, SitePIP> testSitePIPs = getSitePIPMap(test);
-        
+
         for (Entry<BEL, SitePIP> e : goldSitePIPs.entrySet()) {
             SitePIP testPIP = testSitePIPs.remove(e.getKey());
             if (testPIP == null) {
@@ -326,14 +324,14 @@ public class DesignComparator {
 
         return getDiffCount() - init;
     }
-    
+
     private Map<BEL, SitePIP> getSitePIPMap(SiteInst siteInst) {
         Map<BEL, SitePIP> map = new HashMap<>();
         for (SitePIP p : siteInst.getUsedSitePIPs()) {
             SitePIP duplicate = map.put(p.getBEL(), p);
             if (duplicate != null) {
-                System.out.println("WARNING: Multiple SitePIPs active on BEL " + p.getBELName() + " of Site "
-                        + siteInst.getSiteName());
+                System.out.println("WARNING: Multiple SitePIPs active on BEL " + p.getBELName() + " of Site " +
+                                   siteInst.getSiteName());
             }
         }
         return map;
@@ -351,7 +349,7 @@ public class DesignComparator {
      * Compares two nets for differences in routing (PIPs). Two flags can be set to
      * affect its operation: {@link #setComparePIPs(boolean)} (default: true) and
      * {@link #setComparePIPFlags(boolean)} (default: false).
-     * 
+     *
      * @param gold The expected or reference net.
      * @param test The net to be compared against the reference net.
      * @return The number of differences encountered while comparing the provided
@@ -383,14 +381,14 @@ public class DesignComparator {
         for (Entry<String, PIP> e : testMap.entrySet()) {
             addDiff(DesignDiffType.PIP_EXTRA, null, e.getValue(), test, "");
         }
-        
+
         return getDiffCount() - init;
     }
 
     /**
      * Prints a summary total for each difference type found in the recent
      * comparisons since the last time the diff counter was reset.
-     * 
+     *
      * @param ps The desired print stream ('System.out', e.g. for immediate screen
      *           printing).
      */
@@ -413,7 +411,7 @@ public class DesignComparator {
      * Prints an exhaustive list of diffs with specific contextual information about
      * each difference. This also begins by invoking
      * {@link #printDiffReportSummary(PrintStream)} first.
-     * 
+     *
      * @param ps The desired print stream ('System.out', e.g. for immediate screen
      *           printing).
      */
@@ -425,19 +423,18 @@ public class DesignComparator {
             for (DesignDiff diff : e.getValue()) {
                 ps.println("  " + diff.toString());
             }
-
         }
     }
-    
+
     public static void main(String[] args) {
         if (args.length < 2 || args.length > 3) {
             System.out.println("USAGE: <design1.dcp> <design2.dcp> [diff_report.txt]");
             return;
         }
-        
+
         Design design1 = Design.readCheckpoint(args[0]);
         Design design2 = Design.readCheckpoint(args[1]);
-        
+
         DesignComparator dc = new DesignComparator();
         int diffs = dc.compareDesigns(design1, design2);
         if (args.length == 3) {

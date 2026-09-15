@@ -36,12 +36,10 @@ import tcl.lang.TclObject;
  * Tcl command: create_clock
  */
 public class CreateClockCommand implements Command {
-
     private final XDCConstraints constraints;
     private final EdifCellLookup<?> cellLookup;
 
     public CreateClockCommand(XDCConstraints constraints, EdifCellLookup<?> cellLookup) {
-
         this.constraints = constraints;
         this.cellLookup = cellLookup;
     }
@@ -62,7 +60,7 @@ public class CreateClockCommand implements Command {
 
                         break;
                     case "-waveform":
-                        //Just skip the waveform specification
+                        // Just skip the waveform specification
                         ++i;
                         break;
                     default:
@@ -71,17 +69,18 @@ public class CreateClockCommand implements Command {
             } else {
                 DesignObject obj = DesignObject.requireUnwrapTclObject(interp, objv[i], cellLookup);
                 if (obj instanceof UnsupportedCmdResult<?>) {
-
-                    List<UnsupportedConstraintElement> constraint = UnsupportedConstraintElement.commandToUnsupportedConstraints(interp, objv, cellLookup);
+                    List<UnsupportedConstraintElement> constraint =
+                        UnsupportedConstraintElement.commandToUnsupportedConstraints(interp, objv, cellLookup);
                     constraints.getUnsupportedConstraints().add(constraint);
 
                     interp.resetResult();
                     return;
                 }
-                if (!(obj instanceof NameDesignObject) || (((NameDesignObject) obj).getType() != ObjType.Port && ((NameDesignObject) obj).getType() != ObjType.Pin)) {
-                    throw new RuntimeException("expected port or pin but got " + obj.toXdc()+" (a "+obj.getClass());
+                if (!(obj instanceof NameDesignObject) || (((NameDesignObject)obj).getType() != ObjType.Port &&
+                                                           ((NameDesignObject)obj).getType() != ObjType.Pin)) {
+                    throw new RuntimeException("expected port or pin but got " + obj.toXdc() + " (a " + obj.getClass());
                 }
-                ports = ((NameDesignObject) obj).getObjects();
+                ports = ((NameDesignObject)obj).getObjects();
 
                 if (i + 1 != objv.length) {
                     throw new RuntimeException("Extra elements after port name");
@@ -92,8 +91,8 @@ public class CreateClockCommand implements Command {
             throw new RuntimeException("did not have ports!");
         }
         for (String port : ports) {
-            constraints.getClockConstraints().put(port, new ClockConstraint(clockName, Double.parseDouble(period), port));
+            constraints.getClockConstraints().put(port,
+                                                  new ClockConstraint(clockName, Double.parseDouble(period), port));
         }
-
     }
 }

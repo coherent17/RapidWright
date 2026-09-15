@@ -44,16 +44,15 @@ import com.xilinx.rapidwright.router.Router;
  * KCU105:  Device.KCU105,  Button0=AE10, Button1=AF9, LED0=AP8, LVCMOS18
  */
 public class Lesson1 {
-
     public static void main(String[] args) {
         // Create a new empty design using the PYNQ-Z1 device part
-        Design d = new Design("HelloWorld",Device.PYNQ_Z1);
+        Design d = new Design("HelloWorld", Device.PYNQ_Z1);
 
         // Create all the design elements (LUT2, and 3 IOs)
         Cell and2 = d.createAndPlaceCell("and2", Unisim.AND2, "SLICE_X100Y100/A6LUT");
-        Cell button0 = d.createAndPlaceIOB("button0", PinType.IN , "D19",  "LVCMOS33");
-        Cell button1 = d.createAndPlaceIOB("button1", PinType.IN , "D20",  "LVCMOS33");
-        Cell led0    = d.createAndPlaceIOB("led0"   , PinType.OUT, "R14",  "LVCMOS33");
+        Cell button0 = d.createAndPlaceIOB("button0", PinType.IN, "D19", "LVCMOS33");
+        Cell button1 = d.createAndPlaceIOB("button1", PinType.IN, "D20", "LVCMOS33");
+        Cell led0 = d.createAndPlaceIOB("led0", PinType.OUT, "R14", "LVCMOS33");
 
         // Connect Button 0 to the LUT2 input I0
         Net net0 = d.createNet("button0_IBUF");

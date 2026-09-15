@@ -27,7 +27,6 @@ import com.xilinx.rapidwright.design.SitePinInst;
 import com.xilinx.rapidwright.device.Tile;
 
 public class PortWire {
-
     private SitePinInst source;
     private SitePinInst sink;
     private HardMacro sourceBlock;
@@ -57,7 +56,6 @@ public class PortWire {
     public HardMacro getSourceBlock() {
         return sourceBlock;
     }
-
 
     /**
      * @param sourceBlock the sourceBlock to set
@@ -118,19 +116,20 @@ public class PortWire {
 
     private Tile getSourceBlockTile() {
         Tile anchor = sourceBlock.getTempAnchorSite().getTile();
-        return sourceBlock.getDesign().getDevice().getTile(anchor.getRow()-sourceRowOffset, anchor.getColumn()-sourceColumnOffset);
+        return sourceBlock.getDesign().getDevice().getTile(anchor.getRow() - sourceRowOffset,
+                                                           anchor.getColumn() - sourceColumnOffset);
     }
 
     private Tile getSinkBlockTile() {
         Tile anchor = sinkBlock.getTempAnchorSite().getTile();
-        return sinkBlock.getDesign().getDevice().getTile(anchor.getRow()-sinkRowOffset, anchor.getColumn()-sinkColumnOffset);
-
+        return sinkBlock.getDesign().getDevice().getTile(anchor.getRow() - sinkRowOffset,
+                                                         anchor.getColumn() - sinkColumnOffset);
     }
 
     public void calculateLength() {
         Tile src = sourceBlock == null ? source.getTile() : getSourceBlockTile();
         Tile snk = sinkBlock == null ? sink.getTile() : getSinkBlockTile();
-        length = src.getManhattanDistance(snk) + 4*(source.getNet().getFanOut());
+        length = src.getManhattanDistance(snk) + 4 * (source.getNet().getFanOut());
     }
 
     public int getLength() {
@@ -142,14 +141,14 @@ public class PortWire {
      */
     @Override
     public String toString() {
-        return "PortWire [source=" + (source==null? "null" : source.getName()) + ", sink=" + (sink==null? "null" : sink.getName() + " " + sink.getSiteInstName())
-                + " sourceBlock=" + (sourceBlock==null? "null" : sourceBlock.getName()) + ", sinkBlock=" + (sinkBlock==null? "null" : sinkBlock.getName())
-                //+ " sourceRowOffset=" + sourceRowOffset
-                //+ " sourceColumnOffset=" + sourceColumnOffset
-                //+ " sinkRowOffset=" + sinkRowOffset
-                //+ " sinkColumnOffset=" + sinkColumnOffset
-                + " length=" + length +"]";
+        return "PortWire [source=" + (source == null ? "null" : source.getName()) +
+            ", sink=" + (sink == null ? "null" : sink.getName() + " " + sink.getSiteInstName()) +
+            " sourceBlock=" + (sourceBlock == null ? "null" : sourceBlock.getName()) + ", sinkBlock=" +
+            (sinkBlock == null ? "null" : sinkBlock.getName())
+            //+ " sourceRowOffset=" + sourceRowOffset
+            //+ " sourceColumnOffset=" + sourceColumnOffset
+            //+ " sinkRowOffset=" + sinkRowOffset
+            //+ " sinkColumnOffset=" + sinkColumnOffset
+            + " length=" + length + "]";
     }
-
-
 }

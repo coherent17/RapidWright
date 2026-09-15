@@ -59,6 +59,6 @@ public class NoCloseOutputStream extends OutputStream {
 
     @Override
     public void close() {
-        //Do not delegate this!
+        // Do not delegate this!
     }
 }

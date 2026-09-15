@@ -33,7 +33,6 @@ import java.util.HashSet;
  * Created on: Jan 22, 2016
  */
 public class RouteStatus implements Comparable<RouteStatus> {
-
     private String name;
 
     private String status;
@@ -96,8 +95,7 @@ public class RouteStatus implements Comparable<RouteStatus> {
         int result = 1;
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result + ((status == null) ? 0 : status.hashCode());
-        result = prime * result
-                + ((subTrees == null) ? 0 : subTrees.hashCode());
+        result = prime * result + ((subTrees == null) ? 0 : subTrees.hashCode());
         return result;
     }
 
@@ -112,7 +110,7 @@ public class RouteStatus implements Comparable<RouteStatus> {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        RouteStatus other = (RouteStatus) obj;
+        RouteStatus other = (RouteStatus)obj;
         if (name == null) {
             if (other.name != null)
                 return false;
@@ -137,16 +135,21 @@ public class RouteStatus implements Comparable<RouteStatus> {
     public void reportDifferences(RouteStatus r2) {
         boolean printedName = false;
         if (!getStatus().equals(r2.getStatus())) {
-            if (!printedName) {System.out.println("DIFF: " + getName()); printedName = true;}
+            if (!printedName) {
+                System.out.println("DIFF: " + getName());
+                printedName = true;
+            }
             System.out.println("  Status: " + getStatus() + " " + r2.getStatus());
         }
         ArrayList<ArrayList<String>> myTrees = getSubTrees();
         ArrayList<ArrayList<String>> otherTrees = r2.getSubTrees();
         if (myTrees.size() != otherTrees.size()) {
-            if (!printedName) {System.out.println("DIFF: " + getName()); printedName = true;}
+            if (!printedName) {
+                System.out.println("DIFF: " + getName());
+                printedName = true;
+            }
             System.out.println("  SubTree Count: " + myTrees.size() + " " + otherTrees.size());
         }
-
 
         HashSet<String> set = new HashSet<String>();
         for (ArrayList<String> list : myTrees) {
@@ -156,16 +159,21 @@ public class RouteStatus implements Comparable<RouteStatus> {
             for (String other : list) {
                 boolean success = set.remove(other);
                 if (!success) {
-                    if (!printedName) {System.out.println("DIFF: " + getName()); printedName = true;}
+                    if (!printedName) {
+                        System.out.println("DIFF: " + getName());
+                        printedName = true;
+                    }
                     System.out.println("  2: " + other);
                 }
             }
         }
         for (String mine : set) {
-            if (!printedName) {System.out.println("DIFF: " + getName()); printedName = true;}
+            if (!printedName) {
+                System.out.println("DIFF: " + getName());
+                printedName = true;
+            }
             System.out.println("  1: " + mine);
         }
-
 
         /*
         for (int i=0; i < myTrees.size(); i++) {
@@ -176,8 +184,8 @@ public class RouteStatus implements Comparable<RouteStatus> {
             for (String other : otherTree) {
                 boolean success = set.remove(other);
                 if (!success) {
-                    if (!printedName) {System.out.println("DIFF: " + getName()); printedName = true;}
-                    System.out.println("  2: " + other);
+                    if (!printedName) {System.out.println("DIFF: " + getName()); printedName =
+        true;} System.out.println("  2: " + other);
                 }
             }
             for (String mine : set) {
@@ -185,6 +193,5 @@ public class RouteStatus implements Comparable<RouteStatus> {
                 System.out.println("  1: " + mine);
             }
         }*/
-
     }
 }

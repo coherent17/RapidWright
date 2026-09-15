@@ -24,17 +24,15 @@ package com.xilinx.rapidwright.design;
 
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import com.xilinx.rapidwright.support.RapidWrightDCP;
 import com.xilinx.rapidwright.util.FileTools;
 import com.xilinx.rapidwright.util.Params;
 import com.xilinx.rapidwright.util.VivadoToolsHelper;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 public class TestDCPWrite {
-
     @Test
     public void testVersalDualOutputCOUT(@TempDir Path dir) {
         // Tests a dual-output scenario COUT and HQ2 in Versal (See Xilinx/RapidWright#572)

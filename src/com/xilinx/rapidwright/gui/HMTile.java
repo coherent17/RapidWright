@@ -43,36 +43,30 @@ import com.xilinx.rapidwright.util.FileTools;
  *
  */
 public class HMTile extends QGraphicsRectItem {
-
     private Tile tile;
     private boolean containsSLICEM;
     private boolean isAnchor;
     public static QColor GREEN = new QColor(0, 255, 0, 190);
     public static QColor ORANGE = new QColor(255, 153, 51, 190);
     public static QColor RED = new QColor(255, 0, 0, 190);
-    public static QBitmap anchorPixmap = new QBitmap(FileTools.getRapidWrightPath()+File.separator+FileTools.IMAGES_FOLDER_NAME+File.separator+"anchor.bmp");
+    public static QBitmap anchorPixmap = new QBitmap(FileTools.getRapidWrightPath() + File.separator +
+                                                     FileTools.IMAGES_FOLDER_NAME + File.separator + "anchor.bmp");
     public static QBrush ANCHOR_GREEN = new QBrush(GREEN, anchorPixmap);
     public static QBrush ANCHOR_ORANGE = new QBrush(ORANGE, anchorPixmap);
     public static QBrush ANCHOR_RED = new QBrush(RED, anchorPixmap);
 
-
-
-    public HMTile(Tile newTile, TileScene scene, QGraphicsItemInterface parent, boolean hasSLICEM, boolean isAnchor)
-    {
-        super(0,0,scene.tileSize - 2, scene.tileSize - 2, parent);
+    public HMTile(Tile newTile, TileScene scene, QGraphicsItemInterface parent, boolean hasSLICEM, boolean isAnchor) {
+        super(0, 0, scene.tileSize - 2, scene.tileSize - 2, parent);
         this.tile = newTile;
         this.containsSLICEM = hasSLICEM;
         this.isAnchor = isAnchor;
-
     }
 
-    public HMTile(Tile newTile, TileScene scene, QGraphicsItemInterface parent)
-    {
-        this(newTile,scene,parent,false,false);
+    public HMTile(Tile newTile, TileScene scene, QGraphicsItemInterface parent) {
+        this(newTile, scene, parent, false, false);
     }
 
-    public Tile getTile()
-    {
+    public Tile getTile() {
         return tile;
     }
 
@@ -81,7 +75,6 @@ public class HMTile extends QGraphicsRectItem {
     }
 
     public void setState(GUIShapeState newState) {
-
         switch (newState) {
             case VALID:
                 this.setPen(new QPen(GREEN));

@@ -30,8 +30,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.json.JSONObject;
-
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.device.Series;
 import com.xilinx.rapidwright.edif.EDIFHierCellInst;
@@ -39,6 +37,7 @@ import com.xilinx.rapidwright.edif.EDIFHierNet;
 import com.xilinx.rapidwright.edif.EDIFHierPortInst;
 import com.xilinx.rapidwright.edif.EDIFNetlist;
 import com.xilinx.rapidwright.edif.EDIFTools;
+import org.json.JSONObject;
 
 /**
  * Finds all terminal hierarchical port insts (pins) which either drive a given
@@ -48,7 +47,6 @@ import com.xilinx.rapidwright.edif.EDIFTools;
  * and/or likely terminal clock signal pins for the input hierarchical net.
  */
 public class NetlistClockDetection {
-
     /**
      * A map whose keys are FPGA series and whose values are maps from the names of
      * those series' primitives which have clock input pins to those clock input pins.
@@ -91,7 +89,9 @@ public class NetlistClockDetection {
         versalPrimsToClockPins.put("RAM32X16DR8", Stream.of("WCLK").collect(Collectors.toSet()));
         versalPrimsToClockPins.put("RAM64X8SW", Stream.of("WCLK").collect(Collectors.toSet()));
         versalPrimsToClockPins.put("RAMB18E5_INT", Stream.of("CLKARDCLK", "CLKBWRCLK").collect(Collectors.toSet()));
-        versalPrimsToClockPins.put("RAMB36E5_INT", Stream.of("CLKARDCLKL", "CLKARDCLKU", "CLKBWRCLKL", "CLKBWRCLKU").collect(Collectors.toSet()));
+        versalPrimsToClockPins.put(
+            "RAMB36E5_INT",
+            Stream.of("CLKARDCLKL", "CLKARDCLKU", "CLKBWRCLKL", "CLKBWRCLKU").collect(Collectors.toSet()));
         versalPrimsToClockPins.put("SRL16E", Stream.of("CLK").collect(Collectors.toSet()));
         versalPrimsToClockPins.put("URAM288E5_BASE", Stream.of("CLK").collect(Collectors.toSet()));
         versalPrimsToClockPins.put("URAM288E5", Stream.of("CLK").collect(Collectors.toSet()));
@@ -124,7 +124,8 @@ public class NetlistClockDetection {
      * @param encountered      A set of already-encountered EDIFHierNets to skip during
      *                         netlist traversal.
      */
-    private static Set<EDIFHierPortInst> getGatingDrivers(EDIFHierNet hNet, Map<String, Set<String>> primsToClockPins, Set<EDIFHierNet> encountered) {
+    private static Set<EDIFHierPortInst> getGatingDrivers(EDIFHierNet hNet, Map<String, Set<String>> primsToClockPins,
+                                                          Set<EDIFHierNet> encountered) {
         Set<EDIFHierPortInst> out = new HashSet<EDIFHierPortInst>();
 
         for (EDIFHierPortInst hPI : hNet.getLeafHierPortInsts(true, false, true)) {
@@ -135,13 +136,16 @@ public class NetlistClockDetection {
                 EDIFHierNet sourceHierNet;
                 EDIFHierCellInst leafCellInst = hPI.getHierarchicalInst().getChild(hPI.getPortInst().getCellInst());
 
-                List<EDIFHierPortInst> leafCellInstInputs =
-                    leafCellInst.getHierPortInsts().stream().filter(EDIFHierPortInst::isInput).collect(Collectors.toList());
+                List<EDIFHierPortInst> leafCellInstInputs = leafCellInst.getHierPortInsts()
+                                                                .stream()
+                                                                .filter(EDIFHierPortInst::isInput)
+                                                                .collect(Collectors.toList());
 
                 if (!leafCellInstInputs.isEmpty()) {
                     for (EDIFHierPortInst leafCellInstInput : leafCellInstInputs) {
                         if (clkPins == null || clkPins.contains(leafCellInstInput.getPortInst().getName())) {
-                            if ((sourceHierNet = leafCellInstInput.getHierarchicalNet()) != null && !encountered.contains(sourceHierNet)) {
+                            if ((sourceHierNet = leafCellInstInput.getHierarchicalNet()) != null &&
+                                !encountered.contains(sourceHierNet)) {
                                 encountered.add(sourceHierNet);
                                 out.addAll(getGatingDrivers(sourceHierNet, primsToClockPins, encountered));
                             }
@@ -174,8 +178,9 @@ public class NetlistClockDetection {
         Map<String, Set<String>> primsToClockPins = getPrimsToClockPins(series);
 
         if (primsToClockPins == null) {
-            throw new RuntimeException("ERROR: NetlistClockDetection only supports likely clock pin detection for Versal-targeting netlists. "
-                + "The provided netlist targets " + series + ".");
+            throw new RuntimeException("ERROR: NetlistClockDetection only supports likely clock "
+                                       + "pin detection for Versal-targeting netlists. "
+                                       + "The provided netlist targets " + series + ".");
         }
 
         return getGatingDrivers(hNet, primsToClockPins, new HashSet<>());
@@ -187,7 +192,8 @@ public class NetlistClockDetection {
             return;
         }
 
-        EDIFNetlist nl = args[0].endsWith(".dcp") ? Design.readCheckpoint(args[0]).getNetlist() : EDIFTools.readEdifFile(args[0]);
+        EDIFNetlist nl =
+            args[0].endsWith(".dcp") ? Design.readCheckpoint(args[0]).getNetlist() : EDIFTools.readEdifFile(args[0]);
         nl.expandMacroUnisims();
 
         JSONObject out = new JSONObject();
@@ -196,12 +202,15 @@ public class NetlistClockDetection {
             String hNetName = args[i];
             EDIFHierNet hNet = nl.getHierNetFromName(hNetName);
             if (hNet == null) {
-                System.err.printf(
-                    "Skipping given hierarchical net named %s which could not be found in the provided netlist....\n", hNetName);
+                System.err.printf("Skipping given hierarchical net named %s which could not be "
+                                      + "found in the provided netlist....\n",
+                                  hNetName);
                 continue;
             }
 
-            out.put(hNetName, getGatingDrivers(hNet, nl.getDevice().getSeries()).stream().map(EDIFHierPortInst::toString).toArray());
+            out.put(
+                hNetName,
+                getGatingDrivers(hNet, nl.getDevice().getSeries()).stream().map(EDIFHierPortInst::toString).toArray());
         }
 
         System.out.println(out.toString(4));

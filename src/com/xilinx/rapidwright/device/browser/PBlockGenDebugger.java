@@ -25,7 +25,6 @@
  */
 package com.xilinx.rapidwright.device.browser;
 
-
 import com.trolltech.qt.gui.QAction;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QMenu;
@@ -40,7 +39,6 @@ import com.xilinx.rapidwright.gui.TileView;
  * Created on: Jun 18, 2015
  */
 public class PBlockGenDebugger extends DeviceBrowser {
-
     PBlockGenerator pbGen = null;
 
     public PBlockGenDebugger(QWidget parent) {
@@ -73,7 +71,7 @@ public class PBlockGenDebugger extends DeviceBrowser {
         a.triggered.connect(this, "debugPBlockGenerator()");
     }
 
-    private class DebugPBGen extends Thread{
+    private class DebugPBGen extends Thread {
         PBlockGenerator pbgen;
 
         public DebugPBGen(PBlockGenerator pbgen) {
@@ -83,19 +81,13 @@ public class PBlockGenDebugger extends DeviceBrowser {
         public void run() {
             PBlockGenerator.debug = true;
 
+            String utilReportFile = "/home/clavin/build_fma/build_fma.runs/design_1_fma_ip_0_0_synth_1/"
+                                    + "design_1_fma_ip_0_0_utilization.report";
+            String shapeFile = "/home/clavin/build_fma/build_fma.runs/"
+                               + "design_1_fma_ip_0_0_synth_1/design_1_fma_ip_0_0_shapes.txt";
 
-
-
-            String utilReportFile = "/home/clavin/build_fma/build_fma.runs/design_1_fma_ip_0_0_synth_1/design_1_fma_ip_0_0_utilization.report";
-            String shapeFile = "/home/clavin/build_fma/build_fma.runs/design_1_fma_ip_0_0_synth_1/design_1_fma_ip_0_0_shapes.txt";
-
-            String[] pBlockArgs = new String[]{
-                    "-u", utilReportFile,
-                    "-s", shapeFile,
-                    "-c", "4",
-                    "-a", "1.0",
-                    "-o", "1.5"
-            };
+            String[] pBlockArgs =
+                new String[] {"-u", utilReportFile, "-s", shapeFile, "-c", "4", "-a", "1.0", "-o", "1.5"};
             PBlockGenerator.main(pBlockArgs);
             /*for (int x=0; x < 100; x++) {
                 pBlockArgs[5] = Integer.toString(x);
@@ -108,7 +100,6 @@ public class PBlockGenDebugger extends DeviceBrowser {
             }*/
 
             throw new RuntimeException("To use this debugging feature, you need to modify PBlockGenDebugger.run()");
-
         }
     }
 
@@ -120,7 +111,6 @@ public class PBlockGenDebugger extends DeviceBrowser {
     public void highlightTile(Tile t) {
         ((PBlockGenScene)scene).highlightTile(t);
     }
-
 
     public static void main(String[] args) {
         QApplication.setGraphicsSystem("raster");

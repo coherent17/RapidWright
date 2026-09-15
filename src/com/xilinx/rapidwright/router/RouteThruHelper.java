@@ -51,8 +51,7 @@ import com.xilinx.rapidwright.util.FileTools;
  * Example of how to check if a node to node connection is a routethru
  */
 public class RouteThruHelper {
-
-    private HashMap<TileTypeEnum,HashSet<Integer>> routeThrus;
+    private HashMap<TileTypeEnum, HashSet<Integer>> routeThrus;
 
     private Device device;
 
@@ -84,11 +83,11 @@ public class RouteThruHelper {
         routeThrus = new HashMap<TileTypeEnum, HashSet<Integer>>();
         try (Input in = FileTools.getKryoZstdInputStream(getSerializedFileName(device.getName()))) {
             int count = in.readInt();
-            for (int i=0; i < count; i++) {
+            for (int i = 0; i < count; i++) {
                 TileTypeEnum type = TileTypeEnum.valueOf(in.readString());
                 int count2 = in.readInt();
                 HashSet<Integer> pips = new HashSet<Integer>(count2);
-                for (int j=0; j < count2; j++) {
+                for (int j = 0; j < count2; j++) {
                     pips.add(in.readInt());
                 }
                 routeThrus.put(type, pips);
@@ -98,13 +97,14 @@ public class RouteThruHelper {
 
     private void init() {
         String serializedFileName = getSerializedFileName(device.getName());
-        routeThrus = new HashMap<TileTypeEnum,HashSet<Integer>>();
+        routeThrus = new HashMap<TileTypeEnum, HashSet<Integer>>();
         if (new File(serializedFileName).exists() && !FileTools.isFileGzipped(Paths.get(serializedFileName))) {
             readFile();
             return;
         }
         for (Tile tile : device.getAllTiles()) {
-            if (routeThrus.containsKey(tile.getTileTypeEnum())) continue;
+            if (routeThrus.containsKey(tile.getTileTypeEnum()))
+                continue;
             HashSet<Integer> rtPIPs = new HashSet<Integer>();
             for (PIP p : tile.getPIPs()) {
                 if (p.isRouteThru()) {
@@ -112,14 +112,16 @@ public class RouteThruHelper {
                     rtPIPs.add(startEndWirePair);
                 }
             }
-            if (rtPIPs.size() > 0) routeThrus.put(tile.getTileTypeEnum(), rtPIPs);
+            if (rtPIPs.size() > 0)
+                routeThrus.put(tile.getTileTypeEnum(), rtPIPs);
         }
         writeFile();
     }
 
     public boolean isRouteThru(Tile tile, int startWire, int endWire) {
         HashSet<Integer> rtPairs = routeThrus.get(tile.getTileTypeEnum());
-        if (rtPairs == null) return false;
+        if (rtPairs == null)
+            return false;
         return rtPairs.contains(startWire << 16 | endWire);
     }
 
@@ -128,7 +130,8 @@ public class RouteThruHelper {
         int endWire = end.getWireIndex();
         Wire[] wiresInStartNode = start.getAllWiresInNode();
         HashSet<Integer> rtPairs = routeThrus.get(tile.getTileTypeEnum());
-        if (rtPairs == null) return false;
+        if (rtPairs == null)
+            return false;
         for (Wire w : wiresInStartNode) {
             if (w.getTile().equals(tile)) {
                 if (rtPairs.contains((w.getWireIndex() << 16) | endWire)) {
@@ -142,10 +145,12 @@ public class RouteThruHelper {
     private void printRouteThrusByTileType() {
         HashSet<TileTypeEnum> visited = new HashSet<>();
         for (Tile tile : device.getAllTiles()) {
-            if (visited.contains(tile.getTileTypeEnum())) continue;
+            if (visited.contains(tile.getTileTypeEnum()))
+                continue;
             visited.add(tile.getTileTypeEnum());
             HashSet<Integer> rtPairs = routeThrus.get(tile.getTileTypeEnum());
-            if (rtPairs == null) continue;
+            if (rtPairs == null)
+                continue;
             System.out.println(tile.getTileTypeEnum() + "(" + tile.getName() + "):");
             for (Integer i : rtPairs) {
                 int startWire = i >>> 16;
@@ -160,7 +165,8 @@ public class RouteThruHelper {
      * collisions on the site it is routing through.
      */
     public static boolean isRouteThruPIPAvailable(Design design, PIP routethru) {
-        if (!routethru.isRouteThru()) return false;
+        if (!routethru.isRouteThru())
+            return false;
         return isRouteThruPIPAvailable(design, routethru.getStartWire(), routethru.getEndWire());
     }
 
@@ -196,7 +202,7 @@ public class RouteThruHelper {
         if (!isRouteThruSitePinAvailable(design, inPin)) {
             return false;
         }
-        assert(inPin.getSite() == outPin.getSite());
+        assert (inPin.getSite() == outPin.getSite());
 
         SiteInst siteInst = design.getSiteInstFromSite(inPin.getSite());
         if (siteInst != null) {
@@ -220,7 +226,7 @@ public class RouteThruHelper {
     public static void main(String[] args) {
         RouteThruHelper rtHelper = new RouteThruHelper(Device.getDevice(Device.AWS_F1));
 
-        //rtHelper.printRouteThrusByTileType();
+        // rtHelper.printRouteThrusByTileType();
 
         for (Tile tile : rtHelper.device.getAllTiles()) {
             if (tile.getTileTypeEnum() == TileTypeEnum.INT) {
@@ -235,6 +241,5 @@ public class RouteThruHelper {
                 break;
             }
         }
-
     }
 }

@@ -22,6 +22,8 @@
 
 package com.xilinx.rapidwright.router;
 
+import java.io.IOException;
+
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.Net;
 import com.xilinx.rapidwright.design.blocks.PBlock;
@@ -30,12 +32,11 @@ import com.xilinx.rapidwright.util.FileTools;
 import com.xilinx.rapidwright.util.VivadoToolsHelper;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
 public class TestSATRouter {
     @Test
     public void testApplyResult() {
-        // Adapted from https://github.com/clavin-xlnx/RapidWright-binder/blob/24527f33b6aea283cf430ab8f4eab3dc01fa5d64/SATRouter.ipynb
+        // Adapted from
+        // https://github.com/clavin-xlnx/RapidWright-binder/blob/24527f33b6aea283cf430ab8f4eab3dc01fa5d64/SATRouter.ipynb
         Design design = RapidWrightDCP.loadDCP("reduce_or_routed_7overlaps.dcp");
 
         for (Net net : design.getNets()) {
@@ -49,7 +50,7 @@ public class TestSATRouter {
         SATRouter satRouter = new SATRouter(design, pblock, false);
 
         FileTools.copyFile(RapidWrightDCP.getString("reduce_or_routed_7overlaps_solution.txt"),
-                satRouter.getOutputFile());
+                           satRouter.getOutputFile());
 
         satRouter.applyRoutingResult();
 

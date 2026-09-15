@@ -48,7 +48,6 @@ import com.xilinx.rapidwright.util.MessageGenerator;
  * Created on: Apr 25, 2017
  */
 public class ImplGuide {
-
     public static final String PART = "PART";
     public static final String BLOCK = "BLOCK";
     public static final String IMPL = "IMPL";
@@ -67,7 +66,7 @@ public class ImplGuide {
     private Map<String, BlockGuide> blockGuides;
 
     public ImplGuide() {
-        blockGuides = new LinkedHashMap<String,BlockGuide>();
+        blockGuides = new LinkedHashMap<String, BlockGuide>();
     }
 
     private static String checkPblockValid(ImplGuide ig, int lineNumber, String pblock) {
@@ -75,15 +74,14 @@ public class ImplGuide {
         int colon = pblock.indexOf(':');
         Site start = ig.getDevice().getSite(pblock.substring(0, colon));
         if (start == null) {
-            throw new RuntimeException("ERROR: Site " + pblock.substring(0, colon)
-                +" doesn't exist in part " + ig.getPart().getName()
-                + " found in pblock on line " + lineNumber );
+            throw new RuntimeException("ERROR: Site " + pblock.substring(0, colon) + " doesn't exist in part " +
+                                       ig.getPart().getName() + " found in pblock on line " + lineNumber);
         }
-        Site end = ig.getDevice().getSite(pblock.substring(colon+1, pblock.length()));
+        Site end = ig.getDevice().getSite(pblock.substring(colon + 1, pblock.length()));
         if (end == null) {
-            throw new RuntimeException("ERROR: Site " + pblock.substring(colon+1, pblock.length())
-                +" doesn't exist in part " + ig.getPart().getName()
-                + " found in pblock on line " + lineNumber );
+            throw new RuntimeException("ERROR: Site " + pblock.substring(colon + 1, pblock.length()) +
+                                       " doesn't exist in part " + ig.getPart().getName() +
+                                       " found in pblock on line " + lineNumber);
         }
         return pblock;
     }
@@ -96,20 +94,23 @@ public class ImplGuide {
         PBlock currImpl = null;
         int implCount = 0;
         int instCount = 0;
-        outer: for (String line : FileTools.getLinesFromTextFile(fileName)) {
+    outer:
+        for (String line : FileTools.getLinesFromTextFile(fileName)) {
             lineNumber++;
             line = line.trim();
-            if (line.isEmpty()) continue;
-            if (line.startsWith("#")) continue;
+            if (line.isEmpty())
+                continue;
+            if (line.startsWith("#"))
+                continue;
             String[] tokens = line.split("\\s+");
 
-            switch(tokens[0]) {
-                case PART:{
+            switch (tokens[0]) {
+                case PART: {
                     ig.setPart(PartNameTools.getPart(tokens[1]));
                     ig.setDevice(Device.getDevice(ig.getPart()));
                     break;
                 }
-                case BLOCK:{
+                case BLOCK: {
                     currBlock = new BlockGuide();
                     currBlock.setCacheID(tokens[1]);
                     ig.addBlock(currBlock);
@@ -117,7 +118,7 @@ public class ImplGuide {
                     instCount = Integer.parseInt(tokens[3]);
                     break;
                 }
-                case IMPL:{
+                case IMPL: {
                     int index = Integer.parseInt(tokens[1]);
                     int subImplCount = 0;
                     int tokenIdx = 0;
@@ -128,35 +129,36 @@ public class ImplGuide {
                         tokenIdx = -1;
                     }
 
-                    StringBuilder sb = new StringBuilder(checkPblockValid(ig, lineNumber, tokens[3+tokenIdx]));
+                    StringBuilder sb = new StringBuilder(checkPblockValid(ig, lineNumber, tokens[3 + tokenIdx]));
 
-                    for (int i=4+tokenIdx; i < tokens.length; i++) {
+                    for (int i = 4 + tokenIdx; i < tokens.length; i++) {
                         sb.append(" ");
                         sb.append(checkPblockValid(ig, lineNumber, tokens[i]));
                     }
-                    currImpl = new PBlock(ig.getDevice(),sb.toString());
+                    currImpl = new PBlock(ig.getDevice(), sb.toString());
                     currBlock.addImplementation(index, currImpl);
                     break;
                 }
-                case SUB_IMPL:{
+                case SUB_IMPL: {
                     int index = Integer.parseInt(tokens[1]);
-                    String getCellsParam = line.substring(line.indexOf('\'')+1, line.lastIndexOf('\''));
+                    String getCellsParam = line.substring(line.indexOf('\'') + 1, line.lastIndexOf('\''));
                     int lastTokenWithQuote = 0;
-                    for (int i=0; i < tokens.length; i++) {
-                        if (tokens[i].indexOf('\'') != -1) lastTokenWithQuote = i;
+                    for (int i = 0; i < tokens.length; i++) {
+                        if (tokens[i].indexOf('\'') != -1)
+                            lastTokenWithQuote = i;
                     }
                     lastTokenWithQuote++;
                     StringBuilder sb = new StringBuilder(checkPblockValid(ig, lineNumber, tokens[lastTokenWithQuote]));
-                    for (int i=lastTokenWithQuote+1; i < tokens.length; i++) {
+                    for (int i = lastTokenWithQuote + 1; i < tokens.length; i++) {
                         sb.append(" ");
                         sb.append(checkPblockValid(ig, lineNumber, tokens[i]));
                     }
-                    SubPBlock subImpl = new SubPBlock(ig.getDevice(),sb.toString());
+                    SubPBlock subImpl = new SubPBlock(ig.getDevice(), sb.toString());
                     subImpl.setGetCellsArgs(getCellsParam);
                     currImpl.addSubPBlock(subImpl);
                     break;
                 }
-                case INST:{
+                case INST: {
                     BlockInst bi = new BlockInst();
                     bi.setName(tokens[1]);
                     currBlock.addBlockInst(bi);
@@ -164,56 +166,55 @@ public class ImplGuide {
                         bi.setImpl(Integer.parseInt(tokens[2]));
                         if (currBlock.getImplementations().get(bi.getImplIndex()) == null) {
                             throw new RuntimeException("ERROR: Inconsistent implement"
-                                + "ation guide for instance " + bi.getName() + ".  The"
-                                + " block " + currBlock.getCacheID() + " doesn't have "
-                                + "an implementation " + bi.getImplIndex() + ".");
+                                                       + "ation guide for instance " + bi.getName() + ".  The"
+                                                       + " block " + currBlock.getCacheID() + " doesn't have "
+                                                       + "an implementation " + bi.getImplIndex() + ".");
                         }
                     }
                     if (tokens.length > 3) {
                         Site s = ig.getDevice().getSite(tokens[3]);
                         if (s == null) {
                             throw new RuntimeException("ERROR: " + tokens[3] + " could "
-                                + "not be found in the device "
-                                + ig.getDevice().getName() + ".");
+                                                       + "not be found in the device " + ig.getDevice().getName() +
+                                                       ".");
                         }
                         bi.setPlacement(s);
                     }
                     break;
                 }
-                case CLOCK:{
+                case CLOCK: {
                     String clkPortName = tokens[1];
                     Float period = Float.parseFloat(tokens[2]);
-                    if (period < 0) throw new RuntimeException("ERROR: Parsing clock period constraint '"
-                            + tokens[2] +"' is invalid on line " + lineNumber );
-                    currBlock.addClock(clkPortName,period);
+                    if (period < 0)
+                        throw new RuntimeException("ERROR: Parsing clock period constraint '" + tokens[2] +
+                                                   "' is invalid on line " + lineNumber);
+                    currBlock.addClock(clkPortName, period);
                     if (tokens.length == 4) {
                         Site clkBuffer = ig.getDevice().getSite(tokens[3]);
                         if (clkBuffer == null) {
-                            throw new RuntimeException("ERROR: Invalid clk buffer site '"
-                                    + tokens[3] +"' on line " + lineNumber );
+                            throw new RuntimeException("ERROR: Invalid clk buffer site '" + tokens[3] + "' on line " +
+                                                       lineNumber);
                         }
-                        currBlock.addClockBuffer(clkPortName,clkBuffer);
+                        currBlock.addClockBuffer(clkPortName, clkBuffer);
                     }
                     break;
                 }
-                case TCL:{
+                case TCL: {
                     String tclCommand = line.substring(4);
                     currBlock.addXDCCommand(tclCommand);
                     break;
                 }
-                case END_BLOCK:{
+                case END_BLOCK: {
                     currBlock = null;
                     break;
                 }
-                case END_BLOCKS:{
+                case END_BLOCKS: {
                     break outer;
                 }
                 default:
-                    throw new RuntimeException("ERROR while parsing " +
-                    fileName + " unexpected token " + tokens[0] +
-                    " on line " + lineNumber);
+                    throw new RuntimeException("ERROR while parsing " + fileName + " unexpected token " + tokens[0] +
+                                               " on line " + lineNumber);
             }
-
         }
 
         return ig;
@@ -226,10 +227,11 @@ public class ImplGuide {
             BufferedWriter bw = new BufferedWriter(new FileWriter(fileName));
             bw.write(PART + " " + getPart().toString() + nl);
             for (BlockGuide b : getBlocks()) {
-                bw.write(BLOCK + " " + b.getCacheID() + " " + b.getImplementations().size() + " " + b.getInsts().size() + nl);
+                bw.write(BLOCK + " " + b.getCacheID() + " " + b.getImplementations().size() + " " +
+                         b.getInsts().size() + nl);
                 int i = 0;
                 for (PBlock pb : b.getImplementations()) {
-                    bw.write(indent + IMPL + " " + i +  " "+ pb.toString() + nl);
+                    bw.write(indent + IMPL + " " + i + " " + pb.toString() + nl);
                     i++;
                 }
                 for (BlockInst bi : b.getInsts()) {
@@ -268,14 +270,12 @@ public class ImplGuide {
         return part;
     }
 
-
     /**
      * @param part the part to set
      */
     public void setPart(Part part) {
         this.part = part;
     }
-
 
     /**
      * @return the device
@@ -284,14 +284,12 @@ public class ImplGuide {
         return device;
     }
 
-
     /**
      * @param device the device to set
      */
     public void setDevice(Device device) {
         this.device = device;
     }
-
 
     /**
      * @return the blockGuides
@@ -339,9 +337,11 @@ public class ImplGuide {
         for (BlockGuide bg : getBlocks()) {
             boolean isNull = false;
             for (PBlock pb : bg.getImplementations()) {
-                if (pb == null) isNull = true;
+                if (pb == null)
+                    isNull = true;
             }
-            if (isNull) toRemove.add(bg);
+            if (isNull)
+                toRemove.add(bg);
         }
         for (BlockGuide bg : toRemove) {
             removeBlock(bg.getCacheID());

@@ -36,11 +36,9 @@ import com.xilinx.rapidwright.router.RouteNode;
 import com.xilinx.rapidwright.router.Router;
 
 public class CustomRouting {
-
-
     public static void main(String[] args) {
         // Let's create a new design with just two LUTs, a source and sink...
-        Design design = new Design("customRoute",Device.AWS_F1);
+        Design design = new Design("customRoute", Device.AWS_F1);
         Cell src = design.createAndPlaceCell("src", Unisim.AND2, "SLICE_X100Y100/A6LUT");
         Cell snk = design.createAndPlaceCell("snk", Unisim.AND2, "SLICE_X110Y110/A6LUT");
 

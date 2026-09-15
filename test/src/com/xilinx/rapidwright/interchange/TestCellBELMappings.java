@@ -23,17 +23,15 @@
 
 package com.xilinx.rapidwright.interchange;
 
-import org.capnproto.MessageBuilder;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.interchange.DeviceResources.Device.CellBelMapping;
 import com.xilinx.rapidwright.interchange.DeviceResources.Device.CellBelPinEntry;
 import com.xilinx.rapidwright.interchange.DeviceResources.Device.ParameterCellBelPinMaps;
+import org.capnproto.MessageBuilder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestCellBELMappings {
-
     @Test
     public void testCellBELPinMappings() {
         StringEnumerator allStrings = new StringEnumerator();
@@ -44,11 +42,11 @@ public class TestCellBELMappings {
 
         boolean foundIDDRS = false;
         boolean foundIDDRR = false;
-        for (int i=0; i < devBuilder.getCellBelMap().size(); i++) {
+        for (int i = 0; i < devBuilder.getCellBelMap().size(); i++) {
             CellBelMapping.Builder mapping = devBuilder.getCellBelMap().get(i);
             if (allStrings.get(mapping.getCell()).equals("IDDR")) {
                 Assertions.assertTrue(mapping.hasParameterPins());
-               for (ParameterCellBelPinMaps.Builder paramPins : mapping.getParameterPins()) {
+                for (ParameterCellBelPinMaps.Builder paramPins : mapping.getParameterPins()) {
                     for (CellBelPinEntry.Builder pinObj : paramPins.getPins()) {
                         Assertions.assertEquals(allStrings.get(pinObj.getBelPin()), "SR");
                         String cellPinName = allStrings.get(pinObj.getCellPin());

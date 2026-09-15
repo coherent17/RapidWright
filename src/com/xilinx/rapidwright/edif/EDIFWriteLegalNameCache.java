@@ -35,11 +35,11 @@ import java.util.function.Supplier;
  * Helper class that keeps track of EDIF Renames during writing. This class is thread-safe.
  */
 public abstract class EDIFWriteLegalNameCache<T> {
-
     /**
      * Marker String to indicate that some does not need to be renamed.
      *
-     * We cannot use null, as null values have special behaviour in {@link Map#computeIfAbsent(Object, Function)}.
+     * We cannot use null, as null values have special behaviour in {@link
+     * Map#computeIfAbsent(Object, Function)}.
      */
     private static final byte[] MARKER_NO_RENAME = new byte[0];
 
@@ -77,13 +77,13 @@ public abstract class EDIFWriteLegalNameCache<T> {
         if (previousCount == 0) {
             return rename.getBytes(StandardCharsets.UTF_8);
         }
-        return (rename+"_HDI_"+(previousCount-1)).getBytes(StandardCharsets.UTF_8);
+        return (rename + "_HDI_" + (previousCount - 1)).getBytes(StandardCharsets.UTF_8);
     }
 
     public byte[] getEDIFRename(String name) {
-        Map<String, byte[]> map = renames[name.charAt(0)&0xFF];
+        Map<String, byte[]> map = renames[name.charAt(0) & 0xFF];
         final byte[] rename = map.computeIfAbsent(name, this::calcRename);
-        //Checking equality against this special marker instance is ok
+        // Checking equality against this special marker instance is ok
         if (rename == MARKER_NO_RENAME) {
             return null;
         }
@@ -91,17 +91,16 @@ public abstract class EDIFWriteLegalNameCache<T> {
     }
 
     public byte[] getBusCollisionEDIFRename(String name) {
-        return busCollisionRenames.computeIfAbsent(name,
-                n -> (EDIFTools.makeNameEDIFCompatible(n) + "_BUS_").getBytes(StandardCharsets.UTF_8));
+        return busCollisionRenames.computeIfAbsent(
+            name, n -> (EDIFTools.makeNameEDIFCompatible(n) + "_BUS_").getBytes(StandardCharsets.UTF_8));
     }
 
     public static EDIFWriteLegalNameCache<?> singleThreaded() {
         return new EDIFWriteLegalNameCache<Integer>(new HashMap<>(), HashMap::new) {
-
             @Override
             protected int getAndIncrement(String rename) {
                 int count = usedRenames.getOrDefault(rename, 0);
-                usedRenames.put(rename, count+1);
+                usedRenames.put(rename, count + 1);
                 return count;
             }
         };
@@ -111,7 +110,7 @@ public abstract class EDIFWriteLegalNameCache<T> {
         return new EDIFWriteLegalNameCache<AtomicInteger>(new ConcurrentHashMap<>(), ConcurrentHashMap::new) {
             @Override
             protected int getAndIncrement(String rename) {
-                AtomicInteger counter = usedRenames.computeIfAbsent(rename, x->new AtomicInteger());
+                AtomicInteger counter = usedRenames.computeIfAbsent(rename, x -> new AtomicInteger());
                 return counter.getAndIncrement();
             }
         };

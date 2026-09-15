@@ -36,9 +36,7 @@ import com.xilinx.rapidwright.gui.TileView;
  * Created on: Apr 26, 2017
  */
 public class BlockView extends TileView {
-
     public BlockView(QGraphicsScene scene) {
         super(scene);
     }
-
 }

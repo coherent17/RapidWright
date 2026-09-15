@@ -31,14 +31,13 @@ import org.junit.jupiter.params.converter.SimpleArgumentConverter;
  *
  */
 public class StringArrayConverter extends SimpleArgumentConverter {
-
     @Override
     protected Object convert(Object arg0, Class<?> arg1) throws ArgumentConversionException {
         if (arg0 instanceof String && String[].class.isAssignableFrom(arg1)) {
-            String value = (String) arg0;
+            String value = (String)arg0;
             return value.split("\\s*,\\s*");
         }
-        throw new RuntimeException("ERROR: Unrecognized parameter '"+arg0
-                                    +"', could not be converted to a String[].");
+        throw new RuntimeException("ERROR: Unrecognized parameter '" + arg0 +
+                                   "', could not be converted to a String[].");
     }
 }

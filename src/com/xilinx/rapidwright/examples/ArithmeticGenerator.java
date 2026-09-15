@@ -24,14 +24,12 @@
 
 package com.xilinx.rapidwright.examples;
 
-
 /**
  * Serves as a parent class for {@link AddSubGenerator} and {@link MultGenerator}.
  *
  * @author clavin
  */
 public abstract class ArithmeticGenerator {
-
     protected static final String PART_OPT = "p";
     protected static final String DESIGN_NAME_OPT = "d";
     protected static final String OUT_DCP_OPT = "o";
@@ -40,7 +38,6 @@ public abstract class ArithmeticGenerator {
     protected static final String WIDTH_OPT = "w";
     protected static final String VERBOSE_OPT = "v";
     protected static final String HELP_OPT = "h";
-
 
     public static final int BITS_PER_CLE = 8;
     public static String INPUT_A_NAME = "A";

@@ -25,7 +25,6 @@ package com.xilinx.rapidwright.design;
 import com.xilinx.rapidwright.util.CodeGenerator;
 
 public class TestDesignHelper {
-
     public static Net createTestNet(Design design, String netName, String[] pips) {
         return CodeGenerator.createTestNet(design, netName, pips);
     }

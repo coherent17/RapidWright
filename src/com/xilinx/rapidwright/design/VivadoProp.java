@@ -28,7 +28,6 @@ package com.xilinx.rapidwright.design;
  *
  */
 public class VivadoProp {
-
     private VivadoPropType type;
 
     private String value;
@@ -73,7 +72,7 @@ public class VivadoProp {
 
     @Override
     public String toString() {
-        return value + "("+ type+ ")";
+        return value + "(" + type + ")";
     }
 
     @Override
@@ -93,7 +92,7 @@ public class VivadoProp {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        VivadoProp other = (VivadoProp) obj;
+        VivadoProp other = (VivadoProp)obj;
         if (type != other.type)
             return false;
         if (value == null) {
@@ -103,6 +102,4 @@ public class VivadoProp {
             return false;
         return true;
     }
-
-
 }

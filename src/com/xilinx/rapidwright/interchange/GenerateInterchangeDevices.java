@@ -37,8 +37,8 @@ import com.xilinx.rapidwright.util.LocalJob;
 public class GenerateInterchangeDevices {
     public static void main(String[] args) {
         if (args.length != 1) {
-            System.out.println("USAGE: java " + GenerateInterchangeDevices.class.getCanonicalName()
-                    + " <destination_dir>");
+            System.out.println("USAGE: java " + GenerateInterchangeDevices.class.getCanonicalName() +
+                               " <destination_dir>");
             return;
         }
         String rootRunDir = args[0];

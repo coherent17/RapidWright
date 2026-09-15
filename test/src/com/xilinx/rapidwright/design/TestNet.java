@@ -27,13 +27,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.xilinx.rapidwright.device.Device;
+import com.xilinx.rapidwright.support.RapidWrightDCP;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import com.xilinx.rapidwright.device.Device;
-import com.xilinx.rapidwright.support.RapidWrightDCP;
 
 public class TestNet {
     @Test
@@ -42,10 +41,7 @@ public class TestNet {
         SiteInst si = d.createSiteInst("SLICE_X32Y73");
 
         Net net = new Net("foo");
-        List<SitePinInst> pins = Arrays.asList(
-                new SitePinInst("A_O", si),
-                new SitePinInst("AMUX", si)
-        );
+        List<SitePinInst> pins = Arrays.asList(new SitePinInst("A_O", si), new SitePinInst("AMUX", si));
 
         Assertions.assertTrue(net.setPins(pins));
         Assertions.assertEquals(pins.get(0), net.getSource());
@@ -58,11 +54,8 @@ public class TestNet {
         SiteInst si = d.createSiteInst("SLICE_X249Y83");
 
         Net net = new Net("foo");
-        List<SitePinInst> pins = Arrays.asList(
-                new SitePinInst("H_O", si),
-                new SitePinInst("HQ", si),
-                new SitePinInst("HQ2", si)
-        );
+        List<SitePinInst> pins =
+            Arrays.asList(new SitePinInst("H_O", si), new SitePinInst("HQ", si), new SitePinInst("HQ2", si));
 
         Assertions.assertTrue(net.setPins(pins));
         Assertions.assertEquals(pins.get(0), net.getSource());
@@ -77,11 +70,8 @@ public class TestNet {
         SiteInst si = d.createSiteInst("SLICE_X32Y73");
 
         Net net = d.getVccNet();
-        List<SitePinInst> pins = Arrays.asList(
-                new SitePinInst("A_O", si),
-                new SitePinInst("BMUX", si),
-                new SitePinInst("C_O", si)
-        );
+        List<SitePinInst> pins =
+            Arrays.asList(new SitePinInst("A_O", si), new SitePinInst("BMUX", si), new SitePinInst("C_O", si));
 
         Assertions.assertTrue(net.setPins(pins));
         Assertions.assertSame(pins.get(0), net.getSource());
@@ -96,11 +86,8 @@ public class TestNet {
         SiteInst si = d.createSiteInst("SLICE_X249Y83");
 
         Net net = d.getVccNet();
-        List<SitePinInst> pins = Arrays.asList(
-                new SitePinInst("F_O", si),
-                new SitePinInst("GQ", si),
-                new SitePinInst("H_O", si)
-        );
+        List<SitePinInst> pins =
+            Arrays.asList(new SitePinInst("F_O", si), new SitePinInst("GQ", si), new SitePinInst("H_O", si));
         for (SitePinInst spi : pins) {
             Assertions.assertTrue(net.addPin(spi));
         }
@@ -139,7 +126,9 @@ public class TestNet {
         Design design = new Design("test", Device.KCU105);
 
         // Net with two outputs (HMUX primary and H_O alternate) and two sinks (SRST_B2 & B2)
-        Net net = TestDesignHelper.createTestNet(design, "net", new String[]{
+        Net net = TestDesignHelper.createTestNet(
+            design, "net",
+            new String[] {
                 // SLICE_X65Y158/HMUX-> SLICE_X64Y158/SRST_B2
                 "INT_X42Y158/INT.LOGIC_OUTS_E16->>INT_NODE_SINGLE_DOUBLE_46_INT_OUT",
                 "INT_X42Y158/INT.INT_NODE_SINGLE_DOUBLE_46_INT_OUT->>INT_INT_SINGLE_51_INT_OUT",
@@ -158,7 +147,7 @@ public class TestNet {
                 "INT_X42Y158/INT.EE4_END12->>INT_NODE_GLOBAL_8_OUT1",
                 "INT_X42Y158/INT.INT_NODE_GLOBAL_8_OUT1->>INT_NODE_IMUX_61_INT_OUT",
                 "INT_X42Y158/INT.INT_NODE_IMUX_61_INT_OUT->>IMUX_W0",
-        });
+            });
 
         SiteInst si = design.createSiteInst(design.getDevice().getSite("SLICE_X65Y158"));
         SitePinInst src = net.createPin("HMUX", si);
@@ -208,13 +197,12 @@ public class TestNet {
         Net gndNet = design.getGndNet();
         SitePinInst a6 = gndNet.createPin("A6", si);
         SitePinInst b6 = gndNet.createPin("B6", si);
-        TestDesignHelper.addPIPs(gndNet, new String[]{
-                "INT_X0Y0/INT.LOGIC_OUTS_E29->>INT_NODE_SINGLE_DOUBLE_101_INT_OUT",
-                "INT_X0Y0/INT.INT_NODE_SINGLE_DOUBLE_101_INT_OUT->>SS1_E_BEG7",
-                "INT_X0Y0/INT.INT_NODE_IMUX_64_INT_OUT->>IMUX_E16",
-                "INT_X0Y0/INT.NN1_E_END0->>INT_NODE_IMUX_64_INT_OUT",
-                "INT_X0Y0/INT.INT_NODE_IMUX_64_INT_OUT->>IMUX_E17"
-        });
+        TestDesignHelper.addPIPs(gndNet,
+                                 new String[] {"INT_X0Y0/INT.LOGIC_OUTS_E29->>INT_NODE_SINGLE_DOUBLE_101_INT_OUT",
+                                               "INT_X0Y0/INT.INT_NODE_SINGLE_DOUBLE_101_INT_OUT->>SS1_E_BEG7",
+                                               "INT_X0Y0/INT.INT_NODE_IMUX_64_INT_OUT->>IMUX_E16",
+                                               "INT_X0Y0/INT.NN1_E_END0->>INT_NODE_IMUX_64_INT_OUT",
+                                               "INT_X0Y0/INT.INT_NODE_IMUX_64_INT_OUT->>IMUX_E17"});
         gndNet.removePin(a6, true);
         Assertions.assertEquals(gndNet.getPIPs().size(), 4);
         gndNet.removePin(b6, true);
@@ -249,14 +237,9 @@ public class TestNet {
         Design design = Design.readCheckpoint(dcpPath);
         design.detachNetlist();
 
-        String[] hierPortNets = new String[]{
-                "dmem_mode_V[0]",
-                "n_inputs_V[13]",
-                "n_inputs_V[1]",
-                "n_inputs_V[3]",
-                "n_inputs_V[5]",
-                "n_inputs_V[7]",
-                "n_inputs_V[9]",
+        String[] hierPortNets = new String[] {
+            "dmem_mode_V[0]", "n_inputs_V[13]", "n_inputs_V[1]", "n_inputs_V[3]",
+            "n_inputs_V[5]",  "n_inputs_V[7]",  "n_inputs_V[9]",
         };
         for (String name : hierPortNets) {
             Net net = design.getNet(name);
@@ -304,7 +287,9 @@ public class TestNet {
         // Error if already connected
         Net otherNet = d.createNet("other_net");
         RuntimeException ex = Assertions.assertThrows(RuntimeException.class, () -> otherNet.connect(cell, "CE"));
-        Assertions.assertEquals("ERROR: SitePinInst 'IN SLICE_X0Y0.CKEN_B1' is already connected to net 'net'.  Disconnect it first from that net before calling Net.connect()", ex.getMessage());
+        Assertions.assertEquals("ERROR: SitePinInst 'IN SLICE_X0Y0.CKEN_B1' is already connected to net 'net'.  "
+                                    + "Disconnect it first from that net before calling Net.connect()",
+                                ex.getMessage());
 
         // Remove from net
         Assertions.assertTrue(net.removePin(spi));
@@ -312,16 +297,14 @@ public class TestNet {
         Assertions.assertEquals(spi, otherNet.connect(cell, "CE"));
         Assertions.assertEquals(otherNet, spi.getNet());
     }
-  
+
     @Test
     public void testCreatePinInvalid() {
         Design d = new Design("top", "xc7a200t");
         SiteInst si = d.createSiteInst(d.getDevice().getSite("RAMB36_X8Y14"));
-        RuntimeException ex = Assertions.assertThrows(RuntimeException.class, () ->
-                d.getGndNet().createPin("RSTRAMARSTRAML", si)
-        );
-        Assertions.assertEquals("ERROR: Couldn't find pin RSTRAMARSTRAML on site type RAMBFIFO36E1",
-                ex.getMessage());
+        RuntimeException ex =
+            Assertions.assertThrows(RuntimeException.class, () -> d.getGndNet().createPin("RSTRAMARSTRAML", si));
+        Assertions.assertEquals("ERROR: Couldn't find pin RSTRAMARSTRAML on site type RAMBFIFO36E1", ex.getMessage());
     }
 
     @ParameterizedTest

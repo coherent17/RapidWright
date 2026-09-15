@@ -38,10 +38,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 public class TestBinaryEDIF {
-
     public static final String RW_TEST_DCP_PATH_VAR_NAME = "RW_TEST_DCP_PATH";
     public static final String RW_TEST_WORKING_DIR_VAR_NAME = "RW_TEST_WORKING_DIR";
-
 
     @Test
     public void testBinaryEDIF(@TempDir Path tempDir) {

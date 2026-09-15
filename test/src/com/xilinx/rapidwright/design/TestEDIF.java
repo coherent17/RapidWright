@@ -48,11 +48,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 /**
- * Test that we can write an EDIF file and read it back in. We currently don't have a way to check designs for equality,
- * so we just try to catch obvious issues.
+ * Test that we can write an EDIF file and read it back in. We currently don't have a way to check
+ * designs for equality, so we just try to catch obvious issues.
  */
 public class TestEDIF {
-
     public static EDIFNetlist createEmptyNetlist() {
         EDIFNetlist netlist = new EDIFNetlist("test");
         netlist.setDesign(new EDIFDesign("test"));
@@ -67,7 +66,8 @@ public class TestEDIF {
 
     @Test
     public void checkEdifRoundtrip(@TempDir Path tempDir) throws IOException {
-        //Use separate files for writing/reading so we can identify identify leaking file handles by filename
+        // Use separate files for writing/reading so we can identify identify leaking file handles
+        // by filename
         final Path filenameWrite = tempDir.resolve("testWrite.edf");
         final Path filenameRead = tempDir.resolve("testRead.edf");
 
@@ -80,7 +80,6 @@ public class TestEDIF {
         final EDIFNetlist netlist = EDIFTools.readEdifFile(filenameRead);
 
         verifyNetlist(netlist, "inst");
-
     }
 
     public static void verifyNetlist(EDIFNetlist netlist, String expectedName) {
@@ -98,9 +97,9 @@ public class TestEDIF {
 
     private void connectToParent(EDIFCellInst cellInst, String portName, String innerPrefix) {
         EDIFCell parent = cellInst.getParentCell();
-        final EDIFNet net = parent.createNet("net/"+portName);
-        final EDIFPortInst innerPortInst = net.createPortInst(innerPrefix+portName, cellInst);
-        final EDIFPort port = parent.createPort("port/"+portName, innerPortInst.getDirection(), 1);
+        final EDIFNet net = parent.createNet("net/" + portName);
+        final EDIFPortInst innerPortInst = net.createPortInst(innerPrefix + portName, cellInst);
+        final EDIFPort port = parent.createPort("port/" + portName, innerPortInst.getDirection(), 1);
         net.createPortInst(port);
     }
 
@@ -134,12 +133,12 @@ public class TestEDIF {
         final EDIFHierCellInst intermediate = topHierCellInst.getChild("inter/mediate");
         final EDIFHierCellInst reg = intermediate.getChild("inst/asdf");
 
-        //Check cell insts
+        // Check cell insts
         Assertions.assertEquals(topHierCellInst, netlist.getHierCellInstFromName(""));
         Assertions.assertEquals(intermediate, netlist.getHierCellInstFromName("inter/mediate"));
         Assertions.assertEquals(reg, netlist.getHierCellInstFromName("inter/mediate/inst/asdf"));
 
-        //Check nets
+        // Check nets
         Assertions.assertEquals(topHierCellInst.getNet("net/D"), netlist.getHierNetFromName("net/D"));
         Assertions.assertEquals(topHierCellInst.getNet("net/C"), netlist.getHierNetFromName("net/C"));
         Assertions.assertEquals(topHierCellInst.getNet("net/Q"), netlist.getHierNetFromName("net/Q"));
@@ -147,20 +146,21 @@ public class TestEDIF {
         Assertions.assertEquals(intermediate.getNet("net/C"), netlist.getHierNetFromName("inter/mediate/net/C"));
         Assertions.assertEquals(intermediate.getNet("net/Q"), netlist.getHierNetFromName("inter/mediate/net/Q"));
 
-        //Check Ports
-        Assertions.assertEquals(intermediate.getPortInst("port/D"), netlist.getHierPortInstFromName("inter/mediate/port/D"));
-        Assertions.assertEquals(intermediate.getPortInst("port/C"), netlist.getHierPortInstFromName("inter/mediate/port/C"));
-        Assertions.assertEquals(intermediate.getPortInst("port/Q"), netlist.getHierPortInstFromName("inter/mediate/port/Q"));
+        // Check Ports
+        Assertions.assertEquals(intermediate.getPortInst("port/D"),
+                                netlist.getHierPortInstFromName("inter/mediate/port/D"));
+        Assertions.assertEquals(intermediate.getPortInst("port/C"),
+                                netlist.getHierPortInstFromName("inter/mediate/port/C"));
+        Assertions.assertEquals(intermediate.getPortInst("port/Q"),
+                                netlist.getHierPortInstFromName("inter/mediate/port/Q"));
         Assertions.assertEquals(reg.getPortInst("D"), netlist.getHierPortInstFromName("inter/mediate/inst/asdf/D"));
         Assertions.assertEquals(reg.getPortInst("C"), netlist.getHierPortInstFromName("inter/mediate/inst/asdf/C"));
         Assertions.assertEquals(reg.getPortInst("Q"), netlist.getHierPortInstFromName("inter/mediate/inst/asdf/Q"));
     }
 
-
-
     SoftReference<EDIFNetlist> wrappedRegisterDesign = null;
     private EDIFNetlist createWrappedRegisterDesign() {
-        //Make a hard reference before checking to avoid race condition!
+        // Make a hard reference before checking to avoid race condition!
         EDIFNetlist netlist = wrappedRegisterDesign != null ? wrappedRegisterDesign.get() : null;
         if (netlist == null) {
             netlist = createEmptyNetlist();
@@ -178,7 +178,7 @@ public class TestEDIF {
         return netlist;
     }
 
-    @ParameterizedTest(name="Macro Unisim expansion of {0}")
+    @ParameterizedTest(name = "Macro Unisim expansion of {0}")
     @EnumSource(names = {"LUT6_2", "CFGLUT5", "BUFG"})
     public void testMacroExpansion(Unisim unisim) {
         EDIFNetlist netlist = createEmptyNetlist();

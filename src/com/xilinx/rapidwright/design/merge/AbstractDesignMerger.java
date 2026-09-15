@@ -36,7 +36,6 @@ import com.xilinx.rapidwright.edif.EDIFPort;
  * collide in their respective namespace.
  */
 public abstract class AbstractDesignMerger {
-
     public abstract void mergePorts(EDIFPort p0, EDIFPort p1);
 
     public abstract void mergeLogicalNets(EDIFNet n0, EDIFNet n1);

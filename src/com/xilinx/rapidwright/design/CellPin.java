@@ -24,7 +24,6 @@
 package com.xilinx.rapidwright.design;
 
 public class CellPin {
-
     private Cell cell;
 
     private String logicalPinName;

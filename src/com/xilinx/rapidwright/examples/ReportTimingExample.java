@@ -36,7 +36,6 @@ import org.jgrapht.GraphPath;
  * data path delay.
  */
 public class ReportTimingExample {
-
     public static void main(String[] args) {
         if (args.length != 1) {
             System.out.println("USAGE: <dcp_file_name>");

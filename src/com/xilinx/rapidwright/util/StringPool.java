@@ -32,8 +32,7 @@ import java.util.function.Function;
  * Deduplicate Strings for optimized memory usage
  */
 public class StringPool {
-
-    private final Map<String,String> stringPool;
+    private final Map<String, String> stringPool;
 
     private StringPool(Map<String, String> stringPool) {
         this.stringPool = stringPool;
@@ -58,5 +57,4 @@ public class StringPool {
     public String uniquifyName(String tmpName) {
         return stringPool.computeIfAbsent(tmpName, Function.identity());
     }
-
 }

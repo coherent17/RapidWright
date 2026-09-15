@@ -32,7 +32,6 @@ import com.xilinx.rapidwright.edif.EDIFLibrary;
  *
  */
 public class EDIFDiff {
-
     private EDIFDiffType type;
 
     private Object gold;
@@ -49,9 +48,8 @@ public class EDIFDiff {
 
     private String propertyKey;
 
-    public EDIFDiff(EDIFDiffType type, Object gold, Object test, EDIFCell parentCell,
-            EDIFLibrary parentLibrary, String notEqualString, 
-            EDIFCellInst sourceInst, String propertyKey) {
+    public EDIFDiff(EDIFDiffType type, Object gold, Object test, EDIFCell parentCell, EDIFLibrary parentLibrary,
+                    String notEqualString, EDIFCellInst sourceInst, String propertyKey) {
         this.type = type;
         this.gold = gold;
         this.test = test;
@@ -71,8 +69,10 @@ public class EDIFDiff {
     }
 
     public String getContext() {
-        if (parentLibrary == null) return "";
-        if (parentCell == null) return " in Library " + parentLibrary;
+        if (parentLibrary == null)
+            return "";
+        if (parentCell == null)
+            return " in Library " + parentLibrary;
         return " in Cell " + parentCell.getName() + " from Library " + parentLibrary;
     }
 
@@ -83,27 +83,26 @@ public class EDIFDiff {
             return test.getClass().getSimpleName();
         return null;
     }
-    
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
         if (type.isMissingType()) {
-            sb.append("Missing ")
-              .append(getClassName()).append(' ')
-              .append(gold);
+            sb.append("Missing ").append(getClassName()).append(' ').append(gold);
 
             if (notEqualString != null && !notEqualString.isEmpty()) {
                 sb.append(" (").append(notEqualString).append(')');
             }
         } else if (type.isExtraType()) {
-            sb.append("Extra ")
-              .append(getClassName()).append(' ')
-              .append(test);
+            sb.append("Extra ").append(getClassName()).append(' ').append(test);
         } else if (type.isNonNullMismatch()) {
             sb.append("Mismatch found (")
-              .append(notEqualString).append("), expected ")
-              .append(gold).append(", but found ").append(test);
+                .append(notEqualString)
+                .append("), expected ")
+                .append(gold)
+                .append(", but found ")
+                .append(test);
         }
 
         sb.append(getContext());

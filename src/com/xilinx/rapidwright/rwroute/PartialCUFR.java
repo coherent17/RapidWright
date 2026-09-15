@@ -48,10 +48,13 @@ public class PartialCUFR extends PartialRouter {
     private CUFRpartitionTree partitionTree;
     /** Timer to store partitioning runtime */
     private RuntimeTracker partitionTimer;
-    /** A unique ConnectionState instance to be reused by each thread (shadows RWRoute.connectionState)
-     *  (do not use ThreadLocal as the only way to have its values garbage collected is through calling
-     *  ThreadLocal.remove() from the owning thread; this cannot be done elegantly when routing has finished) */
-    private final Map<Thread,ConnectionState> connectionState;
+    /**
+     * A unique ConnectionState instance to be reused by each thread (shadows
+     * RWRoute.connectionState) (do not use ThreadLocal as the only way to have its values garbage
+     * collected is through calling ThreadLocal.remove() from the owning thread; this cannot be done
+     * elegantly when routing has finished)
+     */
+    private final Map<Thread, ConnectionState> connectionState;
     private boolean needsRepartitioning;
 
     public PartialCUFR(Design design, RWRouteConfig config, Collection<SitePinInst> pinsToRoute, boolean softPreserve) {
@@ -67,26 +70,29 @@ public class PartialCUFR extends PartialRouter {
 
         // Do not track createRnodeTime since it is meaningless when multithreading
         @Override
-        protected void addCreateRnodeTime(long time) {}
+        protected void addCreateRnodeTime(long time) {
+        }
     }
 
     public static class RouteNodeGraphPartialCUFRTimingDriven extends RouteNodeGraphPartialTimingDriven {
         public RouteNodeGraphPartialCUFRTimingDriven(Design design, RWRouteConfig config,
-                DelayEstimatorBase<InterconnectInfo> delayEstimator) {
+                                                     DelayEstimatorBase<InterconnectInfo> delayEstimator) {
             super(design, config, delayEstimator);
         }
 
         // Do not track createRnodeTime since it is meaningless when multithreading
         @Override
-        protected void addCreateRnodeTime(long time) {}
+        protected void addCreateRnodeTime(long time) {
+        }
     }
 
     @Override
     protected RouteNodeGraph createRouteNodeGraph() {
         if (config.isTimingDriven()) {
-            /* An instantiated delay estimator that is used to calculate delay of routing resources */
+            /* An instantiated delay estimator that is used to calculate delay of routing resources
+             */
             DelayEstimatorBase<InterconnectInfo> estimator = new DelayEstimatorBase<InterconnectInfo>(
-                    design.getDevice(), new InterconnectInfo(), config.isUseUTurnNodes(), 0);
+                design.getDevice(), new InterconnectInfo(), config.isUseUTurnNodes(), 0);
             return new RouteNodeGraphPartialCUFRTimingDriven(design, config, estimator);
         } else {
             return new RouteNodeGraphPartialCUFR(design, config);
@@ -108,20 +114,17 @@ public class PartialCUFR extends PartialRouter {
      * Parallel route a partition tree.
      */
     private void routePartitionTree(CUFRpartitionTree.PartitionTreeNode node) {
-        assert(node != null);
+        assert (node != null);
         if (node.left == null && node.right == null) {
-            assert(node.middle == null);
+            assert (node.middle == null);
             super.routeIndirectConnections(node.connections);
         } else {
-            assert(node.left != null && node.right != null);
+            assert (node.left != null && node.right != null);
             if (node.middle != null) {
                 routePartitionTree(node.middle);
             }
 
-            ParallelismTools.invokeAll(
-                    () -> routePartitionTree(node.left),
-                    () -> routePartitionTree(node.right)
-            );
+            ParallelismTools.invokeAll(() -> routePartitionTree(node.left), () -> routePartitionTree(node.right));
         }
     }
 
@@ -130,7 +133,8 @@ public class PartialCUFR extends PartialRouter {
         boolean firstIteration = (routeIteration == 1);
         if (firstIteration || config.isEnlargeBoundingBox() || needsRepartitioning) {
             partitionTimer.start();
-            partitionTree = new CUFRpartitionTree(sortedIndirectConnections, design.getDevice().getColumns(), design.getDevice().getRows());
+            partitionTree = new CUFRpartitionTree(sortedIndirectConnections, design.getDevice().getColumns(),
+                                                  design.getDevice().getRows());
             partitionTimer.stop();
             needsRepartitioning = false;
         }
@@ -156,7 +160,8 @@ public class PartialCUFR extends PartialRouter {
     /**
      * Routes a design in the partial non-timing-driven routing mode.
      * @param design The {@link Design} instance to be routed.
-     * @param pinsToRoute Collection of {@link SitePinInst}-s to be routed. If null, route all unrouted pins in the design.
+     * @param pinsToRoute Collection of {@link SitePinInst}-s to be routed. If null, route all
+     *     unrouted pins in the design.
      */
     public static Design routeDesignPartialNonTimingDriven(Design design, Collection<SitePinInst> pinsToRoute) {
         boolean softPreserve = false;
@@ -166,46 +171,51 @@ public class PartialCUFR extends PartialRouter {
     /**
      * Routes a design in the partial non-timing-driven routing mode using CUFR.
      * @param design The {@link Design} instance to be routed.
-     * @param pinsToRoute Collection of {@link SitePinInst}-s to be routed. If null, route all unrouted pins in the design.
-     * @param softPreserve Allow routed nets to be unrouted and subsequently rerouted in order to improve routability.
+     * @param pinsToRoute Collection of {@link SitePinInst}-s to be routed. If null, route all
+     *     unrouted pins in the design.
+     * @param softPreserve Allow routed nets to be unrouted and subsequently rerouted in order to
+     *     improve routability.
      */
-    public static Design routeDesignPartialNonTimingDriven(Design design, Collection<SitePinInst> pinsToRoute, boolean softPreserve) {
-        return routeDesignWithUserDefinedArguments(design, new String[] {
-                        "--hus",
-                        "--fixBoundingBox",
-                        // use U-turn nodes and no masking of nodes cross RCLK
-                        // Pros: maximum routability
-                        // Con: might result in delay optimism and a slight increase in runtime
-                        "--useUTurnNodes",
-                        "--nonTimingDriven",
-                        "--verbose"},
-                pinsToRoute, softPreserve);
+    public static Design routeDesignPartialNonTimingDriven(Design design, Collection<SitePinInst> pinsToRoute,
+                                                           boolean softPreserve) {
+        return routeDesignWithUserDefinedArguments(
+            design,
+            new String[] {"--hus", "--fixBoundingBox",
+                          // use U-turn nodes and no masking of nodes cross RCLK
+                          // Pros: maximum routability
+                          // Con: might result in delay optimism and a slight increase in runtime
+                          "--useUTurnNodes", "--nonTimingDriven", "--verbose"},
+            pinsToRoute, softPreserve);
     }
 
     /**
      * Routes a design in the partial timing-driven routing mode using CUFR.
      * @param design The {@link Design} instance to be routed.
-     * @param pinsToRoute Collection of {@link SitePinInst}-s to be routed. If null, route all unrouted pins in the design.
-     * @param softPreserve Allow routed nets to be unrouted and subsequently rerouted in order to improve routability.
+     * @param pinsToRoute Collection of {@link SitePinInst}-s to be routed. If null, route all
+     *     unrouted pins in the design.
+     * @param softPreserve Allow routed nets to be unrouted and subsequently rerouted in order to
+     *     improve routability.
      */
-    public static Design routeDesignPartialTimingDriven(Design design, Collection<SitePinInst> pinsToRoute, boolean softPreserve) {
-        return routeDesignWithUserDefinedArguments(design, new String[] {
-                        "--hus",
-                        "--fixBoundingBox",
-                        // use U-turn nodes and no masking of nodes cross RCLK
-                        // Pros: maximum routability
-                        // Con: might result in delay optimism and a slight increase in runtime
-                        "--useUTurnNodes",
-                        "--verbose"},
-                pinsToRoute, softPreserve);
+    public static Design routeDesignPartialTimingDriven(Design design, Collection<SitePinInst> pinsToRoute,
+                                                        boolean softPreserve) {
+        return routeDesignWithUserDefinedArguments(
+            design,
+            new String[] {"--hus", "--fixBoundingBox",
+                          // use U-turn nodes and no masking of nodes cross RCLK
+                          // Pros: maximum routability
+                          // Con: might result in delay optimism and a slight increase in runtime
+                          "--useUTurnNodes", "--verbose"},
+            pinsToRoute, softPreserve);
     }
 
     /**
-     * Partially routes all unrouted sinks in a {@link Design} instance; fully-routed sinks will have their routing preserved.
+     * Partially routes all unrouted sinks in a {@link Design} instance; fully-routed sinks will
+     * have their routing preserved.
      * @param design The {@link Design} instance to be routed.
      * @param config The {@link RWRouteConfig} instance to use.
-     * If null, the design will be routed in the full timing-driven routing mode with default a {@link RWRouteConfig} instance.
-     * For more options of the configuration, please refer to the {@link RWRouteConfig} class.
+     * If null, the design will be routed in the full timing-driven routing mode with default a
+     * {@link RWRouteConfig} instance. For more options of the configuration, please refer to the
+     * {@link RWRouteConfig} class.
      * @return Routed design.
      */
     public static Design routeDesignWithUserDefinedArguments(Design design, RWRouteConfig config) {
@@ -217,18 +227,21 @@ public class PartialCUFR extends PartialRouter {
     }
 
     /**
-     * Partially routes all given sinks in a {@link Design} instance; fully-routed sinks will have their routing preserved
-     * if "softPreserve" is false, otherwise such sinks may be lazily-rerouted when attempting to route other congested sinks.
+     * Partially routes all given sinks in a {@link Design} instance; fully-routed sinks will have
+     * their routing preserved if "softPreserve" is false, otherwise such sinks may be
+     * lazily-rerouted when attempting to route other congested sinks.
      * @param design The {@link Design} instance to be routed.
      * @param config The {@link RWRouteConfig} instance to use.
-     * If null, the design will be routed in the full timing-driven routing mode with default a {@link RWRouteConfig} instance.
-     * For more options of the configuration, please refer to the {@link RWRouteConfig} class.
-     * @param pinsToRoute Collection of {@link SitePinInst}-s to be routed. If null, route all unrouted pins in the design.
-     * @param softPreserve Allow routed nets to be unrouted and subsequently rerouted in order to improve routability.
+     * If null, the design will be routed in the full timing-driven routing mode with default a
+     * {@link RWRouteConfig} instance. For more options of the configuration, please refer to the
+     * {@link RWRouteConfig} class.
+     * @param pinsToRoute Collection of {@link SitePinInst}-s to be routed. If null, route all
+     *     unrouted pins in the design.
+     * @param softPreserve Allow routed nets to be unrouted and subsequently rerouted in order to
+     *     improve routability.
      * @return Routed design.
      */
-    public static Design routeDesignWithUserDefinedArguments(Design design,
-                                                             RWRouteConfig config,
+    public static Design routeDesignWithUserDefinedArguments(Design design, RWRouteConfig config,
                                                              Collection<SitePinInst> pinsToRoute,
                                                              boolean softPreserve) {
         // Instantiates a RWRouteConfig Object and parses the arguments.
@@ -239,7 +252,8 @@ public class PartialCUFR extends PartialRouter {
         }
 
         if (config.isMaskNodesCrossRCLK()) {
-            System.out.println("WARNING: Masking nodes across RCLK for partial routing could result in routability problems.");
+            System.out.println("WARNING: Masking nodes across RCLK for partial routing could "
+                               + "result in routability problems.");
         }
 
         if (!config.isHus()) {
@@ -250,18 +264,21 @@ public class PartialCUFR extends PartialRouter {
     }
 
     /**
-     * Partially routes all given sinks in a {@link Design} instance; fully-routed sinks will have their routing preserved
-     * if "softPreserve" is false, otherwise such sinks may be lazily-rerouted when attempting to route other congested sinks.
+     * Partially routes all given sinks in a {@link Design} instance; fully-routed sinks will have
+     * their routing preserved if "softPreserve" is false, otherwise such sinks may be
+     * lazily-rerouted when attempting to route other congested sinks.
      * @param design The {@link Design} instance to be routed.
      * @param args An array of string arguments, can be null.
-     * If null, the design will be routed in the full timing-driven routing mode with default a {@link RWRouteConfig} instance.
-     * For more options of the configuration, please refer to the {@link RWRouteConfig} class.
-     * @param pinsToRoute Collection of {@link SitePinInst}-s to be routed. If null, route all unrouted pins in the design.
-     * @param softPreserve Allow routed nets to be unrouted and subsequently rerouted in order to improve routability.
+     * If null, the design will be routed in the full timing-driven routing mode with default a
+     * {@link RWRouteConfig} instance. For more options of the configuration, please refer to the
+     * {@link RWRouteConfig} class.
+     * @param pinsToRoute Collection of {@link SitePinInst}-s to be routed. If null, route all
+     *     unrouted pins in the design.
+     * @param softPreserve Allow routed nets to be unrouted and subsequently rerouted in order to
+     *     improve routability.
      * @return Routed design.
      */
-    public static Design routeDesignWithUserDefinedArguments(Design design,
-                                                             String[] args,
+    public static Design routeDesignWithUserDefinedArguments(Design design, String[] args,
                                                              Collection<SitePinInst> pinsToRoute,
                                                              boolean softPreserve) {
         // Instantiates a RWRouteConfig Object and parses the arguments.
@@ -302,7 +319,7 @@ public class PartialCUFR extends PartialRouter {
         Design routed = routeDesignWithUserDefinedArguments(input, config);
 
         // Writes out the routed design checkpoint
-        routed.writeCheckpoint(routedDCPfileName,t);
+        routed.writeCheckpoint(routedDCPfileName, t);
         System.out.println("\nINFO: Wrote routed design\n " + routedDCPfileName + "\n");
     }
 }

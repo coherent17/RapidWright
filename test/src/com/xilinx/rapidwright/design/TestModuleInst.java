@@ -23,6 +23,9 @@
 
 package com.xilinx.rapidwright.design;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.device.PIP;
 import com.xilinx.rapidwright.device.Site;
@@ -40,12 +43,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class TestModuleInst {
     @ParameterizedTest
-    @ValueSource(booleans = {true,false})
+    @ValueSource(booleans = {true, false})
     public void testModulePlacesStaticNets(boolean placeOnOriginalAnchor) {
         String dcpPath = RapidWrightDCP.getString("picoblaze_ooc_X10Y235.dcp");
         Design design = Design.readCheckpoint(dcpPath, CodePerfTracker.SILENT);
@@ -129,7 +129,7 @@ public class TestModuleInst {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {1,2,5})
+    @ValueSource(ints = {1, 2, 5})
     void testEDIFNetlistIsCopied(int copies) {
         String dcpPath = RapidWrightDCP.getString("picoblaze_ooc_X10Y235.dcp");
         Design design = Design.readCheckpoint(dcpPath, CodePerfTracker.SILENT);
@@ -164,7 +164,7 @@ public class TestModuleInst {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {true,false})
+    @ValueSource(booleans = {true, false})
     public void testModuleAllowOverlap(boolean allowOverlap) {
         String dcpPath = RapidWrightDCP.getString("picoblaze_ooc_X10Y235.dcp");
         Design design = Design.readCheckpoint(dcpPath, CodePerfTracker.SILENT);
@@ -211,7 +211,7 @@ public class TestModuleInst {
 
         Assertions.assertTrue(mi1.placeOnOriginalAnchor());
         boolean skipIncompatible = true; // Necessary because out-of-context clock routing cannot be relocated
-        Assertions.assertTrue(mi2.place(mi1.getPlacement().getNeighborSite(0,-5), skipIncompatible));
+        Assertions.assertTrue(mi2.place(mi1.getPlacement().getNeighborSite(0, -5), skipIncompatible));
 
         Net net1 = mi1.getCorrespondingNet(module.getPort("output_port_x[0]"));
         Net net2 = mi2.getCorrespondingNet(module.getPort("input_port_a[0]"));
@@ -224,7 +224,7 @@ public class TestModuleInst {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "GND", "VCC" })
+    @ValueSource(strings = {"GND", "VCC"})
     public void testConnectGNDVCC(String staticTypeName) {
         NetType staticType = NetType.valueOf(staticTypeName);
 
@@ -255,8 +255,7 @@ public class TestModuleInst {
             }
         }
 
-        EDIFNet net = newDesign.getTopEDIFCell()
-                .getNet("<const" + (staticType == NetType.VCC ? 1 : 0) + ">");
+        EDIFNet net = newDesign.getTopEDIFCell().getNet("<const" + (staticType == NetType.VCC ? 1 : 0) + ">");
         for (EDIFPortInst pi : net.getPortInsts()) {
             if (pi.isInput()) {
                 Assertions.assertEquals(pi.getCellInst(), mi1.getCellInst());
@@ -304,12 +303,15 @@ public class TestModuleInst {
         Cell src = modDesign.createAndPlaceCell("src", Unisim.LUT6, "SLICE_X148Y899/H6LUT");
         Cell snk = modDesign.createAndPlaceCell("snk", Unisim.FDCE, "SLICE_X145Y899/DFF2");
 
-        Net physNet = TestDesignHelper.createTestNet(modDesign, "net0",
-                new String[] { "INT_X94Y899/INT.LOGIC_OUTS_E28->INT_NODE_SDQ_42_INT_OUT0",
-                        "INT_X94Y899/INT.INT_NODE_SDQ_42_INT_OUT1->>WW4_E_BEG7",
-                        "INT_X92Y899/INT.WW4_E_END7->>INT_NODE_GLOBAL_12_INT_OUT1", // Node fanout does not exist in all
-                                                                                    // Tiles
-                        "INT_X92Y899/INT.INT_NODE_GLOBAL_12_INT_OUT1->>CTRL_W1", });
+        Net physNet = TestDesignHelper.createTestNet(
+            modDesign, "net0",
+            new String[] {
+                "INT_X94Y899/INT.LOGIC_OUTS_E28->INT_NODE_SDQ_42_INT_OUT0",
+                "INT_X94Y899/INT.INT_NODE_SDQ_42_INT_OUT1->>WW4_E_BEG7",
+                "INT_X92Y899/INT.WW4_E_END7->>INT_NODE_GLOBAL_12_INT_OUT1", // Node fanout does not
+                                                                            // exist in all Tiles
+                "INT_X92Y899/INT.INT_NODE_GLOBAL_12_INT_OUT1->>CTRL_W1",
+            });
 
         EDIFNet logNet = physNet.getLogicalNet();
         logNet.createPortInst("O", src);
@@ -324,17 +326,17 @@ public class TestModuleInst {
 
         Assertions.assertFalse(validAnchorSites.contains(design.getDevice().getSite("SLICE_X117Y589")));
         Assertions.assertEquals(70560, validAnchorSites.size());
-
     }
 
     @ParameterizedTest
     @CsvSource({
-            "RAMB36E2,RAMB36_X1Y0/RAMB36E2",                // Regular RAMB36 conflict
-            "RAMB18E2,RAMB18_X1Y0/RAMB18E2_L",              // Regular RAMB18 (lower) conflict
-            "RAMB18E2,RAMB18_X1Y1/RAMB18E2_U",              // Regular RAMB18 (upper) conflict
-            "FIFO18E2,RAMB18_X1Y0/BELI_FIFO18E2_FIFO18E2",  // Regular FIFO18 (lower) conflict
+        "RAMB36E2,RAMB36_X1Y0/RAMB36E2",               // Regular RAMB36 conflict
+        "RAMB18E2,RAMB18_X1Y0/RAMB18E2_L",             // Regular RAMB18 (lower) conflict
+        "RAMB18E2,RAMB18_X1Y1/RAMB18E2_U",             // Regular RAMB18 (upper) conflict
+        "FIFO18E2,RAMB18_X1Y0/BELI_FIFO18E2_FIFO18E2", // Regular FIFO18 (lower) conflict
     })
-    public void testPlaceChecksBRAM(String unisim, String location) {
+    public void
+    testPlaceChecksBRAM(String unisim, String location) {
         Design design = RapidWrightDCP.loadDCP("picoblaze_ooc_X10Y235.dcp");
         Device device = design.getDevice();
 

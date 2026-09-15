@@ -56,13 +56,13 @@ public enum IntentCode {
     NODE_GLOBAL_LEAF,
     NODE_GLOBAL_BUFG,
 
-    //UltraScale+
+    // UltraScale+
     NODE_LAGUNA_DATA,
     NODE_CLE_OUTPUT,
     NODE_INT_INTERFACE,
     NODE_LAGUNA_OUTPUT,
 
-    //Series 7
+    // Series 7
     GENERIC,
     DOUBLE,
     INPUT,
@@ -131,16 +131,13 @@ public enum IntentCode {
     NODE_GLOBAL_VDISTR_LVL3,
     NODE_GLOBAL_VDISTR_LVL21,
     NODE_GLOBAL_VDISTR_SHARED,
-    
+
     // Versal Gen 2
     NODE_GLOBAL_HDISTR_SLOW,
     NODE_GLOBAL_HDISTR_MED,
     NODE_GLOBAL_HDISTR_FAST,
     NODE_GLOBAL_HROUTE_SLOW,
     NODE_GLOBAL_HROUTE_MED;
-    
-    
-
 
     public static boolean isLongWire(Tile tile, int wire) {
         return isLongWire(tile.getWireIntentCode(wire).ordinal());
@@ -156,7 +153,8 @@ public enum IntentCode {
     }
 
     public boolean isUltraScaleClocking() {
-        return NODE_GLOBAL_HDISTR == this || NODE_GLOBAL_VDISTR == this || NODE_GLOBAL_HROUTE == this || NODE_GLOBAL_LEAF == this || NODE_GLOBAL_VROUTE == this;
+        return NODE_GLOBAL_HDISTR == this || NODE_GLOBAL_VDISTR == this || NODE_GLOBAL_HROUTE == this ||
+            NODE_GLOBAL_LEAF == this || NODE_GLOBAL_VROUTE == this;
     }
 
     public boolean isUltraScaleClockRouting() {
@@ -169,9 +167,9 @@ public enum IntentCode {
 
     public boolean isVersalClocking() {
         return NODE_GLOBAL_HDISTR == this || NODE_GLOBAL_HDISTR_LOCAL == this || NODE_GLOBAL_HROUTE_HSR == this ||
-                NODE_GLOBAL_VDISTR == this || NODE_GLOBAL_VDISTR_LVL2 == this || NODE_GLOBAL_VROUTE == this ||
-                NODE_GLOBAL_GCLK == this || NODE_GLOBAL_LEAF == this || NODE_GLOBAL_BUFG == this
-                || NODE_GLOBAL_HROUTE == this;
+            NODE_GLOBAL_VDISTR == this || NODE_GLOBAL_VDISTR_LVL2 == this || NODE_GLOBAL_VROUTE == this ||
+            NODE_GLOBAL_GCLK == this || NODE_GLOBAL_LEAF == this || NODE_GLOBAL_BUFG == this ||
+            NODE_GLOBAL_HROUTE == this;
     }
 
     private static final int SERIES7_START_IDX = 23;

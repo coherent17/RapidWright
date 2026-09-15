@@ -21,21 +21,19 @@
 
 package com.xilinx.rapidwright.timing;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.xilinx.rapidwright.design.Net;
 import com.xilinx.rapidwright.design.SitePinInst;
 import com.xilinx.rapidwright.edif.EDIFNet;
 import com.xilinx.rapidwright.edif.EDIFPortInst;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.jgrapht.graph.DefaultEdge;
 
 /**
  * Edges within a TimingGraph that encapsulate logic delays, net delays, and debug information.
  */
 public class TimingEdge extends DefaultEdge {
-
     private static final long serialVersionUID = 5888111557223514042L;
 
     private boolean hasEDIFPortInsts = false;
@@ -83,8 +81,7 @@ public class TimingEdge extends DefaultEdge {
      * @param edifNet Logical EDIFNet representing this edge.  In some cases this is set to null.
      * @param net Physical "Net" representing this edge.
      */
-    public TimingEdge(TimingGraph timingGraph, TimingVertex srcPort, TimingVertex dstPort,
-                      EDIFNet edifNet, Net net) {
+    public TimingEdge(TimingGraph timingGraph, TimingVertex srcPort, TimingVertex dstPort, EDIFNet edifNet, Net net) {
         this.src = srcPort;
         this.dst = dstPort;
         this.edifNet = edifNet;
@@ -125,9 +122,13 @@ public class TimingEdge extends DefaultEdge {
     }
 
     private String simplifyName(String name) {
-        if (name == null) return null;
-        return name.replaceAll("\\[", "_").replaceAll("\\]", "_").replaceAll("\\.", "__")
-                   .replaceAll("\\:", "___").replaceAll("\\/", "_");
+        if (name == null)
+            return null;
+        return name.replaceAll("\\[", "_")
+            .replaceAll("\\]", "_")
+            .replaceAll("\\.", "__")
+            .replaceAll("\\:", "___")
+            .replaceAll("\\/", "_");
     }
 
     /**
@@ -136,26 +137,26 @@ public class TimingEdge extends DefaultEdge {
      */
     public String toString() {
         String result = "";
-         if (hasEDIFPortInsts) {
+        if (hasEDIFPortInsts) {
             if (timingGraph.hierCellInstMap == null) {
                 timingGraph.populateHierCellInstMap();
             }
-            String sCellInst = (srcPort.getCellInst() != null) ?
-                    "" + timingGraph.hierCellInstMap.get(srcPort.getCellInst()) : "top";
-            String dCellInst = (dstPort.getCellInst() != null) ?
-                    "" + timingGraph.hierCellInstMap.get(dstPort.getCellInst()) : "top";
+            String sCellInst =
+                (srcPort.getCellInst() != null) ? "" + timingGraph.hierCellInstMap.get(srcPort.getCellInst()) : "top";
+            String dCellInst =
+                (dstPort.getCellInst() != null) ? "" + timingGraph.hierCellInstMap.get(dstPort.getCellInst()) : "top";
             sCellInst = simplifyName(sCellInst);
             dCellInst = simplifyName(dCellInst);
             String sPortName = simplifyName(srcPort.getName());
             String dPortName = simplifyName(dstPort.getName());
-            //result += psCellInst+"__";
+            // result += psCellInst+"__";
             result += sCellInst;
-            result += "__"+sPortName;
+            result += "__" + sPortName;
             result += "->";
-            //result += pdCellInst+"__";
+            // result += pdCellInst+"__";
             result += dCellInst;
-            result += "__"+dPortName;
-            result += "[ label = \""+ getDelay() +"\"]";
+            result += "__" + dPortName;
+            result += "[ label = \"" + getDelay() + "\"]";
         }
 
         else {
@@ -168,10 +169,15 @@ public class TimingEdge extends DefaultEdge {
     }
 
     private String formatVertexName(String name) {
-        if (name == null) return null;
-        return name .replaceAll("\\[","_").replaceAll("\\]","").replaceAll("\\(","")
-                    .replaceAll("\\)","").replaceAll("\\/","____").replaceAll("\\.","_")
-                    .replaceAll(":","->");
+        if (name == null)
+            return null;
+        return name.replaceAll("\\[", "_")
+            .replaceAll("\\]", "")
+            .replaceAll("\\(", "")
+            .replaceAll("\\)", "")
+            .replaceAll("\\/", "____")
+            .replaceAll("\\.", "_")
+            .replaceAll(":", "->");
     }
 
     /**
@@ -186,25 +192,24 @@ public class TimingEdge extends DefaultEdge {
             result += "->";
             result += formatVertexName(dst.toString());
             if (dst.getSlack() != null && dst.getSlack() < 0)
-                result += "[style = bold color = red label = \""+
-                          Math.round(getLogicDelay()) +": "+Math.round(getNetDelay()) +"\"];";
+                result += "[style = bold color = red label = \"" + Math.round(getLogicDelay()) + ": " +
+                          Math.round(getNetDelay()) + "\"];";
             else
-                result += "[ label = \""+ Math.round(getLogicDelay()) +": "+
-                          Math.round(getNetDelay()) +"\"];";
+                result += "[ label = \"" + Math.round(getLogicDelay()) + ": " + Math.round(getNetDelay()) + "\"];";
 
             if (!src.getPrinted()) { // !src.getPrinted()) {
                 src.setPrinted(true);
                 result += "\n" + formatVertexName(src.toString());
                 if (src.getSlack() != null && src.getSlack() < 0)
-                    result += "[style = bold color = red label = <"+src.toString()+
-                              "<BR /> <FONT POINT-SIZE=\"10\">"+ Math.round(src.getArrivalTime())+
-                              ": "+ (src.getSlack()!=null? Math.round(src.getSlack()):0)+": "+
-                              Math.round(src.getRequiredTime())+"</FONT>>]";
+                    result += "[style = bold color = red label = <" + src.toString() +
+                              "<BR /> <FONT POINT-SIZE=\"10\">" + Math.round(src.getArrivalTime()) + ": " +
+                              (src.getSlack() != null ? Math.round(src.getSlack()) : 0) + ": " +
+                              Math.round(src.getRequiredTime()) + "</FONT>>]";
                 else
-                    result += "[ label = <"+src.toString()+"<BR /> <FONT POINT-SIZE=\"10\">"+
-                              Math.round(src.getArrivalTime())+": "+ (src.getSlack()!=null?
-                              Math.round(src.getSlack()):0)+": "+Math.round(src.getRequiredTime())+
-                              "</FONT>>]";
+                    result += "[ label = <" + src.toString() + "<BR /> <FONT POINT-SIZE=\"10\">" +
+                              Math.round(src.getArrivalTime()) + ": " +
+                              (src.getSlack() != null ? Math.round(src.getSlack()) : 0) + ": " +
+                              Math.round(src.getRequiredTime()) + "</FONT>>]";
             }
 
             if (!dst.getPrinted()) {
@@ -212,18 +217,18 @@ public class TimingEdge extends DefaultEdge {
                 result += "\n" + formatVertexName(dst.toString());
                 if (dst.getSlack() != null && dst.getSlack() < 0)
                     result += "[style = bold color = red label = <" + dst.toString() +
-                              "<BR /> <FONT POINT-SIZE=\"10\">" + Math.round(dst.getArrivalTime()) +
-                              ": " + (dst.getSlack()!=null?Math.round(dst.getSlack()):0) + ": " +
+                              "<BR /> <FONT POINT-SIZE=\"10\">" + Math.round(dst.getArrivalTime()) + ": " +
+                              (dst.getSlack() != null ? Math.round(dst.getSlack()) : 0) + ": " +
                               Math.round(dst.getRequiredTime()) + "</FONT>>]";
                 else
                     result += "[ label = <" + dst.toString() + "<BR /> <FONT POINT-SIZE=\"10\">" +
-                              Math.round(dst.getArrivalTime()) + ": " + (dst.getSlack()!=null?
-                              Math.round(dst.getSlack()):0) + ": " +
+                              Math.round(dst.getArrivalTime()) + ": " +
+                              (dst.getSlack() != null ? Math.round(dst.getSlack()) : 0) + ": " +
                               Math.round(dst.getRequiredTime()) + "</FONT>>]";
             }
         }
         if (result.endsWith(";"))
-            result = result.substring(0, result.length()-1);
+            result = result.substring(0, result.length() - 1);
 
         return result;
     }
@@ -266,7 +271,8 @@ public class TimingEdge extends DefaultEdge {
     }
 
     public String delaysInfo() {
-        return "logic = " + this.logicDelay + ", intrasite = " + this.intraSiteDelay + ", net = " + this.netDelay + ", total = " + this.delay;
+        return "logic = " + this.logicDelay + ", intrasite = " + this.intraSiteDelay + ", net = " + this.netDelay +
+            ", total = " + this.delay;
     }
 
     public void setRouteDelay(float routeDelay) {
@@ -295,7 +301,7 @@ public class TimingEdge extends DefaultEdge {
      */
     public void setLogicDelay(float logicDelay) {
         this.logicDelay = logicDelay;
-        this.delay = logicDelay+netDelay;
+        this.delay = logicDelay + netDelay;
         if (timingGraph.containsEdge(this))
             timingGraph.setEdgeWeight(this, this.delay);
     }
@@ -317,7 +323,7 @@ public class TimingEdge extends DefaultEdge {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        TimingEdge other = (TimingEdge) obj;
+        TimingEdge other = (TimingEdge)obj;
         if (dst == null) {
             if (other.dst != null)
                 return false;
@@ -341,7 +347,7 @@ public class TimingEdge extends DefaultEdge {
 
     /**
      * Gets the second vertex of this edge.
-      * @return Second vertex of type TimingVertex.
+     * @return Second vertex of type TimingVertex.
      */
     public TimingVertex getDst() {
         return dst;

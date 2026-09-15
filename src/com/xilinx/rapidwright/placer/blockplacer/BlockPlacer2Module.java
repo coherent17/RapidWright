@@ -44,14 +44,15 @@ import com.xilinx.rapidwright.device.Tile;
 import com.xilinx.rapidwright.util.MessageGenerator;
 import com.xilinx.rapidwright.util.Utils;
 
-public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Path>{
-
+public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Path> {
     private AbstractOverlapCache<Site, HardMacro> overlaps;
 
     /** The current location of all hard macros */
     private Map<ModuleInst, HardMacro> macroMap;
 
-    public BlockPlacer2Module(Design design, boolean ignoreMostUsedNets, java.nio.file.Path graphData, boolean denseDesign, float effort, boolean focusOnWorstModules, TileRectangle placementArea) {
+    public BlockPlacer2Module(Design design, boolean ignoreMostUsedNets, java.nio.file.Path graphData,
+                              boolean denseDesign, float effort, boolean focusOnWorstModules,
+                              TileRectangle placementArea) {
         super(design, ignoreMostUsedNets, graphData, denseDesign, effort, focusOnWorstModules, placementArea);
     }
     public BlockPlacer2Module(Design design) {
@@ -79,7 +80,8 @@ public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Pa
                         }
                     }
                     if (openSites.size() == 0) {
-                        throw new RuntimeException("ERROR: Couldn't find an open placement location for module: " + module.getName());
+                        throw new RuntimeException("ERROR: Couldn't find an open placement location for module: " +
+                                                   module.getName());
                     }
                     sites = openSites;
                 }
@@ -98,7 +100,6 @@ public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Pa
         overlaps = new RegionBasedOverlapCache<>(design.getDevice(), hardMacros);
         return hardMacros;
     }
-
 
     @Override
     public void setTempAnchorSite(HardMacro hm, Site site) {
@@ -135,14 +136,15 @@ public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Pa
 
     private boolean checkValidPlacementLegacy(HardMacro hm) {
         for (HardMacro hardMacro : hardMacros) {
-            if (hardMacro.equals(hm)) continue;
-            if (hm.getTempAnchorSite().equals(hardMacro.getTempAnchorSite())) return false;
+            if (hardMacro.equals(hm))
+                continue;
+            if (hm.getTempAnchorSite().equals(hardMacro.getTempAnchorSite()))
+                return false;
             if (hm.overlaps(hardMacro)) {
                 return false;
             }
         }
         return true;
-
     }
 
     @Override
@@ -170,8 +172,6 @@ public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Pa
         return selected.getTempAnchorSite();
     }
 
-
-
     @Override
     protected void doFinalPlacement() {
         // Sort hard macros, largest first to place them first
@@ -185,34 +185,34 @@ public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Pa
         // Perform final placement of all hard macros
         for (HardMacro hm : array) {
             hm.place(hm.getTempAnchorSite());
-            //System.out.println(moveCount.get(hm) + " " + hm.tileSize + " " + hm.getName());
-            /*HashSet<Tile> footPrint = isValidPlacement((ModuleInst)hm, hm.getModule().getAnchor(), hm.getTempAnchorSite().getTile(), usedTiles);
-            if (footPrint == null) {
+            // System.out.println(moveCount.get(hm) + " " + hm.tileSize + " " + hm.getName());
+            /*HashSet<Tile> footPrint = isValidPlacement((ModuleInst)hm, hm.getModule().getAnchor(),
+            hm.getTempAnchorSite().getTile(), usedTiles); if (footPrint == null) {
 
                 if (!placeModuleNear((ModuleInst)hm, hm.getTempAnchorSite().getTile(), usedTiles)) {
                     System.out.println("Saving as debug.");
-                    // Updated code. Goal: if placement fails, unplace that IP and generate .dcp in order to let vivado continue PAR
-                    if (save_partial_dcp) {
-                        save_and_exit = true;
+                    // Updated code. Goal: if placement fails, unplace that IP and generate .dcp in
+            order to let vivado continue PAR if (save_partial_dcp) { save_and_exit = true;
                         System.out.println("ERROR: Placement failed for "+hm.getName());
                         hm.unplace();
                     } else
-                        MessageGenerator.briefErrorAndExit("ERROR: Placement failed, couldn't find valid site for " + hm.getName());
-                } else {
+                        MessageGenerator.briefErrorAndExit("ERROR: Placement failed, couldn't find
+            valid site for " + hm.getName()); } else {
 
-                    System.out.println("could not place "+hm.getName()+" at "+hm.getTempAnchorSite()+". Choosing "+hm.getAnchor().getSite()+" instead");
+                    System.out.println("could not place "+hm.getName()+" at
+            "+hm.getTempAnchorSite()+". Choosing "+hm.getAnchor().getSite()+" instead");
                 }
             }
             else {
                 usedTiles.addAll(footPrint);
                 if (!hm.place(hm.getTempAnchorSite())) {
-                    // Updated code. Goal: if placement fails, unplace that IP and generate .dcp in order to let vivado continue PAR
-                    if (save_partial_dcp) {
-                        save_and_exit = true;
+                    // Updated code. Goal: if placement fails, unplace that IP and generate .dcp in
+            order to let vivado continue PAR if (save_partial_dcp) { save_and_exit = true;
                         System.out.println("ERROR: Placement failed for "+hm.getName());
                         hm.unplace();
                     } else
-                        MessageGenerator.briefErrorAndExit("ERROR: Problem placing " + hm.getName() + " on site: " + hm.getTempAnchorSite());
+                        MessageGenerator.briefErrorAndExit("ERROR: Problem placing " + hm.getName()
+            + " on site: " + hm.getTempAnchorSite());
                 }
             }*/
         }
@@ -224,11 +224,13 @@ public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Pa
             i.place(i.getSite());
         }
 
-        // Updated code. Goal: if placement fails, unplace that IP and generate .dcp in order to let vivado continue PAR
+        // Updated code. Goal: if placement fails, unplace that IP and generate .dcp in order to let
+        // vivado continue PAR
         if (save_and_exit) {
             String placedDCPName = "partialy_placed.dcp";
             design.writeCheckpoint(placedDCPName);
-            throw new RuntimeException("ERROR: Placement failed, couldn't find valid site for all the IPs. Partially placed .dcp saved for debug " );
+            throw new RuntimeException("ERROR: Placement failed, couldn't find valid site for "
+                                       + "all the IPs. Partially placed .dcp saved for debug ");
         }
     }
 
@@ -264,17 +266,20 @@ public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Pa
     @Override
     protected void populateAllPaths() {
         for (Net net : design.getNets()) {
-            if (net.isStaticNet() || net.isClockNet()) continue;
+            if (net.isStaticNet() || net.isClockNet())
+                continue;
             SitePinInst src = net.getSource();
             ArrayList<SitePinInst> snks = new ArrayList<SitePinInst>();
             if (src == null) {
                 // TODO - This should not happen
-                //System.out.println("ERROR: Need to find out why net: " + net.getName() + " has no driver\n\n" + net.toString() );
+                // System.out.println("ERROR: Need to find out why net: " + net.getName() + " has no
+                // driver\n\n" + net.toString() );
                 continue;
             }
             ModuleInst srcModInst = src.getSiteInst().getModuleInst();
             for (SitePinInst p : net.getPins()) {
-                if (p == src) continue;
+                if (p == src)
+                    continue;
                 if (srcModInst != p.getSiteInst().getModuleInst()) {
                     snks.add(p);
                 }
@@ -312,20 +317,19 @@ public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Pa
         HashSet<Tile> triedTiles = new HashSet<Tile>();
         int column = tile.getColumn();
         int row = tile.getRow();
-        int maxColumn = column+1;
-        int maxRow = row+1;
-        int minColumn = column-1;
+        int maxColumn = column + 1;
+        int maxRow = row + 1;
+        int minColumn = column - 1;
         int minRow = row;
         HashSet<Tile> tiles = null;
         while (proposedAnchorTile != null && tiles == null) {
-            switch(dir) {
+            switch (dir) {
                 case UP:
                     if (row == minRow) {
                         dir = Direction.RIGHT;
                         minRow--;
                         column++;
-                    }
-                    else {
+                    } else {
                         row--;
                     }
                     break;
@@ -334,8 +338,7 @@ public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Pa
                         dir = Direction.LEFT;
                         maxRow++;
                         column--;
-                    }
-                    else {
+                    } else {
                         row++;
                     }
                     break;
@@ -344,8 +347,7 @@ public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Pa
                         dir = Direction.UP;
                         minColumn--;
                         row--;
-                    }
-                    else {
+                    } else {
                         column--;
                     }
                     break;
@@ -354,8 +356,7 @@ public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Pa
                         dir = Direction.DOWN;
                         maxColumn++;
                         row++;
-                    }
-                    else {
+                    } else {
                         column++;
                     }
                     break;
@@ -365,19 +366,19 @@ public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Pa
                 triedTiles.add(proposedAnchorTile);
                 tiles = isValidPlacement(modInst, anchorSite, proposedAnchorTile, usedTiles);
 
-                Site newAnchorSite = anchorSite.getCorrespondingSite(modInst.getModule().getAnchor().getSiteTypeEnum(), proposedAnchorTile);
+                Site newAnchorSite = anchorSite.getCorrespondingSite(modInst.getModule().getAnchor().getSiteTypeEnum(),
+                                                                     proposedAnchorTile);
                 if (tiles != null && modInst.place(newAnchorSite)) {
                     usedTiles.addAll(tiles);
                     return true;
-                }
-                else {
+                } else {
                     tiles = null;
                 }
             }
         }
 
         if (proposedAnchorTile == null) {
-            Site[] candidateSites = dev.getAllCompatibleSites(modInst .getAnchor().getSiteTypeEnum());
+            Site[] candidateSites = dev.getAllCompatibleSites(modInst.getAnchor().getSiteTypeEnum());
             for (Site site : candidateSites) {
                 proposedAnchorTile = site.getTile();
                 if (!triedTiles.contains(proposedAnchorTile)) {
@@ -390,30 +391,35 @@ public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Pa
             }
         }
 
-
         if (tiles == null) {
-            if (DEBUG_LEVEL > 0) System.out.println("Placement failed: tiles==null " + modInst.getName());
+            if (DEBUG_LEVEL > 0)
+                System.out.println("Placement failed: tiles==null " + modInst.getName());
             return false;
         }
-        Site newAnchorSite = anchorSite.getCorrespondingSite(modInst.getModule().getAnchor().getSiteTypeEnum(), proposedAnchorTile);
+        Site newAnchorSite =
+            anchorSite.getCorrespondingSite(modInst.getModule().getAnchor().getSiteTypeEnum(), proposedAnchorTile);
         if (modInst.place(newAnchorSite)) {
             usedTiles.addAll(tiles);
             return true;
         }
-        if (DEBUG_LEVEL > 0) System.out.println("Placement failed: place() " + modInst.getName());
+        if (DEBUG_LEVEL > 0)
+            System.out.println("Placement failed: place() " + modInst.getName());
         return false;
     }
 
-    protected HashSet<Tile> isValidPlacement(ModuleInst modInst, Site anchorSite, Tile proposedAnchorTile, HashSet<Tile> usedTiles) {
+    protected HashSet<Tile> isValidPlacement(ModuleInst modInst, Site anchorSite, Tile proposedAnchorTile,
+                                             HashSet<Tile> usedTiles) {
         if (usedTiles.contains(proposedAnchorTile)) {
             return null;
         }
 
         modInst.getAnchor().getSiteTypeEnum();
-        //Previously:
-        //Site newSite2 = modInst.getAnchor().getSite().getCorrespondingSite(modInst.getAnchor().getSiteTypeEnum(), proposedAnchorTile);
-        //Now
-        Site newSite2 = modInst.getModule().getAnchor().getCorrespondingSite(modInst.getAnchor().getSiteTypeEnum(), proposedAnchorTile);
+        // Previously:
+        // Site newSite2 =
+        // modInst.getAnchor().getSite().getCorrespondingSite(modInst.getAnchor().getSiteTypeEnum(),
+        // proposedAnchorTile); Now
+        Site newSite2 = modInst.getModule().getAnchor().getCorrespondingSite(modInst.getAnchor().getSiteTypeEnum(),
+                                                                             proposedAnchorTile);
 
         if (newSite2 == null) {
             return null;
@@ -452,8 +458,7 @@ public class BlockPlacer2Module extends BlockPlacer2<Module, HardMacro, Site, Pa
                         if (!(a && b)) {
                             return null;
                         }
-                    }
-                    else {
+                    } else {
                         return null;
                     }
                 }

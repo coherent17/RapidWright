@@ -1431,7 +1431,7 @@ public enum Unisim {
     XPLL,
     XRAM,
     ZHOLD_DELAY,
-;
+    ;
 
     /**
      * Determines if on given series, if the unisim is transformed to
@@ -1459,12 +1459,11 @@ public enum Unisim {
 
         final Collection<EDIFCellInst> children = cell.getCellInsts();
         Unisim[] result = new Unisim[children.size()];
-        int i=0;
+        int i = 0;
         for (EDIFCellInst child : children) {
             result[i] = valueOf(child.getCellType().getName());
             i++;
         }
         return result;
-
     }
 }

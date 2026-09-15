@@ -39,14 +39,13 @@ import com.xilinx.rapidwright.device.Tile;
  * Show a single Module Instance. Highlight current placement and show all other possible ones.
  */
 public class ModuleInstanceScene extends TileScene {
-
     private final ModuleInst moduleInstance;
     private final ArrayList<Site> validPlacements;
 
     private QPointF getTilePos(Tile tile) {
         int x = getDrawnTileX(tile);
         int y = getDrawnTileY(tile);
-        return new QPointF(x*tileSize, y*tileSize);
+        return new QPointF(x * tileSize, y * tileSize);
     }
 
     public ModuleInstanceScene(ModuleInst moduleInstance, boolean showPlacements) {
@@ -58,7 +57,6 @@ public class ModuleInstanceScene extends TileScene {
         addItem(ghmpi);
         ghmpi.showGuts();
         ghmpi.setAnchorOffset();
-
 
         validPlacements = moduleInstance.getAllValidPlacements();
 
@@ -74,13 +72,10 @@ public class ModuleInstanceScene extends TileScene {
                 addItem(polyItem);
             }
         }
-
-
     }
     public ModuleInstanceScene(ModuleInst moduleInstance) {
         this(moduleInstance, true);
     }
-
 
     public ArrayList<Site> getValidPlacements() {
         return validPlacements;

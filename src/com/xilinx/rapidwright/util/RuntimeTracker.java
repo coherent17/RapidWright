@@ -29,9 +29,10 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * A customized RuntimeTracker class, providing start and stop methods for recording total elapsed time of a process.
- * Each {@link RuntimeTracker} Object should be created at least with a name.
- * It also supports a user case of {@link RuntimeTrackerTree} instance for runtime analysis of an entire program.
+ * A customized RuntimeTracker class, providing start and stop methods for recording total elapsed
+ * time of a process. Each {@link RuntimeTracker} Object should be created at least with a name. It
+ * also supports a user case of {@link RuntimeTrackerTree} instance for runtime analysis of an
+ * entire program.
  */
 public class RuntimeTracker {
     private String name;
@@ -49,7 +50,8 @@ public class RuntimeTracker {
         this(name);
         this.level = level;
         if (this.getLevel() * 3 + this.getName().length() > 36) {
-            System.out.println("\nWARNING: RuntimeTracker name too long: " + name + ". Ideal max string length: " + (35 - this.getLevel() * 3));
+            System.out.println("\nWARNING: RuntimeTracker name too long: " + name +
+                               ". Ideal max string length: " + (35 - this.getLevel() * 3));
         }
         this.children = new ArrayList<>();
     }
@@ -86,7 +88,7 @@ public class RuntimeTracker {
         if (!this.children.contains(runtimeTracker)) {
             this.children.add(runtimeTracker);
             if (runtimeTracker.level == 0) {
-                runtimeTracker.setLevel((short) (this.getLevel() + 1));
+                runtimeTracker.setLevel((short)(this.getLevel() + 1));
             }
         }
     }
@@ -115,7 +117,8 @@ public class RuntimeTracker {
      * @param time
      */
     public void setTime(long time) {
-        if (time < 0) time = 0;
+        if (time < 0)
+            time = 0;
         this.time = time;
     }
 
@@ -156,8 +159,9 @@ public class RuntimeTracker {
             }
         }
         int length = 36 - this.getLevel() * 3 - this.getName().length();
-        if (length < 0) length = 0;
-        return this.name.replace(":", ":" + spaces(length) + String.format("%9.2fs\n", this.getTime()*1e-9));
+        if (length < 0)
+            length = 0;
+        return this.name.replace(":", ":" + spaces(length) + String.format("%9.2fs\n", this.getTime() * 1e-9));
     }
 
     /**
@@ -196,12 +200,13 @@ public class RuntimeTracker {
         if (this.children != null) {
             int id = 0;
             for (RuntimeTracker child : this.children) {
-                if (id < this.children.size() - 1) buffer.append("\u251c\u2500 " + child);
-                else buffer.append("\u2514\u2500 " + child);
+                if (id < this.children.size() - 1)
+                    buffer.append("\u251c\u2500 " + child);
+                else
+                    buffer.append("\u2514\u2500 " + child);
                 id++;
             }
         }
         return buffer.toString();
     }
-
 }

@@ -48,23 +48,22 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
 /**
- * Take a unrouted or partially routed design, route it in Vivado with auto generated timing constraints to find
- * the maximum clock frequency the design supports.
+ * Take a unrouted or partially routed design, route it in Vivado with auto generated timing
+ * constraints to find the maximum clock frequency the design supports.
  *
- * The minimum clock period is found via a three-stage approach, where each stage consists of a number of Vivado runs:
- * <ul>
- *     <li>Route at user-provided frequency</li>
- *     <li>Calculate new period a bit tighter than what was achieved. In 0.05ns increments, schedule runs around that center </li>
- *     <li>Search between the best result where the constraints were met and the best result where the constraints were not met. This schedules runs in 0.002ns increments</li>
+ * The minimum clock period is found via a three-stage approach, where each stage consists of a
+ * number of Vivado runs: <ul> <li>Route at user-provided frequency</li> <li>Calculate new period a
+ * bit tighter than what was achieved. In 0.05ns increments, schedule runs around that center </li>
+ *     <li>Search between the best result where the constraints were met and the best result where
+ * the constraints were not met. This schedules runs in 0.002ns increments</li>
  * </ul>
  *
  * The number of runs can be quite large, so using LSF is recommended.
  *
- * This tool only changes timing constraints of one user-specified clock input. Other clocks should already have
- * timing constraints assigned to them before passing the design to this tool.
+ * This tool only changes timing constraints of one user-specified clock input. Other clocks should
+ * already have timing constraints assigned to them before passing the design to this tool.
  */
 public class PerformanceEvaluation {
-
     private final Path workDir;
     private final Path dcp;
     protected final boolean reuseExistingResults;
@@ -93,7 +92,6 @@ public class PerformanceEvaluation {
             this.dcp = dcp;
             this.clkPortName = clkPortName;
         }
-
 
         protected Path getRouteStatusPath() {
             return jobDir.resolve("route_status.txt");
@@ -148,7 +146,6 @@ public class PerformanceEvaluation {
 
         public void createRouteScript() throws IOException {
             try (PrintWriter pw = new PrintWriter(Files.newBufferedWriter(getScriptName()))) {
-
                 pw.println("open_checkpoint " + dcp);
                 createClock(pw);
                 routeAndSave(pw);
@@ -185,13 +182,13 @@ public class PerformanceEvaluation {
             createClock(pw, clkPortName);
         }
 
-
         protected TimingResults results;
 
         protected TimingResults getResults() {
             if (results == null) {
                 try {
-                    results = TimingResults.parseTimingSummaryFile(getTimingSummaryReportPath(), getRouteStatusPath(), clockPeriod, getRoutedDcp());
+                    results = TimingResults.parseTimingSummaryFile(getTimingSummaryReportPath(), getRouteStatusPath(),
+                                                                   clockPeriod, getRoutedDcp());
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
@@ -214,7 +211,6 @@ public class PerformanceEvaluation {
         return new RouteRun(jobDir, clockPeriod, reuseExistingResults, dcp, clkPortName);
     }
 
-
     private double getInitialPeriod(double estimatedMaxFreqMhz) {
         double initialPeriod = roundTo(1000 / estimatedMaxFreqMhz, 0.1);
         RouteRun routeRun = createRouteRun(initialPeriod);
@@ -228,7 +224,7 @@ public class PerformanceEvaluation {
     }
 
     private double getNextStagePeriod(TimingResults results) {
-        //Set the constraint somewhat tighter than what we already achieved
+        // Set the constraint somewhat tighter than what we already achieved
         double extraEffort;
         if (results.allOk()) {
             extraEffort = 1.4;
@@ -246,7 +242,6 @@ public class PerformanceEvaluation {
             if (j != null) {
                 queue.addJob(j);
             }
-
         }
         boolean success = queue.runAllToCompletion();
         if (!success) {
@@ -261,7 +256,6 @@ public class PerformanceEvaluation {
     }
 
     List<RouteRun> createAndRun(double center, int countPerSide, double spacing) {
-
         List<RouteRun> runs = new ArrayList<>();
         for (int i = -countPerSide; i <= countPerSide; i++) {
             double deviation = i * spacing;
@@ -269,7 +263,6 @@ public class PerformanceEvaluation {
 
             RouteRun run = createRouteRun(period);
             runs.add(run);
-
         }
 
         runAll(runs, true);
@@ -277,23 +270,35 @@ public class PerformanceEvaluation {
     }
 
     private Pair<Optional<TimingResults>, Optional<TimingResults>> findBest() {
-
-        Optional<TimingResults> bestWorking = allResults.stream().filter(r -> r.allOk()).min(Comparator.comparing(TimingResults::getMinPeriod));
-        Optional<TimingResults> bestNonWorking = allResults.stream().filter(r -> !r.allOk()).min(Comparator.comparing(TimingResults::getMinPeriod));
+        Optional<TimingResults> bestWorking =
+            allResults.stream().filter(r -> r.allOk()).min(Comparator.comparing(TimingResults::getMinPeriod));
+        Optional<TimingResults> bestNonWorking =
+            allResults.stream().filter(r -> !r.allOk()).min(Comparator.comparing(TimingResults::getMinPeriod));
 
         return new Pair<>(bestWorking, bestNonWorking);
     }
 
-
     private Pair<Double, Double> findAreaOfInterest() {
         Pair<Optional<TimingResults>, Optional<TimingResults>> best = findBest();
-        double bestNonWorking = best.getSecond().orElseThrow(() -> {
-            Optional<TimingResults> working = best.getFirst();
-            return working.map(timingResults -> new RuntimeException("constraints were always met, best working was " + timingResults.getMinPeriod() + "ns (" + timingResults.getMaxFrequency() + "MHz)"))
-                    .orElseGet(() -> new RuntimeException("neither working nor nonworking found. Did we run anything?"));
-
-        }).getMinPeriod();
-        double bestWorking = best.getFirst().orElseThrow(() -> new RuntimeException("constraints were never met, best nonworking was " + bestNonWorking + "ns (" + (1000 / bestNonWorking) + "MHz)")).getMinPeriod();
+        double bestNonWorking =
+            best.getSecond()
+                .orElseThrow(() -> {
+                    Optional<TimingResults> working = best.getFirst();
+                    return working
+                        .map(timingResults
+                             -> new RuntimeException("constraints were always met, best working was " +
+                                                     timingResults.getMinPeriod() + "ns (" +
+                                                     timingResults.getMaxFrequency() + "MHz)"))
+                        .orElseGet(
+                            () -> new RuntimeException("neither working nor nonworking found. Did we run anything?"));
+                })
+                .getMinPeriod();
+        double bestWorking =
+            best.getFirst()
+                .orElseThrow(()
+                                 -> new RuntimeException("constraints were never met, best nonworking was " +
+                                                         bestNonWorking + "ns (" + (1000 / bestNonWorking) + "MHz)"))
+                .getMinPeriod();
 
         double lower = roundDownTo(Math.min(bestWorking, bestNonWorking), 0.05);
         double upper = roundUpTo(Math.max(bestWorking, bestNonWorking), 0.05);
@@ -311,11 +316,9 @@ public class PerformanceEvaluation {
         return Math.ceil(value / increment) * increment;
     }
 
-
     public static double roundTo(double value, double increment) {
         return Math.round(value / increment) * increment;
     }
-
 
     private List<RouteRun> thirdStageRuns() {
         Pair<Double, Double> areaOfInterest = findAreaOfInterest();
@@ -333,7 +336,6 @@ public class PerformanceEvaluation {
     public Pair<TimingResults, TimingResults> run(double estimatedMaxFreqMhz) {
         try {
             double center = getInitialPeriod(estimatedMaxFreqMhz);
-
 
             List<Double> seenCenters = new ArrayList<>();
             int iterations = 0;
@@ -375,13 +377,13 @@ public class PerformanceEvaluation {
                     } else {
                         center = center + 0.25;
                     }
-                    System.out.println("Slack-Guided search resulted in an already seen center, " + newCenter + ". Moved center to " + center);
+                    System.out.println("Slack-Guided search resulted in an already seen center, " + newCenter +
+                                       ". Moved center to " + center);
                 } else {
                     center = newCenter;
                 }
 
             } while (true);
-
 
             List<RouteRun> thirdStageRuns = thirdStageRuns();
             printResults("Third Stage", thirdStageRuns);
@@ -401,16 +403,15 @@ public class PerformanceEvaluation {
         System.out.println("best with constraints not met: " + bestNotMet.getMinPeriod() + " ns");
         System.out.println("best with constraints not met: " + bestNotMet.getMaxFrequency() + " MHz");
 
-
         return new Pair<>(bestMet, bestNotMet);
-
     }
 
     private void writeResultsToFile() {
         Path graphOutput = workDir.resolve("maxFreq.tsv");
         try (PrintWriter pw = new PrintWriter(Files.newBufferedWriter(graphOutput))) {
             for (TimingResults results : allResults) {
-                pw.println(results.clockPeriod + "\t" + results.getMinPeriod() + "\t" + results.timingConstraintsMet + "\t" + results.routeOverlaps + "\t" + results.allOk());
+                pw.println(results.clockPeriod + "\t" + results.getMinPeriod() + "\t" + results.timingConstraintsMet +
+                           "\t" + results.routeOverlaps + "\t" + results.allOk());
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -422,16 +423,24 @@ public class PerformanceEvaluation {
         System.out.format("Requested P\tActual P\tRequested F\tActual f\tSlack\tMet\tOverlaps\n");
         for (RouteRun r : runs) {
             TimingResults res = r.getResults();
-            System.out.format("%4.3f\t\t%4.3f\t\t%4.3f\t\t%4.3f\t\t%4.3f\t%s\t%d\n", res.clockPeriod, res.getMinPeriod(), res.clockFrequency(), res.getMaxFrequency(), res.worstSlack, res.timingConstraintsMet, res.routeOverlaps);
+            System.out.format("%4.3f\t\t%4.3f\t\t%4.3f\t\t%4.3f\t\t%4.3f\t%s\t%d\n", res.clockPeriod,
+                              res.getMinPeriod(), res.clockFrequency(), res.getMaxFrequency(), res.worstSlack,
+                              res.timingConstraintsMet, res.routeOverlaps);
         }
         System.out.println();
     }
 
-    public static Pair<TimingResults, TimingResults> getMaxFrequency(Path dcp, String clockPortName, Path workDir, boolean reuseExistingResults, double estimatedMaxFreqMhz) {
-        return new PerformanceEvaluation(workDir.toAbsolutePath(), dcp.toAbsolutePath(), reuseExistingResults, clockPortName).run(estimatedMaxFreqMhz);
+    public static Pair<TimingResults, TimingResults> getMaxFrequency(Path dcp, String clockPortName, Path workDir,
+                                                                     boolean reuseExistingResults,
+                                                                     double estimatedMaxFreqMhz) {
+        return new PerformanceEvaluation(workDir.toAbsolutePath(), dcp.toAbsolutePath(), reuseExistingResults,
+                                         clockPortName)
+            .run(estimatedMaxFreqMhz);
     }
 
-    public static Pair<TimingResults, TimingResults> getMaxFrequency(Design design, String clockPortName, Path workDir, boolean reuseExistingResults, double estimatedMaxFreqMhz) {
+    public static Pair<TimingResults, TimingResults> getMaxFrequency(Design design, String clockPortName, Path workDir,
+                                                                     boolean reuseExistingResults,
+                                                                     double estimatedMaxFreqMhz) {
         try {
             Files.createDirectories(workDir);
         } catch (IOException e) {
@@ -443,7 +452,6 @@ public class PerformanceEvaluation {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-
         if (JobQueue.isLSFAvailable()) {
             System.out.println("Running Jobs in LSF");
         } else {
@@ -451,11 +459,16 @@ public class PerformanceEvaluation {
         }
 
         OptionParser optionParser = new OptionParser();
-        ArgumentAcceptingOptionSpec<String> dcpFileOption = optionParser.accepts("dcp", "Input DCP file").withRequiredArg().required();
-        ArgumentAcceptingOptionSpec<Double> maxFreqOption = optionParser.accepts("maxFreq", "Estimated Maximum Frequency").withRequiredArg().ofType(double.class).required();
-        ArgumentAcceptingOptionSpec<String> clkPortOption = optionParser.accepts("port", "Clock Port Name").withRequiredArg().required();
+        ArgumentAcceptingOptionSpec<String> dcpFileOption =
+            optionParser.accepts("dcp", "Input DCP file").withRequiredArg().required();
+        ArgumentAcceptingOptionSpec<Double> maxFreqOption =
+            optionParser.accepts("maxFreq", "Estimated Maximum Frequency")
+                .withRequiredArg()
+                .ofType(double.class)
+                .required();
+        ArgumentAcceptingOptionSpec<String> clkPortOption =
+            optionParser.accepts("port", "Clock Port Name").withRequiredArg().required();
         OptionSpec<?> reuseOption = optionParser.accepts("reuse", "Reuse existing Runs");
-
 
         OptionSet options;
         try {
@@ -477,7 +490,6 @@ public class PerformanceEvaluation {
         String clockPortName = options.valueOf(clkPortOption);
         boolean reuse = options.has(reuseOption);
         double maxFreq = options.valueOf(maxFreqOption);
-
 
         getMaxFrequency(dcpFile, clockPortName, Paths.get("."), reuse, maxFreq);
     }

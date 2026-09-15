@@ -35,8 +35,7 @@ import com.xilinx.rapidwright.design.AbstractModuleInst;
  * @param <PortT> Port Type
  * @param <ModuleInstT> Module Instance Type
  */
-public abstract class AbstractPath<PortT, ModuleInstT extends AbstractModuleInst<?,?,?>> implements Iterable<PortT> {
-
+public abstract class AbstractPath<PortT, ModuleInstT extends AbstractModuleInst<?, ?, ?>> implements Iterable<PortT> {
     protected List<PortT> ports = new ArrayList<>();
     protected Set<ModuleInstT> moduleInsts = new HashSet<>();
 
@@ -49,13 +48,11 @@ public abstract class AbstractPath<PortT, ModuleInstT extends AbstractModuleInst
      */
     private static final long serialVersionUID = 4016705713685431809L;
 
-
     public abstract int getLength();
 
     public int getSize() {
         return ports.size();
     }
-
 
     @Override
     public Iterator<PortT> iterator() {
@@ -75,7 +72,6 @@ public abstract class AbstractPath<PortT, ModuleInstT extends AbstractModuleInst
     }
 
     public void saveUndo() {
-
     }
 
     public void restoreUndo() {

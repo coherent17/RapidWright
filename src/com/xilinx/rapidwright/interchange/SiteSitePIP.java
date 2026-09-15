@@ -23,10 +23,10 @@
 
 package com.xilinx.rapidwright.interchange;
 
+import java.util.Objects;
+
 import com.xilinx.rapidwright.device.Site;
 import com.xilinx.rapidwright.device.SitePIP;
-
-import java.util.Objects;
 
 public class SiteSitePIP {
     public Site site;
@@ -56,7 +56,7 @@ public class SiteSitePIP {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        SiteSitePIP other = (SiteSitePIP) obj;
+        SiteSitePIP other = (SiteSitePIP)obj;
         if (!site.equals(other.site))
             return false;
         if (!sitePIP.equals(other.sitePIP))

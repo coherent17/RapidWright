@@ -38,9 +38,9 @@ import com.xilinx.rapidwright.gui.TileScene;
  * @author Chris Lavin
  * Created on: Nov 26, 2010
  */
-public class WireConnectionLine extends QGraphicsLineItem{
+public class WireConnectionLine extends QGraphicsLineItem {
     /** Keeps a red pen handy for highlighting wire connections on mouse over */
-    private static QPen highlighted  = new QPen(QColor.red, 0.25, PenStyle.SolidLine);
+    private static QPen highlighted = new QPen(QColor.red, 0.25, PenStyle.SolidLine);
     /** Keeps a yellow pen for drawing the wire connections */
     private static QPen unHighlighted = new QPen(QColor.yellow, 0.25, PenStyle.SolidLine);
     /** The current DeviceBrowser scene */
@@ -60,8 +60,7 @@ public class WireConnectionLine extends QGraphicsLineItem{
      * @param tile The tile.
      * @param wire The wire.
      */
-    public WireConnectionLine(double x1, double y1, double x2, double y2,
-            TileScene scene, Tile tile, int wire) {
+    public WireConnectionLine(double x1, double y1, double x2, double y2, TileScene scene, Tile tile, int wire) {
         super(x1, y1, x2, y2);
         this.scene = scene;
         this.tile = tile;

@@ -48,11 +48,8 @@ import com.xilinx.rapidwright.util.StringPool;
  * RapidWright, load it into Vivado first and then write it out from Vivado.
  * Created on: May 10, 2017
  */
-public class EDIFParser extends AbstractEDIFParserWorker implements AutoCloseable{
-
-    private Map<String,Map<String,EDIFCell>> edifInstCellMap = new HashMap<>();
-
-
+public class EDIFParser extends AbstractEDIFParserWorker implements AutoCloseable {
+    private Map<String, Map<String, EDIFCell>> edifInstCellMap = new HashMap<>();
 
     public EDIFParser(Path fileName) throws FileNotFoundException {
         super(fileName, StringPool.singleThreadedPool(), EDIFReadLegalNameCache.createSingleThreaded());
@@ -119,23 +116,20 @@ public class EDIFParser extends AbstractEDIFParserWorker implements AutoCloseabl
                 expect(RIGHT_PAREN, currToken);
 
             } else {
-                expect(LIBRARY + " | " + COMMENT + " | " + DESIGN + " | " + STATUS+ " | " + EXTERNAL, nextToken);
+                expect(LIBRARY + " | " + COMMENT + " | " + DESIGN + " | " + STATUS + " | " + EXTERNAL, nextToken);
             }
-
         }
-        expect(RIGHT_PAREN, currToken);  // edif end
+        expect(RIGHT_PAREN, currToken); // edif end
 
         final EDIFToken token = tokenizer.getOptionalNextToken(true);
         if (token != null) {
-            throw new EDIFParseException(token, "Expected EOF but found "+token);
+            throw new EDIFParseException(token, "Expected EOF but found " + token);
         }
 
         Path fileName = tokenizer.getFileName();
-        if (fileName != null && fileName.toString().endsWith(".gz")
-                && Params.RW_DECOMPRESS_GZIPPED_EDIF_TO_DISK) {
+        if (fileName != null && fileName.toString().endsWith(".gz") && Params.RW_DECOMPRESS_GZIPPED_EDIF_TO_DISK) {
             try {
-                Files.delete(
-                        FileTools.getDecompressedGZIPFileName(tokenizer.getFileName()));
+                Files.delete(FileTools.getDecompressedGZIPFileName(tokenizer.getFileName()));
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
@@ -193,12 +187,13 @@ public class EDIFParser extends AbstractEDIFParserWorker implements AutoCloseabl
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        CodePerfTracker p = new CodePerfTracker("Read/Write EDIF",true);
+        CodePerfTracker p = new CodePerfTracker("Read/Write EDIF", true);
         p.start("Parse EDIF");
         EDIFParser e = new EDIFParser(args[0]);
         EDIFNetlist n = e.parseEDIFNetlist();
         p.stop().start("Write EDIF");
-        if (args.length > 1) n.exportEDIF(args[1]);
+        if (args.length > 1)
+            n.exportEDIF(args[1]);
         p.stop().printSummary();
     }
 
@@ -211,5 +206,4 @@ public class EDIFParser extends AbstractEDIFParserWorker implements AutoCloseabl
     protected void linkEdifPortInstToCellInst(EDIFCell parentCell, EDIFPortInst portInst, EDIFNet net) {
         doLinkPortInstToCellInst(parentCell, portInst, net);
     }
-
 }

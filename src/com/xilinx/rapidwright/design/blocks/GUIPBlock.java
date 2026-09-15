@@ -32,12 +32,12 @@ import com.trolltech.qt.core.QRectF;
 import com.trolltech.qt.core.Qt.PenStyle;
 import com.trolltech.qt.gui.QBrush;
 import com.trolltech.qt.gui.QColor;
+import com.trolltech.qt.gui.QGraphicsItem.GraphicsItemChange;
+import com.trolltech.qt.gui.QGraphicsItem.GraphicsItemFlag;
 import com.trolltech.qt.gui.QGraphicsPolygonItem;
 import com.trolltech.qt.gui.QGraphicsSceneMouseEvent;
 import com.trolltech.qt.gui.QPen;
 import com.trolltech.qt.gui.QPolygonF;
-import com.trolltech.qt.gui.QGraphicsItem.GraphicsItemChange;
-import com.trolltech.qt.gui.QGraphicsItem.GraphicsItemFlag;
 import com.xilinx.rapidwright.device.Tile;
 import com.xilinx.rapidwright.gui.TileScene;
 
@@ -47,8 +47,7 @@ import com.xilinx.rapidwright.gui.TileScene;
  * Created on: Apr 27, 2017
  */
 public class GUIPBlock extends QGraphicsPolygonItem {
-
-    public static final QColor transYellow = new QColor(255,255,0,100);
+    public static final QColor transYellow = new QColor(255, 255, 0, 100);
 
     private PBlock pb;
 
@@ -85,13 +84,13 @@ public class GUIPBlock extends QGraphicsPolygonItem {
         Tile tl = pb.getTopLeftTile();
         Tile br = pb.getBottomRightTile();
         int ts = scene.getTileSize();
-        QPointF topLeft = new QPointF(ts*scene.getDrawnTileX(tl), ts*scene.getDrawnTileY(tl));
-        QPointF botRight = new QPointF(ts*scene.getDrawnTileX(br)+ts, ts*scene.getDrawnTileY(br)+ts);
+        QPointF topLeft = new QPointF(ts * scene.getDrawnTileX(tl), ts * scene.getDrawnTileY(tl));
+        QPointF botRight = new QPointF(ts * scene.getDrawnTileX(br) + ts, ts * scene.getDrawnTileY(br) + ts);
         QRectF pRect = new QRectF(topLeft, botRight);
         QPolygonF pPolygon = new QPolygonF(pRect);
         setPolygon(pPolygon);
         setToolTip(pb.toString());
-        this.setPen(new QPen(QColor.yellow,5.0,PenStyle.DotLine));
+        this.setPen(new QPen(QColor.yellow, 5.0, PenStyle.DotLine));
         this.setBrush(new QBrush(transYellow));
     }
 
@@ -102,11 +101,11 @@ public class GUIPBlock extends QGraphicsPolygonItem {
             moved.emit();
         } else if (change == GraphicsItemChange.ItemPositionChange && scene() != null) {
             // value is the new position.
-            QPointF newPos = (QPointF) value;
+            QPointF newPos = (QPointF)value;
             int ts = scene.tileSize;
 
-            int tileX = (int) Math.round(newPos.x() / ts);
-            int tileY = (int) Math.round(newPos.y() / ts);
+            int tileX = (int)Math.round(newPos.x() / ts);
+            int tileY = (int)Math.round(newPos.y() / ts);
             int dx = tileX * ts;
             int dy = tileY * ts;
 
@@ -114,28 +113,32 @@ public class GUIPBlock extends QGraphicsPolygonItem {
             int sceneHeight = ts * scene.rows;
             int leftEdge = ts * pb.getTopLeftTile().getColumn();
             int rightEdge = ts * pb.getBottomRightTile().getColumn();
-            int topEdge = ts *  pb.getTopLeftTile().getRow();
+            int topEdge = ts * pb.getTopLeftTile().getRow();
             int botEdge = ts * pb.getBottomRightTile().getRow();
 
             // Check boundary conditions
-            if (topEdge+dy < 0) dy = -topEdge;
-            if (dy+botEdge > sceneHeight) dy = sceneHeight - botEdge;
-            if (leftEdge+dx < 0) dx = -leftEdge;
-            if (dx+rightEdge > sceneWidth) dx = sceneWidth - rightEdge;
+            if (topEdge + dy < 0)
+                dy = -topEdge;
+            if (dy + botEdge > sceneHeight)
+                dy = sceneHeight - botEdge;
+            if (leftEdge + dx < 0)
+                dx = -leftEdge;
+            if (dx + rightEdge > sceneWidth)
+                dx = sceneWidth - rightEdge;
 
             // Check how many tile columns we might be skipping (not drawn)
             Tile bottomLeft = pb.getBottomLeftTile();
             Tile topRight = pb.getTopRightTile();
 
-            //int xEdge = tileX > 0 ? pb.getBottomRightTile().getColumn() : bottomLeft.getColumn();
-            //int xCurr = scene.getCurrTile().getColumn();
+            // int xEdge = tileX > 0 ? pb.getBottomRightTile().getColumn() : bottomLeft.getColumn();
+            // int xCurr = scene.getCurrTile().getColumn();
 
-            //int yEdge = tileY > 0 ? pb.getBottomLeftTile().getRow() : topRight.getRow();
-            //int yCurr = scene.getCurrTile().getRow();
+            // int yEdge = tileY > 0 ? pb.getBottomLeftTile().getRow() : topRight.getRow();
+            // int yCurr = scene.getCurrTile().getRow();
 
-            //dx = xCurr - Math.round(xEdge / ((float)ts));
-            //dy = yCurr - Math.round(yEdge / ((float)ts));
-//            System.out.println("Moving pblock: " + tileX + " " + tileY);
+            // dx = xCurr - Math.round(xEdge / ((float)ts));
+            // dy = yCurr - Math.round(yEdge / ((float)ts));
+            //            System.out.println("Moving pblock: " + tileX + " " + tileY);
             System.out.println("****************************");
             System.out.println("* " + pb.toString());
             if (pb.movePBlock(tileX, tileY)) {
@@ -152,7 +155,6 @@ public class GUIPBlock extends QGraphicsPolygonItem {
         }
         return super.itemChange(change, value);
     }
-
 
     public void showCompatibleLocations(boolean value) {
         System.out.println("TODO - GuiPBlock.showCompatibleLocations()");
@@ -181,8 +183,9 @@ public class GUIPBlock extends QGraphicsPolygonItem {
         QPointF mousePos = event.scenePos();
         Tile curr = scene.getTile(mousePos.x(), mousePos.y());
 
-        //System.out.println("Moving to tile: " + curr);
-        //pb.movePBlock(pressedTile.getColumn()-curr.getColumn(), pressedTile.getRow()-curr.getRow());
+        // System.out.println("Moving to tile: " + curr);
+        // pb.movePBlock(pressedTile.getColumn()-curr.getColumn(),
+        // pressedTile.getRow()-curr.getRow());
         pressedTile = curr;
         super.mouseMoveEvent(event);
     }

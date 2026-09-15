@@ -26,7 +26,6 @@ package com.xilinx.rapidwright.timing;
  * required time, and whether it represents a pin on a flip flop.
  */
 public class TimingVertex {
-
     private Float slack;
     private Float arrivalTime;
     private Float requiredTime;
@@ -121,9 +120,9 @@ public class TimingVertex {
     public void setRequiredTime(float requiredTime) {
         this.requiredTime = requiredTime;
         if (requiredTime == 0) {
-            //System.err.println("Setting required time to zero for:"+this);
+            // System.err.println("Setting required time to zero for:"+this);
         } else {
-            //System.out.println("Setting required time for "+this+" to:"+requiredTime);
+            // System.out.println("Setting required time for "+this+" to:"+requiredTime);
         }
         slack = requiredTime - arrivalTime;
     }
@@ -136,11 +135,11 @@ public class TimingVertex {
                 this.requiredTime = requiredTime;
             }
         }
-
     }
 
     /**
-     * Sets the arrival time stored at this vertex WHEN the new arrival time is larger than the current.
+     * Sets the arrival time stored at this vertex WHEN the new arrival time is larger than the
+     * current.
      * @param arrivalTime Arrival time in picoseconds.  This is the sum of delay edges leading to
      * this vertex
      */
@@ -165,7 +164,6 @@ public class TimingVertex {
     public void resetRequiredTime() {
         this.requiredTime = null;
     }
-
 
     public void resetArrivalTime() {
         this.arrivalTime = null;
@@ -217,8 +215,9 @@ public class TimingVertex {
     }
 
     /**
-     * For debug, this is used within the timing library to confirm that this vertex has been printed when
-     * writing the GraphViz dot file representation.  Sets whether the vertex has been printed.
+     * For debug, this is used within the timing library to confirm that this vertex has been
+     * printed when writing the GraphViz dot file representation.  Sets whether the vertex has been
+     * printed.
      * @param b Boolean for marking whether this vertex has been printed.
      */
     protected void setPrinted(boolean b) {
@@ -226,8 +225,9 @@ public class TimingVertex {
     }
 
     /**
-     * For debug, this is used within the timing library to confirm that this vertex has been printed when
-     * writing the GraphViz dot file representation.  Gets whether the vertex has been printed.
+     * For debug, this is used within the timing library to confirm that this vertex has been
+     * printed when writing the GraphViz dot file representation.  Gets whether the vertex has been
+     * printed.
      * @return Boolean indication of whether it has already been printed.
      */
     protected boolean getPrinted() {
@@ -243,17 +243,21 @@ public class TimingVertex {
     }
 
     /**
-     * This will be used in a future release to get the name of the clock associated with this vertex.
+     * This will be used in a future release to get the name of the clock associated with this
+     * vertex.
      * @return Clock name.
      */
-    public String getClockName() { return clockName; }
+    public String getClockName() {
+        return clockName;
+    }
 
     /**
-     * This will be used in a future release to set the name of the clock associated with this vertex.
+     * This will be used in a future release to set the name of the clock associated with this
+     * vertex.
      * @param clockName  Clock name.
      */
     public void setClockName(String clockName) {
-        if (clockName==null) {
+        if (clockName == null) {
             new Exception().printStackTrace();
         }
         this.clockName = clockName;

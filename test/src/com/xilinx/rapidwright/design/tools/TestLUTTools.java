@@ -30,11 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.Net;
@@ -56,16 +51,20 @@ import com.xilinx.rapidwright.rwroute.TestRWRoute;
 import com.xilinx.rapidwright.support.LargeTest;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
 import com.xilinx.rapidwright.util.VivadoToolsHelper;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 public class TestLUTTools {
-
     @Test
     public void testGetCompanionLUTName() {
         Set<Series> tested = new HashSet<>();
         for (Part part : PartNameTools.getParts()) {
-            if (tested.contains(part.getSeries())) continue;
+            if (tested.contains(part.getSeries()))
+                continue;
             Device device = Device.getDevice(part);
-            for (SiteTypeEnum siteType : new SiteTypeEnum[]{SiteTypeEnum.SLICEL, SiteTypeEnum.SLICEM}) {
+            for (SiteTypeEnum siteType : new SiteTypeEnum[] {SiteTypeEnum.SLICEL, SiteTypeEnum.SLICEM}) {
                 Site site = device.getAllCompatibleSites(siteType)[0];
                 for (BEL bel : site.getBELs()) {
                     if (bel.isLUT()) {
@@ -142,17 +141,18 @@ public class TestLUTTools {
 
     @ParameterizedTest
     @CsvSource({
-            "bnn.dcp,false,false",
-            "bnn.dcp,false,true",
-            "bnn.dcp,true,false",
-            "bnn.dcp,true,true",
-            "optical-flow.dcp,false,false",
-            "optical-flow.dcp,false,true",
-            "optical-flow.dcp,true,false",
-            "optical-flow.dcp,true,true",
+        "bnn.dcp,false,false",
+        "bnn.dcp,false,true",
+        "bnn.dcp,true,false",
+        "bnn.dcp,true,true",
+        "optical-flow.dcp,false,false",
+        "optical-flow.dcp,false,true",
+        "optical-flow.dcp,true,false",
+        "optical-flow.dcp,true,true",
     })
     @LargeTest(max_memory_gb = 8)
-    public void testUpdateLutPinSwapsFromPIPsWithRWRoute(String path, boolean lutPinSwapping, boolean lutRoutethru) {
+    public void
+    testUpdateLutPinSwapsFromPIPsWithRWRoute(String path, boolean lutPinSwapping, boolean lutRoutethru) {
         Design design = RapidWrightDCP.loadDCP(path);
         try {
             System.setProperty("rapidwright.rwroute.lutPinSwapping.deferIntraSiteRoutingUpdates", "true");
@@ -187,10 +187,11 @@ public class TestLUTTools {
         Assertions.assertEquals(5, LUTTools.getLUTSize(lutcy1));
         Cell lutcy2 = design.getCell("processor/address_loop[0].lsb_pc.pc_muxcy_CARRY4_CARRY8_LUT6CY_7/LUTCY2_INST");
         Assertions.assertEquals(5, LUTTools.getLUTSize(lutcy2));
-        EDIFHierCellInst lut6cy = design.getNetlist()
-                .getHierCellInstFromName("processor/address_loop[0].lsb_pc.pc_muxcy_CARRY4_CARRY8_LUT6CY_7");
+        EDIFHierCellInst lut6cy = design.getNetlist().getHierCellInstFromName(
+            "processor/address_loop[0].lsb_pc.pc_muxcy_CARRY4_CARRY8_LUT6CY_7");
         Assertions.assertEquals(0, LUTTools.getLUTSize(lut6cy));
-        EDIFHierCellInst lut6_2 = design.getNetlist().getHierCellInstFromName("processor/address_loop[4].output_data.pc_vector_mux_lut");
+        EDIFHierCellInst lut6_2 =
+            design.getNetlist().getHierCellInstFromName("processor/address_loop[4].output_data.pc_vector_mux_lut");
         Assertions.assertEquals(0, LUTTools.getLUTSize(lut6_2));
     }
 
@@ -243,16 +244,19 @@ public class TestLUTTools {
         Assertions.assertTrue(si.getCell("F1_IMR").isRoutethru());
         Assertions.assertSame(f3, si.getNetFromSiteWire("F1_IMR_Q"));
     }
-    
+
     @ParameterizedTest
     @CsvSource({
-            "O=I0 & !I1 & I2 & !I3 + !I0 & I1 & I2 & !I3 + I0 & !I1 & !I2 & I3 + !I0 & I1 & !I2 & I3,16'h0660,4",
-            "O=I0 & !I1 + !I0 & I1,4'h6,2",
-            "O=!I0 & !I1 & !I2 & !I3 + I0 & I1 & !I2 & !I3 + !I0 & !I1 & I2 & I3 + I0 & I1 & I2 & I3,16'h9009,4",
-            "O=I0 & I1 & I2 & I3 & I4 & I5,64'h8000000000000000,6",
-            "O=!I0 & !I1 & !I2 & !I3 & !I4 & !I5,64'h0000000000000001,6",
+        "O=I0 & !I1 & I2 & !I3 + !I0 & I1 & I2 & !I3 + I0 & !I1 & !I2 & I3 + !I0 & I1 & !I2 & "
+            + "I3,16'h0660,4",
+        "O=I0 & !I1 + !I0 & I1,4'h6,2",
+        "O=!I0 & !I1 & !I2 & !I3 + I0 & I1 & !I2 & !I3 + !I0 & !I1 & I2 & I3 + I0 & I1 & I2 & "
+            + "I3,16'h9009,4",
+        "O=I0 & I1 & I2 & I3 & I4 & I5,64'h8000000000000000,6",
+        "O=!I0 & !I1 & !I2 & !I3 & !I4 & !I5,64'h0000000000000001,6",
     })
-    public void testGetLUTInitFromEquation(String equation, String init, int lutSize) {
+    public void
+    testGetLUTInitFromEquation(String equation, String init, int lutSize) {
         Assertions.assertEquals(init, LUTTools.getLUTInitFromEquation(equation, lutSize));
     }
 }

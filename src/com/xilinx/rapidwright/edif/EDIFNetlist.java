@@ -82,7 +82,6 @@ import com.xilinx.rapidwright.util.ParallelismTools;
  * Created on: May 11, 2017
  */
 public class EDIFNetlist extends EDIFName {
-
     private Map<String, EDIFLibrary> libraries;
 
     private EDIFDesign design;
@@ -91,10 +90,10 @@ public class EDIFNetlist extends EDIFName {
 
     private List<String> comments;
 
-    private Map<String,EDIFPropertyValue> metax;
+    private Map<String, EDIFPropertyValue> metax;
 
-    private Map<EDIFHierNet,EDIFHierNet> parentNetMap;
-    private Map<String,String> parentNetMapNames;
+    private Map<EDIFHierNet, EDIFHierNet> parentNetMap;
+    private Map<String, String> parentNetMapNames;
 
     private Map<EDIFHierNet, List<EDIFHierPortInst>> physicalNetPinMap;
     private List<EDIFHierPortInst> physicalGndPins;
@@ -109,7 +108,7 @@ public class EDIFNetlist extends EDIFName {
     private String origDirectory;
 
     private List<String> encryptedCells;
-    
+
     private EDIFLibrary external;
 
     private Map<EDIFCell, EDIFCell> externalMappings;
@@ -126,67 +125,46 @@ public class EDIFNetlist extends EDIFName {
      * Map that stores prim to macro expansions conditional based on IOStandards
      * (Start Prim to End Macro (if set IOStandard is in set))
      */
-    public static final Map<Series, Map<String,Pair<String,EnumSet<IOStandard>>>> macroExpandExceptionMap;
+    public static final Map<Series, Map<String, Pair<String, EnumSet<IOStandard>>>> macroExpandExceptionMap;
     /**
      * Reverse map that stores macro to prim collapse conditional based on IOStandards
      * (Macro to Prim (if set IOStandard is in set))
      */
-    public static final Map<Series, Map<String,Pair<String,EnumSet<IOStandard>>>> macroCollapseExceptionMap;
+    public static final Map<Series, Map<String, Pair<String, EnumSet<IOStandard>>>> macroCollapseExceptionMap;
 
     public static final String IOSTANDARD_PROP = "IOStandard";
 
-    public static final EDIFPropertyValue DEFAULT_PROP_VALUE = new EDIFPropertyValue(IOStandard.DEFAULT.name(), EDIFValueType.STRING);
+    public static final EDIFPropertyValue DEFAULT_PROP_VALUE =
+        new EDIFPropertyValue(IOStandard.DEFAULT.name(), EDIFValueType.STRING);
 
     static {
         EnumSet<IOStandard> obufExpansion = EnumSet.of(
-                                                IOStandard.BLVDS_25,
-                                                IOStandard.DEFAULT,
-                                                IOStandard.DIFF_HSTL_I,
-                                                IOStandard.DIFF_HSTL_I_12,
-                                                IOStandard.DIFF_HSTL_I_18,
-                                                IOStandard.DIFF_HSTL_I_DCI,
-                                                IOStandard.DIFF_HSTL_I_DCI_12,
-                                                IOStandard.DIFF_HSTL_I_DCI_18,
-                                                IOStandard.DIFF_HSTL_II,
-                                                IOStandard.DIFF_HSTL_II_18,
-                                                IOStandard.DIFF_HSUL_12,
-                                                IOStandard.DIFF_HSUL_12_DCI,
-                                                IOStandard.DIFF_MOBILE_DDR,
-                                                IOStandard.DIFF_POD10,
-                                                IOStandard.DIFF_POD10_DCI,
-                                                IOStandard.DIFF_POD12,
-                                                IOStandard.DIFF_POD12_DCI,
-                                                IOStandard.DIFF_SSTL12,
-                                                IOStandard.DIFF_SSTL12_DCI,
-                                                IOStandard.DIFF_SSTL135,
-                                                IOStandard.DIFF_SSTL135_DCI,
-                                                IOStandard.DIFF_SSTL135_II,
-                                                IOStandard.DIFF_SSTL135_R,
-                                                IOStandard.DIFF_SSTL15,
-                                                IOStandard.DIFF_SSTL15_DCI,
-                                                IOStandard.DIFF_SSTL15_II,
-                                                IOStandard.DIFF_SSTL15_R,
-                                                IOStandard.DIFF_SSTL18_I,
-                                                IOStandard.DIFF_SSTL18_I_DCI,
-                                                IOStandard.DIFF_SSTL18_II,
-                                                IOStandard.MIPI_DPHY_DCI
-                                            );
+            IOStandard.BLVDS_25, IOStandard.DEFAULT, IOStandard.DIFF_HSTL_I, IOStandard.DIFF_HSTL_I_12,
+            IOStandard.DIFF_HSTL_I_18, IOStandard.DIFF_HSTL_I_DCI, IOStandard.DIFF_HSTL_I_DCI_12,
+            IOStandard.DIFF_HSTL_I_DCI_18, IOStandard.DIFF_HSTL_II, IOStandard.DIFF_HSTL_II_18, IOStandard.DIFF_HSUL_12,
+            IOStandard.DIFF_HSUL_12_DCI, IOStandard.DIFF_MOBILE_DDR, IOStandard.DIFF_POD10, IOStandard.DIFF_POD10_DCI,
+            IOStandard.DIFF_POD12, IOStandard.DIFF_POD12_DCI, IOStandard.DIFF_SSTL12, IOStandard.DIFF_SSTL12_DCI,
+            IOStandard.DIFF_SSTL135, IOStandard.DIFF_SSTL135_DCI, IOStandard.DIFF_SSTL135_II, IOStandard.DIFF_SSTL135_R,
+            IOStandard.DIFF_SSTL15, IOStandard.DIFF_SSTL15_DCI, IOStandard.DIFF_SSTL15_II, IOStandard.DIFF_SSTL15_R,
+            IOStandard.DIFF_SSTL18_I, IOStandard.DIFF_SSTL18_I_DCI, IOStandard.DIFF_SSTL18_II,
+            IOStandard.MIPI_DPHY_DCI);
 
         macroExpandExceptionMap = new HashMap<>();
         macroCollapseExceptionMap = new HashMap<>();
         for (Series s : Series.values()) {
-            Map<String,Pair<String,EnumSet<IOStandard>>> seriesMacroExpandExceptionMap = new HashMap<>();
-            Map<String,Pair<String,EnumSet<IOStandard>>> seriesMacroCollapseExceptionMap = new HashMap<>();
+            Map<String, Pair<String, EnumSet<IOStandard>>> seriesMacroExpandExceptionMap = new HashMap<>();
+            Map<String, Pair<String, EnumSet<IOStandard>>> seriesMacroCollapseExceptionMap = new HashMap<>();
 
-            if (s == Series.Versal) continue;
+            if (s == Series.Versal)
+                continue;
             // Prim -> Macro (when set IOStandard matches expansion set)
             seriesMacroExpandExceptionMap.put("OBUFDS", new Pair<>("OBUFDS_DUAL_BUF", obufExpansion));
             seriesMacroExpandExceptionMap.put("OBUFTDS", new Pair<>("OBUFTDS_DUAL_BUF", obufExpansion));
             seriesMacroExpandExceptionMap.put("OBUFTDS_DCIEN", new Pair<>("OBUFTDS_DCIEN_DUAL_BUF", obufExpansion));
             macroExpandExceptionMap.put(s, seriesMacroExpandExceptionMap);
 
-            for (Entry<String,Pair<String,EnumSet<IOStandard>>> e : seriesMacroExpandExceptionMap.entrySet()) {
-                Pair<String,EnumSet<IOStandard>> newPair = new Pair<>(e.getKey(), e.getValue().getSecond());
+            for (Entry<String, Pair<String, EnumSet<IOStandard>>> e : seriesMacroExpandExceptionMap.entrySet()) {
+                Pair<String, EnumSet<IOStandard>> newPair = new Pair<>(e.getKey(), e.getValue().getSecond());
                 seriesMacroCollapseExceptionMap.put(e.getValue().getFirst(), newPair);
             }
             macroCollapseExceptionMap.put(s, seriesMacroCollapseExceptionMap);
@@ -201,9 +179,8 @@ public class EDIFNetlist extends EDIFName {
      * I/O buffer.
      * @see #getIOStandards(EDIFCellInst)
      */
-    private Map<EDIFCellInst,Collection<EDIFPropertyValue>> cellInstIOStandardFallback;
+    private Map<EDIFCellInst, Collection<EDIFPropertyValue>> cellInstIOStandardFallback;
     private final static Collection<EDIFPropertyValue> defaultPropValueAsCollection = Arrays.asList(DEFAULT_PROP_VALUE);
-
 
     public EDIFNetlist(String name) {
         super(name);
@@ -227,7 +204,8 @@ public class EDIFNetlist extends EDIFName {
         return getValidCellExportOrder(cells, stable, recurseIf);
     }
 
-    static List<EDIFCell> getValidCellExportOrder(Collection<EDIFCell> cellsToExport, boolean stable, Predicate<EDIFCell> recurseIf) {
+    static List<EDIFCell> getValidCellExportOrder(Collection<EDIFCell> cellsToExport, boolean stable,
+                                                  Predicate<EDIFCell> recurseIf) {
         List<EDIFCell> visited = new ArrayList<>();
         Iterable<EDIFCell> cells;
         if (stable) {
@@ -243,7 +221,9 @@ public class EDIFNetlist extends EDIFName {
         return visited;
     }
 
-    private static void getValidCellExportOrderVisit(EDIFCell cell, List<EDIFCell> visitedList, Set<EDIFCell> visitedSet, boolean stable, Predicate<EDIFCell> recurseIf) {
+    private static void getValidCellExportOrderVisit(EDIFCell cell, List<EDIFCell> visitedList,
+                                                     Set<EDIFCell> visitedSet, boolean stable,
+                                                     Predicate<EDIFCell> recurseIf) {
         if (!visitedSet.add(cell)) {
             return;
         }
@@ -274,8 +254,8 @@ public class EDIFNetlist extends EDIFName {
      *  (comment "Built by 'clavin'")
      */
     public void generateBuildComments() {
-        addComment("Built on '"+FileTools.getTimeString()+"'");
-        addComment("Built by '"+System.getenv().get("USER")+"'");
+        addComment("Built on '" + FileTools.getTimeString() + "'");
+        addComment("Built by '" + System.getenv().get("USER") + "'");
     }
 
     /**
@@ -289,7 +269,7 @@ public class EDIFNetlist extends EDIFName {
         EDIFLibrary collision = libraries.put(library.getName(), library);
         if (collision != null) {
             throw new RuntimeException("ERROR: EDIFNetlist already has "
-                    + "library named " + library.getName() );
+                                       + "library named " + library.getName());
         }
         return library;
     }
@@ -355,15 +335,14 @@ public class EDIFNetlist extends EDIFName {
      * @param cellsToRemove The map keeping track of unused cells
      * @param cell Cell to delete from removal list
      */
-    private static void _keepCell(HashMap<String,HashMap<String,EDIFCell>> cellsToRemove,
-            EDIFCell cell) {
+    private static void _keepCell(HashMap<String, HashMap<String, EDIFCell>> cellsToRemove, EDIFCell cell) {
         EDIFLibrary lib = cell.getLibrary();
-        if (lib.isHDIPrimitivesLibrary()) return;
+        if (lib.isHDIPrimitivesLibrary())
+            return;
         String libName = lib.getName();
-        HashMap<String,EDIFCell> libCells = cellsToRemove.get(libName);
+        HashMap<String, EDIFCell> libCells = cellsToRemove.get(libName);
         if (libCells == null) {
-            throw new RuntimeException("ERROR: Cell " + cell + " references unknown library "
-                    + libName);
+            throw new RuntimeException("ERROR: Cell " + cell + " references unknown library " + libName);
         }
         libCells.remove(cell.getName());
     }
@@ -372,9 +351,10 @@ public class EDIFNetlist extends EDIFName {
      * Removals all unused cells from a netlist from any work library (all except hdi_primitives)
      */
     public void removeUnusedCellsFromAllWorkLibraries() {
-        HashMap<String,HashMap<String,EDIFCell>> cellsToRemove = new HashMap<>();
+        HashMap<String, HashMap<String, EDIFCell>> cellsToRemove = new HashMap<>();
         for (EDIFLibrary lib : getLibraries()) {
-            if (lib.isHDIPrimitivesLibrary()) continue;
+            if (lib.isHDIPrimitivesLibrary())
+                continue;
             cellsToRemove.put(lib.getName(), new HashMap<>(lib.getCellMap()));
         }
 
@@ -383,7 +363,7 @@ public class EDIFNetlist extends EDIFName {
             _keepCell(cellsToRemove, i.getCellType());
         }
 
-        for (Entry<String, HashMap<String,EDIFCell>> e : cellsToRemove.entrySet()) {
+        for (Entry<String, HashMap<String, EDIFCell>> e : cellsToRemove.entrySet()) {
             String libName = e.getKey();
             EDIFLibrary lib = getLibrary(libName);
             for (EDIFCell cell : e.getValue().values()) {
@@ -393,7 +373,7 @@ public class EDIFNetlist extends EDIFName {
     }
 
     public void removeUnusedCellsFromWorkLibrary() {
-        HashMap<String,EDIFCell> cellsToRemove = new HashMap<>(getWorkLibrary().getCellMap());
+        HashMap<String, EDIFCell> cellsToRemove = new HashMap<>(getWorkLibrary().getCellMap());
 
         cellsToRemove.remove(getTopCell().getName());
         for (EDIFHierCellInst i : getAllDescendants("", null, false)) {
@@ -416,7 +396,8 @@ public class EDIFNetlist extends EDIFName {
     public EDIFCell getCell(String legalEdifName) {
         for (EDIFLibrary lib : getLibraries()) {
             EDIFCell c = lib.getCell(legalEdifName);
-            if (c != null) return c;
+            if (c != null)
+                return c;
         }
         return null;
     }
@@ -435,8 +416,6 @@ public class EDIFNetlist extends EDIFName {
         this.design = design;
     }
 
-
-
     public Device getDevice() {
         if (device == null) {
             String partName = EDIFTools.getPartName(this);
@@ -445,7 +424,7 @@ public class EDIFNetlist extends EDIFName {
             }
             if (device == null) {
                 System.err.println("WARNING: PART property on EDIF Design object not set correctly,"
-                        + " currently set to '"+partName+"', couldn't load device.");
+                                   + " currently set to '" + partName + "', couldn't load device.");
             }
         }
         return device;
@@ -491,7 +470,7 @@ public class EDIFNetlist extends EDIFName {
 
     /**
      * Migrates all cells in the provided library into the standard work library.
-     * 
+     *
      * @param library          The library with cells to be migrated to work.
      * @param renameCollisions Flag to rename cells upon name collision
      */
@@ -512,7 +491,7 @@ public class EDIFNetlist extends EDIFName {
 
     /**
      * Migrates all cells in the provided library into the standard work library.
-     * 
+     *
      * @param library The library with cells to be migrated to work.
      */
     public void migrateToWorkLibrary(String library) {
@@ -521,7 +500,7 @@ public class EDIFNetlist extends EDIFName {
 
     /**
      * Migrates all libraries except HDI primitives and work to the work library.
-     * 
+     *
      * @param renameCollisions Flag to rename cells upon name collision
      */
     public void consolidateAllToWorkLibrary(boolean renameCollisions) {
@@ -560,7 +539,7 @@ public class EDIFNetlist extends EDIFName {
             destLib.addCell(cell);
             for (EDIFCellInst inst : cell.getCellInsts()) {
                 inst.setCellType(migrateCellAndSubCellsWorker(inst.getCellType()));
-                //The view might have changed
+                // The view might have changed
                 inst.getViewref().setName(inst.getCellType().getView());
             }
             return cell;
@@ -578,17 +557,18 @@ public class EDIFNetlist extends EDIFName {
         migrateCellAndSubCellsWorker(cell);
     }
 
-
     public void migrateCellAndSubCells(EDIFCell cell, boolean uniqueifyCollisions) {
         if (!uniqueifyCollisions) {
             migrateCellAndSubCells(cell);
             return;
         }
 
-        Queue<EDIFCell> cells = new LinkedList<>(); // which contains cells that have been added to libraries but whose subcells haven't.
-        //Step 1: add the top cell to the library.
-        //If the top cell belongs to HDIPrimitivesLibrary && the top cell exists in HDIPrimitivesLibrary, return and do nothing.
-        //Otherwise, the code would add the top cell to the library; if repeat happens, using "parameterized" suffix to distinguish
+        Queue<EDIFCell> cells = new LinkedList<>(); // which contains cells that have been added to
+                                                    // libraries but whose subcells haven't.
+        // Step 1: add the top cell to the library.
+        // If the top cell belongs to HDIPrimitivesLibrary && the top cell exists in
+        // HDIPrimitivesLibrary, return and do nothing. Otherwise, the code would add the top cell
+        // to the library; if repeat happens, using "parameterized" suffix to distinguish
         EDIFLibrary srcLib = cell.getLibrary();
         EDIFLibrary destLibTop = getLibrary(srcLib.getName());
         if (destLibTop == null) {
@@ -601,7 +581,7 @@ public class EDIFNetlist extends EDIFName {
         if (destLibTop.containsCell(cell) && destLibTop.isHDIPrimitivesLibrary())
             return;
         srcLib.removeCell(cell);
-        int i=0;
+        int i = 0;
         String currentCellName = cell.getName();
         while (destLibTop.containsCell(cell)) {
             cell.setName(currentCellName + "_parameterized" + i);
@@ -611,8 +591,8 @@ public class EDIFNetlist extends EDIFName {
         destLibTop.addCell(cell);
         cells.add(cell);
 
-        //Step 2: add the subcells, subsubcells... to the library.
-        //Do it like before, but updating the celltype of each cellInst should be noticed.
+        // Step 2: add the subcells, subsubcells... to the library.
+        // Do it like before, but updating the celltype of each cellInst should be noticed.
         while (!cells.isEmpty()) {
             EDIFCell pollFromCells = cells.poll();
             for (EDIFCellInst inst : pollFromCells.getCellInsts()) {
@@ -634,7 +614,7 @@ public class EDIFNetlist extends EDIFName {
                     continue;
                 }
                 srcLibSub.removeCell(cellSub);
-                i=0;
+                i = 0;
                 while (destLibSub.containsCell(cellSub) && !checkIfAlreadyInLib(cellSub, destLibSub)) {
                     String newName = currentCellName + "_parameterized" + i;
                     cellSub.setName(newName);
@@ -659,7 +639,6 @@ public class EDIFNetlist extends EDIFName {
         return currentCellName;
     }
 
-
     /**
      * This copies the cell and all of its descendants into this netlist.
      * @param cell The cell (and all its descendants) to copy into this netlist's libraries
@@ -671,7 +650,7 @@ public class EDIFNetlist extends EDIFName {
 
     /**
      * This copies the cell and all of its descendants into this netlist.
-     * 
+     *
      * @param cell               The cell (and all its descendants) to copy into
      *                           this netlist's libraries
      * @param uniquifyCollisions Flag that allows the method to create a uniquely
@@ -694,10 +673,10 @@ public class EDIFNetlist extends EDIFName {
         }
         return getLibrary(library.getName());
     }
-    
+
     /**
      * This copies the library and all of its cells into this netlist.
-     * 
+     *
      * @param library            The library (and all its cells) to copy into this
      *                           netlist's libraries
      * @param uniquifyCollisions Flag that allows the method to create a uniquely
@@ -728,9 +707,8 @@ public class EDIFNetlist extends EDIFName {
             EDIFCell newCell = new EDIFCell(destLib, cell, cellName);
             copiedCells.add(newCell);
             for (EDIFCellInst inst : newCell.getCellInsts()) {
-                inst.setCellType(copyCellAndSubCellsWorker(inst.getCellType(), copiedCells,
-                        uniquifyCollisions));
-                //The view might have changed
+                inst.setCellType(copyCellAndSubCellsWorker(inst.getCellType(), copiedCells, uniquifyCollisions));
+                // The view might have changed
                 inst.getViewref().setName(inst.getCellType().getView());
             }
             return newCell;
@@ -743,17 +721,15 @@ public class EDIFNetlist extends EDIFName {
                 EDIFCell newCell = new EDIFCell(destLib, cell, uniqueCellName);
                 copiedCells.add(newCell);
                 for (EDIFCellInst inst : newCell.getCellInsts()) {
-                    inst.setCellType(copyCellAndSubCellsWorker(inst.getCellType(), copiedCells,
-                            uniquifyCollisions));
+                    inst.setCellType(copyCellAndSubCellsWorker(inst.getCellType(), copiedCells, uniquifyCollisions));
                     // The view might have changed
                     inst.getViewref().setName(inst.getCellType().getView());
                 }
                 return newCell;
 
             } else {
-                throw new RuntimeException(
-                        "ERROR: Destination netlist already contains EDIFCell named " + "'"
-                                + cell.getName() + "' in library '" + destLib.getName() + "'");
+                throw new RuntimeException("ERROR: Destination netlist already contains EDIFCell named "
+                                           + "'" + cell.getName() + "' in library '" + destLib.getName() + "'");
             }
         }
     }
@@ -821,9 +797,9 @@ public class EDIFNetlist extends EDIFName {
 
         Map<String, HashSet<EDIFLibrary>> deps = new HashMap<String, HashSet<EDIFLibrary>>();
         for (EDIFLibrary lib : getLibraries()) {
-            if (lib.isHDIPrimitivesLibrary()) continue;
-            HashSet<EDIFLibrary> externalRefs =
-                    new HashSet<EDIFLibrary>(lib.getExternallyReferencedLibraries());
+            if (lib.isHDIPrimitivesLibrary())
+                continue;
+            HashSet<EDIFLibrary> externalRefs = new HashSet<EDIFLibrary>(lib.getExternallyReferencedLibraries());
             externalRefs.remove(getHDIPrimitivesLibrary());
 
             if (externalRefs.isEmpty()) {
@@ -838,7 +814,7 @@ public class EDIFNetlist extends EDIFName {
         int size = lastSize;
         int watchdog = 10;
         while (!q.isEmpty()) {
-            Entry<String,HashSet<EDIFLibrary>> curr = q.poll();
+            Entry<String, HashSet<EDIFLibrary>> curr = q.poll();
             size--;
             if (toExport.containsAll(curr.getValue())) {
                 toExport.add(getLibrary(curr.getKey()));
@@ -850,7 +826,7 @@ public class EDIFNetlist extends EDIFName {
                     watchdog--;
                     if (watchdog == 0) {
                         throw new RuntimeException("Circular dependency in EDIF Libraries between "
-                                + "cells.  Please merge libraries or resolve dependency.");
+                                                   + "cells.  Please merge libraries or resolve dependency.");
                     }
                     lastSize = q.size();
                     size = lastSize;
@@ -861,15 +837,21 @@ public class EDIFNetlist extends EDIFName {
         return new ArrayList<>(toExport);
     }
 
-    public static final byte[] EXPORT_CONST_EDIF_VERSION = "\n  (edifversion 2 0 0)\n  (edifLevel 0)\n  (keywordmap (keywordlevel 0))\n(status\n (written\n  (timeStamp ".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] EXPORT_CONST_EDIF_VERSION =
+        ("\n  (edifversion 2 0 0)\n  (edifLevel 0)\n  (keywordmap (keywordlevel 0))\n(status\n "
+         + "(written\n  (timeStamp ")
+            .getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_EDIF_HEAD = "(edif ".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] EXPORT_CONST_PROGRAM = (")\n  (program \"" + Device.FRAMEWORK_NAME + "\" (version \"" + Device.RAPIDWRIGHT_VERSION + "\"))\n").getBytes(StandardCharsets.UTF_8);
+    public static final byte[] EXPORT_CONST_PROGRAM =
+        (")\n  (program \"" + Device.FRAMEWORK_NAME + "\" (version \"" + Device.RAPIDWRIGHT_VERSION + "\"))\n")
+            .getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_CLOSE_NL = ")\n".getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_QUOTE_CLOSE_NL = "\")\n".getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_COMMENT = "  (comment \"".getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_META_X = "(metax ".getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_DOUBLE_CLOSE = " )\n)\n".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] EXPORT_CONST_DESIGN_START = "(comment \"Reference To The Cell Of Highest Level\")\n\n  (design ".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] EXPORT_CONST_DESIGN_START =
+        "(comment \"Reference To The Cell Of Highest Level\")\n\n  (design ".getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_CELLREF = "\n    (cellref ".getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_LIBRARYREF = " (libraryref ".getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_CLOSE_REF = "))\n".getBytes(StandardCharsets.UTF_8);
@@ -877,13 +859,12 @@ public class EDIFNetlist extends EDIFName {
     public static final byte[] EXPORT_CONST_CLOSE_DESIGN = "  )\n".getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_CLOSE_EDIF = ")\n".getBytes(StandardCharsets.UTF_8);
 
-
     public void exportEDIF(OutputStream out, boolean stable) throws IOException {
         try (BufferedOutputStream os = new BufferedOutputStream(out)) {
-            final ParallelDCPOutput dos = ParallelismTools.getParallel() ?
-                    ParallelDCPOutput.cast(out) : null;
+            final ParallelDCPOutput dos = ParallelismTools.getParallel() ? ParallelDCPOutput.cast(out) : null;
 
-            EDIFWriteLegalNameCache<?> cache = dos!=null ? EDIFWriteLegalNameCache.multiThreaded() : EDIFWriteLegalNameCache.singleThreaded();
+            EDIFWriteLegalNameCache<?> cache =
+                dos != null ? EDIFWriteLegalNameCache.multiThreaded() : EDIFWriteLegalNameCache.singleThreaded();
 
             os.write(EXPORT_CONST_EDIF_HEAD);
             exportEDIFName(os, cache);
@@ -976,7 +957,6 @@ public class EDIFNetlist extends EDIFName {
         exportEDIF(Paths.get(fileName));
     }
 
-
     /**
      * Based on a hierarchical string, this method will get the instance corresponding
      * to the name provided.
@@ -996,8 +976,6 @@ public class EDIFNetlist extends EDIFName {
         return hierCellInst.getInst();
     }
 
-
-
     /**
      * Based on a hierarchical string name, this method gets and returns the net inside
      * the instance.
@@ -1016,32 +994,35 @@ public class EDIFNetlist extends EDIFName {
      */
     public EDIFHierPortInst getHierPortInstFromName(String hierPortInstName) {
         return getHierObject(
-                hierPortInstName,
-                EDIFCellInst::getPortInst,
-                (ehci, pi) -> new EDIFHierPortInst(ehci.getParent(), pi) //TODO can we avoid the call to getParent()? We are constructing
+            hierPortInstName, EDIFCellInst::getPortInst,
+            (ehci, pi)
+                -> new EDIFHierPortInst(ehci.getParent(),
+                                        pi) // TODO can we avoid the call to getParent()? We are constructing
         );
     }
 
     /**
-     * Resolve as much of a hierarchical name as possible to a List of EDIFCellInsts, suitable for creating a EDIFHierCellInst from.
-     * Also return the unmatched portion
+     * Resolve as much of a hierarchical name as possible to a List of EDIFCellInsts, suitable for
+     * creating a EDIFHierCellInst from. Also return the unmatched portion
      * @param name the hierarchical name
-     * @return A pair of EdifHierCellInst and the unmatched portion of the name. The name may be null if we found a complete match
+     * @return A pair of EdifHierCellInst and the unmatched portion of the name. The name may be
+     *     null if we found a complete match
      */
     public Pair<List<EDIFCellInst>, String> getHierObject(String name) {
-        if (name.isEmpty()) return new Pair<>(Collections.singletonList(getTopCellInst()), null);
+        if (name.isEmpty())
+            return new Pair<>(Collections.singletonList(getTopCellInst()), null);
         String[] parts = name.split(EDIFTools.EDIF_HIER_SEP);
 
         // Sadly, cells can be named 'fred/' instead of 'fred', this code handles this situation
-        if (name.charAt(name.length()-1) == '/') {
-            parts[parts.length-1] = parts[parts.length-1] + EDIFTools.EDIF_HIER_SEP;
+        if (name.charAt(name.length() - 1) == '/') {
+            parts[parts.length - 1] = parts[parts.length - 1] + EDIFTools.EDIF_HIER_SEP;
         }
 
         List<EDIFCellInst> cells = new ArrayList<>(parts.length);
         EDIFCellInst currInst = getTopCellInst();
         cells.add(currInst);
 
-        for (int i=0; i < parts.length; i++) {
+        for (int i = 0; i < parts.length; i++) {
             EDIFCellInst checkInst = currInst.getCellType().getCellInst(parts[i]);
             // Someone named their instance with hierarchy separators, joy!
             if (checkInst == null) {
@@ -1051,26 +1032,27 @@ public class EDIFNetlist extends EDIFName {
                     sb.append(EDIFTools.EDIF_HIER_SEP);
                     sb.append(parts[i]);
                     checkInst = currInst.getCellType().getCellInst(sb.toString());
-                    if (checkInst == null) i++;
+                    if (checkInst == null)
+                        i++;
                 }
                 if (checkInst == null) {
                     // Try searching other direction
                     String prefixHierName = "";
-                    for (int j=0; j < cells.size(); j++) {
+                    for (int j = 0; j < cells.size(); j++) {
                         EDIFCellInst curr = cells.get(j);
                         prefixHierName += curr == getTopCellInst() ? "" : (curr.getName() + "/");
                         int index = name.indexOf(prefixHierName);
                         String suffixHierName = name.substring(index + prefixHierName.length());
                         EDIFCellInst match = curr.getCellType().getCellInst(suffixHierName);
                         if (match != null) {
-                                    for (int k=cells.size()-1; k > j; k--) {
-                                        cells.remove(k);
-                                    }
-                                    cells.add(match);
-                                    return new Pair<>(cells, null);
+                            for (int k = cells.size() - 1; k > j; k--) {
+                                cells.remove(k);
+                            }
+                            cells.add(match);
+                            return new Pair<>(cells, null);
                         }
                     }
-                    //Not found
+                    // Not found
                     return new Pair<>(cells, sb.toString());
                 }
             }
@@ -1081,8 +1063,8 @@ public class EDIFNetlist extends EDIFName {
     }
 
     private EDIFHierCellInst cellListToHier(List<EDIFCellInst> cells) {
-        //Is toplevel?
-        if (cells.size()==1) {
+        // Is toplevel?
+        if (cells.size() == 1) {
             return getTopHierCellInst();
         } else {
             return EDIFHierCellInst.create(cells.toArray(new EDIFCellInst[0]));
@@ -1092,29 +1074,31 @@ public class EDIFNetlist extends EDIFName {
     /**
      * Parse a hierarchical name into an object of some sort.
      *
-     * As '/' can occur within names and is the hierarchy separator, we have to try quite a few combinations of names.
+     * As '/' can occur within names and is the hierarchy separator, we have to try quite a few
+     * combinations of names.
      * @param hierObjName the name to parse
-     * @param relativeLookup try to match a name to some local object. should return null if there is no match.
-     * @param hierConstructor construct an hierarchical object from a hierarchical cell and a relative object
+     * @param relativeLookup try to match a name to some local object. should return null if there
+     *     is no match.
+     * @param hierConstructor construct an hierarchical object from a hierarchical cell and a
+     *     relative object
      * @param <RelObjT> relative object type
      * @param <HierObjT> hierarchical object type
      * @return the constructed hierarchical object or null if not found
      */
-    private <RelObjT, HierObjT> HierObjT getHierObject(
-            String hierObjName,
-            BiFunction<EDIFCellInst, String, RelObjT> relativeLookup,
-            BiFunction<EDIFHierCellInst, RelObjT, HierObjT> hierConstructor
-    ) {
+    private <RelObjT, HierObjT>
+        HierObjT getHierObject(String hierObjName, BiFunction<EDIFCellInst, String, RelObjT> relativeLookup,
+                               BiFunction<EDIFHierCellInst, RelObjT, HierObjT> hierConstructor) {
         Pair<List<EDIFCellInst>, String> hierPair = getHierObject(hierObjName);
 
         List<EDIFCellInst> currentHierarchy = hierPair.getFirst();
         String relObjName = hierPair.getSecond();
 
         if (relObjName == null) {
-            //Name collision between cell inst names and what we are searching for, immediately move one level up
+            // Name collision between cell inst names and what we are searching for, immediately
+            // move one level up
             final EDIFCellInst leafCellInst = currentHierarchy.get(currentHierarchy.size() - 1);
             relObjName = leafCellInst.getName();
-            currentHierarchy.remove(currentHierarchy.size()-1);
+            currentHierarchy.remove(currentHierarchy.size() - 1);
         }
 
         while (!currentHierarchy.isEmpty()) {
@@ -1124,9 +1108,9 @@ public class EDIFNetlist extends EDIFName {
                 return hierConstructor.apply(cellListToHier(currentHierarchy), relObj);
             }
 
-            //Not found, move one level up
+            // Not found, move one level up
             relObjName = leafCellInst.getName() + EDIFTools.EDIF_HIER_SEP + relObjName;
-            currentHierarchy.remove(currentHierarchy.size()-1);
+            currentHierarchy.remove(currentHierarchy.size() - 1);
         }
         return null;
     }
@@ -1139,7 +1123,7 @@ public class EDIFNetlist extends EDIFName {
      */
     public EDIFHierCellInst getHierCellInstFromName(String name) {
         final Pair<List<EDIFCellInst>, String> hierObject = getHierObject(name);
-        //Incomplete match?
+        // Incomplete match?
         if (hierObject.getSecond() != null) {
             return null;
         }
@@ -1147,28 +1131,26 @@ public class EDIFNetlist extends EDIFName {
     }
 
     /**
-     * Gets the hierarchical net from the netname provided. Returns the wrapped EDIFNet, with the hierarchical
-     * String in {@link EDIFHierNet}.
+     * Gets the hierarchical net from the netname provided. Returns the wrapped EDIFNet, with the
+     * hierarchical String in {@link EDIFHierNet}.
      * @param netName Full hierarchical name of the net to retrieve.
      * @return The absolute net with hierarchical name, or null if none could be found.
      */
     public EDIFHierNet getHierNetFromName(String netName) {
-        return getHierObject(
-                netName,
-                (eci, n) -> eci.getCellType().getNet(n),
-                EDIFHierNet::new
-        );
+        return getHierObject(netName, (eci, n) -> eci.getCellType().getNet(n), EDIFHierNet::new);
     }
     public Net getPhysicalNetFromPin(String parentHierInstName, EDIFPortInst p, Design d) {
         return getPhysicalNetFromPin(new EDIFHierPortInst(getHierCellInstFromName(parentHierInstName), p), d);
     }
     public Net getPhysicalNetFromPin(EDIFHierPortInst p, Design d) {
         if (p.getHierarchicalInst().isTopLevelInst()) {
-            if (p.getNet().getName().equals(EDIFTools.LOGICAL_GND_NET_NAME)) return d.getGndNet();
-            if (p.getNet().getName().equals(EDIFTools.LOGICAL_VCC_NET_NAME)) return d.getVccNet();
+            if (p.getNet().getName().equals(EDIFTools.LOGICAL_GND_NET_NAME))
+                return d.getGndNet();
+            if (p.getNet().getName().equals(EDIFTools.LOGICAL_VCC_NET_NAME))
+                return d.getVccNet();
         }
 
-        Map<EDIFHierNet,EDIFHierNet> parentNetMap = getParentNetMap();
+        Map<EDIFHierNet, EDIFHierNet> parentNetMap = getParentNetMap();
         EDIFHierNet parentNet = parentNetMap.get(p.getHierarchicalNet());
         Net n = parentNet == null ? null : d.getNet(parentNet.getHierarchicalNetName());
         if (n == null) {
@@ -1177,18 +1159,21 @@ public class EDIFNetlist extends EDIFName {
                 List<EDIFPortInst> src = p.getNet().getSourcePortInsts(false);
                 if (src.size() > 0 && src.get(0).getCellInst() != null) {
                     String cellType = src.get(0).getCellInst().getCellType().getName();
-                    if (cellType.equals("GND")) return d.getGndNet();
-                    if (cellType.equals("VCC")) return d.getVccNet();
+                    if (cellType.equals("GND"))
+                        return d.getGndNet();
+                    if (cellType.equals("VCC"))
+                        return d.getVccNet();
                 }
             }
             if (parentNet == null) {
                 System.err.println("WARNING: Could not find parent of net \"" + p.getHierarchicalNet() +
-                        "\", please check that the netlist is fully connected through all levels of "
-                        + "hierarchy for this net.");
+                                   "\", please check that the netlist is fully connected through all levels of "
+                                   + "hierarchy for this net.");
             }
             EDIFNet logicalNet = parentNet.getNet();
             List<EDIFPortInst> eprList = logicalNet.getSourcePortInsts(false);
-            if (eprList.size() > 1) throw new RuntimeException("ERROR: Bad assumption on net, has two sources.");
+            if (eprList.size() > 1)
+                throw new RuntimeException("ERROR: Bad assumption on net, has two sources.");
             if (eprList.size() == 1) {
                 String cellTypeName = eprList.get(0).getCellInst().getCellType().getName();
                 if (cellTypeName.equals("GND")) {
@@ -1244,7 +1229,7 @@ public class EDIFNetlist extends EDIFName {
      * Searches all lower levels of hierarchy to find all leaf descendants. It
      * returns a list of all leaf cells that fall under the hierarchy of the
      * provided instance name.
-     * 
+     *
      * @param instance          The instance to start searching from.
      * @param includeBlackBoxes Flag, if set to true, will include black box
      *                          instances in the returned list.
@@ -1253,7 +1238,6 @@ public class EDIFNetlist extends EDIFName {
      */
     public List<EDIFHierCellInst> getAllLeafDescendants(EDIFHierCellInst instance, boolean includeBlackBoxes) {
         List<EDIFHierCellInst> leafCells = new ArrayList<>();
-
 
         Queue<EDIFHierCellInst> toProcess = new LinkedList<EDIFHierCellInst>();
         toProcess.add(instance);
@@ -1270,16 +1254,26 @@ public class EDIFNetlist extends EDIFName {
     }
 
     private String convertWildcardToRegex(String wildcardPattern) {
-        if (wildcardPattern == null) return null;
+        if (wildcardPattern == null)
+            return null;
         StringBuilder sb = new StringBuilder();
-        for (int i=0; i < wildcardPattern.length(); i++) {
+        for (int i = 0; i < wildcardPattern.length(); i++) {
             char c = wildcardPattern.charAt(i);
             switch (c) {
                 case '*':
                     sb.append(".*");
                     break;
-                case '?': case '\\': case '{': case '}': case '|':
-                case '^': case '$':  case '(': case ')': case '[': case ']':
+                case '?':
+                case '\\':
+                case '{':
+                case '}':
+                case '|':
+                case '^':
+                case '$':
+                case '(':
+                case ')':
+                case '[':
+                case ']':
                     sb.append("\\");
                     sb.append(c);
                     break;
@@ -1295,7 +1289,6 @@ public class EDIFNetlist extends EDIFName {
         return getAllDescendants(instanceName, wildcardPattern, true);
     }
 
-
     /**
      * Searches all lower levels of hierarchy to find descendants.  It returns the
      * set of all cells that fall under the hierarchy of the provided instance name.
@@ -1308,7 +1301,7 @@ public class EDIFNetlist extends EDIFName {
         List<EDIFHierCellInst> children = new ArrayList<>();
 
         final EDIFHierCellInst eci = getHierCellInstFromName(instanceName);
-        if (eci==null) {
+        if (eci == null) {
             return null;
         }
         Queue<EDIFHierCellInst> q = new LinkedList<>();
@@ -1343,17 +1336,21 @@ public class EDIFNetlist extends EDIFName {
     private static boolean isDeviceNullPrinted = false;
     private boolean isTransformPrim(EDIFHierPortInst p) {
         EDIFCellInst cellInst = p.getPortInst().getCellInst();
-        if (!cellInst.getCellType().isPrimitive()) return false;
+        if (!cellInst.getCellType().isPrimitive())
+            return false;
         Unisim u = Unisim.valueOf(p.getPortInst().getCellInst().getCellType().getName());
         if (device == null && !isDeviceNullPrinted) {
-            System.err.println("WARNING: EDIFNetlist.device==null when calling isTransformPrim(), results may be incorrect");
+            System.err.println("WARNING: EDIFNetlist.device==null when calling "
+                               + "isTransformPrim(), results may be incorrect");
             isDeviceNullPrinted = true;
         }
         return u.hasTransform(device == null ? Series.UltraScale : device.getSeries());
     }
 
     public static NetType identifyNetType(EDIFHierPortInst source) {
-        String cellType = source.getPortInst().getCellInst() == null ? "" : source.getPortInst().getCellInst().getCellType().getName();
+        String cellType = source.getPortInst().getCellInst() == null
+                              ? ""
+                              : source.getPortInst().getCellInst().getCellType().getName();
         if (cellType.equals("GND")) {
             return NetType.GND;
         }
@@ -1368,7 +1365,8 @@ public class EDIFNetlist extends EDIFName {
      * The returned list also includes the provided netName.
      * @param initialNet Full hierarchical netname to use as a starting point in the search.
      * @return A list of all electrically connected nets in the netlist that are equivalent.
-     * The list is composed of all full hierarchical net names or an empty list if netName is invalid.
+     * The list is composed of all full hierarchical net names or an empty list if netName is
+     * invalid.
      */
     public List<EDIFHierNet> getNetAliases(EDIFHierNet initialNet) {
         if (physicalNetPinMap == null) {
@@ -1394,11 +1392,11 @@ public class EDIFNetlist extends EDIFName {
             for (EDIFPortInst relP : net.getNet().getPortInsts()) {
                 EDIFHierPortInst p = new EDIFHierPortInst(net.getHierarchicalInst(), relP);
 
-                boolean isCellPin = relP.getCellInst() != null && relP.getCellInst().getCellType().isLeafCellOrBlackBox();
+                boolean isCellPin =
+                    relP.getCellInst() != null && relP.getCellInst().getCellType().isLeafCellOrBlackBox();
                 if (isCellPin) {
                     leafCellPins.add(p);
                 }
-
 
                 boolean isTopLevelPortInst = p.getHierarchicalInst().isTopLevelInst() && relP.getCellInst() == null;
                 boolean isToplevelInput = isTopLevelPortInst && p.isInput();
@@ -1460,7 +1458,8 @@ public class EDIFNetlist extends EDIFName {
         } else if (initialNet.getNet().getPortInsts().size() == 0) {
             return aliases;
         } else {
-            throw new RuntimeException("ERROR: Couldn't identify parent net, no output pins (or top level output port) found.");
+            throw new RuntimeException("ERROR: Couldn't identify parent net, no output pins (or "
+                                       + "top level output port) found.");
         }
 
         return aliases;
@@ -1491,13 +1490,12 @@ public class EDIFNetlist extends EDIFName {
      * in the netlist and/or the physical net name.
      * @return the map
      */
-    public Map<EDIFHierNet,EDIFHierNet> getParentNetMap() {
+    public Map<EDIFHierNet, EDIFHierNet> getParentNetMap() {
         if (parentNetMap == null) {
             generateParentNetMap();
         }
         return parentNetMap;
     }
-
 
     /**
      * Gets the map of all canonical net for every net alias.  This corresponds to the driving net
@@ -1508,10 +1506,8 @@ public class EDIFNetlist extends EDIFName {
      */
     public Map<String, String> getParentNetMapNames() {
         if (parentNetMapNames == null) {
-            parentNetMapNames = getParentNetMap().entrySet().stream().collect(Collectors.toMap(
-                n->n.getKey().getHierarchicalNetName(),
-                n->n.getValue().getHierarchicalNetName()
-            ));
+            parentNetMapNames = getParentNetMap().entrySet().stream().collect(
+                Collectors.toMap(n -> n.getKey().getHierarchicalNetName(), n -> n.getValue().getHierarchicalNetName()));
         }
         return parentNetMapNames;
     }
@@ -1573,7 +1569,7 @@ public class EDIFNetlist extends EDIFName {
         }
 
         for (EDIFHierPortInst pr : queue) {
-            assert(pr.getNet() != null);
+            assert (pr.getNet() != null);
             EDIFHierNet parentNetName = pr.getHierarchicalNet();
             for (EDIFHierNet alias : getNetAliases(parentNetName)) {
                 parentNetMap.put(alias, parentNetName);
@@ -1581,7 +1577,7 @@ public class EDIFNetlist extends EDIFName {
         }
         if (DEBUG) {
             long stop = System.currentTimeMillis();
-            System.out.println("generateParentNetMap() runtime: " + (stop-start)/1000.0f +" seconds ");
+            System.out.println("generateParentNetMap() runtime: " + (stop - start) / 1000.0f + " seconds ");
         }
     }
 
@@ -1608,7 +1604,7 @@ public class EDIFNetlist extends EDIFName {
     /**
      * Traverses the netlist and produces a list of all primitive leaf hierarchical
      * cell instances.
-     * 
+     *
      * @param includeBlackBoxes Flag if set to true will also include black boxes in
      *                          the returned list.
      * @return A list of all primitive leaf hierarchical cell instances.
@@ -1620,7 +1616,7 @@ public class EDIFNetlist extends EDIFName {
     /**
      * Traverses the netlist and produces a list of all primitive leaf hierarchical
      * cell instances.
-     * 
+     *
      * @return A list of all primitive leaf hierarchical cell instances.
      */
     public List<EDIFHierCellInst> getAllLeafHierCellInstances() {
@@ -1630,8 +1626,9 @@ public class EDIFNetlist extends EDIFName {
     /**
      * Get the physical pins all parent nets (as returned by {@link #getParentNet(EDIFHierNet)}).
      *
-     * No special handling for static nets is performed. Therefore, only the local connectivity is visible. To see
-     * all globally connected static pins, use {@link #getPhysicalVccPins()} and {@link #getPhysicalGndPins()}.
+     * No special handling for static nets is performed. Therefore, only the local connectivity is
+     * visible. To see all globally connected static pins, use {@link #getPhysicalVccPins()} and
+     * {@link #getPhysicalGndPins()}.
      * @return the physicalNetPinMap
      */
     public Map<EDIFHierNet, List<EDIFHierPortInst>> getPhysicalNetPinMap() {
@@ -1640,8 +1637,6 @@ public class EDIFNetlist extends EDIFName {
         }
         return physicalNetPinMap;
     }
-
-
 
     /**
      * Get all Physical vcc pins
@@ -1668,8 +1663,9 @@ public class EDIFNetlist extends EDIFName {
     /**
      * Get the physical pins of this net.
      *
-     * No special handling for static nets is performed. Therefore, only the local connectivity is visible. To see
-     * all globally connected static pins, use {@link #getPhysicalVccPins()} and {@link #getPhysicalGndPins()}.
+     * No special handling for static nets is performed. Therefore, only the local connectivity is
+     * visible. To see all globally connected static pins, use {@link #getPhysicalVccPins()} and
+     * {@link #getPhysicalGndPins()}.
      * @param parentNet the parent net, as returned by {@link #getParentNet(EDIFHierNet)}
      * @return all pins
      */
@@ -1677,15 +1673,16 @@ public class EDIFNetlist extends EDIFName {
         return getPhysicalNetPinMap().get(parentNet);
     }
 
-
     /**
      * Get all physical pins of a net.
      *
-     * If "GLOBAL_LOGIC0" or "GLOBAL_LOGIC1" is passed as net name, all global GND/VCC pins will be returned. If a
-     * local name of a static net is passed, only the locally connected Pins will be returned.
+     * If "GLOBAL_LOGIC0" or "GLOBAL_LOGIC1" is passed as net name, all global GND/VCC pins will be
+     * returned. If a local name of a static net is passed, only the locally connected Pins will be
+     * returned.
      *
      *
-     * If you want to call this method for a physical net, use {@link #getPhysicalPins(Net)} instead.
+     * If you want to call this method for a physical net, use {@link #getPhysicalPins(Net)}
+     * instead.
      * @param parentNetName the net name, as returned by {@link #getParentNet(EDIFHierNet)}
      * @return the physical pins
      */
@@ -1702,7 +1699,8 @@ public class EDIFNetlist extends EDIFName {
     /**
      * For a given physical net, get all physical pins from the EDIF.
      *
-     * This is the same as calling {@link #getPhysicalPins(String)} with the net's name, but this function is faster.
+     * This is the same as calling {@link #getPhysicalPins(String)} with the net's name, but this
+     * function is faster.
      * @param net the physical net
      * @return all pins
      */
@@ -1734,7 +1732,7 @@ public class EDIFNetlist extends EDIFName {
      * @return
      */
     public HashMap<String, EDIFNet> generateEDIFNetMap(HashMap<String, EDIFCellInst> cellInstMap) {
-        HashMap<String,EDIFNet> map = new HashMap<String, EDIFNet>();
+        HashMap<String, EDIFNet> map = new HashMap<String, EDIFNet>();
 
         Queue<EDIFHierCellInst> toProcess = new LinkedList<EDIFHierCellInst>();
 
@@ -1747,13 +1745,13 @@ public class EDIFNetlist extends EDIFName {
 
         while (!toProcess.isEmpty()) {
             EDIFHierCellInst curr = toProcess.poll();
-            if (curr.getInst().getCellType().getNets() == null) continue;
+            if (curr.getInst().getCellType().getNets() == null)
+                continue;
             for (EDIFNet net : curr.getInst().getCellType().getNets()) {
                 map.put(new EDIFHierNet(curr, net).getHierarchicalNetName(), net);
-                //System.out.println("NET: " + name + "/" + net.getOldName());
+                // System.out.println("NET: " + name + "/" + net.getOldName());
             }
             curr.addChildren(toProcess);
-
         }
         return map;
     }
@@ -1763,8 +1761,8 @@ public class EDIFNetlist extends EDIFName {
      * @return A map of hierarchical names (not including top-level name)
      *         to EdifCellInstances that use primitives in the library
      */
-    public HashMap<String,EDIFCellInst> generateCellInstMap() {
-        HashMap<String,EDIFCellInst> primitiveInstances = new HashMap<String, EDIFCellInst>();
+    public HashMap<String, EDIFCellInst> generateCellInstMap() {
+        HashMap<String, EDIFCellInst> primitiveInstances = new HashMap<String, EDIFCellInst>();
 
         Queue<EDIFHierCellInst> toProcess = new LinkedList<EDIFHierCellInst>();
         getTopHierCellInst().addChildren(toProcess);
@@ -1800,7 +1798,7 @@ public class EDIFNetlist extends EDIFName {
     /**
      * Attempts to expand the macro primitives in the design if the part can be
      * identified.
-     * 
+     *
      * @return True if the part was found and macro unisims were expanded. False
      *         otherwise.
      */
@@ -1820,7 +1818,7 @@ public class EDIFNetlist extends EDIFName {
         expandMacroUnisims(part.getSeries());
         return true;
     }
-    
+
     /**
      * Expands macro primitives into a native-compatible implementation.
      * In Vivado, some non-native unisims are expanded or transformed
@@ -1833,19 +1831,19 @@ public class EDIFNetlist extends EDIFName {
      * @param series The architecture series targeted by this netlist.
      */
     public void expandMacroUnisims(Series series) {
-        //Invalidate Cached Data
+        // Invalidate Cached Data
         resetParentNetMap();
 
         EDIFLibrary macros = Design.getMacroPrimitives(series);
         EDIFLibrary netlistPrims = getHDIPrimitivesLibrary();
 
         Map<String, Pair<String, EnumSet<IOStandard>>> seriesMacroExpandExceptionMap =
-                               macroExpandExceptionMap.getOrDefault(series, Collections.emptyMap());
+            macroExpandExceptionMap.getOrDefault(series, Collections.emptyMap());
 
         // Find the macro primitives to replace
         Set<String> toReplace = new HashSet<String>();
-        Set<String> possibleExceptions = seriesMacroExpandExceptionMap == null ?
-                Collections.emptySet() : seriesMacroExpandExceptionMap.keySet();
+        Set<String> possibleExceptions =
+            seriesMacroExpandExceptionMap == null ? Collections.emptySet() : seriesMacroExpandExceptionMap.keySet();
         for (EDIFCell c : netlistPrims.getCells()) {
             if (macros.containsCell(c.getName())) {
                 toReplace.addAll(getAllDecendantCellTypes(macros.getCell(c.getName())));
@@ -1899,8 +1897,8 @@ public class EDIFNetlist extends EDIFName {
                         if (inst.getCellType().getName().equals("IOBUFDSE3")) {
                             EDIFCellInst child = inst.getCellType().getCellInst("OBUFTDS");
                             if (child != null && child.getCellType().getName().equals("OBUFTDS_DCIEN")) {
-                                Pair<String, EnumSet<IOStandard>> exception = seriesMacroExpandExceptionMap
-                                        .get(child.getCellType().getName());
+                                Pair<String, EnumSet<IOStandard>> exception =
+                                    seriesMacroExpandExceptionMap.get(child.getCellType().getName());
                                 String newChildType = null;
                                 if (exception != null) {
                                     if (checkIOStandardForExpansion(child, exception)) {
@@ -1925,18 +1923,19 @@ public class EDIFNetlist extends EDIFName {
             }
         }
     }
-    
+
     public void populateExternalCells() {
         externalMappings = new HashMap<>();
         for (EDIFLibrary lib : getLibraries()) {
             if (lib.isHDIPrimitivesLibrary()) {
                 continue;
             }
-            
-            for (EDIFCell cell : lib.getCells()) { 
+
+            for (EDIFCell cell : lib.getCells()) {
                 for (EDIFCellInst inst : cell.getCellInsts()) {
                     if (!inst.getCellType().isPrimitive() && inst.getCellType().isLeafCellOrBlackBox()) {
-                        // Likely an encrypted cell, see if we have a substitute netlist in external lib
+                        // Likely an encrypted cell, see if we have a substitute netlist in external
+                        // lib
                         EDIFCell sub = external.getCell(inst.getCellName());
                         externalMappings.put(sub, inst.getCellType());
                         if (sub != null) {
@@ -1957,9 +1956,10 @@ public class EDIFNetlist extends EDIFName {
                 expand = contained;
             } else {
                 if (expand != contained) {
-                    throw new RuntimeException("ERROR: EDIFCellInst '" + inst + "' has conflicting IOSTANDARDs "
-                            + "propagated from multiple top-level nets. Consider uniquifying the EDIFNetlist to "
-                            + "enable correct macro expansion.");
+                    throw new RuntimeException("ERROR: EDIFCellInst '" + inst + "' has conflicting IOSTANDARDs " +
+                                               ("propagated from multiple top-level nets. "
+                                                + "Consider uniquifying the EDIFNetlist to ") +
+                                               "enable correct macro expansion.");
                 }
             }
         }
@@ -1967,13 +1967,13 @@ public class EDIFNetlist extends EDIFName {
     }
 
     private void expandMacroCellType(String newCellType, EDIFCellInst instToExpand, EDIFLibrary macros,
-            EDIFLibrary netlistPrims) {
+                                     EDIFLibrary netlistPrims) {
         EDIFCell newCell = netlistPrims.getCell(newCellType);
         if (newCell == null) {
             EDIFCell macro = macros.getCell(newCellType);
             if (macro == null) {
-                throw new RuntimeException("failed to find cell macro " + newCellType + ", we are in "
-                        + instToExpand.getParentCell().getLibrary().getName());
+                throw new RuntimeException("failed to find cell macro " + newCellType + ", we are in " +
+                                           instToExpand.getParentCell().getLibrary().getName());
             }
             primsToRemoveOnCollapse.add(newCellType);
             newCell = new EDIFCell(netlistPrims, macro, newCellType);
@@ -2000,7 +2000,7 @@ public class EDIFNetlist extends EDIFName {
         EDIFLibrary prims = getHDIPrimitivesLibrary();
         ArrayList<EDIFCell> reinsert = new ArrayList<EDIFCell>();
         Map<String, Pair<String, EnumSet<IOStandard>>> seriesMacroCollapseExceptionMap =
-                macroCollapseExceptionMap.getOrDefault(series, Collections.emptyMap());
+            macroCollapseExceptionMap.getOrDefault(series, Collections.emptyMap());
         Map<EDIFCell, EDIFCell> updateCellTypes = new IdentityHashMap<>();
         for (EDIFCell cell : new ArrayList<>(prims.getCells())) {
             if (macros.containsCell(cell.getName())) {
@@ -2098,14 +2098,14 @@ public class EDIFNetlist extends EDIFName {
         }
         return Collections.emptyList();
     }
-    
+
     /**
      * Checks if this design has encrypted cells.
-     * 
+     *
      * @return If this design has at least one encrypted cell in it, false if none.
      */
-    public boolean hasEncryptedCells() { 
-       return getEncryptedCells().size() > 0; 
+    public boolean hasEncryptedCells() {
+        return getEncryptedCells().size() > 0;
     }
 
     private void validateEncryptedCells() {
@@ -2150,8 +2150,9 @@ public class EDIFNetlist extends EDIFName {
     public static final String READ_EDIF_CMD = "read_edif ";
 
     /**
-     * Parses a Tcl load script generated by {@link com.xilinx.rapidwright.edif.EDIFTools#writeTclLoadScriptForPartialEncryptedDesigns(EDIFNetlist, Path, String)}.
-     * and appends them to this netlist (useful for when merging designs).
+     * Parses a Tcl load script generated by {@link
+     * com.xilinx.rapidwright.edif.EDIFTools#writeTclLoadScriptForPartialEncryptedDesigns(EDIFNetlist,
+     * Path, String)}. and appends them to this netlist (useful for when merging designs).
      * @param tclPath Path to the existing Tcl load script for the accompanying DCP file
      */
     public void addTclLoadEncryptedCells(Path tclPath) {
@@ -2186,8 +2187,8 @@ public class EDIFNetlist extends EDIFName {
 
     /**
      * Checks a flag indicating if this netlist is currently tracking changes to its EDIFCells.
-     * Modified EDIFCells are tracked in a set which can be queried with {@link #getModifiedCells()}.
-     * EDIFCells are determined as modified if one of the following is true:
+     * Modified EDIFCells are tracked in a set which can be queried with {@link
+     * #getModifiedCells()}. EDIFCells are determined as modified if one of the following is true:
      *   (1) A port was removed, added or modified
      *   (2) A net was removed, added or modified
      *   (3) An instance was removed, added or modified
@@ -2198,7 +2199,8 @@ public class EDIFNetlist extends EDIFName {
     }
 
     /**
-     * Flag to track changes to EDIFCell changes to this netlist. See {@link #isTrackingCellChanges()}
+     * Flag to track changes to EDIFCell changes to this netlist. See {@link
+     * #isTrackingCellChanges()}
      * @param trackCellChanges True to enable tracking of EDIFCells, false to stop tracking
      */
     public void setTrackCellChanges(boolean trackCellChanges) {
@@ -2216,7 +2218,8 @@ public class EDIFNetlist extends EDIFName {
     }
 
     public Map<EDIFCell, List<EDIFChange>> getModifiedCells() {
-        if (modifiedCells == null) modifiedCells = new HashMap<>();
+        if (modifiedCells == null)
+            modifiedCells = new HashMap<>();
         return modifiedCells;
     }
 
@@ -2267,7 +2270,7 @@ public class EDIFNetlist extends EDIFName {
                         }
                         EDIFHierNet ehn = new EDIFHierNet(topEhci, en);
                         for (EDIFHierPortInst ehpi : ehn.getLeafHierPortInsts(true, false)) {
-                            assert(ehpi.isOutput());
+                            assert (ehpi.isOutput());
 
                             EDIFCellInst driverEci = ehpi.getPortInst().getCellInst();
                             EDIFCell driverParent = driverEci.getParentCell();
@@ -2283,12 +2286,12 @@ public class EDIFNetlist extends EDIFName {
                                     // Cell and Net IOStandards match
                                     continue;
                                 }
-                                throw new RuntimeException("ERROR: EDIFCellInst '" + driverEci + "' has a conflicting IOSTANDARD" +
-                                        " with EDIFHierNet '" + ehn + "'.");
+                                throw new RuntimeException("ERROR: EDIFCellInst '" + driverEci +
+                                                           "' has a conflicting IOSTANDARD"
+                                                           + " with EDIFHierNet '" + ehn + "'.");
                             }
 
-                            cellInstIOStandardFallback.computeIfAbsent(driverEci, (k) -> new HashSet<>())
-                                .add(netEpv);
+                            cellInstIOStandardFallback.computeIfAbsent(driverEci, (k) -> new HashSet<>()).add(netEpv);
                         }
                     }
                 }

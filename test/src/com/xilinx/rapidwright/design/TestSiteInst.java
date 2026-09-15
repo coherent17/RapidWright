@@ -33,12 +33,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-
 import com.xilinx.rapidwright.design.tools.LUTTools;
 import com.xilinx.rapidwright.device.BEL;
 import com.xilinx.rapidwright.device.BELPin;
@@ -51,9 +45,13 @@ import com.xilinx.rapidwright.util.FileTools;
 import com.xilinx.rapidwright.util.ReportRouteStatusResult;
 import com.xilinx.rapidwright.util.VivadoTools;
 import com.xilinx.rapidwright.util.VivadoToolsHelper;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class TestSiteInst {
-
     @Test
     public void testRouteIntraSiteNet() {
         Design d = Design.readCheckpoint(RapidWrightDCP.getPath("picoblaze_ooc_X10Y235.dcp"));
@@ -72,17 +70,17 @@ public class TestSiteInst {
         Assertions.assertEquals(si.getSiteWiresFromNet(net).size(), 0);
     }
 
-    private void routeLUTRouteThruHelper(Design d, SiteInst si, char letter, boolean lutPrimary, BELPin snk, Unisim cellType) {
+    private void routeLUTRouteThruHelper(Design d, SiteInst si, char letter, boolean lutPrimary, BELPin snk,
+                                         Unisim cellType) {
         BEL bel = snk.getBEL();
         String cellName = bel.getName() + "_inst";
         if (d.getCell(cellName) == null) {
-            d.createAndPlaceCell(d.getTopEDIFCell(), cellName, cellType,
-                    si.getSiteName() + "/" + bel.getName());
+            d.createAndPlaceCell(d.getTopEDIFCell(), cellName, cellType, si.getSiteName() + "/" + bel.getName());
         }
-        BELPin src = si.getSite().getBELPin(letter + (lutPrimary ? "5": "4"));
+        BELPin src = si.getSite().getBELPin(letter + (lutPrimary ? "5" : "4"));
         Net net = d.createNet(src.getName() + "_net");
         Assertions.assertTrue(si.routeIntraSiteNet(net, src, snk));
-        Cell lut = si.getCell(letter + (lutPrimary ? "6": "5") + "LUT");
+        Cell lut = si.getCell(letter + (lutPrimary ? "6" : "5") + "LUT");
         Assertions.assertNotNull(lut);
         Assertions.assertTrue(lut.isRoutethru());
     }
@@ -121,7 +119,8 @@ public class TestSiteInst {
         for (char letter : LUTTools.lutLetters) {
             routeLUTRouteThruHelperFF(d, si, letter, true, true);
             routeLUTRouteThruHelperFF(d, si, letter, false, false);
-            if (d.getDevice().getSeries() == Series.Series7 && letter == 'D') break;
+            if (d.getDevice().getSeries() == Series.Series7 && letter == 'D')
+                break;
         }
     }
 
@@ -136,7 +135,8 @@ public class TestSiteInst {
             routeLUTRouteThruHelperFF(d, si, letter, true, true);
             routeLUTRouteThruHelperFF(d, si, letter, true, false);
             Assertions.assertNull(si.getCell(letter + "5LUT"));
-            if (d.getDevice().getSeries() == Series.Series7 && letter == 'D') break;
+            if (d.getDevice().getSeries() == Series.Series7 && letter == 'D')
+                break;
         }
     }
 
@@ -175,7 +175,8 @@ public class TestSiteInst {
                 Assertions.assertNull(lut5);
             }
 
-            if (d.getDevice().getSeries() == Series.Series7 && letter == 'D') break;
+            if (d.getDevice().getSeries() == Series.Series7 && letter == 'D')
+                break;
         }
     }
 
@@ -212,8 +213,8 @@ public class TestSiteInst {
         SiteInst si = design.getSiteInstFromSiteName("SLICE_X78Y212");
 
         // Test cross product of {LUT opin, SitePIP ipin} x {FF ipin, SitePIP opin}
-        for (BELPin src : new BELPin[] {si.getBELPin("D5LUT","O5"), si.getBELPin("FFMUXD2","D5")} ) {
-            for (BELPin snk : new BELPin[] {si.getBELPin("DFF2","D"), si.getBELPin("FFMUXD2","OUT2")} ) {
+        for (BELPin src : new BELPin[] {si.getBELPin("D5LUT", "O5"), si.getBELPin("FFMUXD2", "D5")}) {
+            for (BELPin snk : new BELPin[] {si.getBELPin("DFF2", "D"), si.getBELPin("FFMUXD2", "OUT2")}) {
                 Net net = si.getNetFromSiteWire("D5LUT_O5");
                 Assertions.assertNotNull(net);
                 Assertions.assertEquals(si.getUsedSitePIP("FFMUXD2").getInputPinName(), "D5");
@@ -243,7 +244,8 @@ public class TestSiteInst {
         for (char letter : LUTTools.lutLetters) {
             routeLUTRouteThruHelperCarry(d, si, letter, true);
             routeLUTRouteThruHelperCarry(d, si, letter, false);
-            if (d.getDevice().getSeries() == Series.Series7 && letter == 'D') break;
+            if (d.getDevice().getSeries() == Series.Series7 && letter == 'D')
+                break;
         }
     }
 
@@ -255,8 +257,8 @@ public class TestSiteInst {
         SiteInst si = d.createSiteInst(d.getDevice().getSite("SLICE_X32Y73"));
         Unisim unisim = d.getDevice().getSeries() == Series.Series7 ? Unisim.CARRY4 : Unisim.CARRY8;
         d.createAndPlaceCell("carry", unisim, si.getSiteName() + "/" + unisim);
-        Assertions.assertTrue(si.routeIntraSiteNet(net, si.getBELPin("A1", "A1"),
-                si.getBELPin(unisim.toString(), "DI0")));
+        Assertions.assertTrue(
+            si.routeIntraSiteNet(net, si.getBELPin("A1", "A1"), si.getBELPin(unisim.toString(), "DI0")));
     }
 
     @ParameterizedTest
@@ -276,7 +278,8 @@ public class TestSiteInst {
         for (char letter : LUTTools.lutLetters) {
             routeLUTRouteThruHelperCarry(d, si, letter, true);
             routeLUTRouteThruHelperCarry(d, si, letter, false);
-            if (d.getDevice().getSeries() == Series.Series7 && letter == 'D') break;
+            if (d.getDevice().getSeries() == Series.Series7 && letter == 'D')
+                break;
 
             char index = Character.forDigit(letter - 'A', 10);
             // Unroute 6LUT
@@ -301,7 +304,7 @@ public class TestSiteInst {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"C1","D2"})
+    @ValueSource(strings = {"C1", "D2"})
     public void testSiteRoutingToF7MUX(String inputPin) {
         Design d = new Design("testSiteRoutingToF7MUX", Device.KCU105);
         Cell c = d.createAndPlaceCell("testFMUX", Unisim.MUXF7, "SLICE_X32Y73/F7MUX_CD");
@@ -324,7 +327,7 @@ public class TestSiteInst {
         // Check that inserting this RT cells hasn't clobbered the non-RT cell
         Assertions.assertEquals(c, d.getCell(c.getName()));
 
-        String[] siteWires = new String[] {inputPin, inputPin.charAt(0)+ "_O"};
+        String[] siteWires = new String[] {inputPin, inputPin.charAt(0) + "_O"};
 
         for (String siteWire : siteWires) {
             Assertions.assertEquals(n, si.getNetFromSiteWire(siteWire));
@@ -338,7 +341,7 @@ public class TestSiteInst {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"F6","E6"})
+    @ValueSource(strings = {"F6", "E6"})
     public void testSiteRoutingToF8MUX(String inputPin) {
         Design d = new Design("testSiteRoutingToF8MUX", Device.KCU105);
         Cell c = d.createAndPlaceCell("testFMUX", Unisim.MUXF8, "SLICE_X32Y73/F8MUX_TOP");
@@ -367,7 +370,7 @@ public class TestSiteInst {
         // non-RT cell
         Assertions.assertEquals(c, d.getCell(c.getName()));
 
-        String[] siteWires = new String[] {inputPin, "F7MUX_EF_OUT", inputPin.charAt(0)+ "_O"};
+        String[] siteWires = new String[] {inputPin, "F7MUX_EF_OUT", inputPin.charAt(0) + "_O"};
 
         for (String siteWire : siteWires) {
             Assertions.assertEquals(n, si.getNetFromSiteWire(siteWire));
@@ -440,11 +443,10 @@ public class TestSiteInst {
             Assertions.assertEquals(14, rrs.netsWithRoutingErrors);
             Assertions.assertEquals(276, rrs.fullyRoutedNets);
         }
-
     }
 
     private void _testRouteSiteVersal(Design d, String siteName, int expectedSiteNetMappings,
-            int expectedUsedSitePIPs) {
+                                      int expectedUsedSitePIPs) {
         SiteInst si = d.getSiteInstFromSiteName(siteName);
         Map<Net, List<String>> origSiteNetMap = si.getNetToSiteWiresMap();
         List<SitePIP> origUsedSitePIPs = si.getUsedSitePIPs();

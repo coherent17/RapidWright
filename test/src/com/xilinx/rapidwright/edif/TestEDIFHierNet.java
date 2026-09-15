@@ -32,18 +32,16 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.xilinx.rapidwright.design.Design;
+import com.xilinx.rapidwright.design.Unisim;
+import com.xilinx.rapidwright.design.tools.LUTTools;
+import com.xilinx.rapidwright.support.RapidWrightDCP;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.xilinx.rapidwright.design.Design;
-import com.xilinx.rapidwright.design.Unisim;
-import com.xilinx.rapidwright.design.tools.LUTTools;
-import com.xilinx.rapidwright.support.RapidWrightDCP;
-
 public class TestEDIFHierNet {
-
     private <T> void assertEqualsAnyOrder(Collection<T> expected, Collection<T> actual) {
         Assertions.assertEquals(new HashSet<>(expected), new HashSet<>(actual));
     }
@@ -123,53 +121,48 @@ public class TestEDIFHierNet {
         EDIFHierNet h_top_i_to_i = testTopLevelPinsNetlist.getTopHierCellInst().getNet("top_i_to_i");
         EDIFHierNet h_top_o1_to_o1 = testTopLevelPinsNetlist.getTopHierCellInst().getNet("top_o1_to_o1");
         EDIFHierNet h_top_o2_to_o2 = testTopLevelPinsNetlist.getTopHierCellInst().getNet("top_o2_to_o2");
-        EDIFHierNet h_inner_i_to_o1_and_inv = testTopLevelPinsNetlist.getTopHierCellInst().getChild("inner").getNet("inner_i_to_o1_and_inv");
-        EDIFHierNet h_inner_inv_to_o2 = testTopLevelPinsNetlist.getTopHierCellInst().getChild("inner").getNet("inner_inv_to_o2");
+        EDIFHierNet h_inner_i_to_o1_and_inv =
+            testTopLevelPinsNetlist.getTopHierCellInst().getChild("inner").getNet("inner_i_to_o1_and_inv");
+        EDIFHierNet h_inner_inv_to_o2 =
+            testTopLevelPinsNetlist.getTopHierCellInst().getChild("inner").getNet("inner_inv_to_o2");
 
-        assertEqualsAnyOrder(
-            Arrays.asList("i", "o1", "inner/inv/I0"),
-            h_top_i_to_i.getLeafHierPortInsts(true, true, true).stream().map(hPI -> hPI.toString()).collect(Collectors.toList())
-        );
+        assertEqualsAnyOrder(Arrays.asList("i", "o1", "inner/inv/I0"),
+                             h_top_i_to_i.getLeafHierPortInsts(true, true, true)
+                                 .stream()
+                                 .map(hPI -> hPI.toString())
+                                 .collect(Collectors.toList()));
 
         assertEqualsAnyOrder(
             Arrays.asList("inner/inv/I0"),
-            h_top_i_to_i.getLeafHierPortInsts().stream().map(hPI -> hPI.toString()).collect(Collectors.toList())
-        );
+            h_top_i_to_i.getLeafHierPortInsts().stream().map(hPI -> hPI.toString()).collect(Collectors.toList()));
 
-        assertEqualsAnyOrder(
-            h_top_i_to_i.getLeafHierPortInsts(true, true, true),
-            h_inner_i_to_o1_and_inv.getLeafHierPortInsts(true, true, true)
-        );
+        assertEqualsAnyOrder(h_top_i_to_i.getLeafHierPortInsts(true, true, true),
+                             h_inner_i_to_o1_and_inv.getLeafHierPortInsts(true, true, true));
 
-        assertEqualsAnyOrder(
-            h_top_i_to_i.getLeafHierPortInsts(true, true, true),
-            h_top_o1_to_o1.getLeafHierPortInsts(true, true, true)
-        );
+        assertEqualsAnyOrder(h_top_i_to_i.getLeafHierPortInsts(true, true, true),
+                             h_top_o1_to_o1.getLeafHierPortInsts(true, true, true));
 
-        assertEqualsAnyOrder(
-            Arrays.asList("o2", "inner/inv/O"),
-            h_inner_inv_to_o2.getLeafHierPortInsts(true, true, true).stream().map(hPI -> hPI.toString()).collect(Collectors.toList())
-        );
+        assertEqualsAnyOrder(Arrays.asList("o2", "inner/inv/O"),
+                             h_inner_inv_to_o2.getLeafHierPortInsts(true, true, true)
+                                 .stream()
+                                 .map(hPI -> hPI.toString())
+                                 .collect(Collectors.toList()));
 
-        assertEqualsAnyOrder(
-            h_inner_inv_to_o2.getLeafHierPortInsts(true, true, true),
-            h_top_o2_to_o2.getLeafHierPortInsts(true, true, true)
-        );
+        assertEqualsAnyOrder(h_inner_inv_to_o2.getLeafHierPortInsts(true, true, true),
+                             h_top_o2_to_o2.getLeafHierPortInsts(true, true, true));
 
-        assertEqualsAnyOrder(
-            Arrays.asList("inner/inv/I0", "o1"),
-            h_top_i_to_i.getLeafHierPortInsts(false, true, true).stream().map(hPI -> hPI.toString()).collect(Collectors.toList())
-        );
+        assertEqualsAnyOrder(Arrays.asList("inner/inv/I0", "o1"), h_top_i_to_i.getLeafHierPortInsts(false, true, true)
+                                                                      .stream()
+                                                                      .map(hPI -> hPI.toString())
+                                                                      .collect(Collectors.toList()));
 
-        assertEqualsAnyOrder(
-            h_top_i_to_i.getLeafHierPortInsts(false, true, true),
-            h_top_o1_to_o1.getLeafHierPortInsts(false, true, true)
-        );
+        assertEqualsAnyOrder(h_top_i_to_i.getLeafHierPortInsts(false, true, true),
+                             h_top_o1_to_o1.getLeafHierPortInsts(false, true, true));
 
-        assertEqualsAnyOrder(
-            Arrays.asList("inner/inv/O"),
-            h_inner_inv_to_o2.getLeafHierPortInsts(true, false, true).stream().map(hPI -> hPI.toString()).collect(Collectors.toList())
-        );
+        assertEqualsAnyOrder(Arrays.asList("inner/inv/O"), h_inner_inv_to_o2.getLeafHierPortInsts(true, false, true)
+                                                               .stream()
+                                                               .map(hPI -> hPI.toString())
+                                                               .collect(Collectors.toList()));
     }
 
     @ParameterizedTest

@@ -22,12 +22,7 @@
 package com.xilinx.rapidwright.timing;
 
 /**
- * Compass directions that are used in the naming convention for wires to represent their directions.
+ * Compass directions that are used in the naming convention for wires to represent their
+ * directions.
  */
-public enum TimingDirection {
-    NORTH,
-    SOUTH,
-    EAST,
-    WEST,
-    NULL
-}
+public enum TimingDirection { NORTH, SOUTH, EAST, WEST, NULL }

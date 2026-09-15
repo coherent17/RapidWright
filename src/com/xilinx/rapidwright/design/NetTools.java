@@ -51,14 +51,14 @@ public class NetTools {
     private static Set<SiteTypeEnum> clkSrcSiteTypeEnums = EnumSet.noneOf(SiteTypeEnum.class);
 
     static {
-        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFGCE);       // All supported series
-        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFGCTRL);     // All supported series
-        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFG);         // All supported series
-        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFGCE_DIV);   // US/US+ and Versal
-        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFG_GT);      // US/US+ and Versal
-        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFG_PS);      // US/US+ and Versal
-        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFGCE_HDIO);  // US+ and Versal
-        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFG_FABRIC);  // Versal
+        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFGCE);      // All supported series
+        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFGCTRL);    // All supported series
+        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFG);        // All supported series
+        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFGCE_DIV);  // US/US+ and Versal
+        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFG_GT);     // US/US+ and Versal
+        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFG_PS);     // US/US+ and Versal
+        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFGCE_HDIO); // US+ and Versal
+        clkSrcSiteTypeEnums.add(SiteTypeEnum.BUFG_FABRIC); // Versal
     }
 
     public static boolean isGlobalClock(Net net) {
@@ -86,28 +86,24 @@ public class NetTools {
             fanouts.add(node);
         }
 
-        private void buildString(StringBuilder sb,
-                                 boolean subtreeStart,
-                                 boolean branchStart,
-                                 boolean branchEndIfNoFanouts,
-                                 boolean subTreeEndIfNoFanouts) {
+        private void buildString(StringBuilder sb, boolean subtreeStart, boolean branchStart,
+                                 boolean branchEndIfNoFanouts, boolean subTreeEndIfNoFanouts) {
             buildString(sb, subtreeStart, branchStart, branchEndIfNoFanouts, subTreeEndIfNoFanouts,
-                    Collections.newSetFromMap(new IdentityHashMap<>()));
+                        Collections.newSetFromMap(new IdentityHashMap<>()));
         }
 
-        private void buildString(StringBuilder sb,
-                                 boolean subtreeStart,
-                                 boolean branchStart,
-                                 boolean branchEndIfNoFanouts,
-                                 boolean subTreeEndIfNoFanouts,
+        private void buildString(StringBuilder sb, boolean subtreeStart, boolean branchStart,
+                                 boolean branchEndIfNoFanouts, boolean subTreeEndIfNoFanouts,
                                  Set<NetTools.NodeTree> multiplyDrivenNodesVisited) {
             // Adopt the same spacing as Vivado's report_route_status
             sb.append("    ");
             sb.append(subtreeStart ? "[" : " ");
             sb.append(branchStart ? "{" : " ");
             sb.append("   ");
-            boolean notFirstTimeVisitingThisMultiplyDrivenNode = multiplyDriven && !multiplyDrivenNodesVisited.add(this);
-            boolean branchEnd = (branchEndIfNoFanouts && fanouts.isEmpty()) || notFirstTimeVisitingThisMultiplyDrivenNode;
+            boolean notFirstTimeVisitingThisMultiplyDrivenNode =
+                multiplyDriven && !multiplyDrivenNodesVisited.add(this);
+            boolean branchEnd =
+                (branchEndIfNoFanouts && fanouts.isEmpty()) || notFirstTimeVisitingThisMultiplyDrivenNode;
             sb.append(branchEnd ? "}" : " ");
             boolean subtreeEnd = subTreeEndIfNoFanouts && branchEnd;
             sb.append(subtreeEnd ? "]" : " ");
@@ -125,8 +121,7 @@ public class NetTools {
                 branchStart = !lastFanout && (fanouts.size() > 1);
                 branchEndIfNoFanouts = lastFanout || branchStart;
                 fanout.buildString(sb, subtreeStart, branchStart, branchEndIfNoFanouts,
-                        subTreeEndIfNoFanouts && !branchStart && lastFanout,
-                        multiplyDrivenNodesVisited);
+                                   subTreeEndIfNoFanouts && !branchStart && lastFanout, multiplyDrivenNodesVisited);
             }
         }
 
@@ -186,9 +181,9 @@ public class NetTools {
 
     /**
      * Compute the node routing tree of the given Net by examining its PIPs.
-     * Note that this method only discovers subtrees that start at an output SitePinInst or a node tied to VCC/GND
-     * (i.e. gaps and islands will be ignored).
-     * Nodes that are multiply-driven (indicative of routing loops) will have their NodeTree.multiplyDriven flag set.
+     * Note that this method only discovers subtrees that start at an output SitePinInst or a node
+     * tied to VCC/GND (i.e. gaps and islands will be ignored). Nodes that are multiply-driven
+     * (indicative of routing loops) will have their NodeTree.multiplyDriven flag set.
      *
      * @param net Net to analyze.
      * @return A list of NodeTree objects, corresponding to the root of each subtree.
@@ -199,12 +194,13 @@ public class NetTools {
 
     /**
      * Compute the node routing tree of the given Net by examining its PIPs.
-     * Note that this method only discovers subtrees that start at an output SitePinInst or a node tied to VCC/GND
-     * (i.e. gaps and islands will be ignored).
-     * Nodes that are multiply-driven (indicative of routing loops) will have their NodeTree.multiplyDriven flag set.
+     * Note that this method only discovers subtrees that start at an output SitePinInst or a node
+     * tied to VCC/GND (i.e. gaps and islands will be ignored). Nodes that are multiply-driven
+     * (indicative of routing loops) will have their NodeTree.multiplyDriven flag set.
      *
      * @param net    Net to analyze.
-     * @param filter A function that when is applied to a node, if it returns true will be excluded from the tree.
+     * @param filter A function that when is applied to a node, if it returns true will be excluded
+     *     from the tree.
      * @return A list of NodeTree objects, corresponding to the root of each subtree.
      */
     public static List<NodeTree> getNodeTrees(Net net, Function<Node, Boolean> filter) {
@@ -216,9 +212,11 @@ public class NetTools {
             }
 
             Node start = pip.getStartNode();
-            if (filter.apply(start)) continue;
+            if (filter.apply(start))
+                continue;
             Node end = pip.getEndNode();
-            if (filter.apply(end)) continue;
+            if (filter.apply(end))
+                continue;
 
             boolean isReversed = pip.isReversed();
             NodeTree startNode = nodeMap.computeIfAbsent(isReversed ? end : start, NodeTree::new);
@@ -234,7 +232,7 @@ public class NetTools {
             startNode.addFanout(endNode);
             if (!pip.isBidirectional()) {
                 if ((net.getType() == NetType.GND && startNode.isTiedToGnd()) ||
-                        (net.getType() == NetType.VCC && startNode.isTiedToVcc())) {
+                    (net.getType() == NetType.VCC && startNode.isTiedToVcc())) {
                     subtrees.add(startNode);
                 }
             }
@@ -260,8 +258,10 @@ public class NetTools {
      */
     public static boolean hasClockSinks(Net net) {
         for (SitePinInst sink : net.getPins()) {
-            if (sink.isOutPin()) continue;
-            if (sink.getName().contains("CLK")) return true;
+            if (sink.isOutPin())
+                continue;
+            if (sink.getName().contains("CLK"))
+                return true;
         }
         return false;
     }
@@ -271,7 +271,7 @@ public class NetTools {
      * with another route in the design. The choice between which of two or more
      * nets gets unrouted is arbitrary and nets are unrouted until the set of routed
      * nets do not overlap.
-     * 
+     *
      * @param design The design to evaluate for conflicting nodes.
      * @return The list of nets that were unrouted.
      */
@@ -294,13 +294,13 @@ public class NetTools {
         Map<Node, Net> used = new HashMap<>();
         for (Net net : design.getNets()) {
             for (PIP pip : net.getPIPs()) {
-                for (Node node : new Node[] { pip.getStartNode(), pip.getEndNode() }) {
+                for (Node node : new Node[] {pip.getStartNode(), pip.getEndNode()}) {
                     if (node == null)
                         continue;
                     Net existing = used.putIfAbsent(node, net);
                     if (existing != null && existing != net) {
                         for (PIP oldPip : new ArrayList<>(existing.getPIPs())) {
-                            for (Node oldNode : new Node[] { oldPip.getStartNode(), oldPip.getEndNode() }) {
+                            for (Node oldNode : new Node[] {oldPip.getStartNode(), oldPip.getEndNode()}) {
                                 used.remove(oldNode);
                             }
                         }
@@ -372,10 +372,9 @@ public class NetTools {
      * horizontal distribution nodes.
      */
     public static String getClockTreeSpine(Net net) {
-        Function<Node, String> customToString =
-                n -> n.getTileName() + "/" + n.getWireName()
-                        + " (" + n.getIntentCode() + ") CR="
-                        + n.getTile().getClockRegion();
+        Function<Node, String> customToString = n
+            -> n.getTileName() + "/" + n.getWireName() + " (" + n.getIntentCode() +
+                   ") CR=" + n.getTile().getClockRegion();
         Function<Node, Boolean> excludeFilter = n -> n.getIntentCode() == IntentCode.NODE_PINFEED;
         return getNetTreeString(net, excludeFilter, customToString);
     }
@@ -389,8 +388,7 @@ public class NetTools {
      * @return A string tree representation showing only vertical clock routing nodes
      */
     public static String getVerticalClockTreeSpine(Net net) {
-        Function<Node, String> customToString =
-                n -> n.getIntentCode() + " CR=" + n.getTile().getClockRegion();
+        Function<Node, String> customToString = n -> n.getIntentCode() + " CR=" + n.getTile().getClockRegion();
 
         // Build the full tree without filtering (except PINFEED)
         Function<Node, Boolean> minimalFilter = n -> n.getIntentCode() == IntentCode.NODE_PINFEED;
@@ -405,14 +403,9 @@ public class NetTools {
 
         // Define the set of nodes we want to display
         Set<IntentCode> displayIntentCodes = EnumSet.of(
-                IntentCode.NODE_GLOBAL_VDISTR_SHARED,
-                IntentCode.NODE_GLOBAL_VROUTE,
-                IntentCode.NODE_GLOBAL_VDISTR_LVL1,
-                IntentCode.NODE_GLOBAL_VDISTR,
-                IntentCode.NODE_GLOBAL_VDISTR_LVL2,
-                IntentCode.NODE_GLOBAL_VDISTR_LVL21,
-                IntentCode.NODE_GLOBAL_VDISTR_LVL3
-        );
+            IntentCode.NODE_GLOBAL_VDISTR_SHARED, IntentCode.NODE_GLOBAL_VROUTE, IntentCode.NODE_GLOBAL_VDISTR_LVL1,
+            IntentCode.NODE_GLOBAL_VDISTR, IntentCode.NODE_GLOBAL_VDISTR_LVL2, IntentCode.NODE_GLOBAL_VDISTR_LVL21,
+            IntentCode.NODE_GLOBAL_VDISTR_LVL3);
 
         if (subtrees.size() > 1) {
             throw new RuntimeException("Clock route might have multiple clock roots");
@@ -437,7 +430,8 @@ public class NetTools {
     }
 
     /**
-     * Builds a tree that only includes the nodes that pass the filter while maintaining connectivity.
+     * Builds a tree that only includes the nodes that pass the filter while maintaining
+     * connectivity.
      */
     private static NodeTree buildFilteredTree(NodeTree nodeTree, Function<Node, Boolean> includeFilter) {
         class WorkItem {
@@ -523,10 +517,11 @@ public class NetTools {
     }
 
     /**
-     * Unroute top-level port nets that have PIPs outside the specified PBlock. Vivado can potentially create designs
-     * where the top-level port nets leave the PBlock if the InlineFlopTools flop harness was used and the top-level
-     * port net also has a sink inside the PBlock. Physical net names must be consistent and macro unisims must be
-     * expanded before calling this method.
+     * Unroute top-level port nets that have PIPs outside the specified PBlock. Vivado can
+     * potentially create designs where the top-level port nets leave the PBlock if the
+     * InlineFlopTools flop harness was used and the top-level port net also has a sink inside the
+     * PBlock. Physical net names must be consistent and macro unisims must be expanded before
+     * calling this method.
      *
      * @param d The design to unroute nets from.
      * @param pBlock The bounding box for the placed and routed design.
@@ -564,8 +559,9 @@ public class NetTools {
     }
 
     /**
-     * Builds a map from each {@link Node} driven by a PIP of the given net onto the node driving it,
-     * so that the routing reaching any one node can be recovered by walking backwards from it (see
+     * Builds a map from each {@link Node} driven by a PIP of the given net onto the node driving
+     * it, so that the routing reaching any one node can be recovered by walking backwards from it
+     * (see
      * {@link #getNodesToSink(SitePinInst)}). The direction of bidirectional PIPs is taken from
      * {@link PIP#isReversed()}. Since a node has at most one entry, a multiply-driven node (which
      * only an illegally routed net can have) retains just the driver of the last such PIP visited;
@@ -575,7 +571,7 @@ public class NetTools {
      * @param net The net to examine; it need not be fully routed.
      * @return A map from driven node onto driving node, empty if the net has no PIPs.
      */
-    public static Map<Node,Node> getNodeToDriver(Net net) {
+    public static Map<Node, Node> getNodeToDriver(Net net) {
         Map<Node, Node> nodeToDriver = new HashMap<>();
         for (PIP pip : net.getPIPs()) {
             if (pip.isReversed()) {

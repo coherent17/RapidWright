@@ -35,7 +35,6 @@ import org.json.JSONObject;
  * @since 2022.1.0
  */
 public class NOCChannel implements Serializable {
-
     private static final long serialVersionUID = 6748357394089207374L;
     private ChannelType channel;
     private int vc;
@@ -51,7 +50,6 @@ public class NOCChannel implements Serializable {
      * @since 2026.1.0
      */
     public NOCChannel() {
-
     }
 
     /**
@@ -64,16 +62,16 @@ public class NOCChannel implements Serializable {
 
         channel = ChannelType.stringToValue(json.getString(NOCJSONUtil.JSON_FIELD_NET_CHANNEL));
         vc = json.getInt(NOCJSONUtil.JSON_FIELD_VIRTUAL_CHANNEL);
-        //Required bandwidth is a function of:
-        // endpoint width, avg burst length, frequency, Path BW, and channel
-        // For example:
-        //    AXI width: 32,  AXI avg burst: 4, Frequency: 1000, Path BW: 400
-        //    Channel: Write
-        //      Each write = 1 header flit + 1 data flit (32-bit x 4-burst = 1x 128-noc)
-        //      For 400 Mbps write bandwidth, we need:
-        //            800Mbps NOC Write bandwidth & 400Mbps Write response BW
-        //    For Read/Read resp, 400Mbps with 512-bit avg burst, you need 1 READ_REQ per
-        //  4 beats of RRESP, or 100Mbps on the READ_REQ channel.
+        // Required bandwidth is a function of:
+        //  endpoint width, avg burst length, frequency, Path BW, and channel
+        //  For example:
+        //     AXI width: 32,  AXI avg burst: 4, Frequency: 1000, Path BW: 400
+        //     Channel: Write
+        //       Each write = 1 header flit + 1 data flit (32-bit x 4-burst = 1x 128-noc)
+        //       For 400 Mbps write bandwidth, we need:
+        //             800Mbps NOC Write bandwidth & 400Mbps Write response BW
+        //     For Read/Read resp, 400Mbps with 512-bit avg burst, you need 1 READ_REQ per
+        //   4 beats of RRESP, or 100Mbps on the READ_REQ channel.
         requiredBandwidth = json.getInt(NOCJSONUtil.JSON_FIELD_REQUIRED_BW);
         estimatedBandwidth = json.getInt(NOCJSONUtil.JSON_FIELD_ACHIEVED_BW);
 
@@ -82,12 +80,12 @@ public class NOCChannel implements Serializable {
         //= net.getString("PhyInstanceStart"); //Redundant: component array.
         //= net.getString("PhyInstanceEnd"); //Direction depends on Channel (R/W/RR/WR)
 
-        //Nodes
+        // Nodes
         JSONArray nodeArray = json.getJSONArray(NOCJSONUtil.JSON_FIELD_ROUTE_NODES);
         channelPath = new ArrayList<String>();
-        for (int i=0; i<nodeArray.length(); i+=2) {
+        for (int i = 0; i < nodeArray.length(); i += 2) {
             String loc = nodeArray.getString(i);
-            String pin = nodeArray.getString(i+1);
+            String pin = nodeArray.getString(i + 1);
             channelPath.add(loc + "/" + pin);
         }
     }
@@ -103,7 +101,7 @@ public class NOCChannel implements Serializable {
 
     /**
      * Sets the list of switches used to connect this NOC Channel
-     * 
+     *
      * @param channelPath
      * @since 2026.1.0
      */
@@ -122,7 +120,7 @@ public class NOCChannel implements Serializable {
 
     /**
      * Sets this channel's type
-     * 
+     *
      * @param channel The new channel type to set
      * @since 2026.1.0
      */
@@ -159,7 +157,7 @@ public class NOCChannel implements Serializable {
 
     /**
      * Sets this channel's required bandwidth (in MB/s)
-     * 
+     *
      * @param requiredBandwidth Channel's required bandwidth (in MB/s)
      * @since 2026.1.0
      */
@@ -178,7 +176,7 @@ public class NOCChannel implements Serializable {
 
     /**
      * Sets the estimated bandwidth expected for this channel (in MB/s)
-     * 
+     *
      * @param estimatedBandwidth
      * @since 2026.1.0
      */
@@ -243,13 +241,13 @@ public class NOCChannel implements Serializable {
     public JSONObject toJSONObject() {
         JSONObject obj = NOCJSONUtil.createOrderedJSONObject();
         obj.put(NOCJSONUtil.JSON_FIELD_START_INSTANCE, channelPath.get(0).split("/")[0]);
-        obj.put(NOCJSONUtil.JSON_FIELD_END_INSTANCE, channelPath.get(channelPath.size()-1).split("/")[0]);
+        obj.put(NOCJSONUtil.JSON_FIELD_END_INSTANCE, channelPath.get(channelPath.size() - 1).split("/")[0]);
         obj.put(NOCJSONUtil.JSON_FIELD_VIRTUAL_CHANNEL, vc);
         obj.put(NOCJSONUtil.JSON_FIELD_NET_CHANNEL, channel.toString());
         for (String pin : channelPath) {
             String[] cellAndPin = pin.split("/");
-            obj.append(NOCJSONUtil.JSON_FIELD_ROUTE_NODES,cellAndPin[0]);
-            obj.append(NOCJSONUtil.JSON_FIELD_ROUTE_NODES,cellAndPin[1]);
+            obj.append(NOCJSONUtil.JSON_FIELD_ROUTE_NODES, cellAndPin[0]);
+            obj.append(NOCJSONUtil.JSON_FIELD_ROUTE_NODES, cellAndPin[1]);
         }
         obj.put(NOCJSONUtil.JSON_FIELD_REQUIRED_BW, requiredBandwidth);
         obj.put(NOCJSONUtil.JSON_FIELD_ACHIEVED_BW, estimatedBandwidth);
@@ -257,5 +255,4 @@ public class NOCChannel implements Serializable {
         obj.put(NOCJSONUtil.JSON_FIELD_ACHIEVED_LATENCY, estimatedLatency);
         return obj;
     }
-
 }

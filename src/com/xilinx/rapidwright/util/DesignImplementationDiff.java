@@ -43,7 +43,6 @@ import com.xilinx.rapidwright.device.Site;
  * Created on: May 9, 2017
  */
 public class DesignImplementationDiff {
-
     public static void main(String[] args) {
         if (args.length != 2) {
             System.out.println("USAGE: <original.dcp> <superset.dcp>");
@@ -80,7 +79,8 @@ public class DesignImplementationDiff {
                 System.out.println("Net " + nn + " is missing");
                 continue;
             }
-            if (nn.isStaticNet()) continue;
+            if (nn.isStaticNet())
+                continue;
             boolean netChange = false;
             HashSet<PIP> pips = new HashSet<>(nn.getPIPs());
             for (PIP p : n.getPIPs()) {
@@ -95,10 +95,9 @@ public class DesignImplementationDiff {
         int cellCount = original.getCells().size();
         int netCount = original.getNets().size();
 
-        float placementPercent = ((float)cellMovements/(float)cellCount) * 100.0f;
-        float routingPercent = ((float)netRoutingChanges/(float)netCount) * 100.0f;
+        float placementPercent = ((float)cellMovements / (float)cellCount) * 100.0f;
+        float routingPercent = ((float)netRoutingChanges / (float)netCount) * 100.0f;
         System.out.printf("Placement changes: %d/%d %3.2f%%\n", cellMovements, cellCount, placementPercent);
         System.out.printf("Net routing changes: %d/%d %3.2f%%\n", netRoutingChanges, netCount, routingPercent);
-
     }
 }

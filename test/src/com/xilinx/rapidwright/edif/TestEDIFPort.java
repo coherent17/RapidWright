@@ -27,18 +27,16 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 public class TestEDIFPort {
-
     @Test
     public void testEDIFPortInternalNets() {
         Design design = Design.readCheckpoint(RapidWrightDCP.getPath("picoblaze_ooc_X10Y235.dcp"));
@@ -46,27 +44,27 @@ public class TestEDIFPort {
         for (EDIFLibrary lib : design.getNetlist().getLibraries()) {
             for (EDIFCell cell : lib.getCells()) {
                 boolean isLeaf = cell.isLeafCellOrBlackBox();
-                Map<String,EDIFNet> internalNetMap = cell.getInternalNetMap();
+                Map<String, EDIFNet> internalNetMap = cell.getInternalNetMap();
                 for (EDIFPort port : cell.getPorts()) {
-                   if (port.isBus()) {
-                       List<EDIFNet> nets = port.getInternalNets();
-                       for (int i=0; i < port.getWidth(); i ++) {
-                           EDIFNet net = nets.get(i);
-                           Assertions.assertEquals(port.getInternalNet(i), nets.get(i));
-                           String portInstName = port.getPortInstNameFromPort(i);
-                           Assertions.assertEquals(internalNetMap.get(portInstName), net);
-                           if (isLeaf) {
-                               Assertions.assertNull(net);
-                           }
-                       }
-                   } else {
-                       EDIFNet net = port.getInternalNet();
-                       String portInstName = port.getPortInstNameFromPort(0);
-                       Assertions.assertEquals(internalNetMap.get(portInstName), net);
-                       if (isLeaf) {
-                           Assertions.assertNull(net);
-                       }
-                   }
+                    if (port.isBus()) {
+                        List<EDIFNet> nets = port.getInternalNets();
+                        for (int i = 0; i < port.getWidth(); i++) {
+                            EDIFNet net = nets.get(i);
+                            Assertions.assertEquals(port.getInternalNet(i), nets.get(i));
+                            String portInstName = port.getPortInstNameFromPort(i);
+                            Assertions.assertEquals(internalNetMap.get(portInstName), net);
+                            if (isLeaf) {
+                                Assertions.assertNull(net);
+                            }
+                        }
+                    } else {
+                        EDIFNet net = port.getInternalNet();
+                        String portInstName = port.getPortInstNameFromPort(0);
+                        Assertions.assertEquals(internalNetMap.get(portInstName), net);
+                        if (isLeaf) {
+                            Assertions.assertNull(net);
+                        }
+                    }
                 }
             }
         }
@@ -83,12 +81,12 @@ public class TestEDIFPort {
         int outer = 0;
         // Creates ports: {bus_output[0][3:0], bus_output[2][5:2],
         // bus_output[1][0:3], bus_output[3][2:5], , bus_output[4][0:-1], bus_output[5][-3:-1]}
-        for (String range : new String[] { "3:0", "0:3", "5:2", "2:5", "0:-1", "-3:-1" }) {
+        for (String range : new String[] {"3:0", "0:3", "5:2", "2:5", "0:-1", "-3:-1"}) {
             int left = Integer.parseInt(range.substring(0, range.indexOf(':')));
             int right = Integer.parseInt(range.substring(range.indexOf(':') + 1));
             int width = Math.abs(left - right) + 1;
-            EDIFPort busOutput = cell.createPort("bus_output[" + outer + "][" + range + "]",
-                    EDIFDirection.OUTPUT, width);
+            EDIFPort busOutput =
+                cell.createPort("bus_output[" + outer + "][" + range + "]", EDIFDirection.OUTPUT, width);
             Assertions.assertEquals(left, busOutput.getLeft());
             Assertions.assertEquals(right, busOutput.getRight());
             Assertions.assertTrue(busOutput.isBus());
@@ -105,8 +103,7 @@ public class TestEDIFPort {
                 String portInstName = "bus_output[" + outer + "][" + i + "]";
                 EDIFPortInst portInst = net.createPortInst(portInstName, cell);
                 Assertions.assertEquals(busOutput, portInst.getPort());
-                Assertions.assertEquals(portInst.getPort().getPortIndexFromNameIndex(i),
-                        portInst.getIndex());
+                Assertions.assertEquals(portInst.getPort().getPortIndexFromNameIndex(i), portInst.getIndex());
             }
 
             outer++;
@@ -117,7 +114,7 @@ public class TestEDIFPort {
         // 'foo[0]' vs 'foo[1]' (both single bit ports)
         // 'foo[0]' vs 'foo[0][0]' (both single bit ports)
         // 'foo[0]' vs 'foo[0][7:0]' (single bit vs bussed port)
-        for (String singleBitPort : new String[] { "foo", "foo[0]", "foo[1]", "foo[0][0]", "bar[1]" }) {
+        for (String singleBitPort : new String[] {"foo", "foo[0]", "foo[1]", "foo[0][0]", "bar[1]"}) {
             EDIFPort port = cell.createPort(singleBitPort, EDIFDirection.OUTPUT, 1);
             // Ensure single bit bracketed port is not converted to a bus
             Assertions.assertFalse(port.isBus());
@@ -136,16 +133,17 @@ public class TestEDIFPort {
 
     @ParameterizedTest
     @CsvSource({
-            "bus[7:0],bus,8",
-            "bus[0:7],bus,8",
-            "bus[15][15:0],bus[15],8",
-            "foo,foo,1",
-            "foo[0],foo[0],1",
-            "foo[1],foo[1],1",
-            "foo[2][2],foo[2][2],1",
-            "foo[3][3:3],foo[3],1",
+        "bus[7:0],bus,8",
+        "bus[0:7],bus,8",
+        "bus[15][15:0],bus[15],8",
+        "foo,foo,1",
+        "foo[0],foo[0],1",
+        "foo[1],foo[1],1",
+        "foo[2][2],foo[2][2],1",
+        "foo[3][3:3],foo[3],1",
     })
-    void testGetBusName(String portName, String busName, int width) {
+    void
+    testGetBusName(String portName, String busName, int width) {
         String designName = "design";
         final EDIFNetlist netlist = EDIFTools.createNewNetlist(designName);
         final Design design = new Design(designName, Device.KCU105);
@@ -155,7 +153,7 @@ public class TestEDIFPort {
         EDIFPort busOutput = cell.createPort(portName, EDIFDirection.OUTPUT, width);
         Assertions.assertEquals(busName, busOutput.getBusName());
     }
-    
+
     @Test
     public void testExportOfSingleBitBusses(@TempDir Path tempDir) {
         final EDIFNetlist netlist = EDIFTools.createNewNetlist("testExportOfSingleBitBusses");
@@ -171,7 +169,7 @@ public class TestEDIFPort {
         netlist.exportEDIF(edifOutput);
 
         EDIFNetlist readEdif = EDIFTools.readEdifFile(edifOutput);
-        
+
         // Ensure export and parsing of EDIF single bit bus results in a single bit bus
         EDIFPort port = readEdif.getCell(cellName).getPort(busOutput.getBusName());
         Assertions.assertNotNull(port);

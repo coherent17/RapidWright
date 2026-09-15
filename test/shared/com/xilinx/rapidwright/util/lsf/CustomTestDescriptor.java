@@ -43,7 +43,8 @@ class CustomTestDescriptor implements TestDescriptor {
     private final Set<TestTag> tags;
     private final String legacyReportingName;
 
-    CustomTestDescriptor(UniqueId id, String displayName, Type type, TestDescriptor parent, TestSource source, Set<TestTag> tags, String legacyReportingName) {
+    CustomTestDescriptor(UniqueId id, String displayName, Type type, TestDescriptor parent, TestSource source,
+                         Set<TestTag> tags, String legacyReportingName) {
         this.id = id;
         this.displayName = displayName;
         this.type = type;
@@ -100,13 +101,11 @@ class CustomTestDescriptor implements TestDescriptor {
     @Override
     public void removeChild(TestDescriptor descriptor) {
         throw new RuntimeException("not supported");
-
     }
 
     @Override
     public void removeFromHierarchy() {
         throw new RuntimeException("not supported");
-
     }
 
     @Override

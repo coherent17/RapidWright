@@ -32,14 +32,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
-
 import com.xilinx.rapidwright.device.BEL;
 import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.device.PIP;
@@ -70,10 +62,17 @@ import com.xilinx.rapidwright.util.ParallelismTools;
 import com.xilinx.rapidwright.util.ReportRouteStatusResult;
 import com.xilinx.rapidwright.util.VivadoTools;
 import com.xilinx.rapidwright.util.VivadoToolsHelper;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * Test that we can write a DCP file and read it back in. We currently don't have a way to check designs for equality,
- * so we just try to catch obvious issues.
+ * Test that we can write a DCP file and read it back in. We currently don't have a way to check
+ * designs for equality, so we just try to catch obvious issues.
  */
 public class TestDesign {
     public static final String DEVICE = "xc7a12t";
@@ -97,11 +96,12 @@ public class TestDesign {
 
     @Test
     public void checkDcpRoundtrip(@TempDir Path tempDir) throws IOException {
-        //Keep a reference to the device to avoid it being garbage collected during testcase execution
-        @SuppressWarnings("unused")
-        Device device = Device.getDevice(DEVICE);
+        // Keep a reference to the device to avoid it being garbage collected during testcase
+        // execution
+        @SuppressWarnings("unused") Device device = Device.getDevice(DEVICE);
 
-        //Use separate files for writing/reading so we can identify leaking file handles by filename
+        // Use separate files for writing/reading so we can identify leaking file handles by
+        // filename
         final Path filenameWrite = tempDir.resolve("testWrite.dcp");
         final Path filenameRead = tempDir.resolve("testRead.dcp");
 
@@ -114,15 +114,16 @@ public class TestDesign {
         final Cell cell = design.getCell("myCell");
         Assertions.assertNotNull(cell);
         Assertions.assertEquals(SITE, cell.getSiteInst().getSite().getName());
-
     }
 
     @Test
     public void checkDcpRoundtripModuleInstAnchor(@TempDir Path tempDir) throws IOException {
-        //Keep a reference to the device to avoid it being garbage collected during testcase execution
+        // Keep a reference to the device to avoid it being garbage collected during testcase
+        // execution
         Device device = Device.getDevice(DEVICE);
 
-        //Use separate files for writing/reading so we can identify leaking file handles by filename
+        // Use separate files for writing/reading so we can identify leaking file handles by
+        // filename
         final Path filenameWrite = tempDir.resolve("testWrite.dcp");
         final Path filenameRead = tempDir.resolve("testRead.dcp");
 
@@ -158,10 +159,8 @@ public class TestDesign {
         Design after = Design.readCheckpoint(filenameWrite);
 
         Assertions.assertEquals(before.getNetlist(), after.getNetlist());
-        Assertions.assertEquals(new HashSet<>(before.getSiteInsts()),
-                                new HashSet<>(after.getSiteInsts()));
-        Assertions.assertEquals(new HashSet<>(before.getNets()),
-                                new HashSet<>(after.getNets()));
+        Assertions.assertEquals(new HashSet<>(before.getSiteInsts()), new HashSet<>(after.getSiteInsts()));
+        Assertions.assertEquals(new HashSet<>(before.getNets()), new HashSet<>(after.getNets()));
     }
 
     @Test
@@ -170,12 +169,13 @@ public class TestDesign {
         Design design = Design.readCheckpoint(inputPath);
 
         for (int i = 0; i < 18; i++) {
-            Net net = design.getNet("r/U0/inst_blk_mem_gen/gnbram.gnativebmg.native_blk_mem_gen/valid.cstr/ramloop[0].ram.r/prim_noinit.ram/douta[" + i + "]");
+            Net net = design.getNet("r/U0/inst_blk_mem_gen/gnbram.gnativebmg.native_blk_mem_gen/"
+                                    + "valid.cstr/ramloop[0].ram.r/prim_noinit.ram/douta[" + i + "]");
             SitePinInst spi = net.getSource();
             if (i == 8 || i == 17)
-                Assertions.assertEquals("DOPADOP" + i/9, spi.getName());
+                Assertions.assertEquals("DOPADOP" + i / 9, spi.getName());
             else
-                Assertions.assertEquals("DOADO" + (i - i/9), spi.getName());
+                Assertions.assertEquals("DOADO" + (i - i / 9), spi.getName());
         }
     }
 
@@ -207,9 +207,9 @@ public class TestDesign {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {false,true})
+    @ValueSource(booleans = {false, true})
     public void testDcpEdifBiggerThan4GB(boolean parallel, @TempDir Path tempDir) {
-        long maxMemoryNeeded = 1024L*1024L*1024L*14L;
+        long maxMemoryNeeded = 1024L * 1024L * 1024L * 14L;
         Assumptions.assumeTrue(Runtime.getRuntime().maxMemory() >= maxMemoryNeeded);
 
         try {
@@ -251,9 +251,7 @@ public class TestDesign {
 
         job.setRunDir(tempDir.toString());
 
-        Files.write(tclScript, Arrays.asList(
-                "open_checkpoint " + filenameWrite.toAbsolutePath()
-        ));
+        Files.write(tclScript, Arrays.asList("open_checkpoint " + filenameWrite.toAbsolutePath()));
 
         JobQueue queue = new JobQueue();
         queue.addJob(job);
@@ -269,12 +267,7 @@ public class TestDesign {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "xcvp1502,XPIOB,IOB_S",
-            "xcvm2152,HDIOB,IOB_M",
-            "xcve2002,XPIOB,IOB_M",
-            "xcvm2152,X5PHIO_XCVR,IO_M"
-    })
+    @CsvSource({"xcvp1502,XPIOB,IOB_S", "xcvm2152,HDIOB,IOB_M", "xcve2002,XPIOB,IOB_M", "xcvm2152,X5PHIO_XCVR,IO_M"})
     public void testCreateAndPlaceCell(String device, String siteType, String belType) {
         Design d = new Design("d1", PartNameTools.getPart(device).getName());
         SiteTypeEnum t = SiteTypeEnum.valueOf(siteType);
@@ -299,20 +292,23 @@ public class TestDesign {
      * wire \this.is.another\\.escaped\$net\+&!identifier ;
      *
      * (* DONT_TOUCH="true" *)
-     * LUT2 \this.is.an\.escaped\.cell\.identifier (.O(\this.is.another\\.escaped\$net\+&!identifier ), .I0(\this.is.an\.escaped\.net\.identifier ), .I1(a));
+     * LUT2 \this.is.an\.escaped\.cell\.identifier (.O(\this.is.another\\.escaped\$net\+&!identifier
+     * ), .I0(\this.is.an\.escaped\.net\.identifier ), .I1(a));
      *
      * (* DONT_TOUCH="true" *)
-     * LUT2 \this.is.another\\.escaped\$cell\+&!identifier (.O(o), .I0(\this.is.another\\.escaped\$net\+&!identifier ), .I1(b));
+     * LUT2 \this.is.another\\.escaped\$cell\+&!identifier (.O(o),
+     * .I0(\this.is.another\\.escaped\$net\+&!identifier ), .I1(b));
      *
      * endmodule
      */
     @ParameterizedTest
     @CsvSource({
-            "design_with_backslash_2022.2.dcp",
-            "design_with_backslash_2022.1.dcp",
-            "design_with_backslash_2021.2.dcp",
+        "design_with_backslash_2022.2.dcp",
+        "design_with_backslash_2022.1.dcp",
+        "design_with_backslash_2021.2.dcp",
     })
-    public void testDesignWithBackslash(String dcp, @TempDir Path tempDir) {
+    public void
+    testDesignWithBackslash(String dcp, @TempDir Path tempDir) {
         Design design = RapidWrightDCP.loadDCP(dcp);
         testDesignWithBackslashHelper(design);
 
@@ -326,7 +322,7 @@ public class TestDesign {
 
     private static void testDesignWithBackslashHelper(Design design) {
         for (String cellName : Arrays.asList("this.is.an\\.escaped\\.cell\\.identifier",
-                "this.is.another\\\\.escaped\\$cell\\+&!identifier")) {
+                                             "this.is.another\\\\.escaped\\$cell\\+&!identifier")) {
             EDIFHierCellInst ehci = design.getNetlist().getHierCellInstFromName(cellName);
             Assertions.assertNotNull(ehci);
             Cell c = design.getCell(cellName);
@@ -336,7 +332,7 @@ public class TestDesign {
         Assertions.assertEquals(design.getCells().size(), 2);
 
         for (String netName : Arrays.asList("this.is.an\\.escaped\\.net\\.identifier",
-                "this.is.another\\\\.escaped\\$net\\+&!identifier")) {
+                                            "this.is.another\\\\.escaped\\$net\\+&!identifier")) {
             EDIFHierNet ehn = design.getNetlist().getHierNetFromName(netName);
             Assertions.assertNotNull(ehn);
             Net n = design.getNet(netName);
@@ -346,16 +342,17 @@ public class TestDesign {
         final int extraNets = 5; // {a, b, o, GLOBAL_USEDNET, GLOBAL_LOGIC0}
         Assertions.assertEquals(design.getNets().size(), 2 + extraNets);
     }
-    
+
     @Test
     public void testFindDualOutputSitePins() {
         Design d = RapidWrightDCP.loadDCP("microblazeAndILA_3pblocks.dcp");
 
-        String[] testNets = new String[] {
-            "base_mb_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/Operand_Select_I/Gen_Bit[14].MUXF7_I1/Using_FPGA.Native_0[0]",
-            "base_mb_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/exception_registers_I1/Using_FPGA_LUT6.Gen_Ret_Addr[20].MUXCY_XOR_I/LOCKSTEP_Out_reg[3027][0]",
-            "u_ila_0/inst/ila_core_inst/u_ila_regs/slaveRegDo_mux_2[15]_i_1_n_0"
-        };
+        String[] testNets = new String[] {"base_mb_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/"
+                                              + "Operand_Select_I/Gen_Bit[14].MUXF7_I1/Using_FPGA.Native_0[0]",
+                                          "base_mb_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/"
+                                              + "exception_registers_I1/Using_FPGA_LUT6.Gen_Ret_Addr[20].MUXCY_XOR_I/"
+                                              + "LOCKSTEP_Out_reg[3027][0]",
+                                          "u_ila_0/inst/ila_core_inst/u_ila_regs/slaveRegDo_mux_2[15]_i_1_n_0"};
 
         for (int i = 0; i < testNets.length; i++) {
             Net net = d.getNet(testNets[i]);
@@ -374,8 +371,8 @@ public class TestDesign {
         Net oldNet = d.createNet("oldNet");
         oldNet.createPin("A1", si);
         oldNet.createPin("HQ", si);
-        Assertions.assertTrue(si.routeIntraSiteNet(oldNet, si.getBELPin("A1", "A1"),
-                si.getBELPin(unisim.toString(), "DI0")));
+        Assertions.assertTrue(
+            si.routeIntraSiteNet(oldNet, si.getBELPin("A1", "A1"), si.getBELPin(unisim.toString(), "DI0")));
         Assertions.assertEquals("[IN SLICE_X32Y73.A1, OUT SLICE_X32Y73.HQ]", oldNet.getPins().toString());
         Assertions.assertEquals("[A1, A5LUT_O5, HQ]", si.getSiteWiresFromNet(oldNet).toString());
 
@@ -390,7 +387,8 @@ public class TestDesign {
 
         Assertions.assertNull(d.getNet(oldNet.getName()));
         Assertions.assertSame(newNet, d.getNet(newNet.getName()));
-        Assertions.assertEquals("[IN SLICE_X32Y73.H6, IN SLICE_X32Y73.A1, OUT SLICE_X32Y73.HQ]", newNet.getPins().toString());
+        Assertions.assertEquals("[IN SLICE_X32Y73.H6, IN SLICE_X32Y73.A1, OUT SLICE_X32Y73.HQ]",
+                                newNet.getPins().toString());
         Assertions.assertEquals("[A1, A5LUT_O5, H6, HQ]", si.getSiteWiresFromNet(newNet).toString());
         Assertions.assertEquals("[INT_X21Y73/INT.VCC_WIRE->>IMUX_E47]", newNet.getPIPs().toString());
     }
@@ -402,8 +400,7 @@ public class TestDesign {
 
         Net oldNet = d.createNet("oldNet");
         // Note that oldNet has no site pins or inter-site routing
-        Assertions.assertTrue(si.routeIntraSiteNet(oldNet, si.getBELPin("B6LUT", "O6"),
-                si.getBELPin("BFF", "D")));
+        Assertions.assertTrue(si.routeIntraSiteNet(oldNet, si.getBELPin("B6LUT", "O6"), si.getBELPin("BFF", "D")));
         Assertions.assertEquals("[B_O, FFMUXB1_OUT1]", si.getSiteWiresFromNet(oldNet).toString());
 
         Net newNet = d.createNet("newNet");
@@ -458,7 +455,6 @@ public class TestDesign {
             }
         }
         Assertions.assertEquals(routeThruCells, newDesignRTCells);
-
     }
 
     @Test
@@ -526,12 +522,13 @@ public class TestDesign {
     }
 
     @ParameterizedTest
-    @CsvSource({ 
-        "xc7z020clg400-1,SLICE_X100Y100/A6LUT,D19,D20,R14,LVCMOS33", 
+    @CsvSource({
+        "xc7z020clg400-1,SLICE_X100Y100/A6LUT,D19,D20,R14,LVCMOS33",
         "xcku040-ffva1156-2-e,SLICE_X32Y46/A6LUT,AE10,AF9,AP8,LVCMOS18",
-        "xcau15p-ffvb676-2-e,SLICE_X1Y1/A6LUT,U26,R21,R20,LVCMOS12",  
-        })
-    public void testCreateAndPlaceIOB(String partName, String lutLoc, String b0, String b1, String led, String ioStandard) { 
+        "xcau15p-ffvb676-2-e,SLICE_X1Y1/A6LUT,U26,R21,R20,LVCMOS12",
+    })
+    public void
+    testCreateAndPlaceIOB(String partName, String lutLoc, String b0, String b1, String led, String ioStandard) {
         Design d = new Design("HelloWorld", partName);
 
         // Create all the design elements (LUT2, and 3 IOs)
@@ -554,18 +551,19 @@ public class TestDesign {
         Net net2 = d.createNet("and2");
         net2.connect(and2, "O");
         net2.connect(led0, "I");
-        
+
         new Router(d).routeDesign();
 
         VivadoToolsHelper.assertFullyRouted(d);
     }
-    
+
     @ParameterizedTest
-    @CsvSource({ 
-        "xcvu3p-ffvc1517-1-i,N28", 
+    @CsvSource({
+        "xcvu3p-ffvc1517-1-i,N28",
         "xcku040-ffva1156-2-e,AE10",
-        })
-    public void testPlaceIOB(String partName, String pkgPin) {
+    })
+    public void
+    testPlaceIOB(String partName, String pkgPin) {
         Design design = new Design("testPlaceIOB", partName);
         EDIFCell top = design.getNetlist().getTopCell();
         EDIFCell ibuf = Design.getMacroPrimitives(design.getDevice().getSeries()).getCell("IBUF");
@@ -583,8 +581,9 @@ public class TestDesign {
         String netName = ibufInst.getName() + "/OUT";
         Net net = design.getNet(netName);
         Assertions.assertEquals(net.getName(), netName);
-        Net dout = design.getDevice().getSeries().equals(Series.UltraScalePlus) ? net
-                : design.getNet(ibufInst.getName() + "/O");
+        Net dout = design.getDevice().getSeries().equals(Series.UltraScalePlus)
+                       ? net
+                       : design.getNet(ibufInst.getName() + "/O");
         Assertions.assertEquals(siteInst.getNetFromSiteWire("DOUT"), dout);
     }
 
@@ -603,7 +602,7 @@ public class TestDesign {
      * Tests relocating and retargeting a Picoblaze design from a vu3p to each of
      * the three SLRs in a vu9p since all of the SLRs between the devices are
      * relocation compatible.
-     * 
+     *
      * @param tempDir Temp directory to write out results.
      */
     @Test
@@ -616,8 +615,8 @@ public class TestDesign {
             Part origPart = d.getPart();
             assert (d.getDevice().getName().equals("xcvu3p"));
             int tileDX = 0;
-            int tileDY = slr * targetDevice.getMasterSLR().getNumOfClockRegionRows()
-                    * targetPart.getSeries().getCLEHeight();
+            int tileDY =
+                slr * targetDevice.getMasterSLR().getNumOfClockRegionRows() * targetPart.getSeries().getCLEHeight();
             Assertions.assertTrue(d.retargetPart(targetPart, tileDX, tileDY));
             Path output = tempDir.resolve("retarget_" + slr + ".dcp");
 
@@ -644,11 +643,13 @@ public class TestDesign {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "picoblaze_ooc_X10Y235.dcp",            // Pre 2022.1 DCP
-            "picoblaze_ooc_X10Y235_2022_1.dcp",     // 2022.1 DCP
-    })
-    public void testNetOrder(String dcpFileName) {
+    @ValueSource(strings =
+                     {
+                         "picoblaze_ooc_X10Y235.dcp",        // Pre 2022.1 DCP
+                         "picoblaze_ooc_X10Y235_2022_1.dcp", // 2022.1 DCP
+                     })
+    public void
+    testNetOrder(String dcpFileName) {
         Design design1 = RapidWrightDCP.loadDCP(dcpFileName);
         Object[] nets1 = design1.getNets().toArray();
 
@@ -674,7 +675,7 @@ public class TestDesign {
         design.placeCell(myCell, site, bel);
 
         // Check that L2P and P2L are consistent
-        for (String logPin : new String[]{"CE", "C", "D", "R", "Q"}) {
+        for (String logPin : new String[] {"CE", "C", "D", "R", "Q"}) {
             String physPin = myCell.getPhysicalPinMapping(logPin);
             Assertions.assertEquals(logPin, myCell.getLogicalPinMapping(physPin));
         }
@@ -685,7 +686,7 @@ public class TestDesign {
         design.placeCell(myCell, site, bel);
 
         // Check that L2P and P2L remain consistent
-        for (String logPin : new String[]{"CE", "C", "D", "R", "Q"}) {
+        for (String logPin : new String[] {"CE", "C", "D", "R", "Q"}) {
             String physPin = myCell.getPhysicalPinMapping(logPin);
             Assertions.assertEquals(logPin, myCell.getLogicalPinMapping(physPin));
         }

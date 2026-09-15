@@ -24,16 +24,14 @@ package com.xilinx.rapidwright.design.tools;
 
 import java.nio.file.Path;
 
+import com.xilinx.rapidwright.support.RapidWrightDCP;
+import com.xilinx.rapidwright.util.FileTools;
+import com.xilinx.rapidwright.util.VivadoToolsHelper;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.xilinx.rapidwright.support.RapidWrightDCP;
-import com.xilinx.rapidwright.util.FileTools;
-import com.xilinx.rapidwright.util.VivadoToolsHelper;
-
 public class TestPathExtractor {
-
     @Test
     public void testPathExtractor(@TempDir Path dir) {
         Assumptions.assumeTrue(FileTools.isVivadoOnPath());
@@ -43,9 +41,8 @@ public class TestPathExtractor {
         VivadoToolsHelper.createWorstPathFile(dcpPath, pathTxt);
 
         Path outputDCP = dir.resolve("path.dcp");
-        
-        PathExtractor.main(
-                new String[] { dcpPath.toString(), outputDCP.toString(), "0", pathTxt.toString() });
+
+        PathExtractor.main(new String[] {dcpPath.toString(), outputDCP.toString(), "0", pathTxt.toString()});
 
         VivadoToolsHelper.assertFullyRouted(outputDCP);
     }

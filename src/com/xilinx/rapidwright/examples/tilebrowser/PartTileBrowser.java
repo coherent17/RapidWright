@@ -32,13 +32,13 @@ import com.trolltech.qt.core.Qt.ItemDataRole;
 import com.trolltech.qt.core.Qt.WindowModality;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QDockWidget;
+import com.trolltech.qt.gui.QDockWidget.DockWidgetFeature;
 import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QMainWindow;
 import com.trolltech.qt.gui.QProgressDialog;
 import com.trolltech.qt.gui.QStatusBar;
 import com.trolltech.qt.gui.QTreeWidget;
 import com.trolltech.qt.gui.QWidget;
-import com.trolltech.qt.gui.QDockWidget.DockWidgetFeature;
 import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.gui.WidgetMaker;
 import com.xilinx.rapidwright.util.MessageGenerator;
@@ -51,7 +51,7 @@ import com.xilinx.rapidwright.util.MessageGenerator;
  * jars to run.
  * @author marc
  */
-public class PartTileBrowser extends QMainWindow{
+public class PartTileBrowser extends QMainWindow {
     /** This is the Qt View object for the tile browser */
     private PartTileBrowserView view;
     /** This is the container for the text in the Status Bar at the bottom of the screen */
@@ -107,12 +107,11 @@ public class PartTileBrowser extends QMainWindow{
         QStatusBar statusBar = new QStatusBar();
         statusBar.addWidget(statusLabel);
         setStatusBar(statusBar);
-
     }
 
     private void createTreeView() {
         treeWidget = WidgetMaker.createAvailablePartTreeWidget("Select a part...");
-        treeWidget.doubleClicked.connect(this,"showPart(QModelIndex)");
+        treeWidget.doubleClicked.connect(this, "showPart(QModelIndex)");
 
         QDockWidget dockWidget = new QDockWidget(tr("Part Browser"), this);
         dockWidget.setAllowedAreas(DockWidgetArea.LeftDockWidgetArea);
@@ -124,11 +123,12 @@ public class PartTileBrowser extends QMainWindow{
     @SuppressWarnings("unused")
     private void showPart(QModelIndex qmIndex) {
         Object data = qmIndex.data(ItemDataRole.AccessibleDescriptionRole);
-        if ( data != null) {
+        if (data != null) {
             if (currPartName.equals(data))
                 return;
-            currPartName = (String) data;
-            QProgressDialog progress = new QProgressDialog("Loading "+currPartName.toUpperCase()+"...", "", 0, 100, this);
+            currPartName = (String)data;
+            QProgressDialog progress =
+                new QProgressDialog("Loading " + currPartName.toUpperCase() + "...", "", 0, 100, this);
             progress.setWindowTitle("Load Progress");
             progress.setWindowModality(WindowModality.WindowModal);
             progress.setCancelButton(null);
@@ -138,18 +138,16 @@ public class PartTileBrowser extends QMainWindow{
             device = Device.getDevice(currPartName);
             progress.setValue(100);
             scene.setDevice(device);
-            statusLabel.setText("Loaded: "+currPartName.toUpperCase());
-
-
+            statusLabel.setText("Loaded: " + currPartName.toUpperCase());
         }
     }
     void updateStatus() {
-        int x = (int) scene.getCurrX();
-        int y = (int) scene.getCurrY();
+        int x = (int)scene.getCurrX();
+        int y = (int)scene.getCurrY();
         if (x >= 0 && x < device.getColumns() && y >= 0 && y < device.getRows()) {
             String tileName = device.getTile(y, x).getName();
-            statusLabel.setText("Part: "+currPartName.toUpperCase() +"  Tile: "+ tileName+" ("+x+","+y+")");
+            statusLabel.setText("Part: " + currPartName.toUpperCase() + "  Tile: " + tileName + " (" + x + "," + y +
+                                ")");
         }
     }
-
 }

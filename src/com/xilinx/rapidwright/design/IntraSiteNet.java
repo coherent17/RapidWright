@@ -35,7 +35,6 @@ import com.xilinx.rapidwright.device.BELPin;
  * drives multiple {@link SitePinInst} inputs.
  */
 public class IntraSiteNet {
-
     private SiteInst si;
 
     private Net net;
@@ -114,7 +113,7 @@ public class IntraSiteNet {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        IntraSiteNet other = (IntraSiteNet) obj;
+        IntraSiteNet other = (IntraSiteNet)obj;
         if (net == null) {
             if (other.net != null)
                 return false;
@@ -132,5 +131,4 @@ public class IntraSiteNet {
             return false;
         return true;
     }
-
 }

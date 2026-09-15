@@ -45,7 +45,6 @@ import com.xilinx.rapidwright.edif.EDIFNetlist;
 import com.xilinx.rapidwright.edif.EDIFTools;
 
 public class NetlistBrowser extends QMainWindow {
-
     private NetlistTreeWidget treeWidget;
     private QDockWidget schematicWidget;
     private SchematicScene schematicScene;
@@ -60,7 +59,7 @@ public class NetlistBrowser extends QMainWindow {
     protected static NetlistBrowser getBrowser(EDIFNetlist netlist) {
         NetlistBrowser browser = browsers.get(netlist);
         if (browser == null) {
-            browseNetlist(netlist, /* nonBlocking= */true);
+            browseNetlist(netlist, /* nonBlocking= */ true);
             // Wait until the GUI has been created
             while ((browser = browsers.get(netlist)) == null) {
                 try {
@@ -170,7 +169,7 @@ public class NetlistBrowser extends QMainWindow {
 
     public void selectNetlistItem(QTreeWidgetItem item) {
         if (item instanceof HierCellInstTreeWidgetItem) {
-            EDIFHierCellInst cellInst = ((HierCellInstTreeWidgetItem) item).getInst();
+            EDIFHierCellInst cellInst = ((HierCellInstTreeWidgetItem)item).getInst();
             schematicScene.drawCell(cellInst, true);
         } else {
             Object data = item.data(1, 0);
@@ -188,7 +187,7 @@ public class NetlistBrowser extends QMainWindow {
         }
         return item;
     }
-    
+
     public static void select(EDIFHierCellInst inst) {
         NetlistBrowser browser = getBrowser(inst.getCellType().getNetlist());
         String lookup = NetlistTreeWidget.INST_ID + inst.toString();
@@ -222,7 +221,7 @@ public class NetlistBrowser extends QMainWindow {
 
     /**
      * Main method setting up the Qt environment for the program to run.
-     * 
+     *
      * @param args
      */
     public static void main(String[] args) {
@@ -242,7 +241,8 @@ public class NetlistBrowser extends QMainWindow {
             netlist = EDIFTools.readEdifFile(args[0]);
             if (!netlist.expandMacroUnisims()) {
                 System.err.println("WARNING: Unable to expand macro unisims, target Series is unknown. "
-                        + "Try setting the part in the EDIFNetlist (see EDIFTools.ensureCorrectPartInEDIF()");
+                                   +
+                                   "Try setting the part in the EDIFNetlist (see EDIFTools.ensureCorrectPartInEDIF()");
             }
         }
 

@@ -34,8 +34,6 @@ import com.xilinx.rapidwright.util.MessageGenerator;
  * Created on: Apr 18, 2017
  */
 public class CopyMMCMCell {
-
-
     public static void main(String[] args) {
         if (args.length != 3) {
             System.out.println("USAGE: <source MMCM DCP> <input DCP> <output DCP>");
@@ -51,9 +49,10 @@ public class CopyMMCMCell {
                 break;
             }
         }
-        if (mmcm == null) throw new RuntimeException("ERROR: Couldn't find an MMCM instance in source design.");
+        if (mmcm == null)
+            throw new RuntimeException("ERROR: Couldn't find an MMCM instance in source design.");
 
-        input.copyCell(mmcm, mmcm.getName().substring(mmcm.getName().lastIndexOf('/')+1));
+        input.copyCell(mmcm, mmcm.getName().substring(mmcm.getName().lastIndexOf('/') + 1));
 
         input.writeCheckpoint(args[2]);
     }

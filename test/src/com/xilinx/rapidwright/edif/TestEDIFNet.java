@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class TestEDIFNet {
-
     @Test
     void testEquals() {
         String designName = "design";

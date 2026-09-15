@@ -54,8 +54,6 @@ import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.python.google.common.collect.Lists;
-
 import com.xilinx.rapidwright.design.blocks.PBlock;
 import com.xilinx.rapidwright.design.blocks.UtilizationType;
 import com.xilinx.rapidwright.design.tools.LUTTools;
@@ -98,6 +96,7 @@ import com.xilinx.rapidwright.util.Pair;
 import com.xilinx.rapidwright.util.ParallelismTools;
 import com.xilinx.rapidwright.util.StringTools;
 import com.xilinx.rapidwright.util.Utils;
+import org.python.google.common.collect.Lists;
 
 /**
  * A collection of methods to operate on {@link Design} objects.
@@ -105,31 +104,31 @@ import com.xilinx.rapidwright.util.Utils;
  * Created on: Dec 7, 2015
  */
 public class DesignTools {
-
     private static int uniqueBlackBoxCount = 0;
 
     // Map from site_pin to list of bels
     // TODO: derive from architecture.
     @SuppressWarnings("serial")
-    private static HashMap<String, List<String>> sitePin2Bels = new HashMap<String, List<String>>()
-    {{
-        put("A_O",  Arrays.asList("A5LUT", "A6LUT"));
-        put("AMUX", Arrays.asList("A5LUT", "A6LUT"));
-        put("B_O",  Arrays.asList("B5LUT", "B6LUT"));
-        put("BMUX", Arrays.asList("B5LUT", "B6LUT"));
-        put("C_O",  Arrays.asList("C5LUT", "C6LUT"));
-        put("CMUX", Arrays.asList("C5LUT", "C6LUT"));
-        put("D_O",  Arrays.asList("D5LUT", "D6LUT"));
-        put("DMUX", Arrays.asList("D5LUT", "D6LUT"));
-        put("E_O",  Arrays.asList("E5LUT", "E6LUT"));
-        put("EMUX", Arrays.asList("E5LUT", "E6LUT"));
-        put("F_O",  Arrays.asList("F5LUT", "F6LUT"));
-        put("FMUX", Arrays.asList("F5LUT", "F6LUT"));
-        put("G_O",  Arrays.asList("G5LUT", "G6LUT"));
-        put("GMUX", Arrays.asList("G5LUT", "G6LUT"));
-        put("H_O",  Arrays.asList("H5LUT", "H6LUT"));
-        put("HMUX", Arrays.asList("H5LUT", "H6LUT"));
-    }};
+    private static HashMap<String, List<String>> sitePin2Bels = new HashMap<String, List<String>>() {
+        {
+            put("A_O", Arrays.asList("A5LUT", "A6LUT"));
+            put("AMUX", Arrays.asList("A5LUT", "A6LUT"));
+            put("B_O", Arrays.asList("B5LUT", "B6LUT"));
+            put("BMUX", Arrays.asList("B5LUT", "B6LUT"));
+            put("C_O", Arrays.asList("C5LUT", "C6LUT"));
+            put("CMUX", Arrays.asList("C5LUT", "C6LUT"));
+            put("D_O", Arrays.asList("D5LUT", "D6LUT"));
+            put("DMUX", Arrays.asList("D5LUT", "D6LUT"));
+            put("E_O", Arrays.asList("E5LUT", "E6LUT"));
+            put("EMUX", Arrays.asList("E5LUT", "E6LUT"));
+            put("F_O", Arrays.asList("F5LUT", "F6LUT"));
+            put("FMUX", Arrays.asList("F5LUT", "F6LUT"));
+            put("G_O", Arrays.asList("G5LUT", "G6LUT"));
+            put("GMUX", Arrays.asList("G5LUT", "G6LUT"));
+            put("H_O", Arrays.asList("H5LUT", "H6LUT"));
+            put("HMUX", Arrays.asList("H5LUT", "H6LUT"));
+        }
+    };
 
     /**
      * Tries to identify the clock pin source for the given user signal output by
@@ -138,14 +137,17 @@ public class DesignTools {
      * @return The source clock pin for the clock net or null if unable to determine one.
      */
     public static SitePinInst identifyClockSource(SitePinInst netSource) {
-        if (!netSource.isOutPin()) return null;
+        if (!netSource.isOutPin())
+            return null;
         BELPin p = netSource.getBELPin();
-        if (p == null) return null;
+        if (p == null)
+            return null;
         BELPin src = p.getSiteConns().get(0);
         if (src.getBELName().contains("FF")) {
             BELPin clk = src.getBEL().getPin("CLK");
             Net n = netSource.getSiteInst().getNetFromSiteWire(clk.getSiteWireName());
-            if (n == null) return null;
+            if (n == null)
+                return null;
             return n.getSource();
         }
         return null;
@@ -155,18 +157,16 @@ public class DesignTools {
         // TODO - WIP
         String tokens[] = edifNet.split("/");
         EDIFCellInst curr = d.getNetlist().getTopCellInst();
-        for (int i=0; i < tokens.length; i++) {
-            if (i == tokens.length-1) {
+        for (int i = 0; i < tokens.length; i++) {
+            if (i == tokens.length - 1) {
                 for (EDIFPortInst port : curr.getPortInsts()) {
                     System.out.println(port.getPort().getName());
                     if (port.getNet().getName().equals(tokens[i])) {
-
                     }
                 }
             } else {
                 curr = curr.getCellType().getCellInst(tokens[i]);
             }
-
         }
 
         return null;
@@ -189,7 +189,8 @@ public class DesignTools {
      * @return The corresponding element pin or null if none could be found.
      */
     public static BELPin getDrivingBELPin(SitePinInst netSource) {
-        if (!netSource.isOutPin()) return null;
+        if (!netSource.isOutPin())
+            return null;
         return getDrivingBELPin(netSource.getBELPin());
     }
 
@@ -199,8 +200,10 @@ public class DesignTools {
      * @return The source element pin within the site for the given element pin.
      */
     public static BELPin getDrivingBELPin(BELPin elementPin) {
-        if (elementPin == null) return null;
-        if (elementPin.isOutput() && elementPin.getBEL().getBELClass() != BELClass.PORT) return null;
+        if (elementPin == null)
+            return null;
+        if (elementPin.isOutput() && elementPin.getBEL().getBELClass() != BELClass.PORT)
+            return null;
         return elementPin.getSiteConns().get(0);
     }
 
@@ -210,15 +213,17 @@ public class DesignTools {
      * @return A list of sink element pins within the site for the given element pin.
      */
     public static ArrayList<BELPin> getDrivenBELPins(BELPin elementPin) {
-        if (elementPin == null) return null;
-        if (elementPin.isInput() && elementPin.getBEL().getBELClass() == BELClass.PORT) return null;
+        if (elementPin == null)
+            return null;
+        if (elementPin.isInput() && elementPin.getBEL().getBELClass() == BELClass.PORT)
+            return null;
         return elementPin.getSiteConns();
     }
 
     /**
-     * Uses SitePIP information in the site instance to determine the driving input of the RBEL element
-     * output pin.  There should only be one input that can affect the output and this method
-     * returns that input pin.
+     * Uses SitePIP information in the site instance to determine the driving input of the RBEL
+     * element output pin.  There should only be one input that can affect the output and this
+     * method returns that input pin.
      * @param outputPin The output pin on the RBEL element of interest.
      * @param inst The corresponding site instance where the pin resides.
      * @return The driving input element pin on the RBEL, or null if none could be found.
@@ -229,12 +234,14 @@ public class DesignTools {
             return element.getPin(0);
         }
         SitePIP pip = inst.getUsedSitePIP(outputPin);
-        if (pip == null) return null;
+        if (pip == null)
+            return null;
         return pip.getInputPin();
     }
 
     /**
-     * Returns the element's output pin corresponding that is being driven by the provided input pin.
+     * Returns the element's output pin corresponding that is being driven by the provided input
+     * pin.
      * @param inputPin The input pin of interest
      * @param inst The site instance corresponding to the element of interest
      * @return The element's output pin that is driven by the provided input pin.
@@ -243,7 +250,7 @@ public class DesignTools {
         int idx = inputPin.getBEL().getHighestInputIndex() + 1;
         if (inputPin.getBEL().getPins().length > idx + 1) {
             throw new RuntimeException("ERROR: False assumption, this routing BEL has more than one output: " +
-                    inputPin.getBELName());
+                                       inputPin.getBELName());
         }
         return inputPin.getBEL().getPin(idx);
     }
@@ -262,12 +269,12 @@ public class DesignTools {
 
         Cell cell = inst.getCell(element.getName());
         /*if (!element.getName().equals("BUFCE")) {
-            for (Entry<String,Property> entry : cell.getEdifCellInst().getPropertyList().entrySet()) {
-                System.out.println(entry.getKey() + ": " + entry.getValue().getName());
+            for (Entry<String,Property> entry : cell.getEdifCellInst().getPropertyList().entrySet())
+        { System.out.println(entry.getKey() + ": " + entry.getValue().getName());
             }// TODO
         }*/
-        switch(element.getName()) {
-            case "BUFCE":{
+        switch (element.getName()) {
+            case "BUFCE": {
                 inputs.add(element.getPin("I"));
                 break;
             }
@@ -288,24 +295,26 @@ public class DesignTools {
             case "F6LUT":
             case "G6LUT":
             case "H6LUT":
-            case "CARRY8":{
-                for (int i=0; i <= element.getHighestInputIndex(); i++) {
+            case "CARRY8": {
+                for (int i = 0; i <= element.getHighestInputIndex(); i++) {
                     BELPin pin = element.getPin(i);
                     String siteWireName = pin.getSiteWireName();
                     Net net = inst.getNetFromSiteWire(siteWireName);
-                    if (net == null) continue;
-                    if (net.isStaticNet()) continue;
-                    if (!cell.usesPhysicalPin(pin.getName())) continue;
+                    if (net == null)
+                        continue;
+                    if (net.isStaticNet())
+                        continue;
+                    if (!cell.usesPhysicalPin(pin.getName()))
+                        continue;
                     inputs.add(pin);
                 }
                 break;
             }
-            default:{
-                throw new RuntimeException("ERROR: Problem tracing through " + element.getName() + " in " + inst.getName());
+            default: {
+                throw new RuntimeException("ERROR: Problem tracing through " + element.getName() + " in " +
+                                           inst.getName());
             }
-
         }
-
 
         return inputs;
     }
@@ -324,13 +333,16 @@ public class DesignTools {
         if (cell == null) {
             return outputs;
         }
-        for (int i=element.getHighestInputIndex()+1; i < element.getPins().length; i++) {
+        for (int i = element.getHighestInputIndex() + 1; i < element.getPins().length; i++) {
             BELPin pin = element.getPin(i);
             String siteWireName = pin.getSiteWireName();
             Net net = inst.getNetFromSiteWire(siteWireName);
-            if (net == null) continue;
-            if (net.isStaticNet()) continue;
-            if (net.getName().equals(Net.USED_NET)) continue;
+            if (net == null)
+                continue;
+            if (net.isStaticNet())
+                continue;
+            if (net.getName().equals(Net.USED_NET))
+                continue;
             if (!cell.usesPhysicalPin(pin.getName()))
                 continue;
             outputs.add(pin);
@@ -381,8 +393,8 @@ public class DesignTools {
         regElements = new HashSet<String>();
 
         for (String letter : Arrays.asList("A", "B", "C", "D", "E", "F", "G", "H")) {
-            regElements.add(letter +"FF");
-            regElements.add(letter +"FF2");
+            regElements.add(letter + "FF");
+            regElements.add(letter + "FF2");
             for (String size : Arrays.asList("5", "6")) {
                 lutElements.add(letter + size + "LUT");
             }
@@ -399,7 +411,8 @@ public class DesignTools {
 
     public static boolean isPinStateBEL(BELPin pin) {
         BEL element = pin.getBEL();
-        if (stopElements.contains(element.getName())) return true;
+        if (stopElements.contains(element.getName()))
+            return true;
 
         // TODO - This only finds flops that exist in SLICEs. Need IOs/BRAM/DSP/etc
         return element.getName().contains("FF");
@@ -421,7 +434,7 @@ public class DesignTools {
 
     public static long moveValToNewRow(long lutValue, int i, int newRow) {
         long out = 0;
-        int moveIndex = Math.abs(i-newRow);
+        int moveIndex = Math.abs(i - newRow);
         if (i > newRow) {
             out = lutValue >> moveIndex;
         } else {
@@ -433,33 +446,39 @@ public class DesignTools {
     public static int getInvertCol(String logicalPinName) {
         int result = -1;
         switch (logicalPinName) {
-            case "0" : result = 0;
-            case "1" : result = 1;
-            case "2" : result = 2;
-            case "3" : result = 3;
-            case "4" : result = 4;
-            case "5" : result = 5;
+            case "0":
+                result = 0;
+            case "1":
+                result = 1;
+            case "2":
+                result = 2;
+            case "3":
+                result = 3;
+            case "4":
+                result = 4;
+            case "5":
+                result = 5;
         }
         return result;
     }
 
-    public static String invertLutInput (Cell lut, String physicalPinName) {
+    public static String invertLutInput(Cell lut, String physicalPinName) {
         String lutValue = lut.getEDIFCellInst().getProperty("INIT").getValue();
-        //String lutValue = "4'hE";
+        // String lutValue = "4'hE";
         String numLutRowsStr = lutValue.substring(0, lutValue.indexOf("'"));
-        String hexValueStr = lutValue.substring(lutValue.indexOf("h")+1, lutValue.length());
-        //long oldVal = Long.parseLong(hexValueStr);
+        String hexValueStr = lutValue.substring(lutValue.indexOf("h") + 1, lutValue.length());
+        // long oldVal = Long.parseLong(hexValueStr);
         long oldVal = new BigInteger(hexValueStr, 16).longValue();
         int numLutRows = Integer.parseInt(numLutRowsStr);
-        int numInput = (int)(Math.log(numLutRows)/Math.log(2));
+        int numInput = (int)(Math.log(numLutRows) / Math.log(2));
         String logicalPinName = lut.getLogicalPinMapping(physicalPinName);
-        int invertCol = getInvertCol(logicalPinName.substring(logicalPinName.length()-1));
+        int invertCol = getInvertCol(logicalPinName.substring(logicalPinName.length() - 1));
         if (invertCol == -1) {
             System.err.println("Inverted Column is -1 is Function DesignTools.invertLutInput");
         }
         long outHex = 0;
 
-        for (int i = 0; i < 1<<numInput; i++) {
+        for (int i = 0; i < 1 << numInput; i++) {
             int newRow = invertBit(i, invertCol);
             System.out.println("old_Row = " + i + " new_Row = " + newRow);
             long currVal = getCurrVal(oldVal, i);
@@ -468,8 +487,8 @@ public class DesignTools {
         }
         String hexOutput = numLutRowsStr + "'h";
         hexOutput = hexOutput + Long.toHexString(outHex);
-        System.out.println("output INIT = "+ hexOutput);
-        //System.out.println("output = " + outHex);
+        System.out.println("output INIT = " + hexOutput);
+        // System.out.println("output = " + outHex);
         return hexOutput;
     }
 
@@ -480,7 +499,8 @@ public class DesignTools {
     public static boolean areAllPinsConnectedToALUT(Net n) {
         for (SitePinInst p : n.getPins()) {
             Set<Cell> connectedCells = getConnectedCells(p);
-            if (connectedCells == null || connectedCells.size() == 0) return false;
+            if (connectedCells == null || connectedCells.size() == 0)
+                return false;
             for (Cell lut : connectedCells) {
                 if (!lut.getType().contains("LUT")) {
                     return false;
@@ -499,24 +519,26 @@ public class DesignTools {
         }
 
         for (Cell c : lut1Cells) {
-
             // 1. Determine if this LUT can be merged into its source or sink
             String lutInputSiteWire = c.getSiteWireNameFromLogicalPin("I0");
             Net inputNet = c.getSiteInst().getNetFromSiteWire(lutInputSiteWire);
             String lutOutputSiteWire = c.getSiteWireNameFromLogicalPin("O");
             Net outputNet = c.getSiteInst().getNetFromSiteWire(lutOutputSiteWire);
 
-            if (inputNet == null || outputNet == null || inputNet.getPins().size() == 0 || outputNet.getPins().size() == 0) continue;
+            if (inputNet == null || outputNet == null || inputNet.getPins().size() == 0 ||
+                outputNet.getPins().size() == 0)
+                continue;
 
             SitePinInst lut1InputPin = null;
             for (SitePinInst p : inputNet.getPins()) {
-                if (p.isOutPin()) continue;
+                if (p.isOutPin())
+                    continue;
                 if (p.getName().equals(lutInputSiteWire)) {
                     lut1InputPin = p;
                     break;
                 }
             }
-            //invertLutInput(c, lutInputSiteWire);
+            // invertLutInput(c, lutInputSiteWire);
             boolean pushInverterForward = true;
             if (areAllPinsConnectedToALUT(outputNet)) {
                 pushInverterForward = true;
@@ -531,9 +553,7 @@ public class DesignTools {
 
             // 2. Modify LUT equation of neighboring LUT TODO TODO TODO
             if (pushInverterForward) {
-
             } else {
-
             }
 
             // 3. Remove LUT1 from logical netlist
@@ -544,9 +564,11 @@ public class DesignTools {
                     break;
                 }
             }
-            if (toRemove != null) inputNet.getLogicalNet().removePortInst(toRemove);
+            if (toRemove != null)
+                inputNet.getLogicalNet().removePortInst(toRemove);
             for (EDIFPortInst portInst : outputNet.getLogicalNet().getPortInsts()) {
-                if (portInst.getCellInst() != null && portInst.getCellInst().equals(c.getEDIFCellInst())) continue;
+                if (portInst.getCellInst() != null && portInst.getCellInst().equals(c.getEDIFCellInst()))
+                    continue;
                 inputNet.getLogicalNet().addPortInst(portInst);
             }
             outputNet.getLogicalNet().getParentCell().removeNet(outputNet.getLogicalNet());
@@ -561,8 +583,6 @@ public class DesignTools {
             // 5. Detach module instance if it exists
             c.getSiteInst().detachFromModule();
         }
-
-
     }
 
     /**
@@ -584,7 +604,8 @@ public class DesignTools {
         // Get the cell pin
         BELPin cellPin = cell.getBEL().getPin(cell.getPhysicalPinMapping(cellPinName));
         if (cellPin == null) {
-            throw new RuntimeException("ERROR: Couldn't find " + cellPinName + " on element " + cell.getBELName() + ".");
+            throw new RuntimeException("ERROR: Couldn't find " + cellPinName + " on element " + cell.getBELName() +
+                                       ".");
         }
         // Get the connected site pin from cell pin
         String sitePinName = cellPin.getConnectedSitePinName();
@@ -636,8 +657,8 @@ public class DesignTools {
 
     public static Map<UtilizationType, Integer> calculateUtilization(Design d, PBlock pblock) {
         Set<Site> sites = pblock.getAllSites(null);
-        List<SiteInst> siteInsts = d.getSiteInsts().stream().filter(s -> sites.contains(s.getSite()))
-                .collect(Collectors.toList());
+        List<SiteInst> siteInsts =
+            d.getSiteInsts().stream().filter(s -> sites.contains(s.getSite())).collect(Collectors.toList());
         return calculateUtilization(siteInsts);
     }
 
@@ -664,17 +685,11 @@ public class DesignTools {
             } else if (Utils.isDSP(si)) {
                 incrementUtilType(map, UtilizationType.DSPS);
             } else if (Utils.isBRAM(si)) {
-                if (s == SiteTypeEnum.RAMBFIFO36 ||
-                    s == SiteTypeEnum.RAMB36 ||
-                    s == SiteTypeEnum.RAMB36E1 ||
+                if (s == SiteTypeEnum.RAMBFIFO36 || s == SiteTypeEnum.RAMB36 || s == SiteTypeEnum.RAMB36E1 ||
                     s == SiteTypeEnum.RAMBFIFO36E1) {
                     incrementUtilType(map, UtilizationType.RAMB36S_FIFOS);
-                } else if (s == SiteTypeEnum.RAMB181 ||
-                            s == SiteTypeEnum.RAMB180 ||
-                            s == SiteTypeEnum.RAMB18E1 ||
-                            s == SiteTypeEnum.RAMB18_L ||
-                            s == SiteTypeEnum.RAMB18_U ||
-                            s == SiteTypeEnum.RAMBFIFO18) {
+                } else if (s == SiteTypeEnum.RAMB181 || s == SiteTypeEnum.RAMB180 || s == SiteTypeEnum.RAMB18E1 ||
+                           s == SiteTypeEnum.RAMB18_L || s == SiteTypeEnum.RAMB18_U || s == SiteTypeEnum.RAMBFIFO18) {
                     incrementUtilType(map, UtilizationType.RAMB18S);
                 }
             } else if (Utils.isURAM(si)) {
@@ -711,8 +726,8 @@ public class DesignTools {
                 }
             }
             for (char letter : LUTTools.lutLetters) {
-                Cell c5 = si.getCell(letter +"5LUT");
-                Cell c6 = si.getCell(letter +"6LUT");
+                Cell c5 = si.getCell(letter + "5LUT");
+                Cell c6 = si.getCell(letter + "6LUT");
                 if (c5 != null && c5.isRoutethru()) {
                     c5 = null;
                 } else if (c6 != null && c6.isRoutethru()) {
@@ -733,8 +748,10 @@ public class DesignTools {
     }
 
     private static boolean isCellLutMemory(Cell c) {
-        if (c == null) return false;
-        if (c.getType().contains("SRL") || c.getType().contains("RAM")) return true;
+        if (c == null)
+            return false;
+        if (c.getType().contains("SRL") || c.getType().contains("RAM"))
+            return true;
         return false;
     }
 
@@ -773,11 +790,8 @@ public class DesignTools {
             bw.write("\"Name\",\"Type\",\"Site\",\"Tile\",\"#Pins\"" + nl);
 
             for (SiteInst i : design.getSiteInsts()) {
-                bw.write("\"" + i.getName() + "\",\"" +
-                                i.getSiteTypeEnum() + "\",\"" +
-                                i.getSiteName() + "\",\"" +
-                                i.getTile()+ "\",\"" +
-                                i.getSitePinInstMap().size()+ "\"" + nl);
+                bw.write("\"" + i.getName() + "\",\"" + i.getSiteTypeEnum() + "\",\"" + i.getSiteName() + "\",\"" +
+                         i.getTile() + "\",\"" + i.getSitePinInstMap().size() + "\"" + nl);
             }
             bw.close();
         } catch (IOException e) {
@@ -789,9 +803,7 @@ public class DesignTools {
             bw.write("\"Name\",\"Type\",\"Fanout\"" + nl);
 
             for (Net n : design.getNets()) {
-                bw.write("\"" + n.getName() + "\",\"" +
-                                n.getType() + "\",\"" +
-                                n.getFanOut()+ "\"" + nl);
+                bw.write("\"" + n.getName() + "\",\"" + n.getType() + "\",\"" + n.getFanOut() + "\"" + nl);
             }
             bw.close();
         } catch (IOException e) {
@@ -804,7 +816,8 @@ public class DesignTools {
      * interconnect.
      * @param start Desired start node
      * @param end Desired end node
-     * @return A list of PIPs that configure a path from start to end nodes, or null if a path could not be found.
+     * @return A list of PIPs that configure a path from start to end nodes, or null if a path could
+     *     not be found.
      */
     public static List<PIP> findRoutingPath(Node start, Node end) {
         return findRoutingPath(new RouteNode(start), new RouteNode(end));
@@ -815,11 +828,15 @@ public class DesignTools {
      * interconnect.
      * @param start Desired start node
      * @param end Desired end node
-     * @return A list of PIPs that configure a path from start to end nodes, or null if a path could not be found.
+     * @return A list of PIPs that configure a path from start to end nodes, or null if a path could
+     *     not be found.
      */
     public static List<PIP> findRoutingPath(RouteNode start, RouteNode end) {
         PriorityQueue<RouteNode> q = new PriorityQueue<RouteNode>(16, new Comparator<RouteNode>() {
-            public int compare(RouteNode i, RouteNode j) {return i.getCost() - j.getCost();}});
+            public int compare(RouteNode i, RouteNode j) {
+                return i.getCost() - j.getCost();
+            }
+        });
         q.add(start);
         HashSet<Wire> visited = new HashSet<>();
         visited.add(new Wire(start.getTile(), start.getWire()));
@@ -829,11 +846,13 @@ public class DesignTools {
             if (curr.equals(end)) {
                 return curr.getPIPsBackToSource();
             }
-            if (visited.size() > 100000) return null;
+            if (visited.size() > 100000)
+                return null;
             for (Wire w : curr.getConnections()) {
-                if (visited.contains(w)) continue;
+                if (visited.contains(w))
+                    continue;
                 visited.add(w);
-                RouteNode rn = new RouteNode(w,curr);
+                RouteNode rn = new RouteNode(w, curr);
                 rn.setCost((rn.getManhattanDistance(end) << 1) + rn.getLevel());
                 q.add(rn);
             }
@@ -852,10 +871,11 @@ public class DesignTools {
     public static String resolveNetNameFromSiteWire(SiteInst inst, int siteWire) {
         String parentNetName = null;
         EDIFNetlist netlist = inst.getDesign().getNetlist();
-        Map<String,String> parentNetMap = netlist != null ? netlist.getParentNetMapNames() : Collections.emptyMap();
+        Map<String, String> parentNetMap = netlist != null ? netlist.getParentNetMapNames() : Collections.emptyMap();
         BELPin[] pins = inst.getSite().getBELPins(siteWire);
         for (BELPin pin : pins) {
-            if (pin.isSitePort()) continue;
+            if (pin.isSitePort())
+                continue;
             Cell c = inst.getCell(pin.getBELName());
             if (c == null || c.getEDIFCellInst() == null) {
                 Net currNet = inst.getNetFromSiteWire(pin.getSiteWireName());
@@ -867,16 +887,17 @@ public class DesignTools {
             }
             String logPinName = c.getLogicalPinMapping(pin.getName());
             EDIFPortInst portInst = logPinName == null ? null : c.getEDIFCellInst().getPortInst(logPinName);
-            if (portInst == null) continue;
-            EDIFNet net =  portInst.getNet();
+            if (portInst == null)
+                continue;
+            EDIFNet net = portInst.getNet();
             String netName = c.getParentHierarchicalInstName() + EDIFTools.EDIF_HIER_SEP + net.getName();
             parentNetName = parentNetMap.getOrDefault(netName, netName);
         }
         return parentNetName;
     }
 
-    private static String createInformativeCellInterfaceMismatchMessage(String hierCellInstName,
-                                                    EDIFCell target, EDIFCell src) {
+    private static String createInformativeCellInterfaceMismatchMessage(String hierCellInstName, EDIFCell target,
+                                                                        EDIFCell src) {
         Map<String, EDIFPort> cellPorts = new HashMap<>(target.getPortMap());
         StringBuilder sb = new StringBuilder();
         for (EDIFPort p : src.getPorts()) {
@@ -888,8 +909,7 @@ public class DesignTools {
                 }
             }
 
-            if (!Objects.equals(p.getWidth(), p.getWidth()) ||
-               !Objects.equals(p.getDirection(), p.getDirection())) {
+            if (!Objects.equals(p.getWidth(), p.getWidth()) || !Objects.equals(p.getDirection(), p.getDirection())) {
                 sb.append("\n  port " + p.getName() + " mismatch in direction/width");
             }
         }
@@ -897,19 +917,19 @@ public class DesignTools {
             sb.append("\n  port " + portName + " is missing on " + src);
         }
 
-        return "\nERROR: The destination instance " + hierCellInstName +
-                " has a different port signature than " + src.getName() + ":" + sb.toString();
+        return "\nERROR: The destination instance " + hierCellInstName + " has a different port signature than " +
+            src.getName() + ":" + sb.toString();
     }
 
     /**
      * NOTE: This method is not fully tested. Populates a black box in a netlist
      * with the provided design. This method most closely resembles the Vivado
      * command {@code read_checkpoint -cell <cell name> <DCP Name>}
-     * 
+     *
      * @param design               The top level design
      * @param hierarchicalCellName Name of the black box in the design netlist.
      * @param cell                 The 'guts' to be inserted into the black box
-     * 
+     *
      */
     public static void populateBlackBox(Design design, String hierarchicalCellName, Design cell) {
         populateBlackBox(design, hierarchicalCellName, cell, false);
@@ -919,7 +939,7 @@ public class DesignTools {
      * NOTE: This method is not fully tested. Populates a black box in a netlist
      * with the provided design. This method most closely resembles the Vivado
      * command {@code read_checkpoint -cell <cell name> <DCP Name>}
-     * 
+     *
      * @param design               The top level design
      * @param hierarchicalCellName Name of the black box in the design netlist.
      * @param cell                 The 'guts' to be inserted into the black box
@@ -927,7 +947,7 @@ public class DesignTools {
      *                             black box.
      */
     public static void populateBlackBox(Design design, String hierarchicalCellName, Design cell,
-            boolean keepBoundaryRouting) {
+                                        boolean keepBoundaryRouting) {
         EDIFNetlist netlist = design.getNetlist();
 
         // Populate Logical Netlist into cell
@@ -938,7 +958,7 @@ public class DesignTools {
         }
         if (!inst.getCellType().hasCompatibleInterface(cell.getTopEDIFCell())) {
             throw new RuntimeException(createInformativeCellInterfaceMismatchMessage(
-                    hierarchicalCellName, inst.getCellType(), cell.getTopEDIFCell()));
+                hierarchicalCellName, inst.getCellType(), cell.getTopEDIFCell()));
         }
 
         inst.getCellType().getLibrary().removeCell(inst.getCellType());
@@ -946,9 +966,9 @@ public class DesignTools {
         inst.setCellType(cell.getTopEDIFCell());
         netlist.removeUnusedCellsFromAllWorkLibraries();
 
-        // Static source pins displaced by the incoming site instances. They cannot be removed as they
-        // are found since unrouting a static net walks its pins, so they are collected and taken off in
-        // one batch once every site instance is in
+        // Static source pins displaced by the incoming site instances. They cannot be removed as
+        // they are found since unrouting a static net walks its pins, so they are collected and
+        // taken off in one batch once every site instance is in
         Map<Net, Set<SitePinInst>> deferredRemovals = new HashMap<>();
 
         // Add placement information
@@ -970,20 +990,22 @@ public class DesignTools {
             }
 
             // Nothing but a static source is expected to be sitting on a site the black box covers,
-            // since the site was given to the circuit by the placer on the strength of it being free
+            // since the site was given to the circuit by the placer on the strength of it being
+            // free
             SiteInst existingSi = design.getSiteInstFromSite(si.getSite());
             if (existingSi != null) {
                 if (!existingSi.getName().startsWith(SiteInst.STATIC_SOURCE)) {
-                    throw new RuntimeException("ERROR: Site overlap at " + existingSi.getSiteName() + " when populating blackbox '" + hierarchicalCellName + "'");
+                    throw new RuntimeException("ERROR: Site overlap at " + existingSi.getSiteName() +
+                                               " when populating blackbox '" + hierarchicalCellName + "'");
                 }
                 // Cell is only allowed to evict STATIC_SOURCEs -- but we have to unroute all
                 // static trees affected by its evicted output pins
                 // TODO: In the future, perhaps we can port the mutually exclusive parts
                 //       of the static source into the cell SiteInst?
                 for (SitePinInst spi : existingSi.getSitePinInsts()) {
-                    assert(spi.isOutPin());
+                    assert (spi.isOutPin());
                     Net net = spi.getNet();
-                    assert(net.isStaticNet());
+                    assert (net.isStaticNet());
                     deferredRemovals.computeIfAbsent(net, (p) -> new HashSet<>()).add(spi);
                 }
             }
@@ -1001,14 +1023,16 @@ public class DesignTools {
             }
         }
 
-        // Only the branches feeding the displaced pins come out; the rest of each static net is left
-        // alone. This has to happen before the routing below merges the circuit's own static pins in
+        // Only the branches feeding the displaced pins come out; the rest of each static net is
+        // left alone. This has to happen before the routing below merges the circuit's own static
+        // pins in
         boolean preserveOtherRoutes = true;
         DesignTools.batchRemoveSitePins(deferredRemovals, preserveOtherRoutes);
 
         // Add routing information
         for (Net net : new ArrayList<>(cell.getNets())) {
-            if (net.getName().equals(Net.USED_NET)) continue;
+            if (net.getName().equals(Net.USED_NET))
+                continue;
             if (net.isStaticNet()) {
                 Net staticNet = design.getStaticNet(net.getType());
                 staticNet.addPins((ArrayList<SitePinInst>)net.getPins());
@@ -1034,7 +1058,7 @@ public class DesignTools {
     /**
      * Attempts to rename boundary nets around the previous blackbox to follow
      * naming convention (net is named after source).
-     * 
+     *
      * @param hierCellName        The hierarchical cell instance that was previously
      *                            a black box
      * @param design              The current design.
@@ -1066,7 +1090,8 @@ public class DesignTools {
                 }
             }
             for (EDIFHierNet netAlias : netlist.getNetAliases(hierNet)) {
-                if (parentNet.getName().equals(netAlias.getHierarchicalNetName())) continue;
+                if (parentNet.getName().equals(netAlias.getHierarchicalNetName()))
+                    continue;
                 Net alias = design.getNet(netAlias.getHierarchicalNetName());
                 if (alias != null) {
                     // Move this non-parent net physical information to the parent
@@ -1089,10 +1114,12 @@ public class DesignTools {
                         alias.removePin(pin);
                         parentNet.addPin(pin);
                     }
-                    if (!keepBoundaryRouting) alias.unroute();
+                    if (!keepBoundaryRouting)
+                        alias.unroute();
                 }
             }
-            if (!keepBoundaryRouting) parentNet.unroute();
+            if (!keepBoundaryRouting)
+                parentNet.unroute();
         }
     }
 
@@ -1103,10 +1130,10 @@ public class DesignTools {
      * @return The map of all involved nodes to their respectively connected PIPs.
      */
     public static Map<Node, ArrayList<PIP>> getNodePIPMap(List<PIP> route) {
-        Map<Node,ArrayList<PIP>> conns = new HashMap<>();
+        Map<Node, ArrayList<PIP>> conns = new HashMap<>();
         // Create a map from nodes to PIPs
         for (PIP pip : route) {
-            for (int wireIndex : new int[]{pip.getStartWireIndex(), pip.getEndWireIndex()}) {
+            for (int wireIndex : new int[] {pip.getStartWireIndex(), pip.getEndWireIndex()}) {
                 Node curr = Node.getNode(pip.getTile(), wireIndex);
                 ArrayList<PIP> pips = conns.get(curr);
                 if (pips == null) {
@@ -1129,7 +1156,7 @@ public class DesignTools {
      */
     public static boolean removeConnectedRouting(Net net, Node node) {
         HashSet<PIP> toRemove = new HashSet<>();
-        Map<Node,ArrayList<PIP>> conns = getNodePIPMap(net.getPIPs());
+        Map<Node, ArrayList<PIP>> conns = getNodePIPMap(net.getPIPs());
 
         // Traverse the connected set of PIPs starting from the node
         Queue<Node> q = new LinkedList<>();
@@ -1137,7 +1164,8 @@ public class DesignTools {
         while (!q.isEmpty()) {
             Node curr = q.poll();
             ArrayList<PIP> pips = conns.get(curr);
-            if (pips == null) continue;
+            if (pips == null)
+                continue;
             for (PIP p : pips) {
                 // Be careful to detect a cycle
                 if (!toRemove.contains(p)) {
@@ -1148,12 +1176,14 @@ public class DesignTools {
             }
         }
 
-        if (toRemove.size() == 0) return false;
+        if (toRemove.size() == 0)
+            return false;
 
         // Update net with new PIPs
         ArrayList<PIP> keep = new ArrayList<>();
         for (PIP p : net.getPIPs()) {
-            if (toRemove.contains(p)) continue;
+            if (toRemove.contains(p))
+                continue;
             keep.add(p);
         }
         net.setPIPs(keep);
@@ -1183,7 +1213,7 @@ public class DesignTools {
             }
         }
         DesignTools.unrouteSourcePins(srcPins);
-        removePIPsFromNet(net,getTrimmablePIPsFromPins(net, sinkPins));
+        removePIPsFromNet(net, getTrimmablePIPsFromPins(net, sinkPins));
         for (SitePinInst pin : sinkPins) {
             pin.setRouted(false);
         }
@@ -1193,7 +1223,8 @@ public class DesignTools {
         if (pipsToRemove.size() > 0) {
             List<PIP> updatedPIPs = new ArrayList<>();
             for (PIP pip : net.getPIPs()) {
-                if (!pipsToRemove.contains(pip)) updatedPIPs.add(pip);
+                if (!pipsToRemove.contains(pip))
+                    updatedPIPs.add(pip);
             }
             net.setPIPs(updatedPIPs);
         }
@@ -1202,7 +1233,8 @@ public class DesignTools {
     /**
      * Unroutes a SitePinInst of a net.  This is desirable when a net has multiple SitePinInst
      * source pins (multiple outputs of a Site) and only a particular branch is desired to be
-     * unrouted.  If the entire net is to be unrouted, a more efficient method is {@link Net#unroute()}.
+     * unrouted.  If the entire net is to be unrouted, a more efficient method is {@link
+     * Net#unroute()}.
      * @param src The source pin of the net from which to remove the routing
      * @return The set of PIPs that were unrouted from the net.
      */
@@ -1215,7 +1247,7 @@ public class DesignTools {
      * has multiple SitePinInst source pins (multiple outputs of a Site) and only a
      * particular branch is desired to be unrouted. If the entire net is to be
      * unrouted, a more efficient method is {@link Net#unroute()}.
-     * 
+     *
      * @param srcs The list of source pins of the net from which to remove the
      *             routing
      * @return The set of PIPs that were unrouted from the net.
@@ -1234,14 +1266,15 @@ public class DesignTools {
             pipMap.computeIfAbsent(node, k -> new ArrayList<>()).add(pip);
         }
 
-        Map<Node,SitePinInst> sinkNodes = new HashMap<>();
+        Map<Node, SitePinInst> sinkNodes = new HashMap<>();
         for (SitePinInst sinkPin : net.getSinkPins()) {
             sinkNodes.put(sinkPin.getConnectedNode(), sinkPin);
         }
 
         Set<PIP> pipsToRemove = new HashSet<>();
         for (SitePinInst src : srcs) {
-            if (!src.isOutPin()) continue;
+            if (!src.isOutPin())
+                continue;
             Queue<Node> q = new LinkedList<>();
             q.add(src.getConnectedNode());
             while (!q.isEmpty()) {
@@ -1284,7 +1317,7 @@ public class DesignTools {
      * be trimmed as they no longer route to any specific sink. This method only
      * works for sink pins. See {@link #unrouteSourcePin(SitePinInst)} for handling
      * source pin unroutes.
-     * 
+     *
      * @param net             The current net
      * @param pins            The set of pins to remove.
      * @param overrideNetPins If pins are attached to a different net, setting this
@@ -1292,11 +1325,10 @@ public class DesignTools {
      * @return The set of redundant (trimmable) PIPs that cane safely be removed
      *         when removing the set of provided pins from the net.
      */
-    public static Set<PIP> getTrimmablePIPsFromPins(Net net, Collection<SitePinInst> pins,
-            boolean overrideNetPins) {
+    public static Set<PIP> getTrimmablePIPsFromPins(Net net, Collection<SitePinInst> pins, boolean overrideNetPins) {
         // Map listing the PIPs that drive a Node
-        Map<Node,ArrayList<PIP>> reverseConns = new HashMap<>();
-        Map<Node,Integer> fanout = new HashMap<>();
+        Map<Node, ArrayList<PIP>> reverseConns = new HashMap<>();
+        Map<Node, Integer> fanout = new HashMap<>();
         Set<Node> nodeSinkPins = new HashSet<>();
         for (SitePinInst sinkPin : overrideNetPins ? pins : net.getSinkPins()) {
             nodeSinkPins.add(sinkPin.getConnectedNode());
@@ -1319,14 +1351,16 @@ public class DesignTools {
         ArrayList<Node> updateFanout = new ArrayList<>();
 
         for (SitePinInst p : pins) {
-            if (p.getSiteInst() == null || p.getSite() == null) continue;
-            if (!overrideNetPins && p.getNet() != net) continue;
+            if (p.getSiteInst() == null || p.getSite() == null)
+                continue;
+            if (!overrideNetPins && p.getNet() != net)
+                continue;
             Node sink = p.getConnectedNode();
             Integer fanoutCount = fanout.get(sink);
             if (fanoutCount == null) {
                 // Pin is not routed
             } else {
-                assert(fanoutCount >= 1);
+                assert (fanoutCount >= 1);
                 updateFanout.add(sink);
 
                 if (fanoutCount > 1) {
@@ -1338,15 +1372,15 @@ public class DesignTools {
                         PIP pip = curr.get(0);
                         toRemove.add(pip);
                         updateFanout.add(pip.isReversed() ? pip.getEndNode() : pip.getStartNode());
-                        sink = new Node(pip.getTile(), pip.isReversed() ? pip.getEndWireIndex() :
-                                pip.getStartWireIndex());
+                        sink =
+                            new Node(pip.getTile(), pip.isReversed() ? pip.getEndWireIndex() : pip.getStartWireIndex());
                         curr = reverseConns.get(sink);
                         fanoutCount = fanout.getOrDefault(sink, 0);
                     }
                     if (curr == null && !net.isStaticNet()) {
                         if (fanoutCount == 1 && net.getAlternateSource() != null && net.getSource() != null) {
-                            // check if this is a dual-output net and if we just removed one of the outputs
-                            // if so, remove the logical driver flag
+                            // check if this is a dual-output net and if we just removed one of the
+                            // outputs if so, remove the logical driver flag
                             for (PIP pip : net.getPIPs()) {
                                 if (pip.isLogicalDriver()) {
                                     pip.setIsLogicalDriver(false);
@@ -1370,10 +1404,11 @@ public class DesignTools {
                 }
             }
             for (Node startNode : updateFanout) {
-                fanout.compute(startNode, (k,v) -> {
-                        if (v == null) throw new RuntimeException();
-                        assert(v > 0);
-                        return (--v == 0) ? null : v;
+                fanout.compute(startNode, (k, v) -> {
+                    if (v == null)
+                        throw new RuntimeException();
+                    assert (v > 0);
+                    return (--v == 0) ? null : v;
                 });
             }
             updateFanout.clear();
@@ -1395,10 +1430,12 @@ public class DesignTools {
                 if (bel.isFF() && (pin.isEnable() || pin.getName().equals("SR"))) {
                     String sitePinName = getSitePinSource(pin);
                     SitePinInst spi = siteInst.getSitePinInst(sitePinName);
-                    if (spi == null || !spi.getNet().isStaticNet()) continue;
+                    if (spi == null || !spi.getNet().isStaticNet())
+                        continue;
                     boolean otherUsers = false;
                     for (BELPin otherPin : siteInst.getSiteWirePins(pin.getSiteWireName())) {
-                        if (otherPin == pin || otherPin.isOutput()) continue;
+                        if (otherPin == pin || otherPin.isOutput())
+                            continue;
                         if (siteInst.getCell(otherPin.getBEL()) != null) {
                             otherUsers = true;
                             break;
@@ -1418,12 +1455,13 @@ public class DesignTools {
                 String siteWire = siteWires.poll();
                 visited.add(siteWire);
                 for (BELPin otherPin : siteInst.getSiteWirePins(siteWire)) {
-                    if (otherPin == pin) continue;
+                    if (otherPin == pin)
+                        continue;
                     if (otherPin.getBEL().getBELClass() == BELClass.RBEL) {
                         SitePIP pip = siteInst.getUsedSitePIP(otherPin);
                         if (pip != null) {
-                            String nextSiteWire = pip.getInputPin() == otherPin ?
-                                    pip.getOutputPin().getSiteWireName() : pip.getInputPin().getSiteWireName();
+                            String nextSiteWire = pip.getInputPin() == otherPin ? pip.getOutputPin().getSiteWireName()
+                                                                                : pip.getInputPin().getSiteWireName();
                             if (!visited.contains(nextSiteWire)) {
                                 siteWires.add(nextSiteWire);
                             }
@@ -1431,18 +1469,22 @@ public class DesignTools {
                         continue;
                     }
                     Cell otherCell = siteInst.getCell(otherPin.getBEL());
-                    if (otherCell == null) continue;
+                    if (otherCell == null)
+                        continue;
                     if (otherCell.isRoutethru()) {
                         String otherCellType = otherCell.getType();
                         // Ensure the routethru cell is servicing this cell's connection
-                        if (otherCellType.equals(Cell.FF_ROUTETHRU_TYPE) || (otherCellType.equals(cell.getType())
-                                && pin.getName().equals(otherCell.getFirstPhysicalPinMapping().getFirst().getName()))) {
-                            // This will be handled outside of the loop in SiteInst.unrouteIntraSiteNet()
+                        if (otherCellType.equals(Cell.FF_ROUTETHRU_TYPE) ||
+                            (otherCellType.equals(cell.getType()) &&
+                             pin.getName().equals(otherCell.getFirstPhysicalPinMapping().getFirst().getName()))) {
+                            // This will be handled outside of the loop in
+                            // SiteInst.unrouteIntraSiteNet()
                             continue;
                         }
                     }
                     String logicalPinName = otherCell.getLogicalPinMapping(otherPin.getName());
-                    if (logicalPinName == null) continue;
+                    if (logicalPinName == null)
+                        continue;
                     otherUser = true;
                     break;
                 }
@@ -1451,7 +1493,7 @@ public class DesignTools {
                 // Unroute site routing back to pin and remove site pin
                 for (String sitePinName : getAllRoutedSitePinsFromPhysicalPin(cell, net, pin.getName())) {
                     BELPin sitePortBelPin = siteInst.getSite().getBELPin(sitePinName);
-                    assert(sitePortBelPin.isSitePort());
+                    assert (sitePortBelPin.isSitePort());
                     boolean outputSitePin = sitePortBelPin.isInput(); // Input BELPin means output SitePin
                     if (outputSitePin) {
                         siteInst.unrouteIntraSiteNet(pin, sitePortBelPin);
@@ -1465,12 +1507,12 @@ public class DesignTools {
                         handlePinRemovals(spi, deferRemovals);
 
                         if (outputSitePin) {
-                            assert(spi.isOutPin());
+                            assert (spi.isOutPin());
                             SitePinInst altSpi = net.getAlternateSource();
                             if (altSpi != null) {
                                 if (spi == altSpi) {
                                     altSpi = net.getSource();
-                                    assert(spi != altSpi);
+                                    assert (spi != altSpi);
                                 }
                                 siteInst.unrouteIntraSiteNet(pin, altSpi.getBELPin());
                                 handlePinRemovals(altSpi, deferRemovals);
@@ -1484,7 +1526,7 @@ public class DesignTools {
         if (bel.isLUT() && bel.getName().endsWith("5LUT")) {
             String lut6 = bel.getName().replace('5', '6');
             if (siteInst.getCell(lut6) == null) {
-                SitePinInst a6Spi = siteInst.getSitePinInst(lut6.substring(0,2));
+                SitePinInst a6Spi = siteInst.getSitePinInst(lut6.substring(0, 2));
                 if (a6Spi != null) {
                     siteInst.unrouteIntraSiteNet(a6Spi.getBELPin(), siteInst.getBELPin(lut6, "A6"));
                     handlePinRemovals(a6Spi, deferRemovals);
@@ -1496,7 +1538,8 @@ public class DesignTools {
         List<BEL> belsToRemove = null;
         for (Cell otherCell : siteInst.getCells()) {
             if (otherCell.hasAltPinMappings() && otherCell.getName().equals(cell.getName())) {
-                if (belsToRemove == null) belsToRemove = new ArrayList<>();
+                if (belsToRemove == null)
+                    belsToRemove = new ArrayList<>();
                 belsToRemove.add(otherCell.getBEL());
             }
         }
@@ -1510,12 +1553,12 @@ public class DesignTools {
     /**
      * This method will fully unplace (but not remove) a physical cell from a design.
      * In the case where the unplaced cell is the last user of a shared control signal (CLK, CE, SR)
-     * then that pin will also be removed and unrouted immediately if deferRemovals is null, otherwise
-     * it is added to this map.
+     * then that pin will also be removed and unrouted immediately if deferRemovals is null,
+     * otherwise it is added to this map.
      * @param cell The cell to unplace
      * @param deferRemovals An optional map that, if passed in non-null will be populated with
-     * site pins marked for removal.  The map allows for persistent tracking if this method is called
-     * many times as the process is expensive without batching.
+     * site pins marked for removal.  The map allows for persistent tracking if this method is
+     * called many times as the process is expensive without batching.
      */
     public static void fullyUnplaceCell(Cell cell, Map<Net, Set<SitePinInst>> deferRemovals) {
         fullyUnplaceCellHelper(cell, deferRemovals);
@@ -1525,13 +1568,13 @@ public class DesignTools {
     /**
      * This method will completely remove a placed cell (both logical and physical) from a design.
      * In the case where the removed cell is the last user of a shared control signal (CLK, CE, SR)
-     * then that pin will also be removed and unrouted immediately if deferRemovals is null, otherwise
-     * it is added to this map.
+     * then that pin will also be removed and unrouted immediately if deferRemovals is null,
+     * otherwise it is added to this map.
      * @param design The design where the cell is instantiated
      * @param cell The cell to remove
      * @param deferRemovals An optional map that, if passed in non-null will be populated with
-     * site pins marked for removal.  The map allows for persistent tracking if this method is called
-     * many times as the process is expensive without batching.
+     * site pins marked for removal.  The map allows for persistent tracking if this method is
+     * called many times as the process is expensive without batching.
      */
     public static void fullyRemoveCell(Design design, Cell cell, Map<Net, Set<SitePinInst>> deferRemovals) {
         fullyUnplaceCellHelper(cell, deferRemovals);
@@ -1550,15 +1593,16 @@ public class DesignTools {
     }
 
     /**
-     * Helper method for either removing (and unrouting) a SitePinInst immediately (when deferRemovals is null)
-     * or deferring its removal by putting it into the deferRemovals map.
+     * Helper method for either removing (and unrouting) a SitePinInst immediately (when
+     * deferRemovals is null) or deferring its removal by putting it into the deferRemovals map.
      * @param spi SitePinInst object to be removed/unrouted.
-     * @param deferRemovals Optional map for deferring the removal of SitePinInst objects, grouped by their
+     * @param deferRemovals Optional map for deferring the removal of SitePinInst objects, grouped
+     *     by their
      *                      associated Net object.
      */
-    public static void handlePinRemovals(SitePinInst spi, Map<Net,Set<SitePinInst>> deferRemovals) {
+    public static void handlePinRemovals(SitePinInst spi, Map<Net, Set<SitePinInst>> deferRemovals) {
         if (deferRemovals != null) {
-            assert(spi.getNet() != null);
+            assert (spi.getNet() != null);
             Set<SitePinInst> pins = deferRemovals.computeIfAbsent(spi.getNet(), p -> new HashSet<>());
             pins.add(spi);
         } else {
@@ -1575,7 +1619,8 @@ public class DesignTools {
      */
     public static String getSitePinSource(BELPin pin) {
         String currSitePinName = pin.getConnectedSitePinName();
-        outer: while (currSitePinName == null) {
+    outer:
+        while (currSitePinName == null) {
             boolean changedPin = false;
             for (BELPin p : pin.getSiteConns()) {
                 if (p.getBEL().getBELClass() == BELClass.RBEL) {
@@ -1583,7 +1628,8 @@ public class DesignTools {
                         pin = p.equals(pip.getInputPin()) ? pip.getOutputPin() : pip.getInputPin();
                         changedPin = true;
                         String isSitePin = pin.getConnectedSitePinName();
-                        if (isSitePin == null) continue;
+                        if (isSitePin == null)
+                            continue;
                         break outer;
                     }
                 }
@@ -1603,8 +1649,7 @@ public class DesignTools {
      * @param preserveOtherRoutes Flag indicating if when pins are removed, if other routes on the
      * net should be preserved.
      */
-    public static void batchRemoveSitePins(Map<Net, Set<SitePinInst>> deferredRemovals,
-                                            boolean preserveOtherRoutes) {
+    public static void batchRemoveSitePins(Map<Net, Set<SitePinInst>> deferredRemovals, boolean preserveOtherRoutes) {
         for (Entry<Net, Set<SitePinInst>> e : deferredRemovals.entrySet()) {
             Net net = e.getKey();
             SitePinInst srcPin = net.getSource();
@@ -1620,7 +1665,7 @@ public class DesignTools {
                     if (pin.isOutPin() && pin.equals(srcPin)) {
                         net.setSource(null);
                     }
-                    assert(pin.getNet() == net);
+                    assert (pin.getNet() == net);
                     pin.setNet(null);
                     pin.detachSiteInst();
                     continue;
@@ -1634,16 +1679,16 @@ public class DesignTools {
     /**
      * Turns the cell named hierarchicalCellName into a blackbox and removes any
      * associated placement and routing information associated with that instance. In Vivado,
-     * this can be accomplished by running: (1) {@code update_design -cells <name> -black_box} or (2)
-     * by deleting all of the cells and nets insides of a cell instance.  Method (2) is
-     * more likely to have complications.
+     * this can be accomplished by running: (1) {@code update_design -cells <name> -black_box} or
+     * (2) by deleting all of the cells and nets insides of a cell instance.  Method (2) is more
+     * likely to have complications.
      * @param d The current design
      * @param hierarchicalCellName The name of the hierarchical cell to become a black box.
      */
     public static void makeBlackBox(Design d, String hierarchicalCellName) {
         final EDIFHierCellInst inst = d.getNetlist().getHierCellInstFromName(hierarchicalCellName);
         if (inst == null) {
-            throw new IllegalStateException("Did not find cell to make into a blackbox: "+hierarchicalCellName);
+            throw new IllegalStateException("Did not find cell to make into a blackbox: " + hierarchicalCellName);
         }
         makeBlackBox(d, inst);
     }
@@ -1653,11 +1698,12 @@ public class DesignTools {
      * Preserves other parts of the net if used by other sinks in the site if an
      * input. For the unrouting to be successful, this method depends on the site
      * routing to be consistent.
-     * 
+     *
      * @param cell           The cell of the pin
      * @param logicalPinName The logical pin name source or sink to have routing
      *                       removed.
-     * @returns A list of site pins (if any) that should also be removed from inter-site routing to complete the unroute.
+     * @returns A list of site pins (if any) that should also be removed from inter-site routing to
+     *     complete the unroute.
      */
     public static List<SitePinInst> unrouteCellPinSiteRouting(Cell cell, String logicalPinName) {
         List<SitePinInst> sitePinsToRemove = new ArrayList<>();
@@ -1705,77 +1751,77 @@ public class DesignTools {
                     }
                     // Check if it is a site pin, cell pin, sitepip or routethru
                     switch (pin.getBEL().getBELClass()) {
-                    case PORT: {
-                        // We found a site pin, add it to solution set
-                        sitePinNames.add(pin.getName());
-                        break;
-                    }
-                    case BEL: {
-                        // Check if this is another cell being driven by the net, or a route thru
-                        Cell otherCell = siteInst.getCell(pin.getBEL());
-                        if (otherCell != null) {
-                            if (otherCell.isRoutethru()) {
-                                BELPin otherPin = null;
-                                if (pin.isOutput()) {
-                                    assert (otherCell.getUsedPhysicalPinsCount() == 1);
-                                    otherPin = otherCell.getFirstPhysicalPinMapping().getFirst();
-                                } else {
-                                    // Make sure we are coming in on the routed-thru pin
-                                    String otherPinName = otherCell.getFirstPhysicalPinMapping().getFirst().getName();
-                                    if (pin.getName().equals(otherPinName)) {
-                                        otherPin = LUTTools.getLUTOutputPin(pin.getBEL());
+                        case PORT: {
+                            // We found a site pin, add it to solution set
+                            sitePinNames.add(pin.getName());
+                            break;
+                        }
+                        case BEL: {
+                            // Check if this is another cell being driven by the net, or a route
+                            // thru
+                            Cell otherCell = siteInst.getCell(pin.getBEL());
+                            if (otherCell != null) {
+                                if (otherCell.isRoutethru()) {
+                                    BELPin otherPin = null;
+                                    if (pin.isOutput()) {
+                                        assert (otherCell.getUsedPhysicalPinsCount() == 1);
+                                        otherPin = otherCell.getFirstPhysicalPinMapping().getFirst();
+                                    } else {
+                                        // Make sure we are coming in on the routed-thru pin
+                                        String otherPinName =
+                                            otherCell.getFirstPhysicalPinMapping().getFirst().getName();
+                                        if (pin.getName().equals(otherPinName)) {
+                                            otherPin = LUTTools.getLUTOutputPin(pin.getBEL());
+                                        }
                                     }
-                                }
-                                if (otherPin != null) {
-                                    Net otherNet = siteInst.getNetFromSiteWire(otherPin.getSiteWireName());
-                                    if (otherNet != null && net.getName().equals(otherNet.getName())) {
-                                        queue.add(otherPin);
-                                        // Check if the routethru pin is used by companion LUT
-                                        if (otherPin.isInput()) {
-                                            String otherBELName = LUTTools.getCompanionLUTName(otherPin.getBEL());
-                                            Cell companionCell = siteInst.getCell(otherBELName);
-                                            if (companionCell != null
-                                                    && companionCell.getLogicalPinMapping(otherPin.getName()) != null) {
-                                                // We need to remove the routethru if there are no other sinks
-                                                // downstream
-                                                if (internalSinks.size() == 0) {
-                                                    siteInst.removeCell(otherCell.getBEL());
-                                                    siteInst.unrouteIntraSiteNet(pin, pin);
+                                    if (otherPin != null) {
+                                        Net otherNet = siteInst.getNetFromSiteWire(otherPin.getSiteWireName());
+                                        if (otherNet != null && net.getName().equals(otherNet.getName())) {
+                                            queue.add(otherPin);
+                                            // Check if the routethru pin is used by companion LUT
+                                            if (otherPin.isInput()) {
+                                                String otherBELName = LUTTools.getCompanionLUTName(otherPin.getBEL());
+                                                Cell companionCell = siteInst.getCell(otherBELName);
+                                                if (companionCell != null &&
+                                                    companionCell.getLogicalPinMapping(otherPin.getName()) != null) {
+                                                    // We need to remove the routethru if there are
+                                                    // no other sinks downstream
+                                                    if (internalSinks.size() == 0) {
+                                                        siteInst.removeCell(otherCell.getBEL());
+                                                        siteInst.unrouteIntraSiteNet(pin, pin);
+                                                    }
                                                 }
                                             }
-
+                                        } else {
+                                            // site routing terminates here or is invalid
                                         }
+                                    }
+                                } else if (otherCell != cell && otherCell.getLogicalPinMapping(pin.getName()) != null) {
+                                    // Don't search farther, we don't need to unroute anything else
+                                    if (pin.isInput() && belPin.isInput()) {
+                                        internalSinks.add(pin);
                                     } else {
-                                        // site routing terminates here or is invalid
+                                        internalTerminals.add(pin);
                                     }
                                 }
-                            } else if (otherCell != cell && otherCell.getLogicalPinMapping(pin.getName()) != null) {
-                                // Don't search farther, we don't need to unroute anything else
-                                if (pin.isInput() && belPin.isInput()) {
-                                    internalSinks.add(pin);
+                            }
+                            break;
+                        }
+                        case RBEL: {
+                            // We found a routing BEL, follow its sitepip
+                            SitePIP sitePIP = siteInst.getUsedSitePIP(pin);
+                            if (sitePIP != null) {
+                                BELPin otherPin = pin.isInput() ? sitePIP.getOutputPin() : sitePIP.getInputPin();
+                                Net otherNet = siteInst.getNetFromSiteWire(otherPin.getSiteWireName());
+                                if (otherNet != null && net.getName().equals(otherNet.getName())) {
+                                    queue.add(otherPin);
+                                    unrouteSegment = otherPin;
                                 } else {
-                                    internalTerminals.add(pin);
+                                    // site routing terminates here or is invalid
                                 }
-
                             }
+                            break;
                         }
-                        break;
-                    }
-                    case RBEL: {
-                        // We found a routing BEL, follow its sitepip
-                        SitePIP sitePIP = siteInst.getUsedSitePIP(pin);
-                        if (sitePIP != null) {
-                            BELPin otherPin = pin.isInput() ? sitePIP.getOutputPin() : sitePIP.getInputPin();
-                            Net otherNet = siteInst.getNetFromSiteWire(otherPin.getSiteWireName());
-                            if (otherNet != null && net.getName().equals(otherNet.getName())) {
-                                queue.add(otherPin);
-                                unrouteSegment = otherPin;
-                            } else {
-                                // site routing terminates here or is invalid
-                            }
-                        }
-                        break;
-                    }
                     }
                     visited.add(pin);
                 }
@@ -1809,9 +1855,8 @@ public class DesignTools {
                             siteInst.unrouteIntraSiteNet(belPin, pin.getBELPin());
                         }
                     } else {
-                        // Vivado leaves dual output *MUX partially routed, unroute the site for this
-                        // MUX pin
-                        // Could also be a cell with no loads
+                        // Vivado leaves dual output *MUX partially routed, unroute the site for
+                        // this MUX pin Could also be a cell with no loads
                         siteInst.unrouteIntraSiteNet(belPin, siteInst.getBELPin(sitePinName, sitePinName));
                     }
                 }
@@ -1832,17 +1877,17 @@ public class DesignTools {
      * cells and nets insides of a cell instance. Method (2) is more likely to have
      * complications. This also unroutes both GND and VCC nets to avoid
      * implementation issues by Vivado in subsequent place and route runs.
-     * 
+     *
      * @param d                The current design
      * @param hierarchicalCell The hierarchical cell to become a black box.
      */
     public static void makeBlackBox(Design d, EDIFHierCellInst hierarchicalCell) {
-        CodePerfTracker t = CodePerfTracker.SILENT;// new CodePerfTracker("makeBlackBox", true);
+        CodePerfTracker t = CodePerfTracker.SILENT; // new CodePerfTracker("makeBlackBox", true);
         t.start("Init");
         EDIFCellInst futureBlackBox = hierarchicalCell.getInst();
         if (futureBlackBox == null)
-            throw new RuntimeException(
-                    "ERROR: Couldn't find cell " + hierarchicalCell + " in source design " + d.getName());
+            throw new RuntimeException("ERROR: Couldn't find cell " + hierarchicalCell + " in source design " +
+                                       d.getName());
 
         if (hierarchicalCell.getCellType() == d.getTopEDIFCell()) {
             d.unplaceDesign();
@@ -1864,7 +1909,7 @@ public class DesignTools {
             EDIFHierNet hierNetName = new EDIFHierNet(hierParentName, net);
             EDIFHierNet parentNetName = d.getNetlist().getParentNet(hierNetName);
             boundaryNets.put(parentNetName.getHierarchicalNetName(),
-                    portInst.isOutput() ? hierNetName.getHierarchicalNetName() : null);
+                             portInst.isOutput() ? hierNetName.getHierarchicalNetName() : null);
 
             // Remove parts of routed GND/VCC nets exiting the black box
             if (portInst.isInput())
@@ -1930,7 +1975,8 @@ public class DesignTools {
 
             // Remove all physical nets first
             for (String logPin : c.getPhysicalPinMappings()) {
-                if (logPin == null) continue;
+                if (logPin == null)
+                    continue;
                 List<SitePinInst> removePins = unrouteCellPinSiteRouting(c, logPin);
                 for (SitePinInst pin : removePins) {
                     pinsToRemove.computeIfAbsent(pin.getNet(), $ -> new HashSet<>()).add(pin);
@@ -2005,8 +2051,8 @@ public class DesignTools {
         t.stop().start("create bbox");
 
         // Make EDIFCell blackbox
-        EDIFCell blackBox = new EDIFCell(futureBlackBox.getCellType().getLibrary(),
-                "black_box" + uniqueBlackBoxCount++);
+        EDIFCell blackBox =
+            new EDIFCell(futureBlackBox.getCellType().getLibrary(), "black_box" + uniqueBlackBoxCount++);
         for (EDIFPort port : futureBlackBox.getCellType().getPorts()) {
             blackBox.addPort(port);
         }
@@ -2049,8 +2095,8 @@ public class DesignTools {
      * @param instPlacements Desired locations for placements
      * @return True if the procedure completed successfully, false otherwise.
      */
-    public static boolean stampPlacement(Design design, Module stamp, Map<String,Site> instPlacements) {
-        for (Entry<String,Site> e : instPlacements.entrySet()) {
+    public static boolean stampPlacement(Design design, Module stamp, Map<String, Site> instPlacements) {
+        for (Entry<String, Site> e : instPlacements.entrySet()) {
             String instName = e.getKey();
             String prefix = instName + "/";
             Site newAnchor = e.getValue();
@@ -2143,7 +2189,8 @@ public class DesignTools {
         for (BELPin p : pin.getSiteConns()) {
             if (p.getBEL().getBELClass() == BELClass.RBEL) {
                 SitePIP pip = si.getUsedSitePIP(p.getBELName());
-                if (pip == null) continue;
+                if (pip == null)
+                    continue;
                 if (p.isOutput()) {
                     p = pip.getInputPin().getSiteConns().get(0);
                     action.accept(p);
@@ -2171,8 +2218,9 @@ public class DesignTools {
     }
 
     /**
-     * Looks in the site instance for cells connected (i.e. with a logical pin mapping) to this BEL pin and SiteInst.
-     * Will walk through used SitePIPs and routethru cells (e.g. LUTs, IMR registers, etc.)
+     * Looks in the site instance for cells connected (i.e. with a logical pin mapping) to this BEL
+     * pin and SiteInst. Will walk through used SitePIPs and routethru cells (e.g. LUTs, IMR
+     * registers, etc.)
      * @param pin The BELPin to examine for connected cells.
      * @param si The SiteInst to examine for connected cells.
      * @return Set of connected cells to this pin.
@@ -2189,8 +2237,8 @@ public class DesignTools {
     }
 
     /**
-     * Looks in the site instance for cells connected (i.e. with a logical pin mapping) to this site pin.
-     * Will walk through used SitePIPs and routethru cells (e.g. LUTs, IMR registers, etc.)
+     * Looks in the site instance for cells connected (i.e. with a logical pin mapping) to this site
+     * pin. Will walk through used SitePIPs and routethru cells (e.g. LUTs, IMR registers, etc.)
      * @param pin The SitePinInst to examine for connected cells.
      * @return Set of connected cells to this pin.
      */
@@ -2242,14 +2290,14 @@ public class DesignTools {
                 if (i == null) {
                     for (String bel : e.getValue()) {
                         boolean success = design.placeCell(c, s, s.getBEL(bel));
-                        if (success) return true;
+                        if (success)
+                            return true;
                     }
                 }
             }
         }
         return false;
     }
-
 
     /**
      * Creates any and all missing SitePinInsts for this net.  This is common as a placed
@@ -2270,8 +2318,8 @@ public class DesignTools {
             // Assert that this physical net is a parent logical net
             EDIFHierNet hierNet;
             EDIFHierNet parentHierNet;
-            assert((hierNet = net.getLogicalHierNet()) == null || (parentHierNet = netlist.getParentNet(hierNet)) == null ||
-                    hierNet.equals(parentHierNet));
+            assert ((hierNet = net.getLogicalHierNet()) == null ||
+                    (parentHierNet = netlist.getParentNet(hierNet)) == null || hierNet.equals(parentHierNet));
 
             // Likely net inside encrypted IP, let's see if we can infer anything from existing
             // physical description
@@ -2284,7 +2332,7 @@ public class DesignTools {
 
                         String pinName = pin.getName();
                         SitePinInst currPin;
-                        synchronized(siteInst) {
+                        synchronized (siteInst) {
                             currPin = siteInst.getSitePinInst(pinName);
                         }
                         if (currPin != null) {
@@ -2293,8 +2341,8 @@ public class DesignTools {
                         }
 
                         if (pin.isInput()) {
-                            // Input BELPin means output site port; check that this site port is driven
-                            // by a cell, rather than coming from an input site port
+                            // Input BELPin means output site port; check that this site port is
+                            // driven by a cell, rather than coming from an input site port
                             boolean foundOutputPin = false;
                             for (BELPin connectedBELPin : getConnectedBELPins(pin, siteInst)) {
                                 if (connectedBELPin.isInput()) {
@@ -2320,14 +2368,17 @@ public class DesignTools {
             return newPins;
         }
 
-        for (EDIFHierPortInst p :  physPins) {
+        for (EDIFHierPortInst p : physPins) {
             Cell c = design.getCell(p.getFullHierarchicalInstName());
-            if (c == null) continue;
+            if (c == null)
+                continue;
             BEL bel = c.getBEL();
-            if (bel == null) continue;
+            if (bel == null)
+                continue;
             String logicalPinName = p.getPortInst().getName();
             Set<String> physPinMappings;
-            // Need to synchronize on the cell since its internally cached logical-to-physical map is computed lazily
+            // Need to synchronize on the cell since its internally cached logical-to-physical map
+            // is computed lazily
             synchronized (c) {
                 physPinMappings = c.getAllPhysicalPinMappings(logicalPinName);
             }
@@ -2337,8 +2388,9 @@ public class DesignTools {
                 for (String physPin : physPinMappings) {
                     BELPin belPin = bel.getPin(physPin);
                     // Use the net attached to the phys pin
-                    // This call (a read operation) does not need to be synchronized since it is assumed that this thread
-                    // is the only one that performs (i.e. modifies) intra-site routing for this net (or its aliases)
+                    // This call (a read operation) does not need to be synchronized since it is
+                    // assumed that this thread is the only one that performs (i.e. modifies)
+                    // intra-site routing for this net (or its aliases)
                     Net siteWireNet = si.getNetFromSiteWire(belPin.getSiteWireName());
                     if (siteWireNet == null) {
                         if (isVersal && net.isStaticNet() && bel.isLUT()) {
@@ -2352,24 +2404,31 @@ public class DesignTools {
                     }
                     if (siteWireNet != net && !siteWireNet.isStaticNet()) {
                         EDIFHierNet hierNet = null;
-                        assert((hierNet = net.getLogicalHierNet()) == null || hierNet.equals(netlist.getParentNet(hierNet)));
+                        assert ((hierNet = net.getLogicalHierNet()) == null ||
+                                hierNet.equals(netlist.getParentNet(hierNet)));
                         if (hierNet != null) {
                             EDIFHierNet siteWireHierNet = null;
-                            assert((siteWireHierNet = siteWireNet.getLogicalHierNet()) == null || siteWireHierNet.equals(netlist.getParentNet(siteWireHierNet)));
-                            assert(hierNet.equals(siteWireHierNet) || (isNetDrivenByMBUFGCE(hierNet) && isNetDrivenByMBUFGCE(siteWireHierNet)));
+                            assert ((siteWireHierNet = siteWireNet.getLogicalHierNet()) == null ||
+                                    siteWireHierNet.equals(netlist.getParentNet(siteWireHierNet)));
+                            assert (hierNet.equals(siteWireHierNet) ||
+                                    (isNetDrivenByMBUFGCE(hierNet) && isNetDrivenByMBUFGCE(siteWireHierNet)));
                         }
                     }
                     SitePinInst newPin;
-                    // Similarly, this call (a read operation) does not need to be synchronized since it is assumed that
-                    // this thread is the only one that performs (i.e. modifies) intra-site routing for this net
+                    // Similarly, this call (a read operation) does not need to be synchronized
+                    // since it is assumed that this thread is the only one that performs (i.e.
+                    // modifies) intra-site routing for this net
                     String sitePinName = getRoutedSitePinFromPhysicalPin(c, siteWireNet, physPin);
-                    if (sitePinName == null) continue;
+                    if (sitePinName == null)
+                        continue;
                     synchronized (si) {
                         newPin = si.getSitePinInst(sitePinName);
-                        if (newPin != null) continue;
+                        if (newPin != null)
+                            continue;
                         if (sitePinName.equals("IO") && Utils.isIOB(si)) {
-                            // Do not create a SitePinInst for the "IO" input site pin of any IOB site,
-                            // since the sitewire it drives is assumed to be driven by the IO PAD.
+                            // Do not create a SitePinInst for the "IO" input site pin of any IOB
+                            // site, since the sitewire it drives is assumed to be driven by the IO
+                            // PAD.
                             continue;
                         }
                         newPin = net.createPin(sitePinName, si);
@@ -2438,7 +2497,7 @@ public class DesignTools {
             BELPin curr = queue.remove();
             Net netOnSiteWire = inst.getNetFromSiteWireIndex(curr.getSiteWireIndex());
             if (netOnSiteWire != net &&
-                    !(forGndNetsAlsoAllowThisVccNet != null && netOnSiteWire == forGndNetsAlsoAllowThisVccNet)) {
+                !(forGndNetsAlsoAllowThisVccNet != null && netOnSiteWire == forGndNetsAlsoAllowThisVccNet)) {
                 String siteWireName = curr.getSiteWireName();
                 // Allow dedicated paths to pass without site routing
                 if (siteWireName.equals("CIN") || siteWireName.equals("COUT")) {
@@ -2461,10 +2520,9 @@ public class DesignTools {
                             continue;
                         }
                         queue.add(sitePIP.getInputPin());
-                    } else if (bel.isLUT() ||
-                            bel.getBELType().endsWith("MUX") || // F[789]MUX
-                            // Versal
-                            bel.isSliceFFClkMod() || bel.isIMR() || bel.isSRIMR() || bel.isCEIMR()) {
+                    } else if (bel.isLUT() || bel.getBELType().endsWith("MUX") || // F[789]MUX
+                                                                                  // Versal
+                               bel.isSliceFFClkMod() || bel.isIMR() || bel.isSRIMR() || bel.isCEIMR()) {
                         Cell possibleRouteThru = inst.getCell(bel);
                         if (possibleRouteThru == null) {
                             BELPin clkBelPin = bel.isSliceFFClkMod() ? bel.getPin("CLK") : null;
@@ -2483,7 +2541,7 @@ public class DesignTools {
                 for (BELPin sink : curr.getSiteConns()) {
                     netOnSiteWire = inst.getNetFromSiteWireIndex(sink.getSiteWireIndex());
                     if (netOnSiteWire != net &&
-                            !(forGndNetsAlsoAllowThisVccNet != null && netOnSiteWire == forGndNetsAlsoAllowThisVccNet)) {
+                        !(forGndNetsAlsoAllowThisVccNet != null && netOnSiteWire == forGndNetsAlsoAllowThisVccNet)) {
                         continue;
                     }
                     if (sink.isSitePort()) {
@@ -2497,7 +2555,7 @@ public class DesignTools {
                         if (sitePIP == null) {
                             continue;
                         }
-                        assert(sitePIP.getInputPinName().equals(sink.getName()));
+                        assert (sitePIP.getInputPinName().equals(sink.getName()));
                         // Make this the new source to search from and keep looking...
                         queue.add(sitePIP.getOutputPin());
                     } else if (bel.isFF()) {
@@ -2507,7 +2565,8 @@ public class DesignTools {
                         if (netOnSiteWire == net) {
                             sitePins.add(qPin.getSiteWireName());
                         } else {
-                            assert(!(forGndNetsAlsoAllowThisVccNet != null && netOnSiteWire == forGndNetsAlsoAllowThisVccNet));
+                            assert (!(forGndNetsAlsoAllowThisVccNet != null &&
+                                      netOnSiteWire == forGndNetsAlsoAllowThisVccNet));
                         }
                     } else if (bel.getBELType().equals("DSP_CAS_DELAY")) {
                         // Versal only
@@ -2515,15 +2574,15 @@ public class DesignTools {
                         if (sitePIP == null) {
                             continue;
                         }
-                        assert(sitePIP.getInputPinName().equals(sink.getName()));
-                        // For an unknown reason, it appears that the sitewire is not painted correctly ...
-                        // Make this the new source to search from and keep looking...
+                        assert (sitePIP.getInputPinName().equals(sink.getName()));
+                        // For an unknown reason, it appears that the sitewire is not painted
+                        // correctly ... Make this the new source to search from and keep looking...
                         // queue.add(sitePIP.getOutputPin());
                         // ... so assume it is and workaround
                         BELPin source = sitePIP.getOutputPin();
-                        assert(source.getSiteConns().size() == 1);
+                        assert (source.getSiteConns().size() == 1);
                         BELPin port = source.getSiteConns().get(0);
-                        assert(port.isSitePort());
+                        assert (port.isSitePort());
                         sitePins.add(port.getName());
                     }
                 }
@@ -2533,10 +2592,11 @@ public class DesignTools {
     }
 
     /**
-     * Creates all missing SitePinInsts in a design, except GLOBAL_USEDNET. This method is multi-threaded based on the
-     * setting in {@link ParallelismTools}. See also {@link #createMissingSitePinInsts(Design, Net)}.
-     * It is required that the `Design` object only contains physical nets that refer to parent logical nets
-     * (use {@link #makePhysNetNamesConsistent(Design)} to make this the case).
+     * Creates all missing SitePinInsts in a design, except GLOBAL_USEDNET. This method is
+     * multi-threaded based on the setting in {@link ParallelismTools}. See also {@link
+     * #createMissingSitePinInsts(Design, Net)}. It is required that the `Design` object only
+     * contains physical nets that refer to parent logical nets (use {@link
+     * #makePhysNetNamesConsistent(Design)} to make this the case).
      * @param design The current design
      */
     public static void createMissingSitePinInsts(Design design) {
@@ -2547,10 +2607,11 @@ public class DesignTools {
         netlist.getPhysicalNetPinMap();
 
         int numNets = design.getNets().size();
-        // Experimentally best performing number of jobs, where each job cannot have less than 100 objects
+        // Experimentally best performing number of jobs, where each job cannot have less than 100
+        // objects
         int numJobs = Math.min(ParallelismTools.maxParallelism() * 100, numNets / 100);
         List<Net> designNets = new ArrayList<>(design.getNets());
-        List<List<Net>> partitionedNets = Lists.partition(designNets, (int) Math.ceil((double) numNets / numJobs));
+        List<List<Net>> partitionedNets = Lists.partition(designNets, (int)Math.ceil((double)numNets / numJobs));
         List<Future<?>> futures = new ArrayList<>();
         for (List<Net> nets : partitionedNets) {
             Future<?> f = ParallelismTools.submit(() -> {
@@ -2560,8 +2621,8 @@ public class DesignTools {
                     }
                     EDIFHierNet ehn;
                     EDIFHierNet parentEhn;
-                    assert((ehn = net.getLogicalHierNet()) == null || (parentEhn = netlist.getParentNet(ehn)) == null ||
-                            ehn.equals(parentEhn));
+                    assert ((ehn = net.getLogicalHierNet()) == null ||
+                            (parentEhn = netlist.getParentNet(ehn)) == null || ehn.equals(parentEhn));
                     createMissingSitePinInsts(design, net);
                 }
             });
@@ -2575,7 +2636,7 @@ public class DesignTools {
 
     static {
         muxPins = new HashSet<String>();
-        for (char c = 'A' ; c <= 'H' ; c++) {
+        for (char c = 'A'; c <= 'H'; c++) {
             muxPins.add(c + "MUX");
         }
     }
@@ -2606,7 +2667,8 @@ public class DesignTools {
                         }
                     }
                 }
-                if (toRemove == null) continue;
+                if (toRemove == null)
+                    continue;
                 for (String name : toRemove) {
                     Net net = siteInst.getNetFromSiteWire(name);
                     BELPin belPin = siteInst.getBEL(name).getPin(name);
@@ -2614,8 +2676,9 @@ public class DesignTools {
                     SitePIP sitePIP = siteInst.getUsedSitePIP(muxOutput.getBELName());
                     BELPin srcPin = sitePIP.getInputPin().getSourcePin();
                     boolean success = siteInst.unrouteIntraSiteNet(srcPin, belPin);
-                    if (!success) throw new RuntimeException("ERROR: Failed to unroute dual output "
-                            + "net/pin scenario: " + net + " on pin " + name);
+                    if (!success)
+                        throw new RuntimeException("ERROR: Failed to unroute dual output "
+                                                   + "net/pin scenario: " + net + " on pin " + name);
                     siteInst.routeIntraSiteNet(net, srcPin, srcPin);
                     if (net.getSource() != null && net.getSource().getName().equals(belPin.getName())) {
                         net.removePin(net.getSource());
@@ -2634,12 +2697,15 @@ public class DesignTools {
      */
     public static SitePinInst getLegalAlternativeOutputPin(Net net) {
         SitePinInst alt = net.getAlternateSource();
-        if (alt != null) return alt;
+        if (alt != null)
+            return alt;
         SitePinInst src = net.getSource();
-        if (src == null) return null;
+        if (src == null)
+            return null;
         SiteInst siteInst = src.getSiteInst();
         // Currently only support SLICE scenarios
-        if (!Utils.isSLICE(siteInst)) return null;
+        if (!Utils.isSLICE(siteInst))
+            return null;
 
         // Series 7: AMUX <-> A, BMUX <-> B, CMUX <-> C, DMUX <-> D
         // UltraScale/+: AMUX <-> A_O, BMUX <-> B_O, ... HMUX <-> H_O
@@ -2648,7 +2714,8 @@ public class DesignTools {
 
         // Find the logical source
         BELPin logicalSource = getLogicalBELPinDriver(src);
-        if (logicalSource == null) return null;
+        if (logicalSource == null)
+            return null;
         q.add(logicalSource);
 
         // Fan out from logical source to all site pins
@@ -2657,7 +2724,8 @@ public class DesignTools {
             BELPin currOutPin = q.poll();
             Net currNet = siteInst.getNetFromSiteWire(currOutPin.getSiteWireName());
             // Skip any resources used by another net
-            if (currNet != null && !currNet.equals(net)) continue;
+            if (currNet != null && !currNet.equals(net))
+                continue;
             for (BELPin pin : currOutPin.getSiteConns()) {
                 if (pin.getBEL().getBELClass() == BELClass.RBEL) {
                     SitePIP pip = src.getSiteInst().getSitePIP(pin);
@@ -2707,11 +2775,13 @@ public class DesignTools {
 
         // Looks like the approach above failed (site may not be routed), try logical path
         Net net = sitePinInst.getNet();
-        if (net == null) return null;
+        if (net == null)
+            return null;
         Design design = siteInst.getDesign();
         EDIFNetlist netlist = design.getNetlist();
         EDIFHierNet hierNet = netlist.getHierNetFromName(net.getName());
-        if (hierNet == null) return null;
+        if (hierNet == null)
+            return null;
         List<EDIFPortInst> portInsts = hierNet.getNet().getSourcePortInsts(false);
         for (EDIFPortInst portInst : portInsts) {
             Cell c = design.getCell(hierNet.getHierarchicalInstName(portInst));
@@ -2729,7 +2799,8 @@ public class DesignTools {
      * @return True if the routing was successful, false otherwise
      */
     public static boolean routeAlternativeOutputSitePin(Net net, SitePinInst sitePinInst) {
-        if (sitePinInst == null) return false;
+        if (sitePinInst == null)
+            return false;
         net.setAlternateSource(sitePinInst);
         sitePinInst.setNet(net);
 
@@ -2747,7 +2818,8 @@ public class DesignTools {
      */
     public static boolean unrouteAlternativeOutputSitePin(Net net) {
         SitePinInst altPin = net.getAlternateSource();
-        if (altPin == null) return false;
+        if (altPin == null)
+            return false;
         SiteInst siteInst = altPin.getSiteInst();
 
         BELPin driver = getLogicalBELPinDriver(net.getSource());
@@ -2766,7 +2838,7 @@ public class DesignTools {
      * pin. If the site has been routed, it will only return those pins that are
      * reachable through the site routing. For those paths that are not routed in
      * the site, it will return all possible connections that could be made.
-     * 
+     *
      * @param sitePin The site pin to query.
      * @return A list of hierarchical port instances that can connect to the site pin.
      */
@@ -2785,23 +2857,28 @@ public class DesignTools {
                     SitePIP sitePIP = siteInst.getUsedSitePIP(belPin);
                     if (sitePIP != null) {
                         BELPin otherPin = belPin.isOutput() ? sitePIP.getInputPin() : sitePIP.getOutputPin();
-                        nextPin: for (BELPin belPin2 : otherPin.getSiteConns()) {
-                            if (belPin2.equals(otherPin)) continue;
+                    nextPin:
+                        for (BELPin belPin2 : otherPin.getSiteConns()) {
+                            if (belPin2.equals(otherPin))
+                                continue;
                             if (belPin2.getBEL().isSliceFFClkMod()) {
                                 for (BELPin conn : belPin2.getBEL().getPin("CLK_OUT").getSiteConns()) {
                                     EDIFHierPortInst portInst = getPortInstFromBELPin(siteInst, conn);
-                                    if (portInst != null) portInsts.add(portInst);
+                                    if (portInst != null)
+                                        portInsts.add(portInst);
                                 }
                                 break nextPin;
                             } else if (belPin2.getBEL().isSRIMR()) {
                                 for (BELPin conn : belPin2.getBEL().getPin("Q").getSiteConns()) {
                                     EDIFHierPortInst portInst = getPortInstFromBELPin(siteInst, conn);
-                                    if (portInst != null) portInsts.add(portInst);
+                                    if (portInst != null)
+                                        portInsts.add(portInst);
                                 }
                                 break nextPin;
                             }
                             EDIFHierPortInst portInst = getPortInstFromBELPin(siteInst, belPin2);
-                            if (portInst != null) portInsts.add(portInst);
+                            if (portInst != null)
+                                portInsts.add(portInst);
                         }
                     } else if (bel.isAnyIMR()) {
                         BELPin imrOut = bel.getPin("Q");
@@ -2821,17 +2898,19 @@ public class DesignTools {
                     } else if (sitePIP == null) {
                         // No sitePIP has been set, explore all options
                         for (SitePIP pip : belPin.getSitePIPs()) {
-                            List<BELPin> pins = belPin.isInput() ? pip.getOutputPin().getSiteConns()
-                                    : pip.getInputPin().getSiteConns();
+                            List<BELPin> pins =
+                                belPin.isInput() ? pip.getOutputPin().getSiteConns() : pip.getInputPin().getSiteConns();
                             for (BELPin pin : pins) {
                                 Cell c = siteInst.getCell(pin.getBEL());
                                 if (c != null) {
                                     EDIFHierPortInst portInst = getPortInstFromBELPin(siteInst, pin);
                                     Net sitePinNet = sitePin.getNet();
                                     if (portInst != null && sitePinNet != null) {
-                                        if (sitePinNet.isStaticNet() && sitePinNet.getType() == portInst.getNet().getPhysStaticSourceType()) { 
+                                        if (sitePinNet.isStaticNet() &&
+                                            sitePinNet.getType() == portInst.getNet().getPhysStaticSourceType()) {
                                             portInsts.add(portInst);
-                                        } else if (portInst.getHierarchicalNet().isAlias(sitePin.getNet().getLogicalHierNet())) {
+                                        } else if (portInst.getHierarchicalNet().isAlias(
+                                                       sitePin.getNet().getLogicalHierNet())) {
                                             portInsts.add(portInst);
                                         }
                                     }
@@ -2847,7 +2926,8 @@ public class DesignTools {
                         queue.addAll(Arrays.asList(belPins));
                     } else {
                         EDIFHierPortInst portInst = getPortInstFromBELPin(siteInst, belPin);
-                        if (portInst != null) portInsts.add(portInst);
+                        if (portInst != null)
+                            portInsts.add(portInst);
                     }
                 }
             }
@@ -2876,7 +2956,8 @@ public class DesignTools {
             return null;
         }
         String logPinName = targetCell.getLogicalPinMapping(belPin.getName());
-        if (logPinName == null) return null;
+        if (logPinName == null)
+            return null;
         EDIFCellInst eci = targetCell.getEDIFCellInst();
         if (eci == null) {
             return null;
@@ -2884,7 +2965,7 @@ public class DesignTools {
         EDIFPortInst portInst = eci.getPortInst(logPinName);
         final EDIFNetlist netlist = targetCell.getSiteInst().getDesign().getNetlist();
         EDIFHierPortInst hierPortInst =
-                new EDIFHierPortInst(netlist.getHierCellInstFromName(targetCell.getParentHierarchicalInstName()), portInst);
+            new EDIFHierPortInst(netlist.getHierCellInstFromName(targetCell.getParentHierarchicalInstName()), portInst);
         return hierPortInst;
     }
 
@@ -2896,12 +2977,12 @@ public class DesignTools {
      * @return A map of invertible pins that are that are mapped to their respective parameter name
      * that controls inversion.
      */
-    public static Map<String,String> getInvertiblePinMap(Series series, Unisim unisim) {
-        Map<String,String> invertPinMap = new HashMap<String, String>();
+    public static Map<String, String> getInvertiblePinMap(Series series, Unisim unisim) {
+        Map<String, String> invertPinMap = new HashMap<String, String>();
         for (Entry<String, VivadoProp> e : Design.getDefaultCellProperties(series, unisim.name()).entrySet()) {
             String propName = e.getKey();
             if (propName.startsWith("IS_") && propName.endsWith("_INVERTED")) {
-                String pinName = propName.substring(propName.indexOf('_')+1, propName.lastIndexOf('_'));
+                String pinName = propName.substring(propName.indexOf('_') + 1, propName.lastIndexOf('_'));
                 invertPinMap.put(pinName, propName);
             }
         }
@@ -2921,17 +3002,19 @@ public class DesignTools {
      * instances from which to copy the implementation. If targeting the top instance, use an
      * empty String ("") as the destination instance name.
      */
-    public static void copyImplementation(Design src, Design dest, boolean lockPlacement,
-                                          boolean lockRouting, Map<String,String> srcToDestInstNames) {
+    public static void copyImplementation(Design src, Design dest, boolean lockPlacement, boolean lockRouting,
+                                          Map<String, String> srcToDestInstNames) {
         copyImplementation(src, dest, false, false, lockPlacement, lockRouting, srcToDestInstNames);
     }
 
     /**
-     * Copies the logic and implementation of a set of cells from one design to another with additional flags to control copying nets.
+     * Copies the logic and implementation of a set of cells from one design to another with
+     * additional flags to control copying nets.
      * @param src The source design (with partial or full implementation)
      * @param dest The destination design (with matching cell instance interfaces)
      * @param copyStaticNets Flag indicating if static nets should be copied
-     * @param copyOnlyInternalNets Flag indicating if only nets with every terminal inside the cell should be copied
+     * @param copyOnlyInternalNets Flag indicating if only nets with every terminal inside the cell
+     *     should be copied
      * @param lockPlacement Flag indicating if the destination implementation copy should have the
      *     placement locked
      * @param lockRouting Flag indicating if the destination implementation copy should have the
@@ -2939,20 +3022,21 @@ public class DesignTools {
      * @param srcToDestInstNames A map of source (key) to destination (value) pairs of cell
      * instances from which to copy the implementation
      */
-    public static void copyImplementation(Design src, Design dest, boolean copyStaticNets, boolean copyOnlyInternalNets, boolean lockPlacement,
-            boolean lockRouting, Map<String,String> srcToDestInstNames) {
+    public static void copyImplementation(Design src, Design dest, boolean copyStaticNets, boolean copyOnlyInternalNets,
+                                          boolean lockPlacement, boolean lockRouting,
+                                          Map<String, String> srcToDestInstNames) {
         // Removing existing logic in target cells in destination design
         EDIFNetlist destNetlist = dest.getNetlist();
-        for (Entry<String,String> e : srcToDestInstNames.entrySet()) {
+        for (Entry<String, String> e : srcToDestInstNames.entrySet()) {
             DesignTools.makeBlackBox(dest, e.getValue());
         }
         destNetlist.removeUnusedCellsFromAllWorkLibraries();
 
         // Populate black boxes with existing logical netlist cells
         HashSet<String> instsWithSeparator = new HashSet<>();
-        for (Entry<String,String> e : srcToDestInstNames.entrySet()) {
-            EDIFHierCellInst cellInst = e.getKey().length()==0 ? src.getNetlist().getTopHierCellInst()
-                    : src.getNetlist().getHierCellInstFromName(e.getKey());
+        for (Entry<String, String> e : srcToDestInstNames.entrySet()) {
+            EDIFHierCellInst cellInst = e.getKey().length() == 0 ? src.getNetlist().getTopHierCellInst()
+                                                                 : src.getNetlist().getHierCellInstFromName(e.getKey());
             if (e.getValue().length() == 0) {
                 // If its the top cell, remove the top cell from destNetlist
                 EDIFLibrary destLib = destNetlist.getLibrary(cellInst.getCellType().getLibrary().getName());
@@ -2975,12 +3059,12 @@ public class DesignTools {
         }
         destNetlist.resetParentNetMap();
 
-        Map<String,String> prefixes = new HashMap<>();
+        Map<String, String> prefixes = new HashMap<>();
         for (String srcPrefix : srcToDestInstNames.keySet()) {
-            if (srcPrefix.length()==0) {
+            if (srcPrefix.length() == 0) {
                 prefixes.put(srcPrefix, srcPrefix);
             } else {
-                    prefixes.put(srcPrefix + "/", srcPrefix);
+                prefixes.put(srcPrefix + "/", srcPrefix);
             }
         }
 
@@ -2995,8 +3079,8 @@ public class DesignTools {
                 SiteInst srcSiteInst = cell.getSiteInst();
                 siteInstsOfCells.add(srcSiteInst);
                 if (dstSiteInst == null) {
-                    dstSiteInst = dest.createSiteInst(srcSiteInst.getName(),
-                                    srcSiteInst.getSiteTypeEnum(), srcSiteInst.getSite());
+                    dstSiteInst = dest.createSiteInst(srcSiteInst.getName(), srcSiteInst.getSiteTypeEnum(),
+                                                      srcSiteInst.getSite());
                 }
                 String newCellName = getNewHierName(cellName, srcToDestInstNames, prefixes, prefixMatch);
                 Cell copy = cell.copyCell(newCellName, cell.getEDIFHierCellInst(), dstSiteInst);
@@ -3019,7 +3103,8 @@ public class DesignTools {
             }
 
             List<EDIFHierPortInst> pins = src.getNetlist().getPhysicalPins(net);
-            if (pins == null) continue;
+            if (pins == null)
+                continue;
             // Identify the kinds of routes to preserve:
             //  - Has the source in the preservation zone
             //  - Has at least one sink inside preservation zone
@@ -3036,11 +3121,13 @@ public class DesignTools {
                 }
             }
             // Don't keep routing if source is not in preservation zone
-            if (!srcInside) continue;
+            if (!srcInside)
+                continue;
             if (copyOnlyInternalNets && outside.size() > 0) {
                 continue;
             }
-            if ((outside.size() + 1) >= pins.size()) continue;
+            if ((outside.size() + 1) >= pins.size())
+                continue;
 
             Set<SitePinInst> pinsToRemove = new HashSet<>();
             // Net is partially inside, preserve only portions inside
@@ -3056,14 +3143,16 @@ public class DesignTools {
             }
             Net copiedNet = dest.createNet(newNetName);
             for (PIP p : net.getPIPs()) {
-                if (pipsToRemove.contains(p)) continue;
+                if (pipsToRemove.contains(p))
+                    continue;
                 copiedNet.addPIP(p);
                 if (lockRouting) {
                     p.setIsPIPFixed(true);
                 }
             }
             for (SitePinInst spi : net.getPins()) {
-                if (pinsToRemove.contains(spi)) continue;
+                if (pinsToRemove.contains(spi))
+                    continue;
                 SiteInst siteInst = dest.getSiteInstFromSite(spi.getSite());
                 if (siteInst == null) {
                     dest.createSiteInst(spi.getSite());
@@ -3079,27 +3168,30 @@ public class DesignTools {
 
     /**
      * Copy the route of static nets feeding the sinks within the given SiteInst.
-     * The route of static nets connecting to every site pin of the given site instances will be copied.
+     * The route of static nets connecting to every site pin of the given site instances will be
+     * copied.
      * @param dest The destination design
      * @param staticNets The list of static nets to copy
      * @param siteInstsOfCells The set of SiteInst containing the sinks of the static nets
      */
     private static void copyStaticNets(Design dest, List<Net> staticNets, Set<SiteInst> siteInstsOfCells) {
-        // This method traces a route similar to that in getTrimmablePIPsFromPins. However, there is one subtle difference.
-        // Let's consider a route from one GND source (S) to two sinks (T1 and T2) and the last common node/pip is X.
-        // If only T1 is in a cell to be copied, the tracing code here will extract all pips from S to T1.
-        // However, getTrimmablePIPsFromPins return only the pips from X to T1.
+        // This method traces a route similar to that in getTrimmablePIPsFromPins. However, there is
+        // one subtle difference. Let's consider a route from one GND source (S) to two sinks (T1
+        // and T2) and the last common node/pip is X. If only T1 is in a cell to be copied, the
+        // tracing code here will extract all pips from S to T1. However, getTrimmablePIPsFromPins
+        // return only the pips from X to T1.
 
         // Map from a node to its driver PIP
-        // Note: Some PIPs are bidirectional. But, every PIP allows the signal to flow in only one direction.
-        // The direction of a bidirectional PIP is determined from the context, ie., its connecting directional PIPs.
-        // To determine that context, go through directional PIPs first. This process does not support consecutive bidirectional PIPs.
-        Map<Net,Map<Node,PIP>> netToUphillPIPMap = new HashMap<>();
+        // Note: Some PIPs are bidirectional. But, every PIP allows the signal to flow in only one
+        // direction. The direction of a bidirectional PIP is determined from the context, ie., its
+        // connecting directional PIPs. To determine that context, go through directional PIPs
+        // first. This process does not support consecutive bidirectional PIPs.
+        Map<Net, Map<Node, PIP>> netToUphillPIPMap = new HashMap<>();
         // netToPIPs to store PIPs extracted for static nets.
-        Map<Net,Set<PIP>> netToPIPs = new HashMap<>();
+        Map<Net, Set<PIP>> netToPIPs = new HashMap<>();
         for (Net net : staticNets) {
             netToPIPs.put(net, new HashSet<>());
-            Map<Node,PIP> nodeToDriverPIP = new HashMap<>();
+            Map<Node, PIP> nodeToDriverPIP = new HashMap<>();
             List<PIP> biPIPs = new ArrayList<>();
             for (PIP pip : net.getPIPs()) {
                 if (pip.isBidirectional()) {
@@ -3128,10 +3220,11 @@ public class DesignTools {
                     continue;
 
                 Net net = sitePinInst.getNet();
-                Map<Node,PIP> nodeToDriverPIP = netToUphillPIPMap.get(net);
+                Map<Node, PIP> nodeToDriverPIP = netToUphillPIPMap.get(net);
                 if (nodeToDriverPIP != null) {
                     Set<PIP> allPIPs = netToPIPs.get(net);
-                    // This SitePinInst connects to a static net. Trace and collect all the PIPs to a source.
+                    // This SitePinInst connects to a static net. Trace and collect all the PIPs to
+                    // a source.
                     Node node = sitePinInst.getConnectedNode();
                     SitePin sitePin = node.getSitePin();
                     // Backtrack through routing nodes (no SitePin)
@@ -3148,24 +3241,24 @@ public class DesignTools {
 
                         sitePin = node.getSitePin();
                     }
-                    if ((sitePin != null) && !node.getWireName().contains(Net.VCC_WIRE_NAME))  { // GND source
-                        String  pinName = sitePin.getPinName();
-                        String  siteName = sitePin.getSite().getName();
+                    if ((sitePin != null) && !node.getWireName().contains(Net.VCC_WIRE_NAME)) { // GND source
+                        String pinName = sitePin.getPinName();
+                        String siteName = sitePin.getSite().getName();
                         List<String> bels = sitePin2Bels.get(pinName);
                         for (String bel : bels) {
                             prohibitBels.add(siteName + "/" + bel);
                         }
                     }
-                    netToPIPs.put(net,allPIPs);
+                    netToPIPs.put(net, allPIPs);
                 }
             }
         }
 
-        // When we copy the static nets, we must preserve their sources so that nothing should be placed on it.
+        // When we copy the static nets, we must preserve their sources so that nothing should be
+        // placed on it.
         for (String bel : prohibitBels) {
             dest.addXDCConstraint(ConstraintGroup.LATE, "set_property PROHIBIT true [get_bels " + bel + "]");
         }
-
 
         for (Map.Entry<Net, Set<PIP>> entry : netToPIPs.entrySet()) {
             if ((entry == null) || (entry.getKey() == null) || (entry.getValue() == null))
@@ -3178,8 +3271,8 @@ public class DesignTools {
         }
     }
 
-    private static String getNewHierName(String srcName, Map<String,String> srcToDestInstNames,
-                                            Map<String,String> prefixes, String prefixMatch) {
+    private static String getNewHierName(String srcName, Map<String, String> srcToDestInstNames,
+                                         Map<String, String> prefixes, String prefixMatch) {
         String newCellPrefix = srcToDestInstNames.get(prefixes.get(prefixMatch));
         int idx = prefixMatch.length() - (newCellPrefix.length() == 0 ? 0 : 1);
         if (idx == -1) {
@@ -3208,9 +3301,9 @@ public class DesignTools {
      *     routing locked
      * @param instNames Names of the cell instances to copy
      */
-    public static void copyImplementation(Design src, Design dest, boolean lockPlacement,
-            boolean lockRouting, String... instNames) {
-        Map<String,String> map = new HashMap<>();
+    public static void copyImplementation(Design src, Design dest, boolean lockPlacement, boolean lockRouting,
+                                          String... instNames) {
+        Map<String, String> map = new HashMap<>();
         for (String instName : instNames) {
             map.put(instName, instName);
         }
@@ -3228,8 +3321,8 @@ public class DesignTools {
      * @param prefixes Map of prefixes with '/' at the end (keys) that map to the same String
      * without the '/'
      */
-    private static void copySiteRouting(Cell copy, Cell orig, Map<String,String> srcToDestNames,
-            Map<String,String> prefixes) {
+    private static void copySiteRouting(Cell copy, Cell orig, Map<String, String> srcToDestNames,
+                                        Map<String, String> prefixes) {
         Design dest = copy.getSiteInst().getDesign();
         EDIFNetlist destNetlist = dest.getNetlist();
         SiteInst dstSiteInst = copy.getSiteInst();
@@ -3248,18 +3341,21 @@ public class DesignTools {
         String[] physPinNames = copy.getPhysicalPinMappings();
         for (int i = 0; i < physPinNames.length; i++) {
             String logPinName = physPinNames[i];
-            if (logPinName == null) continue;
+            if (logPinName == null)
+                continue;
             String physPinName = copy.getBEL().getPin(i).getName();
 
             EDIFPortInst portInst = cellInst.getInst().getPortInst(logPinName);
-            if (portInst == null) continue;
+            if (portInst == null)
+                continue;
             EDIFNet edifNet = portInst.getNet();
 
             String netName = new EDIFHierNet(cellInst.getParent(), edifNet).getHierarchicalNetName();
 
             String siteWireName = orig.getSiteWireNameFromPhysicalPin(physPinName);
             Net origNet = origSiteInst.getNetFromSiteWire(siteWireName);
-            if (origNet == null) continue;
+            if (origNet == null)
+                continue;
             Net net = null;
             if (origNet.isStaticNet()) {
                 net = origNet;
@@ -3283,7 +3379,8 @@ public class DesignTools {
                 curr = q.poll();
                 if (routingForward) {
                     for (BELPin pin : curr.getSiteConns()) {
-                        if (pin == curr) continue;
+                        if (pin == curr)
+                            continue;
                         SitePIP sitePIP = origSiteInst.getUsedSitePIP(pin);
                         if (sitePIP != null) {
                             String currSiteWireName = sitePIP.getOutputPin().getSiteWireName();
@@ -3298,7 +3395,8 @@ public class DesignTools {
                     }
                 } else {
                     curr = curr.getSourcePin();
-                    if (curr.isSitePort()) continue;
+                    if (curr.isSitePort())
+                        continue;
                     String belName = curr.getBELName();
                     Cell tmpCell = origSiteInst.getCell(belName);
                     if (tmpCell != null) {
@@ -3312,13 +3410,13 @@ public class DesignTools {
                                     keepPhysName = true;
                                 } else {
                                     throw new RuntimeException("ERROR: Unable to find appropriate "
-                                            + "translation name for cell: " + tmpCell);
+                                                               + "translation name for cell: " + tmpCell);
                                 }
                             }
-                            String newCellName = keepPhysName ? cellName
-                                    : getNewHierName(cellName, srcToDestNames, prefixes, prefixMatch);
-                            Cell rtCopy = tmpCell
-                                    .copyCell(newCellName, tmpCell.getEDIFHierCellInst(), dstSiteInst);
+                            String newCellName = keepPhysName
+                                                     ? cellName
+                                                     : getNewHierName(cellName, srcToDestNames, prefixes, prefixMatch);
+                            Cell rtCopy = tmpCell.copyCell(newCellName, tmpCell.getEDIFHierCellInst(), dstSiteInst);
                             dstSiteInst.getCellMap().put(belName, rtCopy);
                             for (String belPinName : rtCopy.getUsedPhysicalPins()) {
                                 BELPin tmp = rtCopy.getBEL().getPin(belPinName);
@@ -3332,16 +3430,14 @@ public class DesignTools {
                                 BELPin a6 = rtCopy.getBEL().getPin("A6");
                                 Net isVcc = origSiteInst.getNetFromSiteWire(a6.getSiteWireName());
                                 if (isVcc != null && isVcc.getName().equals(Net.VCC_NET)) {
-                                    dstSiteInst.routeIntraSiteNet(
-                                            dstSiteInst.getDesign().getVccNet(), a6, a6);
+                                    dstSiteInst.routeIntraSiteNet(dstSiteInst.getDesign().getVccNet(), a6, a6);
                                 }
                             }
                         } else {
                             // We found the source
                             break;
                         }
-                    } else if (net.isStaticNet() && (belName.contains("LUT") ||
-                            curr.getBEL().isStaticSource())) {
+                    } else if (net.isStaticNet() && (belName.contains("LUT") || curr.getBEL().isStaticSource())) {
                         // LUT used as a static source
                         dstSiteInst.routeIntraSiteNet(net, curr, curr);
                         break;
@@ -3363,7 +3459,8 @@ public class DesignTools {
 
     private static boolean isUltraScale(Cell cell) {
         SiteInst si = cell.getSiteInst();
-        if (si == null) return false;
+        if (si == null)
+            return false;
         Series s = si.getDesign().getDevice().getSeries();
         return s == Series.UltraScale || s == Series.UltraScalePlus;
     }
@@ -3405,10 +3502,11 @@ public class DesignTools {
         final Net vccNet = design.getVccNet();
 
         int numNets = design.getNets().size();
-        // Experimentally best performing number of jobs, where each job cannot have less than 100 objects
+        // Experimentally best performing number of jobs, where each job cannot have less than 100
+        // objects
         int numJobs = Math.min(ParallelismTools.maxParallelism() * 100, numNets / 100);
         List<Net> designNets = new ArrayList<>(design.getNets());
-        List<List<Net>> partitionedNets = Lists.partition(designNets, (int) Math.ceil((double) numNets / numJobs));
+        List<List<Net>> partitionedNets = Lists.partition(designNets, (int)Math.ceil((double)numNets / numJobs));
         List<Future<?>> futures = new ArrayList<>();
         for (List<Net> nets : partitionedNets) {
             Future<?> f = ParallelismTools.submit(() -> {
@@ -3448,7 +3546,8 @@ public class DesignTools {
 
                         if (!hierNet.equals(parentHierNet)) {
                             String parentNetName = parentHierNet.getNet().getName();
-                            // Assume that a net named <const1> or <const0> is always a VCC or GND net
+                            // Assume that a net named <const1> or <const0> is always a VCC or GND
+                            // net
                             if (parentNetName.equals(EDIFTools.LOGICAL_VCC_NET_NAME)) {
                                 parentPhysNet = vccNet;
                             } else if (parentNetName.equals(EDIFTools.LOGICAL_GND_NET_NAME)) {
@@ -3459,11 +3558,13 @@ public class DesignTools {
 
                             if (parentPhysNet == null) {
                                 synchronized (design) {
-                                    // Double check (inside this synchronized section) that no other thread has created
-                                    // the physical parent net since we fetched it above
+                                    // Double check (inside this synchronized section) that no other
+                                    // thread has created the physical parent net since we fetched
+                                    // it above
                                     parentPhysNet = design.getNet(parentHierNet.getHierarchicalNetName());
                                     if (parentPhysNet == null && !net.rename(parentHierNet.getHierarchicalNetName())) {
-                                        System.out.println("WARNING: Failed to adjust physical net name " + net.getName());
+                                        System.out.println("WARNING: Failed to adjust physical net name " +
+                                                           net.getName());
                                     }
                                 }
                             }
@@ -3547,9 +3648,9 @@ public class DesignTools {
     }
 
     /**
-     * Examines a design for FFs configured as routethrus or as AND2B1L/OR2L functionality, ensuring that the CE pins of
-     * the used BELs are connected via the correct intra-site routing to VCC and their CLK pins are connected to
-     * GND (which is supplied via inversion from VCC).
+     * Examines a design for FFs configured as routethrus or as AND2B1L/OR2L functionality, ensuring
+     * that the CE pins of the used BELs are connected via the correct intra-site routing to VCC and
+     * their CLK pins are connected to GND (which is supplied via inversion from VCC).
      * @param design Design to be processed.
      */
     public static void createCeClkOfRoutethruFFToVCC(Design design) {
@@ -3574,7 +3675,7 @@ public class DesignTools {
                     // pass
                 } else if (cell.isFFRoutethruCell()) {
                     // Versal have OUTMUX[A-H][12]-es for bypassing FFs
-                    assert(!isVersal);
+                    assert (!isVersal);
                     // pass
                 } else {
                     continue;
@@ -3593,11 +3694,11 @@ public class DesignTools {
                 BELPin clkInvOut = clkInput.getSourcePin();
                 if (isVersal) {
                     // On Versal only, punch through the FF_CLK_MOD
-                    assert(clkInvOut.getBEL().isSliceFFClkMod());
-                    assert(clkInvOut.getName().equals("CLK_OUT"));
+                    assert (clkInvOut.getBEL().isSliceFFClkMod());
+                    assert (clkInvOut.getName().equals("CLK_OUT"));
                     clkInvOut = clkInvOut.getBEL().getPin("CLK").getSourcePin();
                 }
-                assert(clkInvOut.getBELName().matches("CLK[12]?INV"));
+                assert (clkInvOut.getBELName().matches("CLK[12]?INV"));
                 si.routeIntraSiteNet(gnd, clkInvOut, clkInput);
                 BELPin clkInvIn = clkInvOut.getBEL().getPin(0);
                 String clkInputSitePinName = clkInvIn.getConnectedSitePinName();
@@ -3624,8 +3725,9 @@ public class DesignTools {
                 }
 
                 // SKIPPING <LOCKED> LUTs to resolve site pin conflicts between GND and VCC
-                // Without skipping <LOCKED>, some A6 pins of SRL16E LUTs (5LUT and 6LUT used) will be handled twice in createMissingStaticSitePins().
-                // In the second processing, those A6 pins are somehow added to VCC while they should stay in GND.
+                // Without skipping <LOCKED>, some A6 pins of SRL16E LUTs (5LUT and 6LUT used) will
+                // be handled twice in createMissingStaticSitePins(). In the second processing,
+                // those A6 pins are somehow added to VCC while they should stay in GND.
                 if (cell.getName().equals(Cell.LOCKED)) {
                     continue;
                 }
@@ -3634,13 +3736,13 @@ public class DesignTools {
                 char fiveOrSix = belName.charAt(1);
                 if (fiveOrSix == '5') {
                     // Assume that only 5LUT can use O5
-                    assert(cell.getLogicalPinMapping("O5") != null || cell.isRoutethru());
-                    if (LUTTools.getCompanionLUTCell(cell) != null)  {
+                    assert (cell.getLogicalPinMapping("O5") != null || cell.isRoutethru());
+                    if (LUTTools.getCompanionLUTCell(cell) != null) {
                         // 5LUT is used, but 6LUT also exists; let the 6LUT deal with things
                         continue;
                     }
                 } else {
-                    assert(fiveOrSix == '6');
+                    assert (fiveOrSix == '6');
 
                     if ("SRLC32E".equals(cell.getType())) {
                         // For SRLC32Es, only the A1 needs to be tied to VCC
@@ -3650,10 +3752,10 @@ public class DesignTools {
                             spi = vccNet.createPin(pinName, si);
                             si.routeIntraSiteNet(vccNet, spi.getBELPin(), bel.getPin("A1"));
                         } else {
-                            assert(spi.getNet().isVCCNet());
+                            assert (spi.getNet().isVCCNet());
                         }
                         // A6 is needed as a logical pin
-                        assert(cell.getLogicalPinMapping("A6") != null);
+                        assert (cell.getLogicalPinMapping("A6") != null);
                     }
 
                     if (cell.getLogicalPinMapping("A6") != null) {
@@ -3680,15 +3782,16 @@ public class DesignTools {
                         staticNet = gndNet;
                         // Expect sitewire to be VCC or GND
                         if (!a6Net.isStaticNet()) {
-                            throw new RuntimeException("ERROR: Site pin " + si.getSiteName() + "/" + belName.charAt(0) + "6 is not a static net");
+                            throw new RuntimeException("ERROR: Site pin " + si.getSiteName() + "/" + belName.charAt(0) +
+                                                       "6 is not a static net");
                         }
                     }
 
                     spi = si.getSitePinInst(belName.charAt(0) + "6");
                     if (spi != null) {
                         // [A-H]6 input already a static net (which may not match the sitewire)
-                        assert(spi.getNet().isStaticNet());
-                        assert(a6Net.isStaticNet());
+                        assert (spi.getNet().isStaticNet());
+                        assert (a6Net.isStaticNet());
                         continue;
                     }
                 } else {
@@ -3700,15 +3803,15 @@ public class DesignTools {
 
                 if (cell.getLogicalPinMapping("O5") != null) {
                     // LUT output comes out on O5
-                    assert(fiveOrSix == '5');
+                    assert (fiveOrSix == '5');
                 } else {
                     if (fiveOrSix != '6') {
-                        // Assume that O6 is only driven by 6LUT, even though possible for 5LUT, unless
-                        // it's a routethru
+                        // Assume that O6 is only driven by 6LUT, even though possible for 5LUT,
+                        // unless it's a routethru
                         assert (cell.isRoutethru());
                         continue;
                     }
-                    assert(fiveOrSix == '6');
+                    assert (fiveOrSix == '6');
                 }
 
                 // Construct site pin from BEL name (e.g. [A-H][65]LUT) and pin name (A[1-6])
@@ -3755,13 +3858,14 @@ public class DesignTools {
                         }
 
                         if (!bel.getBELType().equals("FF")) {
-                            assert(bel.getBELType().matches("(SLICE_IMI|SLICE[LM]_IMC)_FF(_T)?"));
+                            assert (bel.getBELType().matches("(SLICE_IMI|SLICE[LM]_IMC)_FF(_T)?"));
                             continue;
                         }
 
                         Pair<String, String> sitePinNames = pinMapping.get(bel.getName());
                         for (String belPinName : belPinNames) {
-                            String sitePinName = (belPinName == CE) ? sitePinNames.getFirst() : sitePinNames.getSecond();
+                            String sitePinName =
+                                (belPinName == CE) ? sitePinNames.getFirst() : sitePinNames.getSecond();
                             SitePinInst spi = si.getSitePinInst(sitePinName);
                             if (spi != null) {
                                 if (belPinName == CE) {
@@ -3780,13 +3884,15 @@ public class DesignTools {
                                     if (!net.isVCCNet()) {
                                         continue;
                                     }
-                                    // CE: it is possible for sitewire to be assigned to a non VCC net, but a SitePinInst to not yet exist
+                                    // CE: it is possible for sitewire to be assigned to a non VCC
+                                    // net, but a SitePinInst to not yet exist
                                 } else {
-                                    assert(belPinName == SR);
+                                    assert (belPinName == SR);
                                     if (!net.isStaticNet()) {
                                         continue;
                                     }
-                                    // SR: it is possible for sitewire to be assigned the GND net, yet still be routed to VCC
+                                    // SR: it is possible for sitewire to be assigned the GND net,
+                                    // yet still be routed to VCC
                                 }
                             }
 
@@ -3796,16 +3902,16 @@ public class DesignTools {
                                 if (belPinNet != null) {
                                     if (belPinName == CE) {
                                         // CE
-                                        assert(belPinNet.isVCCNet());
+                                        assert (belPinNet.isVCCNet());
                                     } else {
                                         // SR
-                                        assert(belPinNet.isStaticNet());
+                                        assert (belPinNet.isStaticNet());
                                     }
                                 }
                             }
 
                             if (spi != null) {
-                                assert(belPinName == SR);
+                                assert (belPinName == SR);
                                 // Move the SR pin from GND to VCC
                                 spi.setNet(vccNet);
                             } else {
@@ -3816,7 +3922,7 @@ public class DesignTools {
                         }
                     }
                 } else if (si.getSiteTypeEnum() == SiteTypeEnum.MMCM) {
-                    for (String sitePinName : new String[]{"CLKFBIN", "CLKIN2"}) {
+                    for (String sitePinName : new String[] {"CLKFBIN", "CLKIN2"}) {
                         maybeCreateVccPin(si, sitePinName, vccNet);
                     }
                 }
@@ -3828,9 +3934,9 @@ public class DesignTools {
         } else if (series == Series.UltraScale || series == Series.UltraScalePlus) {
             String[] rambRstRegSitePinNames;
             if (series == Series.UltraScalePlus) {
-                rambRstRegSitePinNames = new String[]{"RSTREGBU", "RSTREGBL"};
+                rambRstRegSitePinNames = new String[] {"RSTREGBU", "RSTREGBL"};
             } else if (series == Series.UltraScale) {
-                rambRstRegSitePinNames = new String[]{"RSTREGBU_X", "RSTREGBL_X"};
+                rambRstRegSitePinNames = new String[] {"RSTREGBU_X", "RSTREGBL_X"};
             } else {
                 throw new RuntimeException(series.toString());
             }
@@ -3873,7 +3979,7 @@ public class DesignTools {
                         if (siteWire.endsWith("U_O")) {
                             pinName = rambRstRegSitePinNames[0];
                         } else {
-                            assert(siteWire.endsWith("L_O"));
+                            assert (siteWire.endsWith("L_O"));
                             pinName = rambRstRegSitePinNames[1];
                         }
                         maybeCreateVccPin(si, pinName, vccNet);
@@ -3884,7 +3990,7 @@ public class DesignTools {
             throw new RuntimeException("ERROR: Unsupported series: " + series);
         }
     }
-    
+
     private static void maybeCreateVccPin(SiteInst si, String sitePinName, Net vcc) {
         SitePinInst sitePin = si.getSitePinInst(sitePinName);
         if (sitePin != null) {
@@ -3901,10 +4007,10 @@ public class DesignTools {
     static Set<String> flipFlopAndLatchTypesNeedingCeSrToVcc;
     static {
         flipFlopAndLatchTypesNeedingCeSrToVcc = new HashSet<>();
-        flipFlopAndLatchTypesNeedingCeSrToVcc.add("FDSE");//S CE, logical cell
-        flipFlopAndLatchTypesNeedingCeSrToVcc.add("FDPE");//PRE CE
-        flipFlopAndLatchTypesNeedingCeSrToVcc.add("FDRE");//R and CE
-        flipFlopAndLatchTypesNeedingCeSrToVcc.add("FDCE");//CLR CE
+        flipFlopAndLatchTypesNeedingCeSrToVcc.add("FDSE"); // S CE, logical cell
+        flipFlopAndLatchTypesNeedingCeSrToVcc.add("FDPE"); // PRE CE
+        flipFlopAndLatchTypesNeedingCeSrToVcc.add("FDRE"); // R and CE
+        flipFlopAndLatchTypesNeedingCeSrToVcc.add("FDCE"); // CLR CE
         flipFlopAndLatchTypesNeedingCeSrToVcc.add("LDCE");
         flipFlopAndLatchTypesNeedingCeSrToVcc.add("LDPE");
     }
@@ -3917,9 +4023,9 @@ public class DesignTools {
     static public final Map<Series, Map<String, Pair<String, String>>> belTypeSitePinNameMapping;
     /** Mapping from device Series to ctrl set pins connected FF BEL site names */
     static public final Map<Series, Map<String, List<String>>> ctrlPinFFMapping;
-    static{
+    static {
         belTypeSitePinNameMapping = new EnumMap<Series, Map<String, Pair<String, String>>>(Series.class);
-        Pair<String,String> p;
+        Pair<String, String> p;
 
         {
             Map<String, Pair<String, String>> ultraScalePlus = new HashMap<>();
@@ -3978,13 +4084,13 @@ public class DesignTools {
             belTypeSitePinNameMapping.put(Series.Series7, series7);
 
             p = new Pair<>("CE", "SR");
-            series7.put("AFF",  p);
+            series7.put("AFF", p);
             series7.put("A5FF", p);
-            series7.put("BFF",  p);
+            series7.put("BFF", p);
             series7.put("B5FF", p);
-            series7.put("CFF",  p);
+            series7.put("CFF", p);
             series7.put("C5FF", p);
-            series7.put("DFF",  p);
+            series7.put("DFF", p);
             series7.put("D5FF", p);
         }
         {
@@ -3992,28 +4098,28 @@ public class DesignTools {
             belTypeSitePinNameMapping.put(Series.Versal, versal);
 
             p = new Pair<>("CKEN1", "RST");
-            versal.put("AFF",  p);
+            versal.put("AFF", p);
             versal.put("AFF2", p);
-            versal.put("BFF",  p);
+            versal.put("BFF", p);
             versal.put("BFF2", p);
             p = new Pair<>("CKEN2", "RST");
-            versal.put("CFF",  p);
+            versal.put("CFF", p);
             versal.put("CFF2", p);
-            versal.put("DFF",  p);
+            versal.put("DFF", p);
             versal.put("DFF2", p);
 
             p = new Pair<>("CKEN3", "RST");
-            versal.put("EFF",  p);
+            versal.put("EFF", p);
             versal.put("EFF2", p);
-            versal.put("FFF",  p);
+            versal.put("FFF", p);
             versal.put("FFF2", p);
             p = new Pair<>("CKEN4", "RST");
-            versal.put("GFF",  p);
+            versal.put("GFF", p);
             versal.put("GFF2", p);
-            versal.put("HFF",  p);
+            versal.put("HFF", p);
             versal.put("HFF2", p);
         }
-        
+
         ctrlPinFFMapping = new HashMap<>();
         for (Entry<Series, Map<String, Pair<String, String>>> e : belTypeSitePinNameMapping.entrySet()) {
             Map<String, List<String>> map = new HashMap<>();
@@ -4032,7 +4138,8 @@ public class DesignTools {
      * @return The list of PIPs that for the routing connection from the sink to the source.
      */
     public static List<PIP> getConnectionPIPs(SitePinInst sinkPin) {
-        if (sinkPin.isOutPin() || sinkPin.getNet() == null) return Collections.emptyList();
+        if (sinkPin.isOutPin() || sinkPin.getNet() == null)
+            return Collections.emptyList();
         Map<Node, PIP> reverseNodeToPIPMap = new HashMap<>();
         List<PIP> biDirs = null;
         for (PIP p : sinkPin.getNet().getPIPs()) {
@@ -4056,7 +4163,8 @@ public class DesignTools {
         Node curr = sinkNode;
 
         List<PIP> path = new ArrayList<>();
-        loop: while (!curr.equals(srcNode)) {
+    loop:
+        while (!curr.equals(srcNode)) {
             PIP pip = reverseNodeToPIPMap.get(curr);
             if (pip == null) {
                 for (PIP biDirPIP : biDirs) {
@@ -4083,18 +4191,15 @@ public class DesignTools {
      */
     public static Job generateReadableEDIFJob(Path checkpoint, Path edif) {
         try {
-
             final Job job = new LocalJob();
             job.setCommand(FileTools.getVivadoPath() + " -mode batch -source readable.tcl");
 
-            final Path runDir = Files.createTempDirectory(edif.toAbsolutePath().getParent(),edif.getFileName()+"_readable_edif_");
+            final Path runDir =
+                Files.createTempDirectory(edif.toAbsolutePath().getParent(), edif.getFileName() + "_readable_edif_");
             job.setRunDir(runDir.toString());
 
-            Files.write(runDir.resolve("readable.tcl"), Arrays.asList(
-                    "open_checkpoint " + checkpoint.toAbsolutePath(),
-                    "write_edif " + edif.toAbsolutePath()
-            ));
-
+            Files.write(runDir.resolve("readable.tcl"), Arrays.asList("open_checkpoint " + checkpoint.toAbsolutePath(),
+                                                                      "write_edif " + edif.toAbsolutePath()));
 
             return job;
         } catch (IOException e) {
@@ -4163,11 +4268,10 @@ public class DesignTools {
                         Files.delete(edfFileName);
                     } catch (IOException e) {
                         throw new RuntimeException("ERROR: Couldn't auto-generate updated edf file"
-                                + " as the file appears to be in use or no permission to do so.");
+                                                   + " as the file appears to be in use or no permission to do so.");
                     }
                 }
             }
-
         }
         JobQueue queue = new JobQueue();
         Job job = generateReadableEDIFJob(dcp, edfFileName);
@@ -4204,7 +4308,8 @@ public class DesignTools {
                     // issues
                     for (EDIFHierPortInst sink : portInsts) {
                         Cell c = design.getCell(sink.getFullHierarchicalInstName());
-                        if (c == null || !c.isPlaced()) continue;
+                        if (c == null || !c.isPlaced())
+                            continue;
                         SiteInst i = c.getSiteInst();
                         String logicalPinName = sink.getPortInst().getName();
                         List<String> siteWires = new ArrayList<>();
@@ -4212,12 +4317,14 @@ public class DesignTools {
                         c.getSitePinFromLogicalPin(logicalPinName, siteWires);
                         for (String siteWire : siteWires) {
                             Net existingSiteRoutedNet = i.getNetFromSiteWire(siteWire);
-                            if (existingSiteRoutedNet == null) continue;
+                            if (existingSiteRoutedNet == null)
+                                continue;
                             EDIFHierNet currNet = netlist.getHierNetFromName(existingSiteRoutedNet.getName());
                             if (aliases == null) {
                                 aliases = new HashSet<>(netlist.getNetAliases(parentNet));
                             }
-                            if (aliases.contains(currNet)) continue;
+                            if (aliases.contains(currNet))
+                                continue;
                             String updateNetName = parentNet.getHierarchicalNetName();
                             Net updateNet = design.getNet(updateNetName);
                             if (updateNet == null) {
@@ -4237,9 +4344,9 @@ public class DesignTools {
     }
 
     /**
-     * Create a {@link ModuleImplsInst}, i.e. a Module instance with flexible implementation. If an edif cell inst
-     * of the given name already exists in the design hierarchy, it will be used for the module. Otherwise, a new
-     * EDIF Cell Inst will be created.
+     * Create a {@link ModuleImplsInst}, i.e. a Module instance with flexible implementation. If an
+     * edif cell inst of the given name already exists in the design hierarchy, it will be used for
+     * the module. Otherwise, a new EDIF Cell Inst will be created.
      * @param design the design
      * @param name name of the module instance
      * @param module the module to use
@@ -4249,7 +4356,8 @@ public class DesignTools {
         EDIFCellInst cell = design.createOrFindEDIFCellInst(name, module.getNetlist().getTopCell());
         EDIFLibrary work = design.getNetlist().getWorkLibrary();
         if (!work.containsCell(cell.getCellType())) {
-            design.getNetlist().copyCellAndSubCells(cell.getCellType(), /*uniquifyCollisions=*/true);
+            design.getNetlist().copyCellAndSubCells(cell.getCellType(),
+                                                    /*uniquifyCollisions=*/true);
         }
         return new ModuleImplsInst(name, cell, module);
     }
@@ -4257,37 +4365,43 @@ public class DesignTools {
     /**
      * Find the physical net corresponding to a {@link ModuleImplsInst}'s port
      * @param port the port to find the net for
-     * @param instanceMap map from {@link ModuleImplsInst} to the corresponding real {@link ModuleInst}
+     * @param instanceMap map from {@link ModuleImplsInst} to the corresponding real {@link
+     *     ModuleInst}
      * @return the physical net. This can only be null if the port has no pins
      */
     private static Net findPortNet(ImplsInstancePort port, Map<ModuleImplsInst, ModuleInst> instanceMap) {
         if (port instanceof ImplsInstancePort.SitePinInstPort) {
-            SitePinInst spi = ((ImplsInstancePort.SitePinInstPort) port).getSitePinInst();
+            SitePinInst spi = ((ImplsInstancePort.SitePinInstPort)port).getSitePinInst();
             Net net = spi.getNet();
             if (net == null) {
-                throw new IllegalStateException("No net on SPI "+spi);
+                throw new IllegalStateException("No net on SPI " + spi);
             }
             return net;
         } else if (port instanceof ImplsInstancePort.InstPort) {
-            ImplsInstancePort.InstPort instPort = (ImplsInstancePort.InstPort) port;
+            ImplsInstancePort.InstPort instPort = (ImplsInstancePort.InstPort)port;
             final Module module = instPort.getInstance().getCurrentModuleImplementation();
             Port modPort = module.getPort(instPort.getPort());
             ModuleInst moduleInst = instanceMap.get(instPort.getInstance());
             Net net = moduleInst.getCorrespondingNet(modPort);
             if (net == null && !modPort.getSitePinInsts().isEmpty()) {
-                throw new IllegalStateException("No net on module port "+moduleInst+"."+modPort.getName()+" but we have pins");
+                throw new IllegalStateException("No net on module port " + moduleInst + "." + modPort.getName() +
+                                                " but we have pins");
             }
 
             if (!modPort.getPassThruPortNames().isEmpty() && port.isOutputPort()) {
-                final List<String> inPorts = modPort.getPassThruPortNames().stream().filter(p -> !module.getPort(p).isOutPort())
-                        .collect(Collectors.toList());
-                if (inPorts.size()>1) {
-                    throw new IllegalStateException("Multiple inputs connected to "+instPort.getInstance().getName()+"."+instPort.getName()+": "+inPorts);
+                final List<String> inPorts = modPort.getPassThruPortNames()
+                                                 .stream()
+                                                 .filter(p -> !module.getPort(p).isOutPort())
+                                                 .collect(Collectors.toList());
+                if (inPorts.size() > 1) {
+                    throw new IllegalStateException("Multiple inputs connected to " + instPort.getInstance().getName() +
+                                                    "." + instPort.getName() + ": " + inPorts);
                 } else if (inPorts.size() == 1) {
                     final ImplsInstancePort otherPort = instPort.getInstance().getPort(inPorts.get(0));
                     final ImplsInstancePort source = otherPort.getPath().findSource();
                     return findPortNet(source, instanceMap);
-                } //Else we only have multiple outs sourced by the same Pin internally, nothing to do
+                } // Else we only have multiple outs sourced by the same Pin internally, nothing to
+                  // do
             }
 
             return net;
@@ -4297,19 +4411,23 @@ public class DesignTools {
     }
 
     /**
-     * In a design containing {@link ModuleImplsInst}s, convert them into {@link ModuleInst}s so that the design
-     * can be exported to a checkpoint
+     * In a design containing {@link ModuleImplsInst}s, convert them into {@link ModuleInst}s so
+     * that the design can be exported to a checkpoint
      * @param design the design
      * @param instances the instances to be converted
-     * @param paths nets connecting the instances as returned by {@link BlockPlacer2Impls#getPaths()}
+     * @param paths nets connecting the instances as returned by {@link
+     *     BlockPlacer2Impls#getPaths()}
      */
-    public static void createModuleInstsFromModuleImplsInsts(Design design, Collection<ModuleImplsInst> instances, Collection<ImplsPath> paths) {
+    public static void createModuleInstsFromModuleImplsInsts(Design design, Collection<ModuleImplsInst> instances,
+                                                             Collection<ImplsPath> paths) {
         Map<ModuleImplsInst, ModuleInst> instanceMap = new HashMap<>();
         for (ModuleImplsInst implsInst : instances) {
-            ModuleInst modInst = design.createModuleInst(implsInst.getName(), implsInst.getCurrentModuleImplementation());
+            ModuleInst modInst =
+                design.createModuleInst(implsInst.getName(), implsInst.getCurrentModuleImplementation());
             boolean success = modInst.place(implsInst.getPlacement().placement);
             if (!success) {
-                throw new IllegalStateException("could not place module "+modInst.getName()+" at "+implsInst.getPlacement().placement);
+                throw new IllegalStateException("could not place module " + modInst.getName() + " at " +
+                                                implsInst.getPlacement().placement);
             }
             instanceMap.put(implsInst, modInst);
         }
@@ -4378,7 +4496,7 @@ public class DesignTools {
      * Locks the logical netlist of the design using the DONT_TOUCH property. This
      * strives to be as close as possible to what Vivado's 'lock_design -level
      * netlist' does to lock the design. {@link EDIFTools#lockNetlist(EDIFNetlist)}.
-     * 
+     *
      * @param design The design of the netlist to lock.
      */
     public static void lockNetlist(Design design) {
@@ -4390,7 +4508,7 @@ public class DesignTools {
      * property. This strives to be as close as possible to what Vivado's
      * 'lock_design -unlock -level netlist' does to lock the
      * design.{@link EDIFTools#unlockNetlist(EDIFNetlist)}.
-     * 
+     *
      * @param design The design of the netlist to unlock.
      */
     public static void unlockNetlist(Design design) {
@@ -4402,7 +4520,7 @@ public class DesignTools {
      * also lock or unlock the netlist of the design (see
      * {@link #lockNetlist(Design)}). This strives to be as close as possible to
      * what Vivado's 'lock_design -level placement' does to lock the design.
-     * 
+     *
      * @param design The design to lock
      * @param lock   Flag indicating to lock (true) or unlock (false) the design's
      *               placement and netlist.
@@ -4427,7 +4545,7 @@ public class DesignTools {
      * lock the netlist the design (see {@link #lockNetlist(Design)}). This strives
      * to be as close as possible to what Vivado's 'lock_design -level placement'
      * does to lock the design.
-     * 
+     *
      * @param design The design to lock
      */
     public static void lockPlacement(Design design) {
@@ -4439,7 +4557,7 @@ public class DesignTools {
      * design (see {@link #unlockNetlist(Design)}). This strives to be as close as
      * possible to what Vivado's 'lock_design -unlock -level placement' does to lock
      * the design.
-     * 
+     *
      * @param design The design to unlock
      */
     public static void unlockPlacement(Design design) {
@@ -4452,7 +4570,7 @@ public class DesignTools {
      * the design (see {@link #lockPlacement(Design, boolean)}). This strives to be
      * as close as possible to what Vivado's 'lock_design -level routing' does to
      * lock the design.
-     * 
+     *
      * @param design The design to lock
      * @param lock   Flag indicating to lock (true) or unlock (false) the design's
      *               routing, placement and netlist.
@@ -4473,7 +4591,7 @@ public class DesignTools {
      * Vivado. It will also lock the netlist and placement of the design. This
      * strives to be as close as possible to what Vivado's 'lock_design -level
      * routing' does to lock the design.
-     * 
+     *
      * @param design The design to lock
      */
     public static void lockRouting(Design design) {
@@ -4484,7 +4602,7 @@ public class DesignTools {
      * Unlocks any and all routing of a design. It will also unlock the netlist and
      * placement of the design. This strives to be as close as possible to what
      * Vivado's 'lock_design -unlock -level routing' does to lock the design.
-     * 
+     *
      * @param design The design to unlock
      */
     public static void unlockRouting(Design design) {
@@ -4494,7 +4612,7 @@ public class DesignTools {
     /**
      * Unroutes the GND net of a design and unroutes the site routing of any LUT GND
      * sources while leaving other site routing inputs intact.
-     * 
+     *
      * @param design The design to modify.
      */
     public static void unrouteGNDNetAndLUTSources(Design design) {
@@ -4525,7 +4643,7 @@ public class DesignTools {
      * when trying to preserve a partially implemented design that have additional
      * logic placed and routed onto it later. The Vivado placer doesn't recognize
      * the GND sources so this prevents the placer from using those BEL sites.
-     * 
+     *
      * @param design The design to which the PROHIBIT constraints are added.
      */
     public static void prohibitGNDSources(Design design) {
@@ -4550,7 +4668,7 @@ public class DesignTools {
     /**
      * Checks the provided BEL's first letter to determine if it is in the top half
      * of a SLICE or bottom half.
-     * 
+     *
      * @param bel The BEL of a SLICE to query
      * @return True if the BEL resides in the top half of a SLICE (E6LUT, E5LUT,
      *         EFF, EFF2, ..). Returns false if it is in the bottom half and null if
@@ -4573,7 +4691,7 @@ public class DesignTools {
      * creation when an existing placed and routed implementation is desired to be
      * preserved but to allow additional logic to be placed and routed on top of it
      * without an area (pblock) constraint.
-     * 
+     *
      * @param design The design to which the constraints are added.
      */
     public static void prepareShellBlackBoxForRouting(Design design) {
@@ -4591,7 +4709,8 @@ public class DesignTools {
         }
 
         for (SiteInst si : design.getSiteInsts()) {
-            if (!Utils.isSLICE(si)) continue;
+            if (!Utils.isSLICE(si))
+                continue;
             boolean bottomUsed = false;
             boolean topUsed = false;
             for (Cell c : new ArrayList<>(si.getCells())) {
@@ -4604,7 +4723,8 @@ public class DesignTools {
                     }
                 }
                 if (c.getBEL().isFF()) {
-                    if(c.getName().equals(Cell.LOCKED)) continue;
+                    if (c.getName().equals(Cell.LOCKED))
+                        continue;
                     String belName = c.getBELName();
                     char letter = belName.charAt(0);
                     boolean isFF2 = belName.charAt(belName.length() - 1) == '2';
@@ -4636,9 +4756,8 @@ public class DesignTools {
                                     }
                                     BELPin lutInput = si.getBEL(letter + "6LUT").getPin("A6");
                                     EDIFHierPortInst ffInput = c.getEDIFHierCellInst().getPortInst("D");
-                                    Cell lut1 = ECOTools.createAndPlaceInlineCellOnInputPin(design, ffInput,
-                                            Unisim.LUT1,
-                                            si.getSite(), lutInput.getBEL(), "I0", "O");
+                                    Cell lut1 = ECOTools.createAndPlaceInlineCellOnInputPin(
+                                        design, ffInput, Unisim.LUT1, si.getSite(), lutInput.getBEL(), "I0", "O");
                                     lut1.addProperty("INIT", "2'h1");
                                 }
                             }
@@ -4646,15 +4765,14 @@ public class DesignTools {
                             BELPin muxOutput = c.getBEL().getPin("D").getSourcePin();
                             SitePIP sitePIP = si.getUsedSitePIP(muxOutput);
                             if (sitePIP == null) {
-                                System.err.println(
-                                        "ERROR: Unable to insert a LUT1 routethru to route an input path for the FF "
-                                                + c.getName() + " placed on " + si.getSiteName() + "/" + belName);
+                                System.err.println("ERROR: Unable to insert a LUT1 routethru to "
+                                                   + "route an input path for the FF " + c.getName() + " placed on " +
+                                                   si.getSiteName() + "/" + belName);
                             }
                         }
                     }
                 }
             }
-
 
             for (BEL bel : si.getSite().getBELs()) {
                 if (bel.getBELClass() == BELClass.BEL && si.getCell(bel) == null) {
@@ -4666,7 +4784,8 @@ public class DesignTools {
                         }
                     }
                     if (bel.isFF()) {
-                        // check if the FF BEL output is routable, if not prohibit it from being used
+                        // check if the FF BEL output is routable, if not prohibit it from being
+                        // used
                         if (isFFQOutputBlocked(si.getSite(), bel, used)) {
                             bels.add(si.getSiteName() + "/" + bel.getName());
                         }
@@ -4719,16 +4838,14 @@ public class DesignTools {
     /**
      * Adds a PROHIBIT constraint to the specified BEL Locations (ex:
      * "SLICE_X10Y10/AFF")
-     * 
+     *
      * @param design       The design to which the constraint should be added
      * @param belLocations A list of BEL locations using the syntax
      *                     {@literal '<SITE-NAME>/<BEL-NAME>'}.
      */
     public static void addProhibitConstraint(Design design, List<String> belLocations) {
         for (String bel : belLocations) {
-            design.addXDCConstraint(ConstraintGroup.LATE,
-                    "set_property PROHIBIT true [get_bels { " + bel + "} ]");
-
+            design.addXDCConstraint(ConstraintGroup.LATE, "set_property PROHIBIT true [get_bels { " + bel + "} ]");
         }
     }
 
@@ -4755,8 +4872,7 @@ public class DesignTools {
      * @param multiplyDrivenNodesVisited Set to be used to track multiply-driven nodes.
      * @return Number of unrouted sink pins on net.
      */
-    public static int updatePinsIsRouted(Net net,
-                                         Set<NetTools.NodeTree> multiplyDrivenNodesVisited) {
+    public static int updatePinsIsRouted(Net net, Set<NetTools.NodeTree> multiplyDrivenNodesVisited) {
         int numUnroutedSinkPins = 0;
         for (SitePinInst spi : net.getPins()) {
             spi.setRouted(false);
@@ -4781,7 +4897,7 @@ public class DesignTools {
                 continue;
             }
             queue.add(node);
-            assert(!node.multiplyDriven);
+            assert (!node.multiplyDriven);
         }
         while (!queue.isEmpty()) {
             NetTools.NodeTree node = queue.poll();
@@ -4789,7 +4905,7 @@ public class DesignTools {
             if (spi != null) {
                 spi.setRouted(true);
                 if (!spi.isOutPin()) {
-                    assert(numUnroutedSinkPins > 0);
+                    assert (numUnroutedSinkPins > 0);
                     numUnroutedSinkPins--;
                 }
             }
@@ -4829,9 +4945,9 @@ public class DesignTools {
      * should be named after the cell type. This is useful in the scenarios where a
      * design has many thousand of individual encrypted cell files that are time
      * consuming to load. By providing a higher level of hierarchy cell definition,
-     * encompassing all existing encrypted cells, the number of individual 
+     * encompassing all existing encrypted cells, the number of individual
      * files to be loaded by Vivado can be reduced.
-     * 
+     *
      * @param design   The design to modify.
      * @param netlists The list of encrypted cell files (*.edn, *.edf, or *.dcp)
      *                 that should be used instead.
@@ -4857,11 +4973,10 @@ public class DesignTools {
             for (EDIFHierPortInst portInst : cell.getEDIFHierCellInst().getHierPortInsts()) {
                 if (portInst.isInput()) {
                     EDIFCell srcType = null;
-                    for (EDIFHierPortInst src : portInst.getHierarchicalNet()
-                            .getLeafHierPortInsts(true, false)) {
+                    for (EDIFHierPortInst src : portInst.getHierarchicalNet().getLeafHierPortInsts(true, false)) {
                         srcType = src.getPortInst().getCellInst().getCellType();
                     }
-    
+
                     // If we are being driven by the memory controller, switch BEL pins to DMC
                     // inputs
                     if (srcType.getName().startsWith("DDRMC") || srcType.getName().equals("XPLL")) {
@@ -4870,7 +4985,7 @@ public class DesignTools {
                         if (newBELPin != null) {
                             String logPin = cell.removePinMapping(belPin);
                             cell.addPinMapping(newBELPin.getName(), logPin);
-    
+
                             // update site routing and site pin
                             SiteInst si = cell.getSiteInst();
                             BELPin oldBELPin = cell.getBEL().getPin(belPin);
@@ -4887,11 +5002,10 @@ public class DesignTools {
                 } else {
                     assert (portInst.isOutput());
                     EDIFCell snkType = null;
-                    for (EDIFHierPortInst snk : portInst.getHierarchicalNet()
-                            .getLeafHierPortInsts(false, true)) {
+                    for (EDIFHierPortInst snk : portInst.getHierarchicalNet().getLeafHierPortInsts(false, true)) {
                         snkType = snk.getPortInst().getCellInst().getCellType();
                     }
-    
+
                     // If we are driving the memory controller, make sure we use the DMC pins
                     if (snkType.getName().startsWith("DDRMC")) {
                         BELPin belPin = cell.getBELPin(portInst);

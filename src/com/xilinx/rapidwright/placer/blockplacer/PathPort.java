@@ -33,7 +33,6 @@ import com.xilinx.rapidwright.device.Tile;
  *
  */
 public class PathPort {
-
     private final SitePinInst sitePinInst;
     private final HardMacro block;
     private final Tile tile;
@@ -59,12 +58,12 @@ public class PathPort {
             return cachedRelocate;
         }
 
-        final Tile res = Module.getCorrespondingTile(tile, anchor, block.getModule().getAnchor().getTile(), rootNameTiles);
+        final Tile res =
+            Module.getCorrespondingTile(tile, anchor, block.getModule().getAnchor().getTile(), rootNameTiles);
         cachedAnchor = anchor;
         cachedRelocate = res;
         return res;
     }
-
 
     /**
      * @return the pin
@@ -72,7 +71,6 @@ public class PathPort {
     public SitePinInst getSitePinInst() {
         return sitePinInst;
     }
-
 
     /**
      * @return the block
@@ -107,7 +105,7 @@ public class PathPort {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        PathPort other = (PathPort) obj;
+        PathPort other = (PathPort)obj;
         if (sitePinInst == null) {
             if (other.sitePinInst != null)
                 return false;
@@ -115,6 +113,4 @@ public class PathPort {
             return false;
         return true;
     }
-
-
 }

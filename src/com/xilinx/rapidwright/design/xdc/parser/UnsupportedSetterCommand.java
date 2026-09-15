@@ -37,13 +37,11 @@ import tcl.lang.TclObject;
  * A setter command that is not supported in detail
  */
 public class UnsupportedSetterCommand implements Command {
-
     protected final XDCConstraints constraints;
     protected final EdifCellLookup<?> cellLookup;
     protected final Command replacedCommand;
 
     public UnsupportedSetterCommand(XDCConstraints constraints, EdifCellLookup<?> cellLookup, Command replacedCommand) {
-
         this.constraints = constraints;
         this.cellLookup = cellLookup;
         this.replacedCommand = replacedCommand;
@@ -51,17 +49,21 @@ public class UnsupportedSetterCommand implements Command {
 
     @Override
     public void cmdProc(Interp interp, TclObject[] objv) throws TclException {
-        if (replacedCommand!=null && Arrays.stream(objv).noneMatch(obj -> UnsupportedGetterCommand.containsUnsupportedCmdResults(cellLookup, interp, obj, false))) {
+        if (replacedCommand != null &&
+            Arrays.stream(objv).noneMatch(
+                obj -> UnsupportedGetterCommand.containsUnsupportedCmdResults(cellLookup, interp, obj, false))) {
             replacedCommand.cmdProc(interp, objv);
         } else {
-            List<UnsupportedConstraintElement> constraint = UnsupportedConstraintElement.commandToUnsupportedConstraints(interp, objv, cellLookup);
+            List<UnsupportedConstraintElement> constraint =
+                UnsupportedConstraintElement.commandToUnsupportedConstraints(interp, objv, cellLookup);
             constraints.getUnsupportedConstraints().add(constraint);
 
             interp.resetResult();
         }
     }
 
-    public static void replaceInInterp(Interp interp, XDCConstraints constraints, EdifCellLookup<?> lookup, String name) {
+    public static void replaceInInterp(Interp interp, XDCConstraints constraints, EdifCellLookup<?> lookup,
+                                       String name) {
         Command replacedCommand = Objects.requireNonNull(interp.getCommand(name));
         interp.createCommand(name, new UnsupportedSetterCommand(constraints, lookup, replacedCommand));
     }

@@ -41,7 +41,8 @@ public class ModifyingTestPlan extends TestPlan {
     private final Predicate<String> filter;
     private Function<TestIdentifier, TestIdentifier> mapper;
 
-    protected ModifyingTestPlan(TestPlan original, Predicate<String> filter, Function<TestIdentifier, TestIdentifier> mapper) {
+    protected ModifyingTestPlan(TestPlan original, Predicate<String> filter,
+                                Function<TestIdentifier, TestIdentifier> mapper) {
         super(original.containsTests());
         this.original = original;
         this.filter = filter;
@@ -49,10 +50,7 @@ public class ModifyingTestPlan extends TestPlan {
     }
 
     private Set<TestIdentifier> modify(Set<TestIdentifier> o) {
-        return o.stream()
-                .filter(t -> filter.test(t.getUniqueId()))
-                .map(mapper)
-                .collect(Collectors.toSet());
+        return o.stream().filter(t -> filter.test(t.getUniqueId())).map(mapper).collect(Collectors.toSet());
     }
 
     @Override
@@ -62,8 +60,9 @@ public class ModifyingTestPlan extends TestPlan {
 
     @Override
     public Optional<TestIdentifier> getParent(TestIdentifier child) {
-        //TODO maybe need to map back?
-        original.getParent(child).flatMap(parent->filter.test(parent.getUniqueId()) ? Optional.of(mapper.apply(parent)) : Optional.empty());
+        // TODO maybe need to map back?
+        original.getParent(child).flatMap(
+            parent -> filter.test(parent.getUniqueId()) ? Optional.of(mapper.apply(parent)) : Optional.empty());
         return super.getParent(child);
     }
 
@@ -84,7 +83,7 @@ public class ModifyingTestPlan extends TestPlan {
 
     @Override
     public long countTestIdentifiers(Predicate<? super TestIdentifier> predicate) {
-        return original.countTestIdentifiers(p->predicate.test(mapper.apply(p)));
+        return original.countTestIdentifiers(p -> predicate.test(mapper.apply(p)));
     }
 
     @Override

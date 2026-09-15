@@ -22,6 +22,8 @@
 
 package com.xilinx.rapidwright.support.rwroute;
 
+import java.util.Set;
+
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.NetType;
@@ -34,8 +36,6 @@ import com.xilinx.rapidwright.edif.EDIFNet;
 import com.xilinx.rapidwright.edif.EDIFNetlist;
 import com.xilinx.rapidwright.edif.EDIFPortInst;
 import com.xilinx.rapidwright.edif.EDIFTools;
-
-import java.util.Set;
 
 public class RouterHelperSupport {
     public static void invertVccLutPinsToGndPins(Design design, Set<SitePinInst> pins) {

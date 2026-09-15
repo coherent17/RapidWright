@@ -35,7 +35,6 @@ import java.nio.charset.StandardCharsets;
  * Created on: May 11, 2017
  */
 public class EDIFPortInst implements Comparable<EDIFPortInst> {
-
     private String name;
 
     private EDIFPort port;
@@ -63,7 +62,7 @@ public class EDIFPortInst implements Comparable<EDIFPortInst> {
     }
 
     public EDIFPortInst(EDIFPort port, EDIFNet parentNet, int index) {
-        this(port,parentNet,index,null);
+        this(port, parentNet, index, null);
     }
 
     /**
@@ -114,30 +113,30 @@ public class EDIFPortInst implements Comparable<EDIFPortInst> {
      * @param index For port refs part of a bussed port, this is the index into
      * the bussed array, for single bit ports, it should be -1.
      * @param cellInst This instance on which this port ref corresponds.
-     * @param deferSort The EDIFPortInstList maintains a sorted list of EDIFPortInst 
+     * @param deferSort The EDIFPortInstList maintains a sorted list of EDIFPortInst
      * objects and sorts them upon insertion.  Setting this flag to true will skip a sort addition
-     * but the caller is responsible to conclude a batch of additions with a call to 
-     * {@link EDIFPortInstList#reSortList()}.  This is useful when a large number of EDIFPortInsts 
+     * but the caller is responsible to conclude a batch of additions with a call to
+     * {@link EDIFPortInstList#reSortList()}.  This is useful when a large number of EDIFPortInsts
      * will be added consecutively (such as parsing a netlist).
      */
-    public EDIFPortInst(EDIFPort port, EDIFNet parentNet, int index, EDIFCellInst cellInst,
-            boolean deferSort) {
+    public EDIFPortInst(EDIFPort port, EDIFNet parentNet, int index, EDIFCellInst cellInst, boolean deferSort) {
         if (index == -1 && port.isBus()) {
             throw new RuntimeException("ERROR: Use a different constructor, "
-                    + "need index for bussed port " + port.getName());
+                                       + "need index for bussed port " + port.getName());
         }
         if (index != -1 && !port.isBus()) {
-            throw new RuntimeException("ERROR: Use a different constructor, " + "port "
-                    + port.getName() + " is not a bus, cannot index into a single bit signal.");
+            throw new RuntimeException("ERROR: Use a different constructor, "
+                                       + "port " + port.getName() +
+                                       " is not a bus, cannot index into a single bit signal.");
         }
         if (cellInst != null) {
             if (!port.equals(cellInst.getPort(port.getBusName(true)))) {
                 // check for name collision
                 if (!port.equals(cellInst.getPort(port.getName()))) {
-                    throw new RuntimeException("ERROR: Provided port '"+
-                            port.getName() + "' does not exist on EDIFCell type '" +
-                            cellInst.getCellType().getName() + "' when adding port "
-                            + "ref to instance '" + cellInst.getName() + "'.");
+                    throw new RuntimeException("ERROR: Provided port '" + port.getName() +
+                                               "' does not exist on EDIFCell type '" +
+                                               cellInst.getCellType().getName() + "' when adding port "
+                                               + "ref to instance '" + cellInst.getName() + "'.");
                 }
             }
         }
@@ -150,12 +149,11 @@ public class EDIFPortInst implements Comparable<EDIFPortInst> {
     }
 
     protected EDIFPortInst() {
-
     }
 
     /**
      * Creates a new port instance without connecting it to a net.
-     * 
+     *
      * @param portInstName Name of the port instance
      * @param inst         The instance on which to create the new port instance
      * @return The new port instance.
@@ -202,7 +200,6 @@ public class EDIFPortInst implements Comparable<EDIFPortInst> {
         return parentNet.getParentCell();
     }
 
-
     /**
      * @return the cellInst
      */
@@ -220,10 +217,10 @@ public class EDIFPortInst implements Comparable<EDIFPortInst> {
     /**
      * Sets the corresponding cell instance for this port instance.
      * @param cellInst the cellInst to set
-     * @param deferSort The EDIFPortInstList maintains a sorted list of EDIFPortInst 
+     * @param deferSort The EDIFPortInstList maintains a sorted list of EDIFPortInst
      * objects and sorts them upon insertion.  Setting this flag to true will skip a sort addition
-     * but the caller is responsible for conclude a batch of additions with a call to 
-     * {@link EDIFPortInstList#reSortList()}.  This is useful when a large number of EDIFPortInsts 
+     * but the caller is responsible for conclude a batch of additions with a call to
+     * {@link EDIFPortInstList#reSortList()}.  This is useful when a large number of EDIFPortInsts
      * will be added consecutively (such as parsing a netlist).
      */
     public void setCellInst(EDIFCellInst cellInst, boolean deferSort) {
@@ -245,9 +242,11 @@ public class EDIFPortInst implements Comparable<EDIFPortInst> {
      * @return True if the underlying cell is a static output from GND or VCC, false otherwise.
      */
     public boolean isPrimitiveStaticSource() {
-        if (cellInst == null) return false;
+        if (cellInst == null)
+            return false;
         String name = cellInst.getCellType().getName();
-        if (name.equals("GND") || name.equals("VCC")) return true;
+        if (name.equals("GND") || name.equals("VCC"))
+            return true;
         return false;
     }
 
@@ -258,7 +257,8 @@ public class EDIFPortInst implements Comparable<EDIFPortInst> {
             // added to avoid name collisions in the EDIFNet portInsts map.
             fullName = fullName + "[" + index + "]";
         }
-        if (getCellInst() == null) return fullName;
+        if (getCellInst() == null)
+            return fullName;
         return getCellInst().getName() + EDIFTools.EDIF_HIER_SEP + fullName;
     }
 
@@ -294,7 +294,8 @@ public class EDIFPortInst implements Comparable<EDIFPortInst> {
     }
 
     public EDIFNet getInternalNet() {
-        if (cellInst == null) return null;
+        if (cellInst == null)
+            return null;
         return cellInst.getCellType().getInternalNet(this);
     }
 
@@ -310,13 +311,12 @@ public class EDIFPortInst implements Comparable<EDIFPortInst> {
     public static final byte[] EXPORT_CONST_INSTANCEREF = " (instanceref ".getBytes(StandardCharsets.UTF_8);
     public static final byte[] EXPORT_CONST_CLOSE_PORT_INST = ")\n".getBytes(StandardCharsets.UTF_8);
 
-    public void writeEDIFExport(OutputStream os, byte[] indent, EDIFWriteLegalNameCache<?> cache) throws IOException{
+    public void writeEDIFExport(OutputStream os, byte[] indent, EDIFWriteLegalNameCache<?> cache) throws IOException {
         os.write(indent);
         os.write(EXPORT_CONST_PORTREF);
         if (index == -1) {
-             os.write(cache.getLegalEDIFName(getPort().getName()));
-        }
-        else {
+            os.write(cache.getLegalEDIFName(getPort().getName()));
+        } else {
             os.write(EXPORT_CONST_MEMBER);
             os.write(getPort().getBusEDIFRename(cache));
             os.write(' ');
@@ -355,7 +355,7 @@ public class EDIFPortInst implements Comparable<EDIFPortInst> {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        EDIFPortInst other = (EDIFPortInst) obj;
+        EDIFPortInst other = (EDIFPortInst)obj;
         if (cellInst == null) {
             if (other.cellInst != null)
                 return false;
@@ -372,7 +372,8 @@ public class EDIFPortInst implements Comparable<EDIFPortInst> {
     }
 
     public String toString() {
-        if (cellInst == null) return name;
+        if (cellInst == null)
+            return name;
         return cellInst.getName() + EDIFTools.EDIF_HIER_SEP + name;
     }
 

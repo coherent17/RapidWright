@@ -32,7 +32,6 @@ import com.xilinx.rapidwright.device.Device;
  *
  */
 public interface PBlockCorner {
-
     public String getName();
 
     public int getInstanceX();

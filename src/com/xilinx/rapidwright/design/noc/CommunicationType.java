@@ -34,7 +34,7 @@ public enum CommunicationType {
     MEMORY_MAPPED_WRITE("MM_WriteOnly"),
     STREAM("STRM");
 
-    private static Map<String,CommunicationType> map;
+    private static Map<String, CommunicationType> map;
 
     static {
         map = new HashMap<>();

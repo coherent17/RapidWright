@@ -23,7 +23,6 @@
  */
 package com.xilinx.rapidwright.device.browser;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -55,7 +54,7 @@ import com.xilinx.rapidwright.router.RouteNode;
  * This class was written specifically for the DeviceBrowser class.  It
  * provides the scene content of the 2D tile array.
  */
-public class DeviceBrowserScene extends TileScene{
+public class DeviceBrowserScene extends TileScene {
     /**     */
     public Signal1<Tile> updateTile = new Signal1<Tile>();
     /**     */
@@ -84,11 +83,9 @@ public class DeviceBrowserScene extends TileScene{
     }
 
     public void drawWire(Tile src, Tile dst) {
-        QGraphicsLineItem line = new QGraphicsLineItem(
-                src.getColumn()*tileSize  + tileSize/2,
-                src.getRow()*tileSize + tileSize/2,
-                dst.getColumn()*tileSize + tileSize/2,
-                dst.getRow()*tileSize + tileSize/2);
+        QGraphicsLineItem line =
+            new QGraphicsLineItem(src.getColumn() * tileSize + tileSize / 2, src.getRow() * tileSize + tileSize / 2,
+                                  dst.getColumn() * tileSize + tileSize / 2, dst.getRow() * tileSize + tileSize / 2);
         line.setPen(wirePen);
         addItem(line);
     }
@@ -103,13 +100,13 @@ public class DeviceBrowserScene extends TileScene{
 
     public void drawWire(Tile src, int wireSrc, Tile dst, int wireDst) {
         double enumSize = src.getWireCount();
-        double x1 = (double) tileXMap.get(src)*tileSize  + (wireSrc%tileSize);
-        double y1 = (double) tileYMap.get(src)*tileSize  + (wireSrc*tileSize)/enumSize;
-        double x2 = (double) tileXMap.get(dst)*tileSize  + (wireDst%tileSize);
-        double y2 = (double) tileYMap.get(dst)*tileSize  + (wireDst*tileSize)/enumSize;
-        WireConnectionLine line = new WireConnectionLine(x1,y1,x2,y2, this, dst, wireDst);
-        line.setToolTip(src.getName() + " " + src.getWireName(wireSrc) + " -> " +
-                dst.getName() + " " + dst.getWireName(wireDst));
+        double x1 = (double)tileXMap.get(src) * tileSize + (wireSrc % tileSize);
+        double y1 = (double)tileYMap.get(src) * tileSize + (wireSrc * tileSize) / enumSize;
+        double x2 = (double)tileXMap.get(dst) * tileSize + (wireDst % tileSize);
+        double y2 = (double)tileYMap.get(dst) * tileSize + (wireDst * tileSize) / enumSize;
+        WireConnectionLine line = new WireConnectionLine(x1, y1, x2, y2, this, dst, wireDst);
+        line.setToolTip(src.getName() + " " + src.getWireName(wireSrc) + " -> " + dst.getName() + " " +
+                        dst.getWireName(wireDst));
         line.setPen(wirePen);
         line.setAcceptHoverEvents(true);
         addItem(line);
@@ -118,7 +115,8 @@ public class DeviceBrowserScene extends TileScene{
 
     public void drawConnectingWires(Tile tile, int wire) {
         clearCurrentLines();
-        if (tile == null) return;
+        if (tile == null)
+            return;
         for (Wire w : tile.getWireConnections(wire)) {
             drawWire(tile, wire, w.getTile(), w.getWireIndex());
         }
@@ -130,9 +128,10 @@ public class DeviceBrowserScene extends TileScene{
         Queue<RouteNode> queue = new LinkedList<RouteNode>();
         for (int wire = 0; wire < t.getWireCount(); wire++) {
             List<Wire> connections = t.getWireConnections(wire);
-            if (connections == null) continue;
+            if (connections == null)
+                continue;
             for (Wire wc : connections) {
-                queue.add(new RouteNode(wc.getTile(),wc.getWireIndex()));
+                queue.add(new RouteNode(wc.getTile(), wc.getWireIndex()));
             }
         }
 
@@ -142,14 +141,13 @@ public class DeviceBrowserScene extends TileScene{
             if (i == null) {
                 i = 1;
                 reachabilityMap.put(currNode.getTile(), i);
+            } else {
+                reachabilityMap.put(currNode.getTile(), i + 1);
             }
-            else {
-                reachabilityMap.put(currNode.getTile(), i+1);
-            }
-            if (currNode.getLevel() < hops-1) {
+            if (currNode.getLevel() < hops - 1) {
                 List<Wire> connections = currNode.getConnections();
                 for (Wire wc : connections) {
-                    queue.add(new RouteNode(wc.getTile(),wc.getWireIndex()));
+                    queue.add(new RouteNode(wc.getTile(), wc.getWireIndex()));
                 }
             }
         }
@@ -159,7 +157,7 @@ public class DeviceBrowserScene extends TileScene{
     private void drawReachability(HashMap<Tile, Integer> map) {
         menuReachabilityClear();
         for (Tile t : map.keySet()) {
-            int color = map.get(t)*16 > 255 ? 255 : map.get(t)*16;
+            int color = map.get(t) * 16 > 255 ? 255 : map.get(t) * 16;
             NumberedHighlightedTile tile = new NumberedHighlightedTile(t, this, map.get(t));
             tile.setBrush(new QBrush(new QColor(0, color, 0)));
             currentTiles.add(tile);
@@ -195,7 +193,6 @@ public class DeviceBrowserScene extends TileScene{
         clearHighlightedTiles();
     }
 
-
     public void addHighlightedTile(NumberedHighlightedTile tile) {
         currentTiles.add(tile);
     }
@@ -206,7 +203,6 @@ public class DeviceBrowserScene extends TileScene{
         }
         currentTiles.clear();
     }
-
 
     @Override
     public void mouseDoubleClickEvent(QGraphicsSceneMouseEvent event) {
@@ -221,8 +217,7 @@ public class DeviceBrowserScene extends TileScene{
             if (browser.view.hasPanned) {
                 browser.view.hasPanned = false;
 
-            }
-            else {
+            } else {
                 reachabilityTile = getTile(event);
                 QMenu menu = new QMenu();
                 QAction action1 = new QAction("Draw Reachability (1 Hop)", this);
@@ -246,7 +241,6 @@ public class DeviceBrowserScene extends TileScene{
                 menu.exec(event.screenPos());
             }
         }
-
 
         super.mouseReleaseEvent(event);
     }
@@ -275,7 +269,7 @@ public class DeviceBrowserScene extends TileScene{
     public boolean event(QEvent event) {
         boolean result = true;
 
-        switch(event.type().value()) {
+        switch (event.type().value()) {
             case CLEAR_HIGHLIGHTED_TILES:
                 clearHighlightedTiles();
                 break;
@@ -284,7 +278,7 @@ public class DeviceBrowserScene extends TileScene{
                 break;
             default:
                 result = super.event(event);
-            }
+        }
         return result;
     }
 }

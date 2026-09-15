@@ -37,7 +37,6 @@ import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.device.Tile;
 import com.xilinx.rapidwright.edif.EDIFNetlist;
 
-
 /**
  * A wrapper class for multiple implementations of a module.
  * Since the device, name, and netlist should be all be the same,
@@ -46,12 +45,10 @@ import com.xilinx.rapidwright.edif.EDIFNetlist;
  * Created on: Jun 21, 2016
  */
 public class ModuleImpls extends ArrayList<Module> {
-
     /**
      *
      */
     private static final long serialVersionUID = -8931048535637180230L;
-
 
     public String getName() {
         return size() > 0 ? get(0).getName() : null;
@@ -68,7 +65,8 @@ public class ModuleImpls extends ArrayList<Module> {
     private void checkSameNetlist() {
         for (Module mod : this) {
             if (mod.getNetlist() != getNetlist()) {
-                throw new RuntimeException("In the ModuleImpls "+mod.getName()+", the netlists are not pointer-equal");
+                throw new RuntimeException("In the ModuleImpls " + mod.getName() +
+                                           ", the netlists are not pointer-equal");
             }
         }
     }
@@ -77,7 +75,7 @@ public class ModuleImpls extends ArrayList<Module> {
     public boolean add(Module mod) {
         boolean res = super.add(mod);
         checkSameNetlist();
-        mod.setImplementationIndex(size()-1);
+        mod.setImplementationIndex(size() - 1);
         return res;
     }
 
@@ -126,25 +124,25 @@ public class ModuleImpls extends ArrayList<Module> {
     public List<ModulePlacement> getAllPlacements() {
         if (allPlacements == null) {
             allPlacements = stream()
-                    .flatMap(mod ->
-                            mod.getAllValidPlacements().stream()
-                                    .map(site -> new ModulePlacement(mod.getImplementationIndex(), site))
-                    )
-                    .sorted(Comparator.comparing(p->p.placement.getTile().getColumn()))
-                    .collect(Collectors.toList());
+                                .flatMap(mod
+                                         -> mod.getAllValidPlacements().stream().map(
+                                             site -> new ModulePlacement(mod.getImplementationIndex(), site)))
+                                .sorted(Comparator.comparing(p -> p.placement.getTile().getColumn()))
+                                .collect(Collectors.toList());
         }
         return allPlacements;
     }
 
     private Collection<String> getAllPorts() {
-        final Set<Set<String>> allPortSets = this.stream()
+        final Set<Set<String>> allPortSets =
+            this.stream()
                 .map(m -> m.getPorts().stream().map(Port::getName).collect(Collectors.toSet()))
                 .collect(Collectors.toSet());
         if (allPortSets.isEmpty()) {
             return null;
         }
-        if (allPortSets.size()>1) {
-            throw new RuntimeException("Module variants do not have identical ports: "+allPortSets);
+        if (allPortSets.size() > 1) {
+            throw new RuntimeException("Module variants do not have identical ports: " + allPortSets);
         }
         return allPortSets.iterator().next();
     }
@@ -156,13 +154,8 @@ public class ModuleImpls extends ArrayList<Module> {
      */
     public List<Set<Tile>> getPortTiles(String port) {
         return this.stream()
-                .map(m->
-                        m.getPort(port).getSitePinInsts()
-                                .stream()
-                                .map(SitePinInst::getTile)
-                                .collect(Collectors.toSet())
-                )
-                .collect(Collectors.toList());
+            .map(m -> m.getPort(port).getSitePinInsts().stream().map(SitePinInst::getTile).collect(Collectors.toSet()))
+            .collect(Collectors.toList());
     }
 
     public Collection<List<String>> getSameTilePorts() {
@@ -170,8 +163,6 @@ public class ModuleImpls extends ArrayList<Module> {
         if (allPorts == null) {
             return null;
         }
-        return allPorts.stream()
-                .collect(Collectors.groupingBy(this::getPortTiles))
-                .values();
+        return allPorts.stream().collect(Collectors.groupingBy(this::getPortTiles)).values();
     }
 }

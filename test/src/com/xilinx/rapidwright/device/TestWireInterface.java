@@ -26,15 +26,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class TestWireInterface {
-
     @Test
     public void testWireInterface() {
         Device device = Device.getDevice(Device.KCU105);
 
-//        get_nodes INT_X45Y18/WW2_W_BEG1
-//        INT_X45Y18/WW2_W_BEG1
-//        get_wires -of [get_nodes INT_X45Y18/WW2_W_BEG1]
-//        INT_X45Y18/WW2_W_BEG1 INT_X44Y18/WW2_W_END1 CLEL_R_X44Y18/EASTBUSOUT_FT1_17 FSR_GAP_X44Y18/EASTBUSOUT_FT1_17 CLE_M_X45Y18/EASTBUSOUT_FT1_17 CFRM_CBRK_L_X45Y0/EASTBUSOUT_FT1_18_17
+        //        get_nodes INT_X45Y18/WW2_W_BEG1
+        //        INT_X45Y18/WW2_W_BEG1
+        //        get_wires -of [get_nodes INT_X45Y18/WW2_W_BEG1]
+        //        INT_X45Y18/WW2_W_BEG1 INT_X44Y18/WW2_W_END1 CLEL_R_X44Y18/EASTBUSOUT_FT1_17
+        //        FSR_GAP_X44Y18/EASTBUSOUT_FT1_17 CLE_M_X45Y18/EASTBUSOUT_FT1_17
+        //        CFRM_CBRK_L_X45Y0/EASTBUSOUT_FT1_18_17
 
         Node node = device.getNode("INT_X45Y18/WW2_W_BEG1");
         Wire[] wires = node.getAllWiresInNode();
@@ -60,6 +61,5 @@ public class TestWireInterface {
             Assertions.assertEquals(i == 0, wireInt.equals(wires[i]));
             Assertions.assertEquals(i == 0, wires[i].equals(wireInt));
         }
-
     }
 }

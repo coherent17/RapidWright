@@ -29,18 +29,19 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public class TestPIP {
-
     @ParameterizedTest
-    @ValueSource(strings = {"xczu3eg","xc7a12t"})
+    @ValueSource(strings = {"xczu3eg", "xc7a12t"})
     public void testGetArbitraryPIP(String deviceName) {
         Device d = Device.getDevice(deviceName);
 
         for (Tile t : d.getAllTiles()) {
             for (PIP p : t.getPIPs()) {
                 Node start = p.getStartNode();
-                if (start == null) continue;
+                if (start == null)
+                    continue;
                 Node end = p.getEndNode();
-                if (end == null) continue;
+                if (end == null)
+                    continue;
 
                 PIP pip = PIP.getArbitraryPIP(start, end);
                 Assertions.assertEquals(start, pip.getStartNode());
@@ -50,11 +51,10 @@ public class TestPIP {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "xcvu3p,INT_X0Y0/BYPASS_W14,INT_X0Y0/INT_NODE_IMUX_50_INT_OUT0,true",
-            "xcvu3p,INT_X9Y9/INT_NODE_IMUX_50_INT_OUT0,INT_X9Y9/BYPASS_W14,false"
-    })
-    public void testGetArbitraryPIPReversed(String deviceName, String startNodeName, String endNodeName, boolean isReversed) {
+    @CsvSource({"xcvu3p,INT_X0Y0/BYPASS_W14,INT_X0Y0/INT_NODE_IMUX_50_INT_OUT0,true",
+                "xcvu3p,INT_X9Y9/INT_NODE_IMUX_50_INT_OUT0,INT_X9Y9/BYPASS_W14,false"})
+    public void
+    testGetArbitraryPIPReversed(String deviceName, String startNodeName, String endNodeName, boolean isReversed) {
         Device d = Device.getDevice(deviceName);
         Node startNode = d.getNode(startNodeName);
         Node endNode = d.getNode(endNodeName);
@@ -63,11 +63,10 @@ public class TestPIP {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "xcvu3p,INT_X21Y240,BYPASS_E14,INT_NODE_IMUX_18_INT_OUT0,true",
-            "xcvu3p,INT_X21Y240,INT_NODE_IMUX_18_INT_OUT0,BYPASS_E14,false"
-    })
-    public void testPIP(String deviceName, String tileName, String startWireName, String endWireName, boolean isReversed) {
+    @CsvSource({"xcvu3p,INT_X21Y240,BYPASS_E14,INT_NODE_IMUX_18_INT_OUT0,true",
+                "xcvu3p,INT_X21Y240,INT_NODE_IMUX_18_INT_OUT0,BYPASS_E14,false"})
+    public void
+    testPIP(String deviceName, String tileName, String startWireName, String endWireName, boolean isReversed) {
         Device d = Device.getDevice(deviceName);
         Tile t = d.getTile(tileName);
         int startWireIndex = t.getWireIndex(startWireName);

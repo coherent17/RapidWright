@@ -32,7 +32,6 @@ import com.xilinx.rapidwright.edif.EDIFHierPortInst;
 import com.xilinx.rapidwright.edif.EDIFNetlist;
 
 public class ClockTools {
-
     public static Map<String, String> unisimFFs;
 
     public static Map<String, String> unisimLatches;
@@ -58,7 +57,7 @@ public class ClockTools {
     /**
      * If the provided instance is a CLB register (flip-flop or latch), it will get
      * the net of the connected net to the clock pin of the cell and return it.
-     * 
+     *
      * @param i The instance in question.
      * @return The clock net connected to this instance's clock pin, or null if none
      *         is found.
@@ -72,7 +71,7 @@ public class ClockTools {
     /**
      * Gets the clock net from the provided design. If the design has more than one
      * net, it gets the net with the most CLB register fan out.
-     * 
+     *
      * @param design The design to query.
      * @return The biggest CLB register fan out net in the design.
      */
@@ -98,5 +97,4 @@ public class ClockTools {
 
         return clkLargestFanout;
     }
-
 }

@@ -37,7 +37,6 @@ import com.xilinx.rapidwright.util.Pair;
  * each target clock region.
  */
 public class VersalClockTree {
-
     private static final int VTREE_TYPE_SHIFT = 30;
     private static final int VTREE_TYPE_MASK = 0x3 << VTREE_TYPE_SHIFT;
     private static final int MIN_Y_MASK = 0x3fff;
@@ -57,7 +56,6 @@ public class VersalClockTree {
      * Only used for serialization purposes
      */
     public VersalClockTree() {
-
     }
 
     public VersalClockTree(int minY, int maxY) {
@@ -107,7 +105,7 @@ public class VersalClockTree {
     /**
      * Gets the vertical distribution path of the target clock region for the
      * preferred clock root.
-     * 
+     *
      * @param target The destination clock region that needs to be routed via
      *               vertical distribution lines.
      * @return A sequence of vertical distribution constraints (target IntentCode
@@ -120,20 +118,18 @@ public class VersalClockTree {
     /**
      * Gets the vertical distribution path of the target clock region for the
      * provided clock root.
-     * 
+     *
      * @param target          The destination clock region that needs to be routed
      *                        via vertical distribution lines.
      * @param clockRootYCoord The desired clock root Y coordinate path set to use.
      * @return A sequence of vertical distribution constraints (target IntentCode
      *         and ClockRegion).
      */
-    public List<Pair<IntentCode, ClockRegion>> getClockRegionVDistrPath(ClockRegion target,
-            int clockRootYCoord) {
+    public List<Pair<IntentCode, ClockRegion>> getClockRegionVDistrPath(ClockRegion target, int clockRootYCoord) {
         int[][] pathData = clockRootPathSets.get(clockRootYCoord);
 
         if (pathData == null) {
-            System.err.println(
-                    "Missing VDISTR tree for " + target.getDevice() + " targeting CR " + target);
+            System.err.println("Missing VDISTR tree for " + target.getDevice() + " targeting CR " + target);
             Pair<IntentCode, ClockRegion> simple = new Pair<>(IntentCode.NODE_GLOBAL_VDISTR, target);
             return Collections.singletonList(simple);
         }
@@ -156,12 +152,10 @@ public class VersalClockTree {
     public static int getMinMaxYRangeKey(int minY, int maxY, VTreeType vtreeType) {
         assert (minY >= 0 && maxY >= 0 && maxY >= minY);
         if (minY > MIN_Y_MASK) {
-            throw new IllegalArgumentException("Minimum clock region Y coordinate exceeds "
-                    + MIN_Y_MASK + ": " + minY);
+            throw new IllegalArgumentException("Minimum clock region Y coordinate exceeds " + MIN_Y_MASK + ": " + minY);
         }
         if (maxY > MAX_Y_MASK) {
-            throw new IllegalArgumentException("Maximum clock region Y coordinate exceeds "
-                    + MAX_Y_MASK + ": " + maxY);
+            throw new IllegalArgumentException("Maximum clock region Y coordinate exceeds " + MAX_Y_MASK + ": " + maxY);
         }
         return (vtreeType.getKeyBits() << VTREE_TYPE_SHIFT) | (minY << 16) | maxY;
     }

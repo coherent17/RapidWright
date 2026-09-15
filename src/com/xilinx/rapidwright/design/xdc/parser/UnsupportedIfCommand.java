@@ -55,13 +55,13 @@ public class UnsupportedIfCommand extends UnsupportedSetterCommand {
             case 1:
                 return TclDouble.newInstance(exprValue.getDoubleValue());
             case 2:
-                return TclString.newInstance("{"+exprValue.getStringValue()+"}");
+                return TclString.newInstance("{" + exprValue.getStringValue() + "}");
             default:
                 throw new RuntimeException("invalid expr type");
         }
     }
 
-    //Copied from Parser.java
+    // Copied from Parser.java
     static final int TCL_TOKEN_WORD = 1;
     static final int TCL_TOKEN_SIMPLE_WORD = 2;
     static final int TCL_TOKEN_TEXT = 4;
@@ -101,10 +101,10 @@ public class UnsupportedIfCommand extends UnsupportedSetterCommand {
                         break;
                     case TCL_TOKEN_TEXT:
                     case TCL_TOKEN_WORD:
-                        //Ignore
+                        // Ignore
                         break;
                     default:
-                        throw new RuntimeException("unsupported token type: "+token.type);
+                        throw new RuntimeException("unsupported token type: " + token.type);
                 }
             }
             return res.toString();
@@ -113,14 +113,14 @@ public class UnsupportedIfCommand extends UnsupportedSetterCommand {
         }
     }
     void makeUnsupportedResult(Interp interp, TclObject[] objv, int i) throws TclException {
-
-        for (++i;i<objv.length;++i) {
+        for (++i; i < objv.length; ++i) {
             String obj = objv[i].toString();
             CharPointer script = new CharPointer(obj);
-            TclParse tclParse = Parser.parseCommand(interp, script.array, script.index, script.length(), (String) null, 0, true);
+            TclParse tclParse =
+                Parser.parseCommand(interp, script.array, script.index, script.length(), (String)null, 0, true);
 
             String s = tokensToStr(tclParse, interp);
-            System.out.println("from "+obj+" to "+s);
+            System.out.println("from " + obj + " to " + s);
             objv[i] = TclString.newInstance(s);
         }
         interp.setResult(UnsupportedCmdResult.makeTclObj(interp, objv, cellLookup, true, true));
@@ -128,7 +128,7 @@ public class UnsupportedIfCommand extends UnsupportedSetterCommand {
 
     @Override
     public void cmdProc(Interp interp, TclObject[] objv) throws TclException {
-        //Code copied from IfCmd.java
+        // Code copied from IfCmd.java
         int i;
         boolean value;
 
@@ -141,16 +141,14 @@ public class UnsupportedIfCommand extends UnsupportedSetterCommand {
             // script to execute if the expression is true.
 
             if (i >= objv.length) {
-                throw new TclException(interp,
-                        "wrong # args: no expression after \"" +
-                                objv[i - 1] + "\" argument");
+                throw new TclException(interp, "wrong # args: no expression after \"" + objv[i - 1] + "\" argument");
             }
             try {
                 ExprValue exprValue = interp.evalExpression(objv[i].toString());
                 try {
                     value = exprValue.getBooleanValue(interp);
                 } catch (TclException | TclRuntimeError e) {
-                    //Not evaluatable, forward if to Vivado
+                    // Not evaluatable, forward if to Vivado
                     objv[i] = exprValueToObj(exprValue);
 
                     makeUnsupportedResult(interp, objv, i);
@@ -172,9 +170,7 @@ public class UnsupportedIfCommand extends UnsupportedSetterCommand {
                 i++;
             }
             if (i >= objv.length) {
-                throw new TclException(interp,
-                        "wrong # args: no script following \"" +
-                                objv[i - 1] + "\" argument");
+                throw new TclException(interp, "wrong # args: no script following \"" + objv[i - 1] + "\" argument");
             }
             if (value) {
                 try {
@@ -182,8 +178,7 @@ public class UnsupportedIfCommand extends UnsupportedSetterCommand {
                 } catch (TclException e) {
                     switch (e.getCompletionCode()) {
                         case TCL.ERROR:
-                            interp.addErrorInfo("\n    (\"if\" then script line " +
-                                    interp.getErrorLine() + ")");
+                            interp.addErrorInfo("\n    (\"if\" then script line " + interp.getErrorLine() + ")");
                             break;
                     }
                     throw e;
@@ -213,20 +208,17 @@ public class UnsupportedIfCommand extends UnsupportedSetterCommand {
         if (objv[i].toString().equals("else")) {
             i++;
             if (i >= objv.length) {
-                throw new TclException(interp,
-                        "wrong # args: no script following \"else\" argument");
+                throw new TclException(interp, "wrong # args: no script following \"else\" argument");
             } else if (i != (objv.length - 1)) {
-                throw new TclException(interp,
-                        "wrong # args: extra words after \"else\" clause in " +
-                                "\"if\" command");
+                throw new TclException(interp, "wrong # args: extra words after \"else\" clause in "
+                                                   + "\"if\" command");
             }
         } else {
             // Not else, if there is more than 1 more argument
             // then generate an error.
 
             if (i != (objv.length - 1)) {
-                throw new TclException(interp,
-                        "wrong # args: extra words after \"else\" clause in \"if\" command");
+                throw new TclException(interp, "wrong # args: extra words after \"else\" clause in \"if\" command");
             }
         }
         try {
@@ -234,8 +226,7 @@ public class UnsupportedIfCommand extends UnsupportedSetterCommand {
         } catch (TclException e) {
             switch (e.getCompletionCode()) {
                 case TCL.ERROR:
-                    interp.addErrorInfo("\n    (\"if\" else script line " +
-                            interp.getErrorLine() + ")");
+                    interp.addErrorInfo("\n    (\"if\" else script line " + interp.getErrorLine() + ")");
                     break;
             }
             throw e;

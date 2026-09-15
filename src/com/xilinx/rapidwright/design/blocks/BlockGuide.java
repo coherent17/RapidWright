@@ -52,11 +52,11 @@ public class BlockGuide {
     /** Indexed list of pblock implementations available to block instances */
     private ArrayList<PBlock> implementations;
     /** A map of all the instances for this block */
-    private Map<String,BlockInst> insts;
+    private Map<String, BlockInst> insts;
     /** A map of all the clock ports and their constraints */
-    private Map<String,Float> clocks;
+    private Map<String, Float> clocks;
     /** A map of any clocks that have estimation clock buffers to use (est. clock skew) */
-    private Map<String,Site> clockBuffers;
+    private Map<String, Site> clockBuffers;
     /** Finalizing XDC commands to be used (multicycle_paths, etc) */
     private List<String> xdcCommands;
     /** Cached copy of MD5 hash representing collection of settings */
@@ -146,12 +146,14 @@ public class BlockGuide {
     }
 
     public void addXDCCommand(String xdc) {
-        if (xdcCommands == null) xdcCommands = new ArrayList<>();
+        if (xdcCommands == null)
+            xdcCommands = new ArrayList<>();
         xdcCommands.add(xdc);
     }
 
     public List<String> getXDCCommands() {
-        if (xdcCommands == null) return Collections.emptyList();
+        if (xdcCommands == null)
+            return Collections.emptyList();
         return xdcCommands;
     }
 
@@ -183,11 +185,11 @@ public class BlockGuide {
                     }
                 }
             }
-            for (Entry<String,Float> e : clocks.entrySet()) {
+            for (Entry<String, Float> e : clocks.entrySet()) {
                 md5.update(e.getKey().getBytes());
                 md5.update(e.getValue().toString().getBytes());
             }
-            for (Entry<String,Site> e : clockBuffers.entrySet()) {
+            for (Entry<String, Site> e : clockBuffers.entrySet()) {
                 md5.update(e.getKey().getBytes());
                 md5.update(e.getValue().toString().getBytes());
             }
@@ -198,8 +200,8 @@ public class BlockGuide {
             // Convert bytes to alpha-numeric string
             byte[] b = md5.digest();
             StringBuilder result = new StringBuilder(32);
-            for (int i=0; i < b.length; i++) {
-                result.append(Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 ));
+            for (int i = 0; i < b.length; i++) {
+                result.append(Integer.toString((b[i] & 0xff) + 0x100, 16).substring(1));
             }
             md5Hash = result.toString();
         }

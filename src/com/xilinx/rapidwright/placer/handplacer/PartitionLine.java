@@ -28,8 +28,7 @@ import com.trolltech.qt.gui.QColor;
 import com.trolltech.qt.gui.QPen;
 import com.xilinx.rapidwright.device.Tile;
 
-public class PartitionLine{
-
+public class PartitionLine {
     public Tile start;
 
     public Tile end;
@@ -42,10 +41,7 @@ public class PartitionLine{
     public void drawPartitionLine(FloorPlanScene scene) {
         QPen pen = new QPen(QColor.white, 20);
         pen.setStyle(PenStyle.DashLine);
-        scene.addLine(start.getColumn()*scene.tileSize,
-                      start.getRow()*scene.tileSize,
-                      end.getColumn()*scene.tileSize,
-                      end.getRow()*scene.tileSize,
-                      pen);
+        scene.addLine(start.getColumn() * scene.tileSize, start.getRow() * scene.tileSize,
+                      end.getColumn() * scene.tileSize, end.getRow() * scene.tileSize, pen);
     }
 }

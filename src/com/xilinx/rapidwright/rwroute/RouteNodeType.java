@@ -41,8 +41,8 @@ public enum RouteNodeType {
 
     /**
      * Denotes {@link RouteNode} objects that correspond to {@link Node} objects that enter
-     * a Laguna tile from an adjacent INT tile, or those Laguna tile nodes leading to a SUPER_LONG_LINE
-     * going in the given direction
+     * a Laguna tile from an adjacent INT tile, or those Laguna tile nodes leading to a
+     * SUPER_LONG_LINE going in the given direction
      */
     LOCAL_EAST_LEADING_TO_NORTHBOUND_LAGUNA,
     LOCAL_WEST_LEADING_TO_NORTHBOUND_LAGUNA,
@@ -70,48 +70,57 @@ public enum RouteNodeType {
     public static final RouteNodeType[] values = values();
 
     public boolean isAnyExclusiveSink() {
-        return this == EXCLUSIVE_SINK_BOTH || this == EXCLUSIVE_SINK_EAST || this == EXCLUSIVE_SINK_WEST || this == EXCLUSIVE_SINK_NON_LOCAL;
+        return this == EXCLUSIVE_SINK_BOTH || this == EXCLUSIVE_SINK_EAST || this == EXCLUSIVE_SINK_WEST ||
+            this == EXCLUSIVE_SINK_NON_LOCAL;
     }
 
     public static boolean isAnyExclusiveSink(int ordinal) {
-        return ordinal == EXCLUSIVE_SINK_BOTH.ordinal() || ordinal == EXCLUSIVE_SINK_EAST.ordinal() || ordinal == EXCLUSIVE_SINK_WEST.ordinal() || ordinal == EXCLUSIVE_SINK_NON_LOCAL.ordinal();
+        return ordinal == EXCLUSIVE_SINK_BOTH.ordinal() || ordinal == EXCLUSIVE_SINK_EAST.ordinal() ||
+            ordinal == EXCLUSIVE_SINK_WEST.ordinal() || ordinal == EXCLUSIVE_SINK_NON_LOCAL.ordinal();
     }
 
     public boolean isAnyLocal() {
         return this == LOCAL_BOTH || this == LOCAL_EAST || this == LOCAL_WEST || this == LOCAL_RESERVED ||
-               this == LOCAL_EAST_LEADING_TO_NORTHBOUND_LAGUNA || this == LOCAL_EAST_LEADING_TO_SOUTHBOUND_LAGUNA ||
-               this == LOCAL_WEST_LEADING_TO_NORTHBOUND_LAGUNA || this == LOCAL_WEST_LEADING_TO_SOUTHBOUND_LAGUNA;
+            this == LOCAL_EAST_LEADING_TO_NORTHBOUND_LAGUNA || this == LOCAL_EAST_LEADING_TO_SOUTHBOUND_LAGUNA ||
+            this == LOCAL_WEST_LEADING_TO_NORTHBOUND_LAGUNA || this == LOCAL_WEST_LEADING_TO_SOUTHBOUND_LAGUNA;
     }
 
     public static boolean isAnyLocal(int ordinal) {
-        return ordinal == LOCAL_BOTH.ordinal() || ordinal == LOCAL_EAST.ordinal() || ordinal == LOCAL_WEST.ordinal() || ordinal == LOCAL_RESERVED.ordinal() ||
-               ordinal == LOCAL_EAST_LEADING_TO_NORTHBOUND_LAGUNA.ordinal() || ordinal == LOCAL_EAST_LEADING_TO_SOUTHBOUND_LAGUNA.ordinal() ||
-               ordinal == LOCAL_WEST_LEADING_TO_NORTHBOUND_LAGUNA.ordinal() || ordinal == LOCAL_WEST_LEADING_TO_SOUTHBOUND_LAGUNA.ordinal();
+        return ordinal == LOCAL_BOTH.ordinal() || ordinal == LOCAL_EAST.ordinal() || ordinal == LOCAL_WEST.ordinal() ||
+            ordinal == LOCAL_RESERVED.ordinal() || ordinal == LOCAL_EAST_LEADING_TO_NORTHBOUND_LAGUNA.ordinal() ||
+            ordinal == LOCAL_EAST_LEADING_TO_SOUTHBOUND_LAGUNA.ordinal() ||
+            ordinal == LOCAL_WEST_LEADING_TO_NORTHBOUND_LAGUNA.ordinal() ||
+            ordinal == LOCAL_WEST_LEADING_TO_SOUTHBOUND_LAGUNA.ordinal();
     }
 
     public boolean isEastLocal() {
-        return this == LOCAL_EAST || this == LOCAL_EAST_LEADING_TO_NORTHBOUND_LAGUNA || this == LOCAL_EAST_LEADING_TO_SOUTHBOUND_LAGUNA;
+        return this == LOCAL_EAST || this == LOCAL_EAST_LEADING_TO_NORTHBOUND_LAGUNA ||
+            this == LOCAL_EAST_LEADING_TO_SOUTHBOUND_LAGUNA;
     }
 
     public boolean isWestLocal() {
-        return this == LOCAL_WEST || this == LOCAL_WEST_LEADING_TO_NORTHBOUND_LAGUNA || this == LOCAL_WEST_LEADING_TO_SOUTHBOUND_LAGUNA;
+        return this == LOCAL_WEST || this == LOCAL_WEST_LEADING_TO_NORTHBOUND_LAGUNA ||
+            this == LOCAL_WEST_LEADING_TO_SOUTHBOUND_LAGUNA;
     }
 
     public boolean isLocalLeadingToLaguna() {
         return this == LOCAL_EAST_LEADING_TO_NORTHBOUND_LAGUNA || this == LOCAL_EAST_LEADING_TO_SOUTHBOUND_LAGUNA ||
-               this == LOCAL_WEST_LEADING_TO_NORTHBOUND_LAGUNA || this == LOCAL_WEST_LEADING_TO_SOUTHBOUND_LAGUNA;
+            this == LOCAL_WEST_LEADING_TO_NORTHBOUND_LAGUNA || this == LOCAL_WEST_LEADING_TO_SOUTHBOUND_LAGUNA;
     }
 
     public boolean leadsToLaguna() {
-        return this == LOCAL_EAST_LEADING_TO_NORTHBOUND_LAGUNA || this == LOCAL_WEST_LEADING_TO_NORTHBOUND_LAGUNA || this == NON_LOCAL_LEADING_TO_NORTHBOUND_LAGUNA ||
-               this == LOCAL_EAST_LEADING_TO_SOUTHBOUND_LAGUNA || this == LOCAL_WEST_LEADING_TO_SOUTHBOUND_LAGUNA || this == NON_LOCAL_LEADING_TO_SOUTHBOUND_LAGUNA;
+        return this == LOCAL_EAST_LEADING_TO_NORTHBOUND_LAGUNA || this == LOCAL_WEST_LEADING_TO_NORTHBOUND_LAGUNA ||
+            this == NON_LOCAL_LEADING_TO_NORTHBOUND_LAGUNA || this == LOCAL_EAST_LEADING_TO_SOUTHBOUND_LAGUNA ||
+            this == LOCAL_WEST_LEADING_TO_SOUTHBOUND_LAGUNA || this == NON_LOCAL_LEADING_TO_SOUTHBOUND_LAGUNA;
     }
 
     public boolean leadsToNorthboundLaguna() {
-        return this == LOCAL_EAST_LEADING_TO_NORTHBOUND_LAGUNA || this == LOCAL_WEST_LEADING_TO_NORTHBOUND_LAGUNA || this == NON_LOCAL_LEADING_TO_NORTHBOUND_LAGUNA;
+        return this == LOCAL_EAST_LEADING_TO_NORTHBOUND_LAGUNA || this == LOCAL_WEST_LEADING_TO_NORTHBOUND_LAGUNA ||
+            this == NON_LOCAL_LEADING_TO_NORTHBOUND_LAGUNA;
     }
 
     public boolean leadsToSouthboundLaguna() {
-        return this == LOCAL_EAST_LEADING_TO_SOUTHBOUND_LAGUNA || this == LOCAL_WEST_LEADING_TO_SOUTHBOUND_LAGUNA ||this == NON_LOCAL_LEADING_TO_SOUTHBOUND_LAGUNA;
+        return this == LOCAL_EAST_LEADING_TO_SOUTHBOUND_LAGUNA || this == LOCAL_WEST_LEADING_TO_SOUTHBOUND_LAGUNA ||
+            this == NON_LOCAL_LEADING_TO_SOUTHBOUND_LAGUNA;
     }
 }

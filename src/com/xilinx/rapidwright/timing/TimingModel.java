@@ -21,6 +21,23 @@
 
 package com.xilinx.rapidwright.timing;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.DesignTools;
 import com.xilinx.rapidwright.design.Net;
@@ -43,46 +60,29 @@ import com.xilinx.rapidwright.util.Utils;
 import org.python.google.common.collect.SetMultimap;
 import org.python.google.common.collect.TreeMultimap;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
- * A TimingModel calculates net delay by implementing the lightweight timing model described in our 
+ * A TimingModel calculates net delay by implementing the lightweight timing model described in our
  * FPT'19 paper.
  */
 public class TimingModel {
-
     public boolean debug = false;
     public boolean debugFile = false;
     public boolean verbose = false;
 
     public static final String TIMING_DATA_DIR = "timing";
-    
+
     boolean adjustQuadConnectedToQuadDelays = false;
     boolean adjustDoubleConnectedToDoubleDelays = false;
 
     private DelayModel intrasiteAndLogicDelayModel;
 
     // some default values, these can be overwritten later by reading in a delay_terms.dat file
-    // the code is using hard coded enumerated types, and this will be switched over to use these variables
+    // the code is using hard coded enumerated types, and this will be switched over to use these
+    // variables
     int START_TILE_ROW = 1;
     int START_TILE_COL = 52;
 
-    // these are initialized to some defaults for example, however, these will be set based on 
+    // these are initialized to some defaults for example, however, these will be set based on
     // reading in the intersite_delay_terms.txt
     float INTRASITE_DELAY_SITEPIN_TO_LUT_INPUT = 0.f;
     float INTRASITE_DELAY_LUT_OUTPUT_TO_O_SITEPIN = 0.f;
@@ -217,7 +217,6 @@ public class TimingModel {
         iPinNames.add("F_I");
         iPinNames.add("G_I");
         iPinNames.add("H_I");
-
     }
 
     /**
@@ -239,8 +238,8 @@ public class TimingModel {
         }
         forDebugTimingGroupByPorts = new LinkedHashMap<>();
         String series = device.getSeries().name().toLowerCase();
-        String fileName = TimingModel.TIMING_DATA_DIR + File.separator + series +
-                File.separator + "intersite_delay_terms.txt";
+        String fileName =
+            TimingModel.TIMING_DATA_DIR + File.separator + series + File.separator + "intersite_delay_terms.txt";
         if (!readDelayTerms(fileName)) {
             throw new RuntimeException("Error reading file:" + fileName);
         }
@@ -253,7 +252,6 @@ public class TimingModel {
         for (int u = START_TILE_ROW; u < tiles.length; u++) { // start at row START_TILE_ROW
             boolean consecutiveTilesNonNull = true;
             for (int v = 0; v < tiles[1].length; v++) {
-
                 Tile t = tiles[u][v];
                 TileTypeEnum tte = t.getTileTypeEnum();
 
@@ -281,7 +279,6 @@ public class TimingModel {
         return device.getTile(START_TILE_ROW, START_TILE_COL);
     }
 
-
     /**
      * Calculates the delay in picoseconds between a pair of pins on a physical "Net" object.
      *
@@ -297,7 +294,6 @@ public class TimingModel {
     private List<Node> nodeList;
     private List<PIP> relevantPIPs;
 
-
     /**
      * Calculates the delay in picoseconds between a pair of pins on a physical "Net" object.
      *
@@ -308,8 +304,8 @@ public class TimingModel {
      * @param net          RapidWright physical "Net" object.
      * @return The estimated delay in picoseconds.
      */
-    public float calcDelay(SitePinInst startPinInst, SitePinInst endPinInst, BELPin sourceBELPin,
-                           BELPin sinkBELPin, Net net) {
+    public float calcDelay(SitePinInst startPinInst, SitePinInst endPinInst, BELPin sourceBELPin, BELPin sinkBELPin,
+                           Net net) {
         ArrayList<IntentCode> intentCodes = new ArrayList<>();
         HashMap<PIPType, Integer> pipTypes = new LinkedHashMap<>();
 
@@ -343,7 +339,6 @@ public class TimingModel {
             }
         }
 
-
         List<TimingGroup> groups = null;
 
         if (nodeList.size() > 0)
@@ -369,31 +364,30 @@ public class TimingModel {
     }
 
     /**
-     * Given a list of nodes, a list of pips, and the types for items in both lists this abstracts 
+     * Given a list of nodes, a list of pips, and the types for items in both lists this abstracts
      * this method determines a set of corresponding TimingGroups.
      * @param nodes List of device nodes (determined from PIPs from a physical Net).
      * @param nodeTypes Type information corresponding to the list of device nodes.
      * @param pips List of PIPs (obtained from a physical Net).
-     * @return List of TimingGroups.  Timing groups is the abstraction featured by our model 
+     * @return List of TimingGroups.  Timing groups is the abstraction featured by our model
      * representing a basic grouping that the delay can be calculated by our model.
      */
-    protected List<TimingGroup> determineGroups(List<Node> nodes, List<IntentCode> nodeTypes, 
-            List<PIP> pips) {
+    protected List<TimingGroup> determineGroups(List<Node> nodes, List<IntentCode> nodeTypes, List<PIP> pips) {
         // Check the inputs
         if (nodes.size() != nodeTypes.size()) {
             throw new RuntimeException("node size and node types size do not match");
         }
 
         List<TimingGroup> result = new LinkedList<>();
-        if (nodes.size()>= 2 && pips.size() >=1) {
+        if (nodes.size() >= 2 && pips.size() >= 1) {
             TimingGroup initialGroup = new TimingGroup(this);
             initialGroup.add(nodes.get(0), nodeTypes.get(0));
             initialGroup.setInitialGroup(true);
             result.add(initialGroup);
-            
+
             // Comment out to avoid lots of printout
-            //checkTimingGroup(initialGroup);
-            for (int i = 1; i < nodes.size() - 1; ) {
+            // checkTimingGroup(initialGroup);
+            for (int i = 1; i < nodes.size() - 1;) {
                 TimingGroup midGroup = new TimingGroup(this);
                 boolean thisNodeContainsGlobal = false;
                 for (Wire w : nodes.get(i).getAllWiresInNode()) {
@@ -406,16 +400,13 @@ public class TimingModel {
                         nextNodeContainsGlobal = true;
                 }
                 IntentCode n0 = nodeTypes.get(i);
-                IntentCode n1 = nodeTypes.get(i+1);
-                if (thisNodeContainsGlobal || nextNodeContainsGlobal ||
-                        n0 == IntentCode.NODE_PINFEED ||
-                        n0 == IntentCode.NODE_HLONG ||
-                        n0 == IntentCode.NODE_VLONG ||
-                        (n0 == IntentCode.NODE_HQUAD && n1 == IntentCode.NODE_HLONG) ||
-                        (n0 == IntentCode.NODE_HQUAD && n1 == IntentCode.NODE_VLONG) ||
-                        (n0 == IntentCode.NODE_VQUAD && n1 == IntentCode.NODE_HLONG) ||
-                        (n0 == IntentCode.NODE_VQUAD && n1 == IntentCode.NODE_VLONG)
-                ) {
+                IntentCode n1 = nodeTypes.get(i + 1);
+                if (thisNodeContainsGlobal || nextNodeContainsGlobal || n0 == IntentCode.NODE_PINFEED ||
+                    n0 == IntentCode.NODE_HLONG || n0 == IntentCode.NODE_VLONG ||
+                    (n0 == IntentCode.NODE_HQUAD && n1 == IntentCode.NODE_HLONG) ||
+                    (n0 == IntentCode.NODE_HQUAD && n1 == IntentCode.NODE_VLONG) ||
+                    (n0 == IntentCode.NODE_VQUAD && n1 == IntentCode.NODE_HLONG) ||
+                    (n0 == IntentCode.NODE_VQUAD && n1 == IntentCode.NODE_VLONG)) {
                     midGroup.add(pips.get(i - 1));
                     midGroup.add(nodes.get(i), n0);
                     i = i + 1;
@@ -433,31 +424,29 @@ public class TimingModel {
                     }
                 }
                 result.add(midGroup);
-//                checkTimingGroup(midGroup);//TODO commented out by Yun
+                //                checkTimingGroup(midGroup);//TODO commented out by Yun
             }
-
         }
         TimingGroup finalGroup = new TimingGroup(this);
-        if (pips != null && pips.size() >0)
+        if (pips != null && pips.size() > 0)
             finalGroup.add(pips.get(pips.size() - 1));
-        if (nodes.size() >0)
+        if (nodes.size() > 0)
             finalGroup.add(nodes.get(nodes.size() - 1), nodeTypes.get(nodes.size() - 1));
         finalGroup.setFinalGroup(true);
         result.add(finalGroup);
 
         for (int i = 0; i < result.size(); i++) {
             if (result.get(i).getNodes().size() == 0) {
-                throw new RuntimeException("Invalid group:"+i+" with zero nodes out of "+
-                                           result.size()+" groups.");
+                throw new RuntimeException("Invalid group:" + i + " with zero nodes out of " + result.size() +
+                                           " groups.");
             }
         }
         return result;
     }
 
     private Tile findReferenceTile() {
-
         // for each column, look for valid row
-        SetMultimap<Integer,Integer> colHelper = TreeMultimap.create();
+        SetMultimap<Integer, Integer> colHelper = TreeMultimap.create();
         for (int x = 0; x < device.getColumns(); x++) {
             int span = 0;
             for (int y = 0; y < device.getRows(); y++) {
@@ -465,11 +454,11 @@ public class TimingModel {
                     span++;
                 }
             }
-            colHelper.put(span,x);
+            colHelper.put(span, x);
         }
 
         // for each row, look for valid col
-        SetMultimap<Integer,Integer> rowHelper = TreeMultimap.create();
+        SetMultimap<Integer, Integer> rowHelper = TreeMultimap.create();
         for (int y = 0; y < device.getRows(); y++) {
             int span = 0;
             for (int x = 0; x < device.getColumns(); x++) {
@@ -477,7 +466,7 @@ public class TimingModel {
                     span++;
                 }
             }
-            rowHelper.put(span,y);
+            rowHelper.put(span, y);
         }
 
         for (int x : colHelper.get(Collections.max(colHelper.keySet()))) {
@@ -488,7 +477,8 @@ public class TimingModel {
                 int row = tile.getRow();
 
                 // Want an INT tile that has CLB on both side
-                if (Utils.isCLB(device.getTile(row, col-1).getTileTypeEnum()) && Utils.isCLB(device.getTile(row, col+1).getTileTypeEnum())) {
+                if (Utils.isCLB(device.getTile(row, col - 1).getTileTypeEnum()) &&
+                    Utils.isCLB(device.getTile(row, col + 1).getTileTypeEnum())) {
                     return tile;
                 }
             }
@@ -496,116 +486,197 @@ public class TimingModel {
         return null;
     }
 
-
     /**
      * Reads the text file containing the delay terms needed by this timing model.
-     * @param filename Name (and maybe the path) of the text file, the default is delay_terms.dat in the current directory.
+     * @param filename Name (and maybe the path) of the text file, the default is delay_terms.dat in
+     *     the current directory.
      * @return Boolean indication of completion.
      */
     protected boolean readDelayTerms(String filename) {
-
         // Compute before reading from file to allow overriding.
         Tile tile = findReferenceTile();
         START_TILE_COL = tile.getColumn();
         START_TILE_ROW = tile.getRow();
 
         boolean result = true;
-        try (BufferedReader br = new BufferedReader(new FileReader(FileTools.getRapidWrightPath() + File.separator + filename))) {
+        try (BufferedReader br =
+                 new BufferedReader(new FileReader(FileTools.getRapidWrightPath() + File.separator + filename))) {
             String line;
             int lineCntr = 0;
-            while ((line=br.readLine()) != null) {
+            while ((line = br.readLine()) != null) {
                 String[] split = line.split("\\s+");
                 lineCntr++;
                 if (split.length < 2 || split[0].startsWith("#"))
                     continue;
                 float value = Float.parseFloat(split[1]);
-                if (split[0].equalsIgnoreCase("START_TILE_ROW"))       START_TILE_ROW = (int)value;
-                else if (split[0].equalsIgnoreCase("START_TILE_COL"))  START_TILE_COL = (int)value;
-                else if (split[0].equalsIgnoreCase("INTRASITE_DELAY_SITEPIN_TO_LUT_INPUT")) INTRASITE_DELAY_SITEPIN_TO_LUT_INPUT = value;
-                else if (split[0].equalsIgnoreCase("INTRASITE_DELAY_LUT_OUTPUT_TO_O_SITEPIN")) INTRASITE_DELAY_LUT_OUTPUT_TO_O_SITEPIN = value;
-                else if (split[0].equalsIgnoreCase("INTRASITE_DELAY_SITEPIN_TO_FF_INPUT")) INTRASITE_DELAY_SITEPIN_TO_FF_INPUT = value;
-                else if (split[0].equalsIgnoreCase("INTRASITE_DELAY_FF_INPUT_TO_SITEPIN")) INTRASITE_DELAY_FF_INPUT_TO_SITEPIN = value;
-                else if (split[0].equalsIgnoreCase("INTRASITE_DELAY_LUT_OUTPUT_TO_MUX_SITEPIN")) INTRASITE_DELAY_LUT_OUTPUT_TO_MUX_SITEPIN = value;
-                else if (split[0].equalsIgnoreCase("INTRASITE_DELAY_LUT_OUTPUT_TO_FF_INPUT")) INTRASITE_DELAY_LUT_OUTPUT_TO_FF_INPUT = value;
-                else if (split[0].equalsIgnoreCase("L_HORIZONTAL_BOUNCE"))  L_HORIZONTAL_BOUNCE = value;
-                else if (split[0].equalsIgnoreCase("L_HORIZONTAL_INTERNAL"))  L_HORIZONTAL_INTERNAL = value;
-                else if (split[0].equalsIgnoreCase("L_HORIZONTAL_SINGLE"))  L_HORIZONTAL_SINGLE = value;
-                else if (split[0].equalsIgnoreCase("L_HORIZONTAL_DOUBLE"))  L_HORIZONTAL_DOUBLE = value;
-                else if (split[0].equalsIgnoreCase("L_HORIZONTAL_QUAD"))    L_HORIZONTAL_QUAD = value;
-                else if (split[0].equalsIgnoreCase("L_HORIZONTAL_LONG"))    L_HORIZONTAL_LONG = value;
-                else if (split[0].equalsIgnoreCase("L_HORIZONTAL_GLOBAL"))  L_HORIZONTAL_GLOBAL = value;
-                else if (split[0].equalsIgnoreCase("L_VERTICAL_SINGLE"))  L_VERTICAL_SINGLE = value;
-                else if (split[0].equalsIgnoreCase("L_VERTICAL_DOUBLE"))  L_VERTICAL_DOUBLE = value;
-                else if (split[0].equalsIgnoreCase("L_VERTICAL_QUAD"))    L_VERTICAL_QUAD = value;
-                else if (split[0].equalsIgnoreCase("L_VERTICAL_LONG"))    L_VERTICAL_LONG = value;
-                else if (split[0].equalsIgnoreCase("K0_HORIZONTAL"))         K0_HORIZONTAL = value;
-                else if (split[0].equalsIgnoreCase("K1_HORIZONTAL"))         K1_HORIZONTAL = value;
-                else if (split[0].equalsIgnoreCase("K2_HORIZONTAL_SINGLE"))  K2_HORIZONTAL_SINGLE = value;
-                else if (split[0].equalsIgnoreCase("K2_HORIZONTAL_DOUBLE"))  K2_HORIZONTAL_DOUBLE = value;
-                else if (split[0].equalsIgnoreCase("K2_HORIZONTAL_QUAD"))    K2_HORIZONTAL_QUAD   = value;
-                else if (split[0].equalsIgnoreCase("K2_HORIZONTAL_LONG"))    K2_HORIZONTAL_LONG   = value;
-                else if (split[0].equalsIgnoreCase("K2_HORIZONTAL_GLOBAL"))  K2_HORIZONTAL_GLOBAL = value;
-                else if (split[0].equalsIgnoreCase("K0_VERTICAL"))         K0_VERTICAL = value;
-                else if (split[0].equalsIgnoreCase("K1_VERTICAL"))         K1_VERTICAL = value;
-                else if (split[0].equalsIgnoreCase("K2_VERTICAL_SINGLE"))  K2_VERTICAL_SINGLE = value;
-                else if (split[0].equalsIgnoreCase("K2_VERTICAL_DOUBLE"))  K2_VERTICAL_DOUBLE = value;
-                else if (split[0].equalsIgnoreCase("K2_VERTICAL_QUAD"))    K2_VERTICAL_QUAD   = value;
-                else if (split[0].equalsIgnoreCase("K2_VERTICAL_LONG"))    K2_VERTICAL_LONG   = value;
-                else if (split[0].equalsIgnoreCase("RCLK_SINGLE_AND_DOUBLE"))  RCLK_SINGLE_AND_DOUBLE = value;
-                else if (split[0].equalsIgnoreCase("RCLK_QUAD"))               RCLK_QUAD = value;
-                else if (split[0].equalsIgnoreCase("RCLK_LONG"))               RCLK_LONG = value;
-                else if (split[0].equalsIgnoreCase("DSP_SINGLE_AND_DOUBLE"))  DSP_SINGLE_AND_DOUBLE = value;
-                else if (split[0].equalsIgnoreCase("DSP_QUAD"))               DSP_QUAD = value;
-                else if (split[0].equalsIgnoreCase("DSP_LONG"))               DSP_LONG = value;
-                else if (split[0].equalsIgnoreCase("BRAM_SINGLE_AND_DOUBLE"))  BRAM_SINGLE_AND_DOUBLE = value;
-                else if (split[0].equalsIgnoreCase("BRAM_QUAD"))               BRAM_QUAD = value;
-                else if (split[0].equalsIgnoreCase("BRAM_LONG"))               BRAM_LONG = value;
-                else if (split[0].equalsIgnoreCase("CFRM_SINGLE_AND_DOUBLE"))  CFRM_SINGLE_AND_DOUBLE = value;
-                else if (split[0].equalsIgnoreCase("CFRM_QUAD"))               CFRM_QUAD = value;
-                else if (split[0].equalsIgnoreCase("CFRM_LONG"))               CFRM_LONG = value;
-                else if (split[0].equalsIgnoreCase("URAM_SINGLE_AND_DOUBLE"))  URAM_SINGLE_AND_DOUBLE = value;
-                else if (split[0].equalsIgnoreCase("URAM_QUAD"))               URAM_QUAD = value;
-                else if (split[0].equalsIgnoreCase("URAM_LONG"))               URAM_LONG = value;
-                else if (split[0].equalsIgnoreCase("PCIE_SINGLE_AND_DOUBLE"))  PCIE_SINGLE_AND_DOUBLE = value;
-                else if (split[0].equalsIgnoreCase("PCIE_QUAD"))               PCIE_QUAD = value;
-                else if (split[0].equalsIgnoreCase("PCIE_LONG"))               PCIE_LONG = value;
-                else if (split[0].equalsIgnoreCase("IO_SINGLE_AND_DOUBLE"))  IO_SINGLE_AND_DOUBLE = value;
-                else if (split[0].equalsIgnoreCase("IO_QUAD"))               IO_QUAD = value;
-                else if (split[0].equalsIgnoreCase("IO_LONG"))               IO_LONG = value;
-                else if (split[0].equalsIgnoreCase("LOGIC_FF_DELAY"))        LOGIC_FF_DELAY = value;
-                else if (split[0].equalsIgnoreCase("LOGIC_LUT_A1_DELAY"))        LOGIC_LUT_A1_DELAY = value;
-                else if (split[0].equalsIgnoreCase("LOGIC_LUT_A2_DELAY"))        LOGIC_LUT_A2_DELAY = value;
-                else if (split[0].equalsIgnoreCase("LOGIC_LUT_A3_DELAY"))        LOGIC_LUT_A3_DELAY = value;
-                else if (split[0].equalsIgnoreCase("LOGIC_LUT_A4_DELAY"))        LOGIC_LUT_A4_DELAY = value;
-                else if (split[0].equalsIgnoreCase("LOGIC_LUT_A5_DELAY"))        LOGIC_LUT_A5_DELAY = value;
-                else if (split[0].equalsIgnoreCase("LOGIC_LUT_A6_DELAY"))        LOGIC_LUT_A6_DELAY = value;
-                else if (split[0].equalsIgnoreCase("SITEPIN_A1_DELAY"))        SITEPIN_A1_DELAY = value;
-                else if (split[0].equalsIgnoreCase("SITEPIN_A2_DELAY"))        SITEPIN_A2_DELAY = value;
-                else if (split[0].equalsIgnoreCase("SITEPIN_A3_DELAY"))        SITEPIN_A3_DELAY = value;
-                else if (split[0].equalsIgnoreCase("SITEPIN_A4_DELAY"))        SITEPIN_A4_DELAY = value;
-                else if (split[0].equalsIgnoreCase("SITEPIN_A5_DELAY"))        SITEPIN_A5_DELAY = value;
-                else if (split[0].equalsIgnoreCase("SITEPIN_A6_DELAY"))        SITEPIN_A6_DELAY = value;
-                else if (split[0].equalsIgnoreCase("SITEPIN_A_I_DELAY"))        SITEPIN_A_I_DELAY = value;
-                else if (split[0].equalsIgnoreCase("SITEPIN_AX_DELAY"))        SITEPIN_AX_DELAY = value;
-                else if (split[0].equalsIgnoreCase("SITEPIN_CKEN1_DELAY"))     SITEPIN_CKEN1_DELAY = value;
-                else if (split[0].equalsIgnoreCase("SITEPIN_CKEN2_DELAY"))     SITEPIN_CKEN2_DELAY = value;
-                else if (split[0].equalsIgnoreCase("SITEPIN_CKEN3_DELAY"))     SITEPIN_CKEN3_DELAY = value;
-                else if (split[0].equalsIgnoreCase("SITEPIN_CKEN4_DELAY"))     SITEPIN_CKEN4_DELAY = value;
-                else if (split[0].equalsIgnoreCase("SITEPIN_SRST1_DELAY"))     SITEPIN_SRST1_DELAY = value;
-                else if (split[0].equalsIgnoreCase("SITEPIN_SRST2_DELAY"))     SITEPIN_SRST2_DELAY = value;
-                else if (split[0].equalsIgnoreCase("SITEPIN_WCKEN_DELAY"))     SITEPIN_WCKEN_DELAY = value;
-                else if (split[0].equalsIgnoreCase("NEAR_MIN"))       NEAR_MIN = (int) Math.floor(value);
-                else if (split[0].equalsIgnoreCase("NEAR_MAX"))       NEAR_MAX =(int) Math.floor(value);
-                else if (split[0].equalsIgnoreCase("MID_MIN"))        MID_MIN =(int) Math.floor(value);
-                else if (split[0].equalsIgnoreCase("MID_MAX"))        MID_MAX =(int) Math.floor(value);
-                else if (split[0].equalsIgnoreCase("FAR_MIN"))        FAR_MIN =(int) Math.floor(value);
-                else if (split[0].equalsIgnoreCase("FAR_MAX"))        FAR_MAX =(int) Math.floor(value);
+                if (split[0].equalsIgnoreCase("START_TILE_ROW"))
+                    START_TILE_ROW = (int)value;
+                else if (split[0].equalsIgnoreCase("START_TILE_COL"))
+                    START_TILE_COL = (int)value;
+                else if (split[0].equalsIgnoreCase("INTRASITE_DELAY_SITEPIN_TO_LUT_INPUT"))
+                    INTRASITE_DELAY_SITEPIN_TO_LUT_INPUT = value;
+                else if (split[0].equalsIgnoreCase("INTRASITE_DELAY_LUT_OUTPUT_TO_O_SITEPIN"))
+                    INTRASITE_DELAY_LUT_OUTPUT_TO_O_SITEPIN = value;
+                else if (split[0].equalsIgnoreCase("INTRASITE_DELAY_SITEPIN_TO_FF_INPUT"))
+                    INTRASITE_DELAY_SITEPIN_TO_FF_INPUT = value;
+                else if (split[0].equalsIgnoreCase("INTRASITE_DELAY_FF_INPUT_TO_SITEPIN"))
+                    INTRASITE_DELAY_FF_INPUT_TO_SITEPIN = value;
+                else if (split[0].equalsIgnoreCase("INTRASITE_DELAY_LUT_OUTPUT_TO_MUX_SITEPIN"))
+                    INTRASITE_DELAY_LUT_OUTPUT_TO_MUX_SITEPIN = value;
+                else if (split[0].equalsIgnoreCase("INTRASITE_DELAY_LUT_OUTPUT_TO_FF_INPUT"))
+                    INTRASITE_DELAY_LUT_OUTPUT_TO_FF_INPUT = value;
+                else if (split[0].equalsIgnoreCase("L_HORIZONTAL_BOUNCE"))
+                    L_HORIZONTAL_BOUNCE = value;
+                else if (split[0].equalsIgnoreCase("L_HORIZONTAL_INTERNAL"))
+                    L_HORIZONTAL_INTERNAL = value;
+                else if (split[0].equalsIgnoreCase("L_HORIZONTAL_SINGLE"))
+                    L_HORIZONTAL_SINGLE = value;
+                else if (split[0].equalsIgnoreCase("L_HORIZONTAL_DOUBLE"))
+                    L_HORIZONTAL_DOUBLE = value;
+                else if (split[0].equalsIgnoreCase("L_HORIZONTAL_QUAD"))
+                    L_HORIZONTAL_QUAD = value;
+                else if (split[0].equalsIgnoreCase("L_HORIZONTAL_LONG"))
+                    L_HORIZONTAL_LONG = value;
+                else if (split[0].equalsIgnoreCase("L_HORIZONTAL_GLOBAL"))
+                    L_HORIZONTAL_GLOBAL = value;
+                else if (split[0].equalsIgnoreCase("L_VERTICAL_SINGLE"))
+                    L_VERTICAL_SINGLE = value;
+                else if (split[0].equalsIgnoreCase("L_VERTICAL_DOUBLE"))
+                    L_VERTICAL_DOUBLE = value;
+                else if (split[0].equalsIgnoreCase("L_VERTICAL_QUAD"))
+                    L_VERTICAL_QUAD = value;
+                else if (split[0].equalsIgnoreCase("L_VERTICAL_LONG"))
+                    L_VERTICAL_LONG = value;
+                else if (split[0].equalsIgnoreCase("K0_HORIZONTAL"))
+                    K0_HORIZONTAL = value;
+                else if (split[0].equalsIgnoreCase("K1_HORIZONTAL"))
+                    K1_HORIZONTAL = value;
+                else if (split[0].equalsIgnoreCase("K2_HORIZONTAL_SINGLE"))
+                    K2_HORIZONTAL_SINGLE = value;
+                else if (split[0].equalsIgnoreCase("K2_HORIZONTAL_DOUBLE"))
+                    K2_HORIZONTAL_DOUBLE = value;
+                else if (split[0].equalsIgnoreCase("K2_HORIZONTAL_QUAD"))
+                    K2_HORIZONTAL_QUAD = value;
+                else if (split[0].equalsIgnoreCase("K2_HORIZONTAL_LONG"))
+                    K2_HORIZONTAL_LONG = value;
+                else if (split[0].equalsIgnoreCase("K2_HORIZONTAL_GLOBAL"))
+                    K2_HORIZONTAL_GLOBAL = value;
+                else if (split[0].equalsIgnoreCase("K0_VERTICAL"))
+                    K0_VERTICAL = value;
+                else if (split[0].equalsIgnoreCase("K1_VERTICAL"))
+                    K1_VERTICAL = value;
+                else if (split[0].equalsIgnoreCase("K2_VERTICAL_SINGLE"))
+                    K2_VERTICAL_SINGLE = value;
+                else if (split[0].equalsIgnoreCase("K2_VERTICAL_DOUBLE"))
+                    K2_VERTICAL_DOUBLE = value;
+                else if (split[0].equalsIgnoreCase("K2_VERTICAL_QUAD"))
+                    K2_VERTICAL_QUAD = value;
+                else if (split[0].equalsIgnoreCase("K2_VERTICAL_LONG"))
+                    K2_VERTICAL_LONG = value;
+                else if (split[0].equalsIgnoreCase("RCLK_SINGLE_AND_DOUBLE"))
+                    RCLK_SINGLE_AND_DOUBLE = value;
+                else if (split[0].equalsIgnoreCase("RCLK_QUAD"))
+                    RCLK_QUAD = value;
+                else if (split[0].equalsIgnoreCase("RCLK_LONG"))
+                    RCLK_LONG = value;
+                else if (split[0].equalsIgnoreCase("DSP_SINGLE_AND_DOUBLE"))
+                    DSP_SINGLE_AND_DOUBLE = value;
+                else if (split[0].equalsIgnoreCase("DSP_QUAD"))
+                    DSP_QUAD = value;
+                else if (split[0].equalsIgnoreCase("DSP_LONG"))
+                    DSP_LONG = value;
+                else if (split[0].equalsIgnoreCase("BRAM_SINGLE_AND_DOUBLE"))
+                    BRAM_SINGLE_AND_DOUBLE = value;
+                else if (split[0].equalsIgnoreCase("BRAM_QUAD"))
+                    BRAM_QUAD = value;
+                else if (split[0].equalsIgnoreCase("BRAM_LONG"))
+                    BRAM_LONG = value;
+                else if (split[0].equalsIgnoreCase("CFRM_SINGLE_AND_DOUBLE"))
+                    CFRM_SINGLE_AND_DOUBLE = value;
+                else if (split[0].equalsIgnoreCase("CFRM_QUAD"))
+                    CFRM_QUAD = value;
+                else if (split[0].equalsIgnoreCase("CFRM_LONG"))
+                    CFRM_LONG = value;
+                else if (split[0].equalsIgnoreCase("URAM_SINGLE_AND_DOUBLE"))
+                    URAM_SINGLE_AND_DOUBLE = value;
+                else if (split[0].equalsIgnoreCase("URAM_QUAD"))
+                    URAM_QUAD = value;
+                else if (split[0].equalsIgnoreCase("URAM_LONG"))
+                    URAM_LONG = value;
+                else if (split[0].equalsIgnoreCase("PCIE_SINGLE_AND_DOUBLE"))
+                    PCIE_SINGLE_AND_DOUBLE = value;
+                else if (split[0].equalsIgnoreCase("PCIE_QUAD"))
+                    PCIE_QUAD = value;
+                else if (split[0].equalsIgnoreCase("PCIE_LONG"))
+                    PCIE_LONG = value;
+                else if (split[0].equalsIgnoreCase("IO_SINGLE_AND_DOUBLE"))
+                    IO_SINGLE_AND_DOUBLE = value;
+                else if (split[0].equalsIgnoreCase("IO_QUAD"))
+                    IO_QUAD = value;
+                else if (split[0].equalsIgnoreCase("IO_LONG"))
+                    IO_LONG = value;
+                else if (split[0].equalsIgnoreCase("LOGIC_FF_DELAY"))
+                    LOGIC_FF_DELAY = value;
+                else if (split[0].equalsIgnoreCase("LOGIC_LUT_A1_DELAY"))
+                    LOGIC_LUT_A1_DELAY = value;
+                else if (split[0].equalsIgnoreCase("LOGIC_LUT_A2_DELAY"))
+                    LOGIC_LUT_A2_DELAY = value;
+                else if (split[0].equalsIgnoreCase("LOGIC_LUT_A3_DELAY"))
+                    LOGIC_LUT_A3_DELAY = value;
+                else if (split[0].equalsIgnoreCase("LOGIC_LUT_A4_DELAY"))
+                    LOGIC_LUT_A4_DELAY = value;
+                else if (split[0].equalsIgnoreCase("LOGIC_LUT_A5_DELAY"))
+                    LOGIC_LUT_A5_DELAY = value;
+                else if (split[0].equalsIgnoreCase("LOGIC_LUT_A6_DELAY"))
+                    LOGIC_LUT_A6_DELAY = value;
+                else if (split[0].equalsIgnoreCase("SITEPIN_A1_DELAY"))
+                    SITEPIN_A1_DELAY = value;
+                else if (split[0].equalsIgnoreCase("SITEPIN_A2_DELAY"))
+                    SITEPIN_A2_DELAY = value;
+                else if (split[0].equalsIgnoreCase("SITEPIN_A3_DELAY"))
+                    SITEPIN_A3_DELAY = value;
+                else if (split[0].equalsIgnoreCase("SITEPIN_A4_DELAY"))
+                    SITEPIN_A4_DELAY = value;
+                else if (split[0].equalsIgnoreCase("SITEPIN_A5_DELAY"))
+                    SITEPIN_A5_DELAY = value;
+                else if (split[0].equalsIgnoreCase("SITEPIN_A6_DELAY"))
+                    SITEPIN_A6_DELAY = value;
+                else if (split[0].equalsIgnoreCase("SITEPIN_A_I_DELAY"))
+                    SITEPIN_A_I_DELAY = value;
+                else if (split[0].equalsIgnoreCase("SITEPIN_AX_DELAY"))
+                    SITEPIN_AX_DELAY = value;
+                else if (split[0].equalsIgnoreCase("SITEPIN_CKEN1_DELAY"))
+                    SITEPIN_CKEN1_DELAY = value;
+                else if (split[0].equalsIgnoreCase("SITEPIN_CKEN2_DELAY"))
+                    SITEPIN_CKEN2_DELAY = value;
+                else if (split[0].equalsIgnoreCase("SITEPIN_CKEN3_DELAY"))
+                    SITEPIN_CKEN3_DELAY = value;
+                else if (split[0].equalsIgnoreCase("SITEPIN_CKEN4_DELAY"))
+                    SITEPIN_CKEN4_DELAY = value;
+                else if (split[0].equalsIgnoreCase("SITEPIN_SRST1_DELAY"))
+                    SITEPIN_SRST1_DELAY = value;
+                else if (split[0].equalsIgnoreCase("SITEPIN_SRST2_DELAY"))
+                    SITEPIN_SRST2_DELAY = value;
+                else if (split[0].equalsIgnoreCase("SITEPIN_WCKEN_DELAY"))
+                    SITEPIN_WCKEN_DELAY = value;
+                else if (split[0].equalsIgnoreCase("NEAR_MIN"))
+                    NEAR_MIN = (int)Math.floor(value);
+                else if (split[0].equalsIgnoreCase("NEAR_MAX"))
+                    NEAR_MAX = (int)Math.floor(value);
+                else if (split[0].equalsIgnoreCase("MID_MIN"))
+                    MID_MIN = (int)Math.floor(value);
+                else if (split[0].equalsIgnoreCase("MID_MAX"))
+                    MID_MAX = (int)Math.floor(value);
+                else if (split[0].equalsIgnoreCase("FAR_MIN"))
+                    FAR_MIN = (int)Math.floor(value);
+                else if (split[0].equalsIgnoreCase("FAR_MAX"))
+                    FAR_MAX = (int)Math.floor(value);
                 else {
                     String errMessage;
                     if (split.length == 2) {
-                        errMessage = "Bad formatted line:"+lineCntr+": \""+split[0]+"\"";
+                        errMessage = "Bad formatted line:" + lineCntr + ": \"" + split[0] + "\"";
                     } else {
-                        errMessage = "Unrecognized term on line:"+lineCntr+": \""+split[0]+"\"";
+                        errMessage = "Unrecognized term on line:" + lineCntr + ": \"" + split[0] + "\"";
                     }
                     throw new RuntimeException("ERROR: " + errMessage);
                 }
@@ -628,7 +699,6 @@ public class TimingModel {
     int[] qDistVertical;
     int[] lDistVertical;
 
-
     /**
      * Computes the Horizontal Distance used later by the delay calculation. Please note the initial
      * distance terms are integers.
@@ -637,26 +707,26 @@ public class TimingModel {
      * @param swt Type of TimingGroup, for example SINGLE, DOUBLE, etc.  The type is enumerated.
      * @return Distance term used by the delay calculation.
      */
-     public int computeHorizontalDistFromArray(int left, int right, GroupDelayType swt) {
+    public int computeHorizontalDistFromArray(int left, int right, GroupDelayType swt) {
         int result = 0;
         switch (swt) {
             case SINGLE:
-                for (int i=left; i<=right; i++) {
+                for (int i = left; i <= right; i++) {
                     result += sDistHorizontal[i];
                 }
                 break;
             case DOUBLE:
-                for (int i=left; i<=right; i++) {
+                for (int i = left; i <= right; i++) {
                     result += dDistHorizontal[i];
                 }
                 break;
             case QUAD:
-                for (int i=left; i<=right; i++) {
+                for (int i = left; i <= right; i++) {
                     result += qDistHorizontal[i];
                 }
                 break;
             case LONG:
-                for (int i=left; i<=right; i++) {
+                for (int i = left; i <= right; i++) {
                     result += lDistHorizontal[i];
                 }
                 break;
@@ -667,7 +737,7 @@ public class TimingModel {
     }
 
     /**
-     * Computes the Vertical Distance used later by the delay calculation.  Please note the initial 
+     * Computes the Vertical Distance used later by the delay calculation.  Please note the initial
      * distance terms are integers.
      * @param top Topmost tile column coordinate of a wire within a TimingGroup.
      * @param bottom Bottom most tile column coordinate of a wire within a TimingGroup.
@@ -678,22 +748,22 @@ public class TimingModel {
         int result = 0;
         switch (swt) {
             case SINGLE:
-                for (int i=top; i<=bottom; i++) {
+                for (int i = top; i <= bottom; i++) {
                     result += sDistVertical[i];
                 }
                 break;
             case DOUBLE:
-                for (int i=top; i<=bottom; i++) {
+                for (int i = top; i <= bottom; i++) {
                     result += dDistVertical[i];
                 }
                 break;
             case QUAD:
-                for (int i=top; i<=bottom; i++) {
+                for (int i = top; i <= bottom; i++) {
                     result += qDistVertical[i];
                 }
                 break;
             case LONG:
-                for (int i=top; i<=bottom; i++) {
+                for (int i = top; i <= bottom; i++) {
                     result += lDistVertical[i];
                 }
                 break;
@@ -704,25 +774,25 @@ public class TimingModel {
     }
 
     /**
-     * The distance arrays are created when the model is initialized basically to create a lookup 
+     * The distance arrays are created when the model is initialized basically to create a lookup
      * table having the distances associated with column resource types or RCLK vertical crossings.
      * @param maxCol The maximum column coordinate for the given device.
      * @param maxRow  The maximum row coordinate for the given device.
      */
     void buildDistArrays(int maxCol, int maxRow) {
         // these arrays will be initialized to zeros
-        sDistHorizontal = new int[maxCol ];
-        dDistHorizontal = new int[maxCol ];
-        qDistHorizontal = new int[maxCol ];
-        lDistHorizontal = new int[maxCol ];
+        sDistHorizontal = new int[maxCol];
+        dDistHorizontal = new int[maxCol];
+        qDistHorizontal = new int[maxCol];
+        lDistHorizontal = new int[maxCol];
 
-        sDistVertical = new int[maxRow ];
-        dDistVertical = new int[maxRow ];
-        qDistVertical = new int[maxRow ];
-        lDistVertical = new int[maxRow ];
+        sDistVertical = new int[maxRow];
+        dDistVertical = new int[maxRow];
+        qDistVertical = new int[maxRow];
+        lDistVertical = new int[maxRow];
 
         int col1 = 0;
-        int col2 = maxCol-1;
+        int col2 = maxCol - 1;
 
         for (int i = col1; i <= col2; i++) {
             Tile testT = goodRowTypes[i];
@@ -734,13 +804,12 @@ public class TimingModel {
             }
         }
 
-
         int col = START_TILE_COL;
         int row1 = 0;
-        int row2 = maxRow-1;
+        int row2 = maxRow - 1;
 
-        for (int i = row1 ; i <= row2; i++) {
-            Tile testT = device.getTile(i+1, col);
+        for (int i = row1; i <= row2; i++) {
+            Tile testT = device.getTile(i + 1, col);
             if (testT != null) {
                 sDistVertical[i] = check_RCLK_TileType(testT, GroupDelayType.SINGLE);
                 dDistVertical[i] = check_RCLK_TileType(testT, GroupDelayType.DOUBLE);
@@ -752,32 +821,31 @@ public class TimingModel {
         getVerDistArrayInIntTileGrid();
     }
 
-
     @FunctionalInterface
     public interface GetTileAt {
         Tile get(int i);
     }
 
     public Map<String, Short> getInputSitePinDelay() {
-        Map<String,Short> res = new HashMap<>();
-        final char[]   row = {'A','B','C','D','E','F','G','H'};
-        final String[] pin = {"1","2","3","4","5","6","_I","X","WCKEN"};
-        final Float[]  dly = {SITEPIN_A1_DELAY,SITEPIN_A2_DELAY,SITEPIN_A3_DELAY,SITEPIN_A4_DELAY,SITEPIN_A5_DELAY,
-                                                                                // WCKEN = X
-                             SITEPIN_A6_DELAY,SITEPIN_A_I_DELAY,SITEPIN_AX_DELAY,SITEPIN_AX_DELAY};
+        Map<String, Short> res = new HashMap<>();
+        final char[] row = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
+        final String[] pin = {"1", "2", "3", "4", "5", "6", "_I", "X", "WCKEN"};
+        final Float[] dly = {SITEPIN_A1_DELAY, SITEPIN_A2_DELAY, SITEPIN_A3_DELAY, SITEPIN_A4_DELAY, SITEPIN_A5_DELAY,
+                             // WCKEN = X
+                             SITEPIN_A6_DELAY, SITEPIN_A_I_DELAY, SITEPIN_AX_DELAY, SITEPIN_AX_DELAY};
         for (char c : row) {
             for (int i = 0; i < pin.length; i++) {
                 res.put(c + pin[i], dly[i].shortValue());
             }
         }
 
-        res.put("CKEN1",Float.valueOf(SITEPIN_CKEN1_DELAY).shortValue());
-        res.put("CKEN2",Float.valueOf(SITEPIN_CKEN2_DELAY).shortValue());
-        res.put("CKEN3",Float.valueOf(SITEPIN_CKEN3_DELAY).shortValue());
-        res.put("CKEN4",Float.valueOf(SITEPIN_CKEN4_DELAY).shortValue());
-        res.put("SRST1",Float.valueOf(SITEPIN_SRST1_DELAY).shortValue());
-        res.put("SRST2",Float.valueOf(SITEPIN_SRST2_DELAY).shortValue());
-        res.put("WCKEN",Float.valueOf(SITEPIN_WCKEN_DELAY).shortValue());
+        res.put("CKEN1", Float.valueOf(SITEPIN_CKEN1_DELAY).shortValue());
+        res.put("CKEN2", Float.valueOf(SITEPIN_CKEN2_DELAY).shortValue());
+        res.put("CKEN3", Float.valueOf(SITEPIN_CKEN3_DELAY).shortValue());
+        res.put("CKEN4", Float.valueOf(SITEPIN_CKEN4_DELAY).shortValue());
+        res.put("SRST1", Float.valueOf(SITEPIN_SRST1_DELAY).shortValue());
+        res.put("SRST2", Float.valueOf(SITEPIN_SRST2_DELAY).shortValue());
+        res.put("WCKEN", Float.valueOf(SITEPIN_WCKEN_DELAY).shortValue());
         return res;
     }
 
@@ -786,8 +854,8 @@ public class TimingModel {
         Map<GroupDelayType, Float> tk0 = new EnumMap<>(GroupDelayType.class);
         tk0.put(GroupDelayType.SINGLE, K0_HORIZONTAL);
         tk0.put(GroupDelayType.DOUBLE, K0_HORIZONTAL);
-        tk0.put(GroupDelayType.QUAD,   K0_HORIZONTAL);
-        tk0.put(GroupDelayType.LONG,   K0_HORIZONTAL);
+        tk0.put(GroupDelayType.QUAD, K0_HORIZONTAL);
+        tk0.put(GroupDelayType.LONG, K0_HORIZONTAL);
         tk0.put(GroupDelayType.GLOBAL, K0_HORIZONTAL);
         return tk0;
     }
@@ -796,8 +864,8 @@ public class TimingModel {
         Map<GroupDelayType, Float> tk1 = new EnumMap<>(GroupDelayType.class);
         tk1.put(GroupDelayType.SINGLE, K1_HORIZONTAL);
         tk1.put(GroupDelayType.DOUBLE, K1_HORIZONTAL);
-        tk1.put(GroupDelayType.QUAD,   K1_HORIZONTAL);
-        tk1.put(GroupDelayType.LONG,   K1_HORIZONTAL);
+        tk1.put(GroupDelayType.QUAD, K1_HORIZONTAL);
+        tk1.put(GroupDelayType.LONG, K1_HORIZONTAL);
         tk1.put(GroupDelayType.GLOBAL, K1_HORIZONTAL);
         return tk1;
     }
@@ -806,19 +874,19 @@ public class TimingModel {
         Map<GroupDelayType, Float> tk2 = new EnumMap<>(GroupDelayType.class);
         tk2.put(GroupDelayType.SINGLE, K2_HORIZONTAL_SINGLE);
         tk2.put(GroupDelayType.DOUBLE, K2_HORIZONTAL_DOUBLE);
-        tk2.put(GroupDelayType.QUAD,   K2_HORIZONTAL_QUAD);
-        tk2.put(GroupDelayType.LONG,   K2_HORIZONTAL_LONG);
+        tk2.put(GroupDelayType.QUAD, K2_HORIZONTAL_QUAD);
+        tk2.put(GroupDelayType.LONG, K2_HORIZONTAL_LONG);
         tk2.put(GroupDelayType.GLOBAL, K2_HORIZONTAL_GLOBAL);
         return tk2;
     }
 
     public Map<GroupDelayType, Short> getHorLCoefficients() {
         Map<GroupDelayType, Short> tl = new EnumMap<>(GroupDelayType.class);
-        tl.put(GroupDelayType.SINGLE, (short) L_HORIZONTAL_SINGLE );
-        tl.put(GroupDelayType.DOUBLE, (short) L_HORIZONTAL_DOUBLE );
-        tl.put(GroupDelayType.QUAD,   (short) L_HORIZONTAL_QUAD );
-        tl.put(GroupDelayType.LONG,   (short) L_HORIZONTAL_LONG );
-        tl.put(GroupDelayType.GLOBAL, (short) L_HORIZONTAL_GLOBAL );
+        tl.put(GroupDelayType.SINGLE, (short)L_HORIZONTAL_SINGLE);
+        tl.put(GroupDelayType.DOUBLE, (short)L_HORIZONTAL_DOUBLE);
+        tl.put(GroupDelayType.QUAD, (short)L_HORIZONTAL_QUAD);
+        tl.put(GroupDelayType.LONG, (short)L_HORIZONTAL_LONG);
+        tl.put(GroupDelayType.GLOBAL, (short)L_HORIZONTAL_GLOBAL);
         return tl;
     }
 
@@ -826,8 +894,8 @@ public class TimingModel {
         Map<GroupDelayType, Float> tk0 = new EnumMap<>(GroupDelayType.class);
         tk0.put(GroupDelayType.SINGLE, K0_VERTICAL);
         tk0.put(GroupDelayType.DOUBLE, K0_VERTICAL);
-        tk0.put(GroupDelayType.QUAD,   K0_VERTICAL);
-        tk0.put(GroupDelayType.LONG,   K0_VERTICAL);
+        tk0.put(GroupDelayType.QUAD, K0_VERTICAL);
+        tk0.put(GroupDelayType.LONG, K0_VERTICAL);
         return tk0;
     }
 
@@ -835,8 +903,8 @@ public class TimingModel {
         Map<GroupDelayType, Float> tk1 = new EnumMap<>(GroupDelayType.class);
         tk1.put(GroupDelayType.SINGLE, K1_VERTICAL);
         tk1.put(GroupDelayType.DOUBLE, K1_VERTICAL);
-        tk1.put(GroupDelayType.QUAD,   K1_VERTICAL);
-        tk1.put(GroupDelayType.LONG,   K1_VERTICAL);
+        tk1.put(GroupDelayType.QUAD, K1_VERTICAL);
+        tk1.put(GroupDelayType.LONG, K1_VERTICAL);
         return tk1;
     }
 
@@ -844,39 +912,41 @@ public class TimingModel {
         Map<GroupDelayType, Float> tk2 = new EnumMap<>(GroupDelayType.class);
         tk2.put(GroupDelayType.SINGLE, K2_VERTICAL_SINGLE);
         tk2.put(GroupDelayType.DOUBLE, K2_VERTICAL_DOUBLE);
-        tk2.put(GroupDelayType.QUAD,   K2_VERTICAL_QUAD);
-        tk2.put(GroupDelayType.LONG,   K2_VERTICAL_LONG);
+        tk2.put(GroupDelayType.QUAD, K2_VERTICAL_QUAD);
+        tk2.put(GroupDelayType.LONG, K2_VERTICAL_LONG);
         return tk2;
     }
 
     public Map<GroupDelayType, Short> getVerLCoefficients() {
         Map<GroupDelayType, Short> tl = new EnumMap<>(GroupDelayType.class);
-        tl.put(GroupDelayType.SINGLE, (short) L_VERTICAL_SINGLE);
-        tl.put(GroupDelayType.DOUBLE, (short) L_VERTICAL_DOUBLE);
-        tl.put(GroupDelayType.QUAD,   (short) L_VERTICAL_QUAD);
-        tl.put(GroupDelayType.LONG,   (short) L_VERTICAL_LONG);
+        tl.put(GroupDelayType.SINGLE, (short)L_VERTICAL_SINGLE);
+        tl.put(GroupDelayType.DOUBLE, (short)L_VERTICAL_DOUBLE);
+        tl.put(GroupDelayType.QUAD, (short)L_VERTICAL_QUAD);
+        tl.put(GroupDelayType.LONG, (short)L_VERTICAL_LONG);
         return tl;
     }
 
-    public Map<GroupDelayType,List<Short>> getHorDistArrayInIntTileGrid() {
+    public Map<GroupDelayType, List<Short>> getHorDistArrayInIntTileGrid() {
         Tile[][] tiles = device.getTiles();
         int maxCol = tiles[0].length;
         Pattern pattern = Pattern.compile("INT_X(\\d+)Y");
 
-        return getDistArrayInIntTileGrid(maxCol, sDistHorizontal, dDistHorizontal, qDistHorizontal, lDistHorizontal,
-                +1, pattern, (i) -> goodRowTypes[i]);
+        return getDistArrayInIntTileGrid(maxCol, sDistHorizontal, dDistHorizontal, qDistHorizontal, lDistHorizontal, +1,
+                                         pattern, (i) -> goodRowTypes[i]);
     }
 
-    public Map<GroupDelayType,List<Short>> getVerDistArrayInIntTileGrid() {
+    public Map<GroupDelayType, List<Short>> getVerDistArrayInIntTileGrid() {
         Tile[][] tiles = device.getTiles();
         int maxRow = tiles.length;
         Pattern pattern = Pattern.compile("INT_X\\d+Y(\\d+)");
 
-        Map<GroupDelayType,List<Short>> res = getDistArrayInIntTileGrid(maxRow, sDistVertical, dDistVertical, qDistVertical, lDistVertical,
-                -1, pattern, (i) -> device.getTile(i+1, START_TILE_COL));
+        Map<GroupDelayType, List<Short>> res =
+            getDistArrayInIntTileGrid(maxRow, sDistVertical, dDistVertical, qDistVertical, lDistVertical, -1, pattern,
+                                      (i) -> device.getTile(i + 1, START_TILE_COL));
 
         // The first entry in the list is for the higher Y index. Thus, it need to be reversed.
-        // Also, d of large row is on the start not the end, ie., large tile between Row 29 and 30 is on Row 29. It need to be shifted to Row 30.
+        // Also, d of large row is on the start not the end, ie., large tile between Row 29 and 30
+        // is on Row 29. It need to be shifted to Row 30.
         for (GroupDelayType t : GroupDelayType.values()) {
             if (!res.get(t).isEmpty()) {
                 Collections.reverse(res.get(t));
@@ -886,18 +956,17 @@ public class TimingModel {
                 res.get(t).remove(index);
 
                 // add first element which is also 0
-                res.get(t).add(0, (short) 0);
+                res.get(t).add(0, (short)0);
             }
         }
 
         return res;
     }
 
-    public Map<GroupDelayType,List<Short>> getDistArrayInIntTileGrid(
-            int maxCoor, int[] sDistArray, int[] dDistArray, int[] qDistArray, int[] lDistArray, int step,
-            Pattern pattern, GetTileAt tileAt) {
-
-        Map<GroupDelayType,List<Short>> res = new EnumMap<>(GroupDelayType.class);
+    public Map<GroupDelayType, List<Short>> getDistArrayInIntTileGrid(int maxCoor, int[] sDistArray, int[] dDistArray,
+                                                                      int[] qDistArray, int[] lDistArray, int step,
+                                                                      Pattern pattern, GetTileAt tileAt) {
+        Map<GroupDelayType, List<Short>> res = new EnumMap<>(GroupDelayType.class);
         for (GroupDelayType t : GroupDelayType.values()) {
             res.put(t, new ArrayList<>());
         }
@@ -908,7 +977,7 @@ public class TimingModel {
         int accuLVal = 0;
         int expectCoor = 0;
 
-        for (int i = 0; i <= maxCoor-1; i++) {
+        for (int i = 0; i <= maxCoor - 1; i++) {
             Tile testT = tileAt.get(i);
             if (testT != null) {
                 accuSVal += sDistArray[i];
@@ -919,18 +988,18 @@ public class TimingModel {
                 Matcher matcher = pattern.matcher(testT.getName());
                 if (matcher.find()) {
                     int coor = Integer.parseInt(matcher.group(1));
-                    if (i ==0)
+                    if (i == 0)
                         expectCoor = coor;
-                    
+
                     assert coor == expectCoor : "Interconnect tile is not consecutive.";
 
                     expectCoor += step;
 
-                    res.get(GroupDelayType.SINGLE).add((short) accuSVal);
-                    res.get(GroupDelayType.DOUBLE).add((short) accuDVal);
-                    res.get(GroupDelayType.QUAD).add((short) accuQVal);
-                    res.get(GroupDelayType.LONG).add((short) accuLVal);
-                    
+                    res.get(GroupDelayType.SINGLE).add((short)accuSVal);
+                    res.get(GroupDelayType.DOUBLE).add((short)accuDVal);
+                    res.get(GroupDelayType.QUAD).add((short)accuQVal);
+                    res.get(GroupDelayType.LONG).add((short)accuLVal);
+
                     accuSVal = 0;
                     accuDVal = 0;
                     accuQVal = 0;
@@ -943,11 +1012,11 @@ public class TimingModel {
     }
 
     /**
-     * This checks in the horizontal direction a given tile and returns the value associated with 
+     * This checks in the horizontal direction a given tile and returns the value associated with
      * type of tile used by the model.
      * @param testT Test tile to check the type.
      * @param swt Type of the TimingGroup crossing the given tile.
-     * @return The value used by the model for the given tile type and also based on the type of 
+     * @return The value used by the model for the given tile type and also based on the type of
      * TimingGroup.
      */
     public int checkTileType(Tile testT, GroupDelayType swt) {
@@ -956,9 +1025,7 @@ public class TimingModel {
             return result;
 
         // RCLK
-        if (
-                testT.getTileTypeEnum() == TileTypeEnum.RCLK_INT_L ||
-                        testT.getTileTypeEnum() == TileTypeEnum.RCLK_INT_R
+        if (testT.getTileTypeEnum() == TileTypeEnum.RCLK_INT_L || testT.getTileTypeEnum() == TileTypeEnum.RCLK_INT_R
 
         ) {
             if (swt == GroupDelayType.SINGLE || swt == GroupDelayType.DOUBLE) {
@@ -970,8 +1037,7 @@ public class TimingModel {
             }
         }
         // DSP
-        if (testT.getTileTypeEnum() == TileTypeEnum.DSP ||
-                testT.getTileTypeEnum() == TileTypeEnum.DSP_TERM_T
+        if (testT.getTileTypeEnum() == TileTypeEnum.DSP || testT.getTileTypeEnum() == TileTypeEnum.DSP_TERM_T
 
         ) {
             if (swt == GroupDelayType.SINGLE || swt == GroupDelayType.DOUBLE) {
@@ -984,12 +1050,9 @@ public class TimingModel {
         }
 
         // BRAM
-        else if (testT.getTileTypeEnum() == TileTypeEnum.BRAM
-                ||
-                testT.getTileTypeEnum() == TileTypeEnum.BRAM_L ||
-                testT.getTileTypeEnum() == TileTypeEnum.BRAM_R ||
-                testT.getTileTypeEnum() == TileTypeEnum.BRAM_TERM_T
-        ) {
+        else if (testT.getTileTypeEnum() == TileTypeEnum.BRAM || testT.getTileTypeEnum() == TileTypeEnum.BRAM_L ||
+                 testT.getTileTypeEnum() == TileTypeEnum.BRAM_R ||
+                 testT.getTileTypeEnum() == TileTypeEnum.BRAM_TERM_T) {
             if (swt == GroupDelayType.SINGLE || swt == GroupDelayType.DOUBLE) {
                 result += BRAM_SINGLE_AND_DOUBLE;
             } else if (swt == GroupDelayType.QUAD) {
@@ -1000,12 +1063,9 @@ public class TimingModel {
         }
 
         // CFRM
-        else if (
-                testT.getTileTypeEnum() == TileTypeEnum.CFRM_CONFIG ||
-                        testT.getTileTypeEnum() == TileTypeEnum.CFRM_AMS_CFGIO ||
-                        testT.getTileTypeEnum() == TileTypeEnum.CFRM_T ||
-                        testT.getTileTypeEnum() == TileTypeEnum.CFRM_B
-
+        else if (testT.getTileTypeEnum() == TileTypeEnum.CFRM_CONFIG ||
+                 testT.getTileTypeEnum() == TileTypeEnum.CFRM_AMS_CFGIO ||
+                 testT.getTileTypeEnum() == TileTypeEnum.CFRM_T || testT.getTileTypeEnum() == TileTypeEnum.CFRM_B
 
         ) {
             if (swt == GroupDelayType.SINGLE || swt == GroupDelayType.DOUBLE) {
@@ -1018,10 +1078,9 @@ public class TimingModel {
         }
 
         // URAM
-        else if (
-                testT.getTileTypeEnum() == TileTypeEnum.URAM_URAM_FT ||
-                        testT.getTileTypeEnum() == TileTypeEnum.URAM_URAM_DELAY_FT ||
-                        testT.getTileTypeEnum() == TileTypeEnum.URAM_URAM_TERM_T_FT
+        else if (testT.getTileTypeEnum() == TileTypeEnum.URAM_URAM_FT ||
+                 testT.getTileTypeEnum() == TileTypeEnum.URAM_URAM_DELAY_FT ||
+                 testT.getTileTypeEnum() == TileTypeEnum.URAM_URAM_TERM_T_FT
 
         ) {
             if (swt == GroupDelayType.SINGLE || swt == GroupDelayType.DOUBLE) {
@@ -1034,13 +1093,11 @@ public class TimingModel {
         }
 
         // PCIE_MISC
-        else if (
-                testT.getTileTypeEnum() == TileTypeEnum.PCIE4_PCIE4_FT ||
-                        testT.getTileTypeEnum() == TileTypeEnum.ILKN_ILKN_FT ||
-                        testT.getTileTypeEnum() == TileTypeEnum.CFG_CONFIG ||
-                        testT.getTileTypeEnum() == TileTypeEnum.CMAC ||
-                        //testT.getTileTypeEnum() == TileTypeEnum.CMAC_CMAC_FT ||
-                        testT.getTileTypeEnum() == TileTypeEnum.CFGIO_IOB20
+        else if (testT.getTileTypeEnum() == TileTypeEnum.PCIE4_PCIE4_FT ||
+                 testT.getTileTypeEnum() == TileTypeEnum.ILKN_ILKN_FT ||
+                 testT.getTileTypeEnum() == TileTypeEnum.CFG_CONFIG || testT.getTileTypeEnum() == TileTypeEnum.CMAC ||
+                 // testT.getTileTypeEnum() == TileTypeEnum.CMAC_CMAC_FT ||
+                 testT.getTileTypeEnum() == TileTypeEnum.CFGIO_IOB20
 
         ) {
             if (swt == GroupDelayType.SINGLE || swt == GroupDelayType.DOUBLE) {
@@ -1052,9 +1109,7 @@ public class TimingModel {
             }
         }
         // IO
-        else if (
-                testT.getTileTypeEnum() == TileTypeEnum.HPIO_L ||
-                        testT.getTileTypeEnum() == TileTypeEnum.HPIO_L_TERM_T
+        else if (testT.getTileTypeEnum() == TileTypeEnum.HPIO_L || testT.getTileTypeEnum() == TileTypeEnum.HPIO_L_TERM_T
 
         ) {
             if (swt == GroupDelayType.SINGLE || swt == GroupDelayType.DOUBLE) {
@@ -1069,11 +1124,11 @@ public class TimingModel {
     }
 
     /**
-     * This checks a vertical direction given tile and returns the value associated with type of 
+     * This checks a vertical direction given tile and returns the value associated with type of
      * tile used by the model.
      * @param testT Test tile to check the type.
      * @param swt Type of the TimingGroup crossing the given tile.
-     * @return The value used by the model for the given tile type and also based on the type of 
+     * @return The value used by the model for the given tile type and also based on the type of
      * TimingGroup.
      */
     int check_RCLK_TileType(Tile testT, GroupDelayType swt) {
@@ -1082,9 +1137,7 @@ public class TimingModel {
             return result;
 
         // RCLK
-        if (testT.getTileTypeEnum() == TileTypeEnum.RCLK_INT_L ||
-                testT.getTileTypeEnum() == TileTypeEnum.RCLK_INT_R
-        ) {
+        if (testT.getTileTypeEnum() == TileTypeEnum.RCLK_INT_L || testT.getTileTypeEnum() == TileTypeEnum.RCLK_INT_R) {
             if (swt == GroupDelayType.SINGLE || swt == GroupDelayType.DOUBLE) {
                 result += RCLK_SINGLE_AND_DOUBLE;
             } else if (swt == GroupDelayType.QUAD) {
@@ -1101,7 +1154,7 @@ public class TimingModel {
      * @param tGroup TimingGroup to be analyzed.
      * @return Estimated delay in picoseconds.
      */
-    public float calcDelay (TimingGroup tGroup) {
+    public float calcDelay(TimingGroup tGroup) {
         List<TimingGroup> tGroups = new LinkedList<>();
         tGroups.add(tGroup);
         return calcDelay(null, null, null, null, tGroups);
@@ -1112,16 +1165,18 @@ public class TimingModel {
      * @param groups List of TimingGroups to be analyzed.
      * @return Estimated delay in picoseconds.
      */
-    public float calcDelay (List<TimingGroup> groups) {
+    public float calcDelay(List<TimingGroup> groups) {
         return calcDelay(null, null, null, null, groups);
     }
 
-    //TODO check
+    // TODO check
     public float getIntraSiteDelay() {
         return intrasiteDelay;
     }
 
-    public DelayModel getDelayModel() { return intrasiteAndLogicDelayModel; }
+    public DelayModel getDelayModel() {
+        return intrasiteAndLogicDelayModel;
+    }
 
     private float intrasiteDelay;
     private SitePinInst startPinInst;
@@ -1136,8 +1191,8 @@ public class TimingModel {
      * @param groups List of TimingGroups to be analyzed.
      * @return Estimated delay in picoseconds.
      */
-    public float calcDelay (SitePinInst startPinInst, SitePinInst endPinInst, BELPin sourceBELPin, 
-                            BELPin sinkBELPin, List<TimingGroup> groups) {
+    public float calcDelay(SitePinInst startPinInst, SitePinInst endPinInst, BELPin sourceBELPin, BELPin sinkBELPin,
+                           List<TimingGroup> groups) {
         for (TimingGroup g : groups) {
             if (g.getNodes().size() == 0) {
                 throw new RuntimeException("Invalid group passed into calcDelay:" + g);
@@ -1170,8 +1225,8 @@ public class TimingModel {
             // initialize the terms
             if (group.getDelayType() == null) {
                 if (verbose) {
-                    throw new RuntimeException("Groupwire type is null, Group:" + group + " sdt:" +
-                                               group.getDelayType());
+                    throw new RuntimeException("Groupwire type is null, Group:" + group +
+                                               " sdt:" + group.getDelayType());
                 }
 
             } else {
@@ -1259,39 +1314,37 @@ public class TimingModel {
                 GroupDelayCalc = k0 + k1 * L + k2 * d;
                 group.delay = GroupDelayCalc;
             }
-            if ((!group.isInitialGroup() || (group.isInitialGroup() && group.getDelayType() != null)) 
-                    && !group.isFinalGroup()) {
+            if ((!group.isInitialGroup() || (group.isInitialGroup() && group.getDelayType() != null)) &&
+                !group.isFinalGroup()) {
                 netDelayCalc += GroupDelayCalc;
-            }                
+            }
         }
 
         netDelayCalc += checkForSitePinDelay(groups);
-        
+
         calcIntrasiteDelays();
 
-        for (int i =1 ; i < groups.size(); i++) {
-            TimingGroup gprev = groups.get(i-1);
+        for (int i = 1; i < groups.size(); i++) {
+            TimingGroup gprev = groups.get(i - 1);
             TimingGroup gcur = groups.get(i);
-            if (adjustDoubleConnectedToDoubleDelays && gprev.getDelayType() == GroupDelayType.DOUBLE 
-                    && gcur.getDelayType() == GroupDelayType.DOUBLE) {
+            if (adjustDoubleConnectedToDoubleDelays && gprev.getDelayType() == GroupDelayType.DOUBLE &&
+                gcur.getDelayType() == GroupDelayType.DOUBLE) {
                 netDelayCalc -= 6;
             }
-            if (adjustQuadConnectedToQuadDelays && gprev.getDelayType() == GroupDelayType.QUAD 
-                    && gcur.getDelayType() == GroupDelayType.QUAD) {
+            if (adjustQuadConnectedToQuadDelays && gprev.getDelayType() == GroupDelayType.QUAD &&
+                gcur.getDelayType() == GroupDelayType.QUAD) {
                 netDelayCalc += 9;
             }
         }
 
         if (verbose) {
             for (TimingGroup group : groups) {
-                System.out.println("\t" + group.getDelayType() + ":\t" + group.delay + "\t, d:" +
-                                   group.d);
+                System.out.println("\t" + group.getDelayType() + ":\t" + group.delay + "\t, d:" + group.d);
             }
             System.out.println("\tintraSite:\t" + intrasiteDelay);
             System.out.println("total:\t" + (netDelayCalc + intrasiteDelay));
             for (TimingGroup group : groups) {
-                System.out.println("\t" + group.getDelayType() + " with netDelay:" + group.delay +
-                                   " wires below:");
+                System.out.println("\t" + group.getDelayType() + " with netDelay:" + group.delay + " wires below:");
                 for (int i = 0; i < group.getNodes().size(); i++) {
                     Node n = group.getNode(i);
                     IntentCode nIntent = group.getNodeType(i);
@@ -1300,9 +1353,9 @@ public class TimingModel {
                         System.out.println("\t\t\tw:" + w);
                     }
                 }
-            }            
+            }
         }
-        
+
         return netDelayCalc + intrasiteDelay; // returning sum of net delay and intrasite delay
     }
 
@@ -1322,22 +1375,22 @@ public class TimingModel {
                     if (pinName.endsWith("CKEN1")) {
                         group.delay += SITEPIN_CKEN1_DELAY;
                         sitepin_delay += SITEPIN_CKEN1_DELAY;
-                     } else if (pinName.endsWith("CKEN2")) {
+                    } else if (pinName.endsWith("CKEN2")) {
                         group.delay += SITEPIN_CKEN2_DELAY;
                         sitepin_delay += SITEPIN_CKEN2_DELAY;
-                     } else if (pinName.endsWith("CKEN3")) {
+                    } else if (pinName.endsWith("CKEN3")) {
                         group.delay += SITEPIN_CKEN3_DELAY;
                         sitepin_delay += SITEPIN_CKEN3_DELAY;
-                     } else if (pinName.endsWith("CKEN4")) {
+                    } else if (pinName.endsWith("CKEN4")) {
                         group.delay += SITEPIN_CKEN4_DELAY;
                         sitepin_delay += SITEPIN_CKEN4_DELAY;
-                     } else if (pinName.endsWith("SRST1")) {
+                    } else if (pinName.endsWith("SRST1")) {
                         group.delay += SITEPIN_SRST1_DELAY;
                         sitepin_delay += SITEPIN_SRST1_DELAY;
-                     } else if (pinName.endsWith("SRST2")) {
+                    } else if (pinName.endsWith("SRST2")) {
                         group.delay += SITEPIN_SRST2_DELAY;
                         sitepin_delay += SITEPIN_SRST2_DELAY;
-                     } else if (pinName.endsWith("WCKEN")) {
+                    } else if (pinName.endsWith("WCKEN")) {
                         group.delay += SITEPIN_WCKEN_DELAY;
                         sitepin_delay += SITEPIN_WCKEN_DELAY;
                     } else if (pinName.endsWith("1")) {
@@ -1388,7 +1441,6 @@ public class TimingModel {
         return (includeSitePinDelay) ? total_sitepin_delay : 0;
     }
 
-
     /**
      * Used for the router example to filter the unfiltered list based on a given direction.
      * @param targetDirection Enumerated type TimingDirection representing the given direction.
@@ -1407,17 +1459,15 @@ public class TimingModel {
         return result.toArray(TimingGroup.EMPTY_ARRAY);
     }
 
-
     /**
-     * Used for the router example to filter the unfiltered list based on a given direction and 
+     * Used for the router example to filter the unfiltered list based on a given direction and
      * given distance.
      * @param targetDist The given distance for filtering.
      * @param targetDirection Enumerated type TimingDirection representing the given direction.
      * @param unfiltered Unfiltered array of TimingGroup objects.
      * @return Filtered array of TimingGroup objects in the given distance and direction.
      */
-    public TimingGroup[] filter(int targetDist, TimingDirection targetDirection, 
-                                TimingGroup[] unfiltered) {
+    public TimingGroup[] filter(int targetDist, TimingDirection targetDirection, TimingGroup[] unfiltered) {
         ArrayList<TimingGroup> result = new ArrayList<>();
         for (TimingGroup ts : unfiltered) {
             if (ts.dist != targetDist || (ts.getDirection() != targetDirection && ts.getDirection() != null)) {
@@ -1429,27 +1479,36 @@ public class TimingModel {
     }
 
     /**
-     * Used for the router example to filter the unfiltered list based on a given group direction 
+     * Used for the router example to filter the unfiltered list based on a given group direction
      * and given distance.
      * @param groupDistance Enumerated type for given group distance for filtering.
      * @param targetDirection Enumerated type TimingDirection representing the given direction.
      * @param unfiltered Unfiltered array of TimingGroup objects.
      * @return Filtered array of TimingGroup objects in the given group distance and direction.
      */
-    public TimingGroup[] filter(GroupDistance groupDistance, TimingDirection targetDirection, 
+    public TimingGroup[] filter(GroupDistance groupDistance, TimingDirection targetDirection,
                                 TimingGroup[] unfiltered) {
         ArrayList<TimingGroup> result = new ArrayList<>();
 
         switch (groupDistance) {
             case SAME:
                 for (TimingGroup ts : unfiltered) {
-                    if ((ts.dist == 0 && ts.getDelayType() != GroupDelayType.PINFEED)// && (ts.dist == 0 && ts.getDelayType() != TimingGroup.GroupDelayType.GLOBAL) //(ts.dist == 0) || (ts.dist == 1 && ts.getDirection() == null)//) {// && (ts.getDirection() == targetDirection || ts.getDirection() == null)) {
+                    if ((ts.dist == 0 && ts.getDelayType() !=
+                                             GroupDelayType.PINFEED) // && (ts.dist == 0 && ts.getDelayType() !=
+                                                                     // TimingGroup.GroupDelayType.GLOBAL) //(ts.dist ==
+                                                                     // 0) || (ts.dist == 1 && ts.getDirection() ==
+                                                                     // null)//) {// && (ts.getDirection() ==
+                                                                     // targetDirection || ts.getDirection() == null)) {
                     ) {
                         result.add(ts);
                     }
                 }
                 for (TimingGroup ts : unfiltered) {
-                    if ((ts.dist == 0 && ts.getDelayType() == GroupDelayType.PINFEED) //(ts.dist == 0) || (ts.dist == 1 && ts.getDirection() == null)//) {// && (ts.getDirection() == targetDirection || ts.getDirection() == null)) {
+                    if ((ts.dist == 0 &&
+                         ts.getDelayType() ==
+                             GroupDelayType.PINFEED) //(ts.dist == 0) || (ts.dist == 1 && ts.getDirection() ==
+                                                     // null)//) {// && (ts.getDirection() == targetDirection
+                                                     //|| ts.getDirection() == null)) {
                     ) {
                         result.add(ts);
                     }
@@ -1458,14 +1517,12 @@ public class TimingModel {
             case NEAR:
                 for (TimingGroup ts : unfiltered) {
                     if (ts.getDirection() == TimingDirection.NORTH || ts.getDirection() == TimingDirection.SOUTH) {
-                        if (((ts.dist >= NEAR_MIN && ts.dist <= NEAR_MAX) && ts.getDirection() == targetDirection)
-                        ) {
+                        if (((ts.dist >= NEAR_MIN && ts.dist <= NEAR_MAX) && ts.getDirection() == targetDirection)) {
                             result.add(ts);
                         }
                     } else {
-                        if (((ts.dist >= NEAR_MIN && ts.dist <= NEAR_MAX) && ts.getDirection() == targetDirection)
-                                || (ts.dist == 1 && ts.getDirection() == null)
-                        ) {
+                        if (((ts.dist >= NEAR_MIN && ts.dist <= NEAR_MAX) && ts.getDirection() == targetDirection) ||
+                            (ts.dist == 1 && ts.getDirection() == null)) {
                             result.add(ts);
                         }
                     }
@@ -1473,22 +1530,19 @@ public class TimingModel {
                 break;
             case MID:
                 for (TimingGroup ts : unfiltered) {
-                    if (((ts.dist >= MID_MIN && ts.dist <= MID_MAX) && (ts.getDirection() == targetDirection))
-                            || (ts.getDirection() == targetDirection && ts.dist == 2)
-                    ) {
+                    if (((ts.dist >= MID_MIN && ts.dist <= MID_MAX) && (ts.getDirection() == targetDirection)) ||
+                        (ts.getDirection() == targetDirection && ts.dist == 2)) {
                         result.add(ts);
                     }
                 }
                 break;
             case FAR:
                 for (TimingGroup ts : unfiltered) {
-                    if (((ts.dist >= FAR_MIN && ts.dist <= FAR_MAX) && (ts.getDirection() == targetDirection))
-                    ) {
+                    if (((ts.dist >= FAR_MIN && ts.dist <= FAR_MAX) && (ts.getDirection() == targetDirection))) {
                         result.add(ts);
                     }
                 }
                 break;
-
         }
         return result.toArray(TimingGroup.EMPTY_ARRAY);
     }
@@ -1498,10 +1552,10 @@ public class TimingModel {
     private void determineNodeListInitHelper(Net net) {
         pipEndNodeHashMap = new HashMap<>();
         for (PIP p : net.getPIPs()) {
-            if (p.getEndNode() != null) pipEndNodeHashMap.put(p.getEndNode().toString(), p);
+            if (p.getEndNode() != null)
+                pipEndNodeHashMap.put(p.getEndNode().toString(), p);
         }
     }
-
 
     /**
      * This method basically creates an ordered list of nodes from the source to selected sink.
@@ -1520,9 +1574,8 @@ public class TimingModel {
         else if (net.getPIPs().size() > 0)
             sourcePinNode = net.getPIPs().get(0).getStartNode();
 
-
         /**
-         *  Getting the PIPs will return all of them, and depending on the sink pin, maybe only a 
+         *  Getting the PIPs will return all of them, and depending on the sink pin, maybe only a
          *  subset are needed for a timing path.
          *  An ordered list of Nodes is created called "nodeList".
          *  An ordered list of PIPs is created called "relevantPIPs".
@@ -1539,14 +1592,14 @@ public class TimingModel {
                 nodeList.add(nodeList.size(), node);
             } else
                 break;
-            node = p.getStartNode();//pipStartNodeHashMap.get(p);//p.getStartNode();
-            //node = pipStartNodeHashMap.get(p);//p.getStartNode();
+            node = p.getStartNode(); // pipStartNodeHashMap.get(p);//p.getStartNode();
+            // node = pipStartNodeHashMap.get(p);//p.getStartNode();
         }
         if (node != null) {
             nodeList.add(nodeList.size(), node);
         }
     }
-    
+
     /**
      * Computes into {@link #intrasiteDelay} the delay of the two intra-site hops that bookend
      * the inter-site routing of a connection: from the driving BEL pin out to the source site pin,
@@ -1559,9 +1612,9 @@ public class TimingModel {
      * {@link #intrasiteDelay}) before calling this.
      */
     private void calcIntrasiteDelays() {
-        assert(intrasiteDelay == 0);
+        assert (intrasiteDelay == 0);
         intrasiteDelay = getSinkIntrasiteDelay(endPinInst, null) +
-                getSourceIntrasiteDelay(startPinInst, sourceBELPin, sinkBELPin, null);
+                         getSourceIntrasiteDelay(startPinInst, sourceBELPin, sinkBELPin, null);
     }
 
     /**
@@ -1590,21 +1643,29 @@ public class TimingModel {
                 String sourcepin = endPinInst.getName();
 
                 if (sourcepin.startsWith("CKEN")) {
-                    describeIntrasiteDelay(description, sourcepin, sinkType + "/" + "CKEN");
-                    return (short) INTRASITE_DELAY_SITEPIN_TO_FF_INPUT;
-                } else if (!sourcepin.startsWith("CLK") &&
-                           !sourcepin.startsWith("SRST")) {
-                    short tmpIntrasiteDelay = intrasiteAndLogicDelayModel.getIntraSiteDelay(SiteTypeEnum.SLICEL,
-                                            sourcepin, sinkType + "/" + "D");
-                    describeIntrasiteDelay(description, sourcepin, sinkType + "/" + "D");
+                    describeIntrasiteDelay(description, sourcepin,
+                                           sinkType + "/"
+                                               + "CKEN");
+                    return (short)INTRASITE_DELAY_SITEPIN_TO_FF_INPUT;
+                } else if (!sourcepin.startsWith("CLK") && !sourcepin.startsWith("SRST")) {
+                    short tmpIntrasiteDelay =
+                        intrasiteAndLogicDelayModel.getIntraSiteDelay(SiteTypeEnum.SLICEL, sourcepin,
+                                                                      sinkType + "/"
+                                                                          + "D");
+                    describeIntrasiteDelay(description, sourcepin,
+                                           sinkType + "/"
+                                               + "D");
                     return tmpIntrasiteDelay;
                 }
                 // Clock and reset site pins carry no site-pin-to-FF-input term
             }
         } else if (endPinInst != null && endPinInst.getName().startsWith("CIN")) {
-            describeIntrasiteDelay(description, endPinInst.getName(), sinkType + "/" + "CIN");
-            return intrasiteAndLogicDelayModel.getIntraSiteDelay(SiteTypeEnum.SLICEL,
-                    endPinInst.getName(), sinkType + "/" + "CIN");
+            describeIntrasiteDelay(description, endPinInst.getName(),
+                                   sinkType + "/"
+                                       + "CIN");
+            return intrasiteAndLogicDelayModel.getIntraSiteDelay(SiteTypeEnum.SLICEL, endPinInst.getName(),
+                                                                 sinkType + "/"
+                                                                     + "CIN");
         }
         return 0;
     }
@@ -1621,8 +1682,7 @@ public class TimingModel {
      *                    description is actually going to be used, as building it is not free.
      * @return The delay in picoseconds, zero if there is no such hop.
      */
-    private short getSourceIntrasiteDelay(SitePinInst startPinInst,
-                                          BELPin sourceBELPin, BELPin sinkBELPin,
+    private short getSourceIntrasiteDelay(SitePinInst startPinInst, BELPin sourceBELPin, BELPin sinkBELPin,
                                           StringBuilder description) {
         String sourceType = "";
         BELPin tmpPin = null;
@@ -1632,32 +1692,35 @@ public class TimingModel {
             Site site = startPinInst.getSiteInst().getSite();
             startPinSiteWireIdx = site.getSiteWireIndex(startPinInst.getName());
         }
-        
+
         /*
          * Checking for some intrasite delays related to MUX driver pins
          */
         if (startPinInst != null) {
-            String muxletter = startPinInst.getName().contains("MUX") ? 
-                               startPinInst.getName().substring(0, 1) : "";
-            
+            String muxletter = startPinInst.getName().contains("MUX") ? startPinInst.getName().substring(0, 1) : "";
+
             Set<Cell> cells = DesignTools.getConnectedCells(startPinInst);
 
             for (Cell c : cells) {
-                if (c.getBEL() == null) continue;
+                if (c.getBEL() == null)
+                    continue;
                 sourceType = c.getBEL().getName();
-                if (sourceBELPin != null && sinkBELPin != null) continue;
+                if (sourceBELPin != null && sinkBELPin != null)
+                    continue;
                 for (EDIFPortInst epi : c.getEDIFCellInst().getPortInsts()) {
-                    if (!epi.isOutput()) continue;
+                    if (!epi.isOutput())
+                        continue;
                     String epiToPhysicalPinName = c.getPhysicalPinMapping(epi.getName());
                     BELPin p = c.getBEL().getPin(epiToPhysicalPinName);
-                    if (!p.isOutput()) continue;
+                    if (!p.isOutput())
+                        continue;
                     ArrayList<BELPin> connectedPins = p.getSiteConns();
                     for (BELPin connectedToP : connectedPins) {
                         if (startPinSiteWireIdx != null && connectedToP.isInput()) {
                             if (connectedToP.getBEL().equals(c.getBEL()) ||
-                                    (connectedToP.getBEL().getName().contains("MUX" + muxletter) ||
-                                            startPinInst.getName().contains("_O")) ||
-                                    p.getSiteWireIndex() == startPinSiteWireIdx) {
+                                (connectedToP.getBEL().getName().contains("MUX" + muxletter) ||
+                                 startPinInst.getName().contains("_O")) ||
+                                p.getSiteWireIndex() == startPinSiteWireIdx) {
                                 tmpPin = p;
                                 break;
                             }
@@ -1671,13 +1734,13 @@ public class TimingModel {
         /**
          * Checking for additional intrasite delays
          */
-        
-        if ((startPinInst == null || sourceType == null) || 
-                (tmpPin == null && sourceBELPin == null)) {
-                return 0;
+
+        if ((startPinInst == null || sourceType == null) || (tmpPin == null && sourceBELPin == null)) {
+            return 0;
         }
-        
-        //TODO cleaning up: remove if-else, call the intrasiteAndLogicDelayModel.getIntraSiteDelay() instead
+
+        // TODO cleaning up: remove if-else, call the
+        // intrasiteAndLogicDelayModel.getIntraSiteDelay() instead
         if (startPinInst.getName().endsWith("MUX")) {
             String fromPinName = sourceType + "/";
             if ((sourceBELPin == null || sinkBELPin == null) && tmpPin != null)
@@ -1686,11 +1749,11 @@ public class TimingModel {
                 fromPinName += sourceBELPin.getName();
             }
             describeIntrasiteDelay(description, fromPinName, startPinInst.getName());
-            return intrasiteAndLogicDelayModel.getIntraSiteDelay(
-                    SiteTypeEnum.SLICEL, fromPinName, startPinInst.getName());
+            return intrasiteAndLogicDelayModel.getIntraSiteDelay(SiteTypeEnum.SLICEL, fromPinName,
+                                                                 startPinInst.getName());
         } else if (startPinInst.getName().endsWith("_O")) {
             describeIntrasiteDelay(description, sourceType + "/O", startPinInst.getName());
-            return (short) INTRASITE_DELAY_LUT_OUTPUT_TO_O_SITEPIN;
+            return (short)INTRASITE_DELAY_LUT_OUTPUT_TO_O_SITEPIN;
         }
         return 0;
     }
@@ -1701,8 +1764,7 @@ public class TimingModel {
      * @param fromPinName Name of the BEL pin or site pin the hop starts at.
      * @param toPinName Name of the BEL pin or site pin the hop ends at.
      */
-    private static void describeIntrasiteDelay(StringBuilder description,
-                                               String fromPinName, String toPinName) {
+    private static void describeIntrasiteDelay(StringBuilder description, String fromPinName, String toPinName) {
         if (description == null) {
             return;
         }
@@ -1716,7 +1778,7 @@ public class TimingModel {
      * @return The BEL pins the delay was looked up for paired with that delay, or null if there is
      *         no such hop.
      */
-    public Pair<String,Short> getSourceIntraSiteDelayTerm(SitePinInst startPinInst) {
+    public Pair<String, Short> getSourceIntraSiteDelayTerm(SitePinInst startPinInst) {
         StringBuilder description = new StringBuilder();
         short delay = getSourceIntrasiteDelay(startPinInst, null, null, description);
         return description.length() == 0 ? null : new Pair<>(description.toString(), delay);
@@ -1729,7 +1791,7 @@ public class TimingModel {
      * @return The BEL pins the delay was looked up for paired with that delay, or null if there is
      *         no such hop.
      */
-    public Pair<String,Short> getSinkIntraSiteDelayTerm(SitePinInst endPinInst) {
+    public Pair<String, Short> getSinkIntraSiteDelayTerm(SitePinInst endPinInst) {
         StringBuilder description = new StringBuilder();
         short delay = getSinkIntrasiteDelay(endPinInst, description);
         return description.length() == 0 ? null : new Pair<>(description.toString(), delay);

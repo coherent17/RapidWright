@@ -36,7 +36,8 @@ import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 
 /**
- * Delegating TestExecutionListener that filters events to parents / children of one specific UniqueId
+ * Delegating TestExecutionListener that filters events to parents / children of one specific
+ * UniqueId
  */
 public class ModifyingExecutionListener implements TestExecutionListener {
     private final UniqueId filterID;
@@ -45,25 +46,21 @@ public class ModifyingExecutionListener implements TestExecutionListener {
 
     private TestPlan currentPlan;
 
-    public ModifyingExecutionListener(UniqueId filterID, List<TestExecutionListener> children, BiFunction<TestIdentifier, TestPlan, TestIdentifier> mapper) {
+    public ModifyingExecutionListener(UniqueId filterID, List<TestExecutionListener> children,
+                                      BiFunction<TestIdentifier, TestPlan, TestIdentifier> mapper) {
         this.filterID = filterID;
         this.children = children;
         this.mapper = identifier -> mapper.apply(identifier, currentPlan);
     }
 
     public static TestIdentifier modifyLegacyName(TestIdentifier id, TestPlan testPlan) {
-        TestDescriptor parent = id.getParentId().map(parentId -> new CustomTestDescriptor(
-                UniqueId.parse(parentId), null, null, null
-        )).orElse(null);
-        return TestIdentifier.from(new CustomTestDescriptor(
-                UniqueId.parse(id.getUniqueId()),
-                id.getDisplayName(),
-                id.getType(),
-                parent,
-                id.getSource().orElse(null),
-                id.getTags(),
-                makeReportingName(id, testPlan)
-        ));
+        TestDescriptor parent =
+            id.getParentId()
+                .map(parentId -> new CustomTestDescriptor(UniqueId.parse(parentId), null, null, null))
+                .orElse(null);
+        return TestIdentifier.from(new CustomTestDescriptor(UniqueId.parse(id.getUniqueId()), id.getDisplayName(),
+                                                            id.getType(), parent, id.getSource().orElse(null),
+                                                            id.getTags(), makeReportingName(id, testPlan)));
     }
 
     private static String makeReportingName(TestIdentifier id, TestPlan testPlan) {
@@ -73,10 +70,10 @@ public class ModifyingExecutionListener implements TestExecutionListener {
         String parentLastSegmentType = UniqueId.parse(id.getParentId().get()).getLastSegment().getType();
         String prefix;
         if (parentLastSegmentType.equals("engine") || parentLastSegmentType.equals("class")) {
-            prefix="";
+            prefix = "";
         } else {
             TestIdentifier parentIdentifier = testPlan.getTestIdentifier(id.getParentId().get().toString());
-            prefix = makeReportingName(parentIdentifier, testPlan)+ "/";
+            prefix = makeReportingName(parentIdentifier, testPlan) + "/";
         }
         return prefix + id.getDisplayName();
     }
@@ -93,48 +90,48 @@ public class ModifyingExecutionListener implements TestExecutionListener {
     public void testPlanExecutionStarted(TestPlan testPlan) {
         currentPlan = testPlan;
         ModifyingTestPlan fp = new ModifyingTestPlan(testPlan, this::testFilter, mapper);
-        children.forEach(c->c.testPlanExecutionStarted(fp));
+        children.forEach(c -> c.testPlanExecutionStarted(fp));
     }
 
     @Override
     public void testPlanExecutionFinished(TestPlan testPlan) {
         currentPlan = null;
         ModifyingTestPlan fp = new ModifyingTestPlan(testPlan, this::testFilter, mapper);
-        children.forEach(c->c.testPlanExecutionFinished(fp));
+        children.forEach(c -> c.testPlanExecutionFinished(fp));
     }
 
     @Override
     public void dynamicTestRegistered(TestIdentifier testIdentifier) {
         if (testFilter(testIdentifier.getUniqueId())) {
-            children.forEach(c->c.dynamicTestRegistered(mapper.apply(testIdentifier)));
+            children.forEach(c -> c.dynamicTestRegistered(mapper.apply(testIdentifier)));
         }
     }
 
     @Override
     public void executionSkipped(TestIdentifier testIdentifier, String reason) {
         if (testFilter(testIdentifier.getUniqueId())) {
-            children.forEach(c->c.executionSkipped(mapper.apply(testIdentifier), reason));
+            children.forEach(c -> c.executionSkipped(mapper.apply(testIdentifier), reason));
         }
     }
 
     @Override
     public void executionStarted(TestIdentifier testIdentifier) {
         if (testFilter(testIdentifier.getUniqueId())) {
-            children.forEach(c->c.executionStarted(mapper.apply(testIdentifier)));
+            children.forEach(c -> c.executionStarted(mapper.apply(testIdentifier)));
         }
     }
 
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
         if (testFilter(testIdentifier.getUniqueId())) {
-            children.forEach(c->c.executionFinished(mapper.apply(testIdentifier), testExecutionResult));
+            children.forEach(c -> c.executionFinished(mapper.apply(testIdentifier), testExecutionResult));
         }
     }
 
     @Override
     public void reportingEntryPublished(TestIdentifier testIdentifier, ReportEntry entry) {
         if (testFilter(testIdentifier.getUniqueId())) {
-            children.forEach(c->c.reportingEntryPublished(mapper.apply(testIdentifier), entry));
+            children.forEach(c -> c.reportingEntryPublished(mapper.apply(testIdentifier), entry));
         }
     }
 }

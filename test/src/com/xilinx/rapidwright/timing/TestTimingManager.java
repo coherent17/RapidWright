@@ -20,23 +20,21 @@
 
 package com.xilinx.rapidwright.timing;
 
+import com.xilinx.rapidwright.design.Design;
+import com.xilinx.rapidwright.support.RapidWrightDCP;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.xilinx.rapidwright.design.Design;
-import com.xilinx.rapidwright.support.RapidWrightDCP;
-
 public class TestTimingManager {
-
     @Test
     public void testGetDesignTimingRequirement() {
         Design d = RapidWrightDCP.loadDCP("picoblaze_ooc_X10Y235.dcp");
         float expectedClkPeriod = 2.850f;
         Assertions.assertEquals(expectedClkPeriod, TimingManager.getDesignTimingRequirement(d));
-        
+
         d.addXDCConstraint("# create_clock -period 10.850 -name clk -waveform {0.000 1.425} "
-                + "[get_ports -filter { NAME =~  \"*clk*\" && DIRECTION == \"IN\" }]");
-        
+                           + "[get_ports -filter { NAME =~  \"*clk*\" && DIRECTION == \"IN\" }]");
+
         Assertions.assertEquals(expectedClkPeriod, TimingManager.getDesignTimingRequirement(d));
     }
 }

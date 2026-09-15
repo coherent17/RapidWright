@@ -41,19 +41,19 @@ import com.xilinx.rapidwright.util.StringPool;
 /**
  * Worker thread inside the parallel EDIF parser
  */
-public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implements AutoCloseable{
+public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implements AutoCloseable {
     /**
      * Number of ports in a cell above which a map is used for port name lookup
      */
     private static final int PORT_LOOKUP_MAP_THRESHOLD = 300;
 
-    //Data to limit parsing to part of the file
+    // Data to limit parsing to part of the file
     protected final long offset;
     private EDIFToken stopCellToken;
 
     private EDIFToken firstCellToken = null;
 
-    //Parse results
+    // Parse results
     protected boolean stopTokenMismatch = false;
     private EDIFToken actualStopCellToken = null;
     protected EDIFParseException parseException = null;
@@ -65,7 +65,8 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
     protected final List<List<LinkPortInstData>> linkPortInstData = new ArrayList<>();
     protected final EDIFReadLegalNameCache cache;
 
-    public ParallelEDIFParserWorker(Path fileName, InputStream in, long offset, StringPool uniquifier, int maxTokenLength, EDIFReadLegalNameCache cache) {
+    public ParallelEDIFParserWorker(Path fileName, InputStream in, long offset, StringPool uniquifier,
+                                    int maxTokenLength, EDIFReadLegalNameCache cache) {
         super(fileName, in, uniquifier, maxTokenLength, cache);
         this.offset = offset;
         this.cache = cache;
@@ -84,7 +85,7 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
         if (isFirstParser()) {
             parseToFirstCell();
             firstCellToken = getNextTokenWithOffset(true);
-            return firstCellToken!=null;
+            return firstCellToken != null;
         } else {
             try {
                 firstCellToken = advanceToFirstCell();
@@ -110,7 +111,6 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
         expect(RIGHT_PAREN, currToken);
         return false;
     }
-
 
     /**
      * Continue parsing until we hit the next cell.
@@ -158,12 +158,12 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
                 expect(RIGHT_PAREN, currToken);
 
             } else {
-                expect(LIBRARY + " | " + COMMENT + " | " + DESIGN + " | " + STATUS+ " | " + EXTERNAL, nextToken.text);
+                expect(LIBRARY + " | " + COMMENT + " | " + DESIGN + " | " + STATUS + " | " + EXTERNAL, nextToken.text);
             }
 
             currToken = getNextToken(true);
         }
-        expect(RIGHT_PAREN, currToken);  // edif end
+        expect(RIGHT_PAREN, currToken); // edif end
         return false;
     }
 
@@ -206,16 +206,18 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
     }
 
     public void doParse(boolean rerun) {
-        //We have seeked to a random place inside the EDIF, so we cannot be absolutely sure that we correctly detected
-        // token boundaries. Catch all EDIFParseExceptions and figure out later which ones are correct
+        // We have seeked to a random place inside the EDIF, so we cannot be absolutely sure that we
+        // correctly detected
+        //  token boundaries. Catch all EDIFParseExceptions and figure out later which ones are
+        //  correct
         try {
             stopTokenMismatch = false;
-            //Already reached EOF while trying to find first cell?
+            // Already reached EOF while trying to find first cell?
             if (firstCellToken == null) {
                 return;
             }
-            if (rerun && actualStopCellToken==null) {
-                //Already hit eof
+            if (rerun && actualStopCellToken == null) {
+                // Already hit eof
                 return;
             }
             EDIFToken next = rerun ? actualStopCellToken : firstCellToken;
@@ -234,7 +236,7 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
                     if (stopCellToken != null) {
                         stopTokenMismatch = true;
                     }
-                    //EOF
+                    // EOF
                     return;
                 }
                 next = getNextTokenWithOffset(true);
@@ -242,7 +244,6 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
         } catch (EDIFParseException e) {
             parseException = e;
         }
-
     }
 
     @Override
@@ -252,20 +253,18 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
 
     @Override
     public String toString() {
-        return "Parser@"+offset;
+        return "Parser@" + offset;
     }
 
     public void setStopCellToken(EDIFToken stopCellToken) {
         this.stopCellToken = stopCellToken;
     }
 
-
     @Override
     protected EDIFCell updateEDIFRefCellMap(String libraryLegalName, EDIFCell cell) {
-        //Nothing to do :)
+        // Nothing to do :)
         return cell;
     }
-
 
     private EDIFCell currentParentCell = null;
     private List<LinkPortInstData> currentLinks = new ArrayList<>();
@@ -299,12 +298,11 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
                 if (cell.getPorts().size() < PORT_LOOKUP_MAP_THRESHOLD) {
                     d.portInst.setPort(cell.getPortByLegalName(d.portInst.getName(), cache));
                 } else {
-                    largeCellMap.computeIfAbsent(cell, x-> new ConcurrentLinkedQueue<>()).add(d);
+                    largeCellMap.computeIfAbsent(cell, x -> new ConcurrentLinkedQueue<>()).add(d);
                 }
             }
         }
     }
-
 
     public static class CellReferenceData {
         public final Consumer<EDIFCell> cellSetter;
@@ -312,14 +310,16 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
         public final String libraryref;
         private final EDIFCell currentCell;
 
-        private CellReferenceData(Consumer<EDIFCell> cellReference, String cellref, String libraryref, EDIFCell currentCell) {
+        private CellReferenceData(Consumer<EDIFCell> cellReference, String cellref, String libraryref,
+                                  EDIFCell currentCell) {
             this.cellSetter = cellReference;
             this.cellref = cellref;
             this.libraryref = libraryref;
             this.currentCell = currentCell;
         }
 
-        public void apply(Map<String, EDIFLibrary> librariesByLegalName, Map<EDIFLibrary, Map<String, EDIFCell>> cellsByLegalName) {
+        public void apply(Map<String, EDIFLibrary> librariesByLegalName,
+                          Map<EDIFLibrary, Map<String, EDIFCell>> cellsByLegalName) {
             EDIFLibrary library;
             if (libraryref == null) {
                 if (currentCell == null) {
@@ -327,12 +327,13 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
                 }
                 library = currentCell.getLibrary();
             } else {
-                library = Objects.requireNonNull(librariesByLegalName.get(libraryref), ()-> "No library with name "+libraryref);
+                library = Objects.requireNonNull(librariesByLegalName.get(libraryref),
+                                                 () -> "No library with name " + libraryref);
             }
 
             final EDIFCell cell = cellsByLegalName.get(library).get(cellref);
             if (cell == null) {
-                throw new RuntimeException("did not find cell "+cellref+" in library "+libraryref);
+                throw new RuntimeException("did not find cell " + cellref + " in library " + libraryref);
             }
             cellSetter.accept(cell);
         }
@@ -342,7 +343,6 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
         private final EDIFCell parentCell;
         private final EDIFPortInst portInst;
         private final EDIFNet net;
-
 
         LinkPortInstData(EDIFCell parentCell, EDIFPortInst portInst, EDIFNet net) {
             this.parentCell = parentCell;
@@ -362,14 +362,13 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
             if (edifPortCache != null) {
                 port = edifPortCache.getPort(portInst.getName());
                 if (port == null) {
-                    throw new RuntimeException("did not find port "+portInst.getName()+" in cache");
+                    throw new RuntimeException("did not find port " + portInst.getName() + " in cache");
                 }
             } else {
                 final EDIFCell portCell = lookupPortCell(parentCell, portInst);
                 port = portCell.getPortByLegalName(portInst.getName(), cache);
                 if (port == null) {
-
-                    throw new RuntimeException("did not find port "+portInst.getName()+" on cell "+portCell);
+                    throw new RuntimeException("did not find port " + portInst.getName() + " on cell " + portCell);
                 }
             }
             portInst.setPort(port);
@@ -404,7 +403,9 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
             return token;
         }
 
-        public abstract EDIFLibrary addToNetlist(EDIFNetlist netlist, EDIFLibrary currentLibrary, Map<EDIFLibrary, Map<String, EDIFCell>> cellsByLegalName, EDIFReadLegalNameCache cache);
+        public abstract EDIFLibrary addToNetlist(EDIFNetlist netlist, EDIFLibrary currentLibrary,
+                                                 Map<EDIFLibrary, Map<String, EDIFCell>> cellsByLegalName,
+                                                 EDIFReadLegalNameCache cache);
     }
 
     static class LibraryResult extends LibraryOrCellResult {
@@ -416,7 +417,9 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
         }
 
         @Override
-        public EDIFLibrary addToNetlist(EDIFNetlist netlist, EDIFLibrary currentLibrary, Map<EDIFLibrary, Map<String, EDIFCell>> cellsByLegalName, EDIFReadLegalNameCache cache) {
+        public EDIFLibrary addToNetlist(EDIFNetlist netlist, EDIFLibrary currentLibrary,
+                                        Map<EDIFLibrary, Map<String, EDIFCell>> cellsByLegalName,
+                                        EDIFReadLegalNameCache cache) {
             netlist.addLibrary(library);
             return library;
         }
@@ -430,18 +433,20 @@ public class ParallelEDIFParserWorker extends AbstractEDIFParserWorker implement
         }
 
         @Override
-        public EDIFLibrary addToNetlist(EDIFNetlist netlist, EDIFLibrary currentLibrary, Map<EDIFLibrary, Map<String, EDIFCell>> cellsByLegalName, EDIFReadLegalNameCache cache) {
+        public EDIFLibrary addToNetlist(EDIFNetlist netlist, EDIFLibrary currentLibrary,
+                                        Map<EDIFLibrary, Map<String, EDIFCell>> cellsByLegalName,
+                                        EDIFReadLegalNameCache cache) {
             if (currentLibrary == null) {
                 throw new IllegalStateException("Saw first cell before first library");
             }
             currentLibrary.addCellRenameDuplicates(cell, cache.getEDIFRename(cell));
 
-            cellsByLegalName.computeIfAbsent(currentLibrary, x-> new HashMap<>()).put(cache.getLegalEDIFName(cell), cell);
+            cellsByLegalName.computeIfAbsent(currentLibrary, x -> new HashMap<>())
+                .put(cache.getLegalEDIFName(cell), cell);
 
             return currentLibrary;
         }
     }
-
 
     @Override
     protected void linkCellInstToCell(EDIFCellInst inst, String cellref, String libraryref, EDIFCell currentCell) {

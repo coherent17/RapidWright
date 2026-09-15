@@ -35,28 +35,26 @@ import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
 import com.github.luben.zstd.Zstd;
+import com.github.luben.zstd.ZstdOutputStream;
+import com.xilinx.rapidwright.support.RapidWrightDCP;
+import com.xilinx.rapidwright.support.StringArrayConverter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.converter.ConvertWith;
 import org.junit.jupiter.params.provider.CsvSource;
-
-import com.github.luben.zstd.ZstdOutputStream;
-import com.xilinx.rapidwright.support.RapidWrightDCP;
-import com.xilinx.rapidwright.support.StringArrayConverter;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public class TestFileTools {
-
     @ParameterizedTest
-    @CsvSource({ "'xc7a15t'", "'xc7a15t, xcau10p'" })
+    @CsvSource({"'xc7a15t'", "'xc7a15t, xcau10p'"})
     public void testStaticInstallDataFiles(@ConvertWith(StringArrayConverter.class) String[] devices,
-            @TempDir Path tmpPath) {
+                                           @TempDir Path tmpPath) {
         ProcessBuilder pb = new ProcessBuilder();
         pb.environment().put(FileTools.RAPIDWRIGHT_VARIABLE_NAME, tmpPath.toString());
         String classpath = ManagementFactory.getRuntimeMXBean().getClassPath();
-        
+
         StringBuilder devicesString = new StringBuilder();
         boolean first = true;
         for (String device : devices) {
@@ -67,10 +65,10 @@ public class TestFileTools {
             }
             devicesString.append("\"" + device + "\"");
         }
-        
+
         pb.command("java", "-cp", classpath, Jython.class.getCanonicalName(), "-c",
-                "from com.xilinx.rapidwright.util import FileTools;"
-                + "FileTools.ensureDataFilesAreStaticInstallFriendly("+devicesString+")");
+                   "from com.xilinx.rapidwright.util import FileTools;"
+                       + "FileTools.ensureDataFilesAreStaticInstallFriendly(" + devicesString + ")");
         pb.redirectErrorStream(true);
         pb.inheritIO();
         try {
@@ -79,7 +77,7 @@ public class TestFileTools {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
-        
+
         for (String expectedFile : FileTools.getAllDependentDataFiles(devices)) {
             Assertions.assertTrue(tmpPath.resolve(expectedFile).toFile().exists());
         }
@@ -118,7 +116,7 @@ public class TestFileTools {
     public void testGetAutoBufferedInputStream(int mode) throws IOException {
         byte[] ubuf = new byte[1024];
         for (int i = 0; i < ubuf.length; i++) {
-            ubuf[i] = (byte) i;
+            ubuf[i] = (byte)i;
         }
 
         PipedInputStream pis = new PipedInputStream(1024);
@@ -149,12 +147,12 @@ public class TestFileTools {
         if (mode == 2) {
             // Compressed using ZLIB -- check that stream is *not* decompressed
             for (int i = 0; i < cbuf.length; i++) {
-                Assertions.assertEquals(cbuf[i], (byte) bis.read());
+                Assertions.assertEquals(cbuf[i], (byte)bis.read());
             }
         } else {
             // Check that the stream is decompressed
             for (int i = 0; i < ubuf.length; i++) {
-                Assertions.assertEquals(ubuf[i], (byte) bis.read());
+                Assertions.assertEquals(ubuf[i], (byte)bis.read());
             }
         }
     }

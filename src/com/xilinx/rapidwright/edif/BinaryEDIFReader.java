@@ -26,8 +26,6 @@
  */
 package com.xilinx.rapidwright.edif;
 
-import static com.xilinx.rapidwright.edif.BinaryEDIFWriter.EDIF_HAS_OWNER;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -35,6 +33,7 @@ import java.util.Map;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.xilinx.rapidwright.util.FileTools;
+import static com.xilinx.rapidwright.edif.BinaryEDIFWriter.EDIF_HAS_OWNER;
 
 /**
  * A Reader for the RapidWright Binary EDIF Format
@@ -46,7 +45,6 @@ import com.xilinx.rapidwright.util.FileTools;
  * be written once and read many times.
  */
 public class BinaryEDIFReader {
-
     /**
      * Reads an EDIFName object from Kryo-based input stream.
      * @param o The object to populate
@@ -71,7 +69,7 @@ public class BinaryEDIFReader {
     static void readEDIFObject(EDIFPropertyObject o, Input is, String[] strings) {
         if (readEDIFName(o, is, strings)) {
             int numProps = is.readInt();
-            for (int i=0; i < numProps; i++) {
+            for (int i = 0; i < numProps; i++) {
                 int ownerAndKeyIdx = is.readInt();
                 boolean hasOwner = (ownerAndKeyIdx & EDIF_HAS_OWNER) == EDIF_HAS_OWNER;
                 String key = strings[ownerAndKeyIdx & ~EDIF_HAS_OWNER];
@@ -109,8 +107,7 @@ public class BinaryEDIFReader {
      * @return The existing EDIFCell contained in the specified library of the netlist.
      * @see BinaryEDIFWriter#writeEDIFCellRef(EDIFCell, Output, Map, EDIFLibrary)
      */
-    static EDIFCell readEDIFCellRef(Input is, String[] strings, EDIFNetlist netlist,
-                                            EDIFLibrary parentCellLib) {
+    static EDIFCell readEDIFCellRef(Input is, String[] strings, EDIFNetlist netlist, EDIFLibrary parentCellLib) {
         int cellNameIdx = is.readInt();
         EDIFLibrary lib = null;
         if ((cellNameIdx & BinaryEDIFWriter.EDIF_SAME_LIB_FLAG) == BinaryEDIFWriter.EDIF_SAME_LIB_FLAG) {
@@ -125,8 +122,7 @@ public class BinaryEDIFReader {
         }
         EDIFCell cell = lib.getCell(cellName);
         if (cell == null) {
-            throw new RuntimeException("ERROR: Couldn't find cell '"
-                    + cellName + "' in Library '" + cellName + "'");
+            throw new RuntimeException("ERROR: Couldn't find cell '" + cellName + "' in Library '" + cellName + "'");
         }
         return cell;
     }
@@ -151,7 +147,7 @@ public class BinaryEDIFReader {
             readEDIFName(view, is, strings);
             c.setView(view);
         }
-        for (int i=0; i < portCount; i++) {
+        for (int i = 0; i < portCount; i++) {
             EDIFPort port = new EDIFPort();
             readEDIFObject(port, is, strings);
             int dirAndWidth = is.readInt();
@@ -164,8 +160,7 @@ public class BinaryEDIFReader {
             } else if ((dirAndWidth & BinaryEDIFWriter.EDIF_DIR_INOUT_MASK) == BinaryEDIFWriter.EDIF_DIR_INOUT_MASK) {
                 dir = EDIFDirection.INOUT;
             } else {
-                throw new RuntimeException("ERROR: Couldn't read port direction in cell "
-                        + c.getName());
+                throw new RuntimeException("ERROR: Couldn't read port direction in cell " + c.getName());
             }
             port.setWidth(width);
             port.setDirection(dir);
@@ -173,19 +168,19 @@ public class BinaryEDIFReader {
             c.addPort(port);
         }
         int instCount = is.readInt();
-        for (int i=0; i < instCount; i++) {
+        for (int i = 0; i < instCount; i++) {
             EDIFCellInst inst = new EDIFCellInst();
             readEDIFObject(inst, is, strings);
             inst.setCellType(readEDIFCellRef(is, strings, netlist, lib));
             c.addCellInst(inst);
         }
         int netCount = is.readInt();
-        for (int i=0; i < netCount; i++) {
+        for (int i = 0; i < netCount; i++) {
             EDIFNet net = new EDIFNet();
             readEDIFObject(net, is, strings);
             c.addNet(net);
             int portRefCount = is.readInt();
-            for (int j=0; j < portRefCount; j++) {
+            for (int j = 0; j < portRefCount; j++) {
                 String name = strings[is.readInt()];
                 int index = is.readInt();
                 int instRef = is.readInt();
@@ -228,23 +223,22 @@ public class BinaryEDIFReader {
             EDIFNetlist netlist = new EDIFNetlist();
             String[] strings = FileTools.readStringArray(is);
             int numLibraries = is.readInt();
-            for (int i=0; i < numLibraries; i++) {
+            for (int i = 0; i < numLibraries; i++) {
                 EDIFLibrary lib = new EDIFLibrary();
                 readEDIFName(lib, is, strings);
                 netlist.addLibrary(lib);
                 int numCells = is.readInt();
-                for (int j=0; j < numCells; j++) {
+                for (int j = 0; j < numCells; j++) {
                     readEDIFCell(is, strings, lib, netlist);
                 }
             }
             readEDIFName(netlist, is, strings);
             int numComments = is.readInt();
-            for (int i=0; i < numComments; i++) {
+            for (int i = 0; i < numComments; i++) {
                 netlist.addComment(is.readString());
             }
             readEDIFDesign(is, strings, netlist);
             return netlist;
         }
     }
-
 }

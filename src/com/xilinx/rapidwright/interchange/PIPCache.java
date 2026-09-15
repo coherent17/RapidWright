@@ -22,12 +22,12 @@
 
 package com.xilinx.rapidwright.interchange;
 
+import java.util.List;
+import java.util.Map;
+
 import com.xilinx.rapidwright.device.PIP;
 import com.xilinx.rapidwright.device.Tile;
 import com.xilinx.rapidwright.device.TileTypeEnum;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Class for caching PIP lookups, given a Tile object, and string
@@ -63,10 +63,9 @@ public class PIPCache {
                 return false;
             if (getClass() != obj.getClass())
                 return false;
-            Key other = (Key) obj;
-            return wire0StringIdx == other.wire0StringIdx &&
-                    wire1StringIdx == other.wire1StringIdx &&
-                    tileTypeEnum == other.tileTypeEnum;
+            Key other = (Key)obj;
+            return wire0StringIdx == other.wire0StringIdx && wire1StringIdx == other.wire1StringIdx &&
+                tileTypeEnum == other.tileTypeEnum;
         }
     }
 

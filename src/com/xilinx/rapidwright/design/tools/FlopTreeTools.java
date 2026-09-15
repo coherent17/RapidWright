@@ -21,6 +21,19 @@
  */
 package com.xilinx.rapidwright.design.tools;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.DesignTools;
@@ -47,23 +60,9 @@ import com.xilinx.rapidwright.placer.blockplacer.Point;
 import com.xilinx.rapidwright.util.Pair;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 public class FlopTreeTools {
-
-    private static final Set<SiteTypeEnum> VALID_CENTROID_SITE_TYPES = EnumSet.of(
-            SiteTypeEnum.SLICEL, SiteTypeEnum.SLICEM);
+    private static final Set<SiteTypeEnum> VALID_CENTROID_SITE_TYPES =
+        EnumSet.of(SiteTypeEnum.SLICEL, SiteTypeEnum.SLICEM);
 
     /**
      * Approximate tile-row distance spanned by a single SLL super-long-line on
@@ -103,7 +102,7 @@ public class FlopTreeTools {
                                                              Pair<Site, BEL> loc, EDIFHierNet clk,
                                                              List<EDIFHierPortInst> portInsts) {
         Cell flop = design.createAndPlaceCell(design.getTopEDIFCell(), newNetName, Unisim.FDRE, loc.getFirst(),
-                loc.getSecond());
+                                              loc.getSecond());
         Net net = design.createNet(newNetName);
         net.connect(flop, "Q");
         design.getGndNet().connect(flop, "R");
@@ -116,7 +115,8 @@ public class FlopTreeTools {
         }
         EDIFTools.connectPortInstsThruHier(clk, clkHierPortInst, newNetName + "_clk");
         EDIFNet origNet = logicalNet.getNet();
-        ECOTools.disconnectNet(design, portInsts.stream().filter(EDIFHierPortInst::isInput).collect(Collectors.toList()));
+        ECOTools.disconnectNet(design,
+                               portInsts.stream().filter(EDIFHierPortInst::isInput).collect(Collectors.toList()));
         Map<EDIFHierNet, List<EDIFHierPortInst>> netToPortInsts = new HashMap<>();
         netToPortInsts.put(net.getLogicalHierNet(), portInsts);
         ECOTools.connectNet(design, netToPortInsts, null);
@@ -201,7 +201,8 @@ public class FlopTreeTools {
      * iterator unchanged.
      */
     private static Iterator<Site> applyNoGoFilter(Iterator<Site> base, List<RelocatableTileRectangle> noGoBboxes) {
-        if (noGoBboxes.isEmpty()) return base;
+        if (noGoBboxes.isEmpty())
+            return base;
         return new Iterator<Site>() {
             private Site nextSite;
             private boolean exhausted = false;
@@ -228,13 +229,15 @@ public class FlopTreeTools {
 
             @Override
             public boolean hasNext() {
-                if (nextSite == null && !exhausted) advance();
+                if (nextSite == null && !exhausted)
+                    advance();
                 return nextSite != null;
             }
 
             @Override
             public Site next() {
-                if (!hasNext()) throw new NoSuchElementException();
+                if (!hasNext())
+                    throw new NoSuchElementException();
                 Site s = nextSite;
                 nextSite = null;
                 return s;
@@ -242,8 +245,7 @@ public class FlopTreeTools {
         };
     }
 
-    private static Iterator<Site> sitesWithinRowRange(Iterator<Site> base,
-                                                      int minRow, int maxRow, int maxScans) {
+    private static Iterator<Site> sitesWithinRowRange(Iterator<Site> base, int minRow, int maxRow, int maxScans) {
         return new Iterator<Site>() {
             private Site nextSite;
             private int scanned = 0;
@@ -264,13 +266,15 @@ public class FlopTreeTools {
 
             @Override
             public boolean hasNext() {
-                if (nextSite == null && !exhausted) advance();
+                if (nextSite == null && !exhausted)
+                    advance();
                 return nextSite != null;
             }
 
             @Override
             public Site next() {
-                if (!hasNext()) throw new NoSuchElementException();
+                if (!hasNext())
+                    throw new NoSuchElementException();
                 Site s = nextSite;
                 nextSite = null;
                 return s;
@@ -294,9 +298,12 @@ public class FlopTreeTools {
                 }
             }
             for (BEL b : curr.getBELs()) {
-                if (!b.isFF() || b.isAnyIMR()) continue;
-                if (usedBelNames.contains(b.getName())) continue;
-                if (!isControlSetCompatibleForInsertedFDRE(candidate, b)) continue;
+                if (!b.isFF() || b.isAnyIMR())
+                    continue;
+                if (usedBelNames.contains(b.getName()))
+                    continue;
+                if (!isControlSetCompatibleForInsertedFDRE(candidate, b))
+                    continue;
                 String belName = b.getName();
                 if (candidate != null) {
                     // Verify the FF's output site pin is not already in use. Relies on the
@@ -342,14 +349,13 @@ public class FlopTreeTools {
         if (candidate == null || bel == null || candidate.getDesign().getSeries() != Series.Versal) {
             return true;
         }
-        Pair<String, String> sitePinNames =
-                DesignTools.belTypeSitePinNameMapping.get(Series.Versal).get(bel.getName());
+        Pair<String, String> sitePinNames = DesignTools.belTypeSitePinNameMapping.get(Series.Versal).get(bel.getName());
         if (sitePinNames == null) {
             return true;
         }
         // first = clock-enable site pin (expect VCC), second = set/reset site pin (expect GND)
-        return isExpectedStaticControlNet(candidate, sitePinNames.getFirst(), false)
-                && isExpectedStaticControlNet(candidate, sitePinNames.getSecond(), true);
+        return isExpectedStaticControlNet(candidate, sitePinNames.getFirst(), false) &&
+            isExpectedStaticControlNet(candidate, sitePinNames.getSecond(), true);
     }
 
     private static Pair<Site, Net> placeFlopNearCentroidOfPortInsts(Design design, String clkName, Net inputNet,
@@ -365,22 +371,23 @@ public class FlopTreeTools {
         Iterator<Site> siteItr = applyNoGoFilter(ECOPlacementHelper.spiralOutFrom(centroid).iterator(), noGoBboxes);
         Pair<Site, BEL> loc = nextAvailFlopPlacement(design, siteItr, requiredSLR);
         if (loc == null) {
-            throw new RuntimeException("Failed to find location to place flop in flop tree"
-                    + (requiredSLR != null ? " (required SLR " + requiredSLR.getId() + ")" : ""));
+            throw new RuntimeException("Failed to find location to place flop in flop tree" +
+                                       (requiredSLR != null ? " (required SLR " + requiredSLR.getId() + ")" : ""));
         }
         if (requiredSLR != null && loc.getFirst().getTile().getSLR() != requiredSLR) {
-            throw new RuntimeException("Placed flop " + newNetName + " at site " + loc.getFirst()
-                    + " in SLR " + loc.getFirst().getTile().getSLR().getId()
-                    + " but required SLR " + requiredSLR.getId());
+            throw new RuntimeException("Placed flop " + newNetName + " at site " + loc.getFirst() + " in SLR " +
+                                       loc.getFirst().getTile().getSLR().getId() + " but required SLR " +
+                                       requiredSLR.getId());
         }
-        Pair<Cell, Net> flopNetPair = createAndPlaceFlopForTree(design, inputNet.getLogicalHierNet(), newNetName, loc,
-                design.getNetlist().getHierNetFromName(clkName), portInsts);
+        Pair<Cell, Net> flopNetPair =
+            createAndPlaceFlopForTree(design, inputNet.getLogicalHierNet(), newNetName, loc,
+                                      design.getNetlist().getHierNetFromName(clkName), portInsts);
         if (requiredSLR != null) {
             Site placed = flopNetPair.getFirst().getSiteInst().getSite();
             if (placed.getTile().getSLR() != requiredSLR) {
-                throw new RuntimeException("Flop tree flop " + newNetName + " landed at " + placed
-                        + " (SLR " + placed.getTile().getSLR().getId() + ") but required SLR "
-                        + requiredSLR.getId());
+                throw new RuntimeException("Flop tree flop " + newNetName + " landed at " + placed + " (SLR " +
+                                           placed.getTile().getSLR().getId() + ") but required SLR " +
+                                           requiredSLR.getId());
             }
         }
         siteInstsToRoute.add(flopNetPair.getFirst().getSiteInst());
@@ -402,9 +409,10 @@ public class FlopTreeTools {
             for (Pair<Net, List<EDIFHierPortInst>> pair : currPortInstList) {
                 Net net = pair.getFirst();
                 List<EDIFHierPortInst> portInsts = pair.getSecond();
-                String newNetName = netName.replace(EDIFTools.EDIF_HIER_SEP, "_") + "_slr" + slr.getId() + "_d" + currDepth + "_" + i;
-                Pair<Site, Net> centroidNetPair = placeFlopNearCentroidOfPortInsts(design, clkName, net, newNetName,
-                        portInsts, siteInstsToRoute, slr, noGoBboxes);
+                String newNetName =
+                    netName.replace(EDIFTools.EDIF_HIER_SEP, "_") + "_slr" + slr.getId() + "_d" + currDepth + "_" + i;
+                Pair<Site, Net> centroidNetPair = placeFlopNearCentroidOfPortInsts(
+                    design, clkName, net, newNetName, portInsts, siteInstsToRoute, slr, noGoBboxes);
 
                 Site centroid = centroidNetPair.getFirst();
                 Net newNet = centroidNetPair.getSecond();
@@ -422,8 +430,8 @@ public class FlopTreeTools {
     }
 
     private static Site getNearestValidSite(Design design, int row, int col) {
-        return ECOPlacementHelper.getCentroidOfPoints(design.getDevice(),
-                Collections.singletonList(new Point(col, row)), VALID_CENTROID_SITE_TYPES);
+        return ECOPlacementHelper.getCentroidOfPoints(
+            design.getDevice(), Collections.singletonList(new Point(col, row)), VALID_CENTROID_SITE_TYPES);
     }
 
     /**
@@ -436,20 +444,19 @@ public class FlopTreeTools {
      * = larger tile rows). {@code srcSegmentDepths.length} must equal the number
      * of crossings (i.e. {@code |targetSLR.id - sourceSLR.id|}).
      */
-    private static Net insertSourceChainToSLR(Design design, Net net, String clkName,
-                                              int[] srcSegmentDepths,
-                                              SLR targetSLR,
-                                              List<EDIFHierPortInst> targetSLRPortInsts,
+    private static Net insertSourceChainToSLR(Design design, Net net, String clkName, int[] srcSegmentDepths,
+                                              SLR targetSLR, List<EDIFHierPortInst> targetSLRPortInsts,
                                               Set<SiteInst> siteInstsToRoute,
                                               List<RelocatableTileRectangle> noGoBboxes) {
         int numCrossings = srcSegmentDepths.length;
-        if (numCrossings == 0) return net;
+        if (numCrossings == 0)
+            return net;
 
         Cell sourceCell = net.getLogicalHierNet().getSourcePortInsts(false).get(0).getPhysicalCell(design);
         Site sourceSite = sourceCell.getSite();
         SLR sourceSLR = sourceSite.getTile().getSLR();
-        String slrCrossingNamePrefix = net.getName().replace(EDIFTools.EDIF_HIER_SEP, "_")
-                + "_slr_xing_to_slr" + targetSLR.getId();
+        String slrCrossingNamePrefix =
+            net.getName().replace(EDIFTools.EDIF_HIER_SEP, "_") + "_slr_xing_to_slr" + targetSLR.getId();
 
         Net currentNet = net;
         int currentRow = sourceSite.getTile().getRow();
@@ -462,46 +469,46 @@ public class FlopTreeTools {
 
             // Source-side pacing chain for THIS segment: from currentRow → boundaryRow.
             for (int i = 0; i < thisChainDepth; i++) {
-                double frac = (double) (i + 1) / (thisChainDepth + 1);
-                int row = (int) Math.round(currentRow + frac * (boundaryRow - currentRow));
+                double frac = (double)(i + 1) / (thisChainDepth + 1);
+                int row = (int)Math.round(currentRow + frac * (boundaryRow - currentRow));
                 List<Point> points = new ArrayList<>();
                 points.add(new Point(currentCol, row));
-                Site target = ECOPlacementHelper.getCentroidOfPoints(design.getDevice(), points, VALID_CENTROID_SITE_TYPES);
-                Iterator<Site> chainItr = applyNoGoFilter(ECOPlacementHelper.spiralOutFrom(target).iterator(), noGoBboxes);
+                Site target =
+                    ECOPlacementHelper.getCentroidOfPoints(design.getDevice(), points, VALID_CENTROID_SITE_TYPES);
+                Iterator<Site> chainItr =
+                    applyNoGoFilter(ECOPlacementHelper.spiralOutFrom(target).iterator(), noGoBboxes);
                 Pair<Site, BEL> chainLoc = nextAvailFlopPlacement(design, chainItr, currentSLR);
                 if (chainLoc == null) {
-                    throw new RuntimeException("Failed to place src pacing flop in SLR " + currentSLR.getId()
-                            + " for crossing " + crossingIdx + " of net " + net.getName());
+                    throw new RuntimeException("Failed to place src pacing flop in SLR " + currentSLR.getId() +
+                                               " for crossing " + crossingIdx + " of net " + net.getName());
                 }
-                Pair<Cell, Net> chainPair = createAndPlaceFlopForTree(design, currentNet.getLogicalHierNet(),
-                        slrCrossingNamePrefix + "_xing" + crossingIdx + "_src_ff" + i, chainLoc,
-                        design.getNetlist().getHierNetFromName(clkName), targetSLRPortInsts);
+                Pair<Cell, Net> chainPair =
+                    createAndPlaceFlopForTree(design, currentNet.getLogicalHierNet(),
+                                              slrCrossingNamePrefix + "_xing" + crossingIdx + "_src_ff" + i, chainLoc,
+                                              design.getNetlist().getHierNetFromName(clkName), targetSLRPortInsts);
                 siteInstsToRoute.add(chainPair.getFirst().getSiteInst());
                 currentNet = chainPair.getSecond();
             }
 
             // Top flop at the SLR boundary, constrained to land within
             // MAX_SLR_XING_TOP_FROM_BOUNDARY_ROWS tile rows of the boundary.
-            String topName = slrCrossingNamePrefix + (numCrossings == 1
-                    ? ""
-                    : "_xing" + crossingIdx) + "_top";
+            String topName = slrCrossingNamePrefix + (numCrossings == 1 ? "" : "_xing" + crossingIdx) + "_top";
             Site firstSLRSite = getNearestValidSite(design, boundaryRow, currentCol);
-            Iterator<Site> siteItr = applyNoGoFilter(ECOPlacementHelper.spiralOutFrom(firstSLRSite).iterator(), noGoBboxes);
-            Iterator<Site> boundedItr = sitesWithinRowRange(siteItr,
-                    boundaryRow - MAX_SLR_XING_TOP_FROM_BOUNDARY_ROWS,
-                    boundaryRow,
-                    100_000);
+            Iterator<Site> siteItr =
+                applyNoGoFilter(ECOPlacementHelper.spiralOutFrom(firstSLRSite).iterator(), noGoBboxes);
+            Iterator<Site> boundedItr =
+                sitesWithinRowRange(siteItr, boundaryRow - MAX_SLR_XING_TOP_FROM_BOUNDARY_ROWS, boundaryRow, 100_000);
             Pair<Site, BEL> loc = nextAvailFlopPlacement(design, boundedItr, null);
             if (loc == null) {
-                throw new RuntimeException("Could not place " + topName + " within "
-                        + MAX_SLR_XING_TOP_FROM_BOUNDARY_ROWS
-                        + " rows of SLR boundary at row " + boundaryRow
-                        + " (col " + currentCol + "); consider relaxing MAX_SLR_XING_TOP_FROM_BOUNDARY_ROWS"
-                        + " or freeing sites near the boundary");
+                throw new RuntimeException("Could not place " + topName + " within " +
+                                           MAX_SLR_XING_TOP_FROM_BOUNDARY_ROWS + " rows of SLR boundary at row " +
+                                           boundaryRow + " (col " + currentCol +
+                                           "); consider relaxing MAX_SLR_XING_TOP_FROM_BOUNDARY_ROWS"
+                                           + " or freeing sites near the boundary");
             }
-            Pair<Cell, Net> topNetCellPair = createAndPlaceFlopForTree(design, currentNet.getLogicalHierNet(),
-                    topName, loc,
-                    design.getNetlist().getHierNetFromName(clkName), targetSLRPortInsts);
+            Pair<Cell, Net> topNetCellPair =
+                createAndPlaceFlopForTree(design, currentNet.getLogicalHierNet(), topName, loc,
+                                          design.getNetlist().getHierNetFromName(clkName), targetSLRPortInsts);
             siteInstsToRoute.add(topNetCellPair.getFirst().getSiteInst());
 
             // Bottom flop one SLL hop below where the top flop actually landed.
@@ -510,27 +517,26 @@ public class FlopTreeTools {
             int actualTopCol = placedTopSite.getTile().getColumn();
             int bottomTargetRow = actualTopRow + SLL_WIRE_LENGTH_ROWS;
 
-            String bottomName = slrCrossingNamePrefix + (numCrossings == 1
-                    ? ""
-                    : "_xing" + crossingIdx) + "_bottom";
+            String bottomName = slrCrossingNamePrefix + (numCrossings == 1 ? "" : "_xing" + crossingIdx) + "_bottom";
             Site secondSLRSite = getNearestValidSite(design, bottomTargetRow, actualTopCol);
-            Iterator<Site> bottomItr = applyNoGoFilter(ECOPlacementHelper.spiralOutFrom(secondSLRSite).iterator(), noGoBboxes);
+            Iterator<Site> bottomItr =
+                applyNoGoFilter(ECOPlacementHelper.spiralOutFrom(secondSLRSite).iterator(), noGoBboxes);
             Pair<Site, BEL> bottomLoc = nextAvailFlopPlacement(design, bottomItr, null);
             if (bottomLoc == null) {
-                throw new RuntimeException("Failed to place " + bottomName + " for crossing " + crossingIdx
-                        + " of net " + net.getName());
+                throw new RuntimeException("Failed to place " + bottomName + " for crossing " + crossingIdx +
+                                           " of net " + net.getName());
             }
-            Pair<Cell, Net> bottomNetCellPair = createAndPlaceFlopForTree(design,
-                    topNetCellPair.getSecond().getLogicalHierNet(), bottomName, bottomLoc,
-                    design.getNetlist().getHierNetFromName(clkName), targetSLRPortInsts);
+            Pair<Cell, Net> bottomNetCellPair =
+                createAndPlaceFlopForTree(design, topNetCellPair.getSecond().getLogicalHierNet(), bottomName, bottomLoc,
+                                          design.getNetlist().getHierNetFromName(clkName), targetSLRPortInsts);
             siteInstsToRoute.add(bottomNetCellPair.getFirst().getSiteInst());
 
             // Advance state for the next crossing iteration.
             currentNet = bottomNetCellPair.getSecond();
             Site placedBottomSite = bottomNetCellPair.getFirst().getSiteInst().getSite();
             if (placedBottomSite.getTile().getSLR() == currentSLR) {
-                throw new RuntimeException("Bottom crossing flop " + bottomName
-                        + " did not cross into a new SLR; landed in SLR " + currentSLR.getId());
+                throw new RuntimeException("Bottom crossing flop " + bottomName +
+                                           " did not cross into a new SLR; landed in SLR " + currentSLR.getId());
             }
             currentRow = placedBottomSite.getTile().getRow();
             currentCol = placedBottomSite.getTile().getColumn();
@@ -538,8 +544,8 @@ public class FlopTreeTools {
         }
 
         if (currentSLR != targetSLR) {
-            throw new RuntimeException("Source chain to SLR " + targetSLR.getId()
-                    + " ended in SLR " + currentSLR.getId() + " for net " + net.getName());
+            throw new RuntimeException("Source chain to SLR " + targetSLR.getId() + " ended in SLR " +
+                                       currentSLR.getId() + " for net " + net.getName());
         }
         return currentNet;
     }
@@ -551,8 +557,7 @@ public class FlopTreeTools {
      */
     public static Net insertFlopChain(Design design, Net net, String clkName, int depth,
                                       List<EDIFHierPortInst> portInsts, Set<SiteInst> siteInstsToRoute) {
-        return insertFlopChain(design, net, clkName, depth, portInsts, siteInstsToRoute,
-                Collections.emptyList());
+        return insertFlopChain(design, net, clkName, depth, portInsts, siteInstsToRoute, Collections.emptyList());
     }
 
     /**
@@ -563,7 +568,8 @@ public class FlopTreeTools {
     public static Net insertFlopChain(Design design, Net net, String clkName, int depth,
                                       List<EDIFHierPortInst> portInsts, Set<SiteInst> siteInstsToRoute,
                                       List<RelocatableTileRectangle> noGoBboxes) {
-        if (noGoBboxes == null) noGoBboxes = Collections.emptyList();
+        if (noGoBboxes == null)
+            noGoBboxes = Collections.emptyList();
         List<EDIFHierPortInst> sources = net.getLogicalHierNet().getLeafHierPortInsts(true, false);
         if (sources.isEmpty()) {
             throw new RuntimeException("Net " + net.getName() + " does not have a source");
@@ -584,10 +590,11 @@ public class FlopTreeTools {
         Net currentNet = net;
         EDIFNetlist netlist = design.getNetlist();
         for (int i = 0; i < depth; i++) {
-            // Place flop at evenly spaced point: (i+1)/(depth+1) of the way from source to destination
-            double frac = (double) (i + 1) / (depth + 1);
-            int col = (int) Math.round(srcCol + frac * (dstCol - srcCol));
-            int row = (int) Math.round(srcRow + frac * (dstRow - srcRow));
+            // Place flop at evenly spaced point: (i+1)/(depth+1) of the way from source to
+            // destination
+            double frac = (double)(i + 1) / (depth + 1);
+            int col = (int)Math.round(srcCol + frac * (dstCol - srcCol));
+            int row = (int)Math.round(srcRow + frac * (dstRow - srcRow));
 
             Site target = getNearestValidSite(design, row, col);
 
@@ -595,13 +602,14 @@ public class FlopTreeTools {
             Pair<Site, BEL> loc = nextAvailFlopPlacement(design, siteItr, null);
 
             if (loc == null) {
-                throw new RuntimeException("Failed to find location to place chain flop " + i
-                        + " for net " + currentNet.getName());
+                throw new RuntimeException("Failed to find location to place chain flop " + i + " for net " +
+                                           currentNet.getName());
             }
 
-            Pair<Cell, Net> netCellPair = createAndPlaceFlopForTree(design, currentNet.getLogicalHierNet(),
-                    currentNet.getName().replace(EDIFTools.EDIF_HIER_SEP, "_") + "_ff" + i, loc,
-                    netlist.getHierNetFromName(clkName), portInsts);
+            Pair<Cell, Net> netCellPair =
+                createAndPlaceFlopForTree(design, currentNet.getLogicalHierNet(),
+                                          currentNet.getName().replace(EDIFTools.EDIF_HIER_SEP, "_") + "_ff" + i, loc,
+                                          netlist.getHierNetFromName(clkName), portInsts);
 
             siteInstsToRoute.add(netCellPair.getFirst().getSiteInst());
             currentNet = netCellPair.getSecond();
@@ -630,9 +638,9 @@ public class FlopTreeTools {
      * or empty for no restriction).
      */
     public static void insertFlopTreeForNet(Design design, String netName, String clkName, int depth,
-                                            int maxDepthPerSLR,
-                                            List<RelocatableTileRectangle> noGoBboxes) {
-        if (noGoBboxes == null) noGoBboxes = Collections.emptyList();
+                                            int maxDepthPerSLR, List<RelocatableTileRectangle> noGoBboxes) {
+        if (noGoBboxes == null)
+            noGoBboxes = Collections.emptyList();
         EDIFNetlist netlist = design.getNetlist();
         EDIFHierNet parentNet = netlist.getHierNetFromName(netName).getLeafSourcePortInst().getHierarchicalNet();
         Net topNet = design.getNet(parentNet.getHierarchicalNetName());
@@ -677,15 +685,15 @@ public class FlopTreeTools {
             if (slrDistFromSource == 0) {
                 slrCrossedNet = topNet;
             } else {
-                slrCrossedNet = insertSourceChainToSLR(design, topNet, clkName, srcSegmentDepths,
-                        slr, portInsts, siteInstsToRoute, noGoBboxes);
+                slrCrossedNet = insertSourceChainToSLR(design, topNet, clkName, srcSegmentDepths, slr, portInsts,
+                                                       siteInstsToRoute, noGoBboxes);
             }
             if (dstChainDepth > 0) {
                 slrCrossedNet = insertFlopChain(design, slrCrossedNet, clkName, dstChainDepth, portInsts,
-                        siteInstsToRoute, noGoBboxes);
+                                                siteInstsToRoute, noGoBboxes);
             }
             insertFlopTreeForNetInSLR(design, slr, slrCrossedNet.getName(), clkName, treeDepth, portInsts,
-                    siteInstsToRoute, noGoBboxes);
+                                      siteInstsToRoute, noGoBboxes);
         }
 
         for (SiteInst si : siteInstsToRoute) {
@@ -695,7 +703,8 @@ public class FlopTreeTools {
 
     public static void main(String[] args) {
         if (args.length < 4 || args.length > 6) {
-            System.out.println("USAGE : <input.dcp> <output.dcp> <netName> <clkName> [depth=4] [maxDepthPerSLR=3]");
+            System.out.println("USAGE : <input.dcp> <output.dcp> <netName> <clkName> [depth=4] "
+                               + "[maxDepthPerSLR=3]");
             return;
         }
         int depth = args.length > 4 ? Integer.parseInt(args[4]) : 4;

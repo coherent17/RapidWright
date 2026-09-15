@@ -24,6 +24,15 @@
 
 package com.xilinx.rapidwright.rwroute;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.Net;
 import com.xilinx.rapidwright.design.NetType;
@@ -35,20 +44,10 @@ import com.xilinx.rapidwright.edif.EDIFNet;
 import com.xilinx.rapidwright.util.CountUpDownLatch;
 import com.xilinx.rapidwright.util.ParallelismTools;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Customized {@link PartialRouter} for the RapidStream use case.
  */
 public class RapidStreamRoute extends PartialRouter {
-
     public RapidStreamRoute(Design design, RWRouteConfig config, Collection<SitePinInst> pinsToRoute) {
         super(design, config, pinsToRoute);
     }
@@ -60,15 +59,18 @@ public class RapidStreamRoute extends PartialRouter {
 
     /**
      * Checks if a net is the target conflict net to be routed.
-     * Note: this method provides an example of customizing the partial router for application-specific tool flows.
-     * It is specifically for the RapidStream use case, where the targets are nets connecting anchor FFs of CLB tiles.
+     * Note: this method provides an example of customizing the partial router for
+     * application-specific tool flows. It is specifically for the RapidStream use case, where the
+     * targets are nets connecting anchor FFs of CLB tiles.
      * @param net The net in question.
      * @return true if the net is a target net.
      */
     protected static boolean isTargetConflictNetToRoute(Net net, String anchorNameKeyword) {
         // Skip successfully routed CLK, VCC, and GND nets
-        // In the RapidStream flow, the target nets to route are 2-terminal FF-to-FF nets. So nets with more than one sink pin are skipped as well.
-        if (net.getType() != NetType.WIRE || net.getSinkPins().size() > 1) return false;
+        // In the RapidStream flow, the target nets to route are 2-terminal FF-to-FF nets. So nets
+        // with more than one sink pin are skipped as well.
+        if (net.getType() != NetType.WIRE || net.getSinkPins().size() > 1)
+            return false;
         boolean anchorNet = false;
         List<EDIFHierPortInst> ehportInsts = net.getDesign().getNetlist().getPhysicalPins(net.getName());
         boolean input = false;
@@ -77,9 +79,10 @@ public class RapidStreamRoute extends PartialRouter {
         }
         for (EDIFHierPortInst eport : ehportInsts) {
             if (eport.getFullHierarchicalInstName().contains(anchorNameKeyword)) {
-                //use the key word to identify target anchor nets
+                // use the key word to identify target anchor nets
                 anchorNet = true;
-                if (eport.isInput()) input = true;
+                if (eport.isInput())
+                    input = true;
                 break;
             }
         }
@@ -89,7 +92,8 @@ public class RapidStreamRoute extends PartialRouter {
         } else {
             anchorTile = net.getSource().getTile();
         }
-        // Note: if laguna anchor nets are never conflicted, there will be no need to check tile names.
+        // Note: if laguna anchor nets are never conflicted, there will be no need to check tile
+        // names.
         return anchorNet && anchorTile.getName().startsWith("CLE");
     }
 
@@ -97,7 +101,7 @@ public class RapidStreamRoute extends PartialRouter {
      * Find and unroute all conflicted nets (filtered by isTargetConflictNetToRoute())
      * that are expected to be re-routed.
      * @param design The design instance to route.
- *   * @param anchorNameKeyword A keyword to help recognize the target conflict nets
+     *   * @param anchorNameKeyword A keyword to help recognize the target conflict nets
      * @return A Collection of conflicted nets.
      */
     private static Collection<Net> unrouteConflictedNets(Design design, String anchorNameKeyword) {
@@ -109,10 +113,11 @@ public class RapidStreamRoute extends PartialRouter {
                 try {
                     for (Node node : RouterHelper.getNodesOfNet(net)) {
                         final Collection<Net> nets = nodeToNet.computeIfAbsent(node, (n) -> new ArrayList<>(1));
-                        synchronized(nets) {
+                        synchronized (nets) {
                             if (!nets.contains(net)) {
-                                // Assume at most two nets (thus ArrayList.contains() will be negligible)
-                                assert(nets.size() < 2);
+                                // Assume at most two nets (thus ArrayList.contains() will be
+                                // negligible)
+                                assert (nets.size() < 2);
                                 nets.add(net);
                             }
                         }
@@ -125,12 +130,12 @@ public class RapidStreamRoute extends PartialRouter {
         netsOutstanding.await();
 
         Set<Net> conflictNets = new HashSet<>();
-        for (Map.Entry<Node,Collection<Net>> e : nodeToNet.entrySet()) {
+        for (Map.Entry<Node, Collection<Net>> e : nodeToNet.entrySet()) {
             Collection<Net> nets = e.getValue();
             if (nets.size() == 1)
                 continue;
             // Assume at most 2 nets are conflicted
-            assert(nets.size() == 2);
+            assert (nets.size() == 2);
             Iterator<Net> it = nets.iterator();
             Node node = e.getKey();
             Net net0 = it.next();
@@ -141,10 +146,12 @@ public class RapidStreamRoute extends PartialRouter {
                 EDIFNet logicalNet1 = net1.getLogicalNet();
                 if (logicalNet0 != null && logicalNet1 != null) {
                     if (!logicalNet1.equals(logicalNet0)) {
-                        if (generateWarning) generateConflictInfo(node, net0, net1);
+                        if (generateWarning)
+                            generateConflictInfo(node, net0, net1);
                     }
                 } else {
-                    if (generateWarning) generateConflictInfo(node, net0, net1);
+                    if (generateWarning)
+                        generateConflictInfo(node, net0, net1);
                 }
 
                 for (Net net : nets) {
@@ -177,10 +184,7 @@ public class RapidStreamRoute extends PartialRouter {
             pinsToRoute.addAll(net.getSinkPins());
         }
 
-        RWRouteConfig config = new RWRouteConfig(new String[] {
-                "--enlargeBoundingBox",
-                "--useUTurnNodes",
-                "--verbose"});
+        RWRouteConfig config = new RWRouteConfig(new String[] {"--enlargeBoundingBox", "--useUTurnNodes", "--verbose"});
         return routeDesign(new RapidStreamRoute(design, config, pinsToRoute));
     }
 }

@@ -36,16 +36,23 @@ import com.xilinx.rapidwright.rwroute.RWRouteConfig;
 
 /**
  * A {@link ClkRouteTiming} instance stores the clock route and timing template data.
- * To obtain a template file, please refer to find_clock_route_template.tcl under $RAPIDWRIGHT_PATH/tcl/rwroute.
- * When a clock route timing template file is ready, please use "--clkRouteTiming" option (see {@link RWRouteConfig})
- * to enable RWRoute to use the file for timing-driven clock routing.
+ * To obtain a template file, please refer to find_clock_route_template.tcl under
+ * $RAPIDWRIGHT_PATH/tcl/rwroute. When a clock route timing template file is ready, please use
+ * "--clkRouteTiming" option (see {@link RWRouteConfig}) to enable RWRoute to use the file for
+ * timing-driven clock routing.
  */
 public class ClkRouteTiming {
     /** Name of the BUFGCE, or the name of the timing data file */
     private String bufgce;
-    /** A map storing routes from CLK_OUT to different INT tiles that connect to sink pins of a global clock net */
+    /**
+     * A map storing routes from CLK_OUT to different INT tiles that connect to sink pins of a
+     * global clock net
+     */
     private Map<String, List<String>> routesToSinkINTTiles;
-    /** A map storing route delays from CLK_OUT to different INT tiles that connect to sink pins of a global clock net */
+    /**
+     * A map storing route delays from CLK_OUT to different INT tiles that connect to sink pins of
+     * a global clock net
+     */
     private Map<String, Short> routeDelaysToSinkINTTiles;
     /** INT tile associated with the BUFGCE_CLK_IN and the delay from the INT tile to the CLK_IN */
     private Map<String, Short> intTileToBufgInDelay;
@@ -109,17 +116,17 @@ public class ClkRouteTiming {
         } else if (section.equals("bufg_int")) {
             this.readRouteAndDelay(reader);
         }
-
     }
 
     private void readINTToBufgDelay(BufferedReader reader) throws NumberFormatException, IOException {
         String line;
         while ((line = reader.readLine()) != null) {
-            if (line.startsWith("#")) continue;
+            if (line.startsWith("#"))
+                continue;
             if (line.length() == 0) {
                 // the end of the current section
                 return;
-             }
+            }
 
             line = line.replace("{", "").replace("}", "");
             String[] dataStrings = line.split("\\s+");
@@ -127,12 +134,12 @@ public class ClkRouteTiming {
                 throw new IllegalArgumentException("ERROR: Incomplete data of line " + line);
             }
             this.routeDelaysToSinkINTTiles.put(dataStrings[0], Short.parseShort(dataStrings[2]));
-            this.intTileToBufgInDelay.put(dataStrings[0], Short.parseShort(dataStrings[2]));// check the index of INT tile and delay
+            this.intTileToBufgInDelay.put(dataStrings[0],
+                                          Short.parseShort(dataStrings[2])); // check the index of INT tile and delay
 
             for (int id = 3; id < dataStrings.length; id++) {
                 this.intTileToBufgInRoute.add(dataStrings[id]);
             }
-
         }
     }
 
@@ -143,7 +150,8 @@ public class ClkRouteTiming {
                 return;
             }
 
-            if (line.startsWith("#")) continue;
+            if (line.startsWith("#"))
+                continue;
             line = line.replace("{", "").replace("}", "");
             String[] dataStrings = line.split("\\s+");
             if (dataStrings.length < 3 || dataStrings.length < 4) {
@@ -189,5 +197,4 @@ public class ClkRouteTiming {
     public int hashCode() {
         return this.bufgce.hashCode();
     }
-
 }

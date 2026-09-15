@@ -23,6 +23,9 @@
 
 package com.xilinx.rapidwright.interchange;
 
+import java.io.IOException;
+import java.nio.file.Path;
+
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.Net;
@@ -35,9 +38,6 @@ import com.xilinx.rapidwright.support.RapidWrightDCP;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-
-import java.io.IOException;
-import java.nio.file.Path;
 
 public class TestPhysNetlistReader {
     private void testRoutethruLUTsHelper(Design d) {
@@ -108,10 +108,11 @@ public class TestPhysNetlistReader {
         Path physPath = RapidWrightDCP.getPath("interchange/bug626.phys");
 
         EDIFNetlist netlist = LogNetlistReader.readLogNetlist(netlistPath.toString());
-        RuntimeException ex = Assertions.assertThrows(RuntimeException.class,
-                () -> PhysNetlistReader.readPhysNetlist(physPath.toString(), netlist));
-        Assertions.assertEquals("ERROR: Cell \"LUT6_2_70/LUT6\" placement on BEL SLICE_X61Y155/B6LUT conflicts with previously placed cell \"LUT6_2_70/LUT5\".",
-                ex.getMessage());
+        RuntimeException ex = Assertions.assertThrows(
+            RuntimeException.class, () -> PhysNetlistReader.readPhysNetlist(physPath.toString(), netlist));
+        Assertions.assertEquals("ERROR: Cell \"LUT6_2_70/LUT6\" placement on BEL SLICE_X61Y155/B6LUT conflicts with "
+                                    + "previously placed cell \"LUT6_2_70/LUT5\".",
+                                ex.getMessage());
     }
 
     @Test

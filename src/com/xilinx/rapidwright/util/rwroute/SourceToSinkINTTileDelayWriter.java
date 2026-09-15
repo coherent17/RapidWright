@@ -55,10 +55,11 @@ public class SourceToSinkINTTileDelayWriter {
 
         boolean writeAllSinkDelay = args.length > 4 && args[4].equals("--allSinkDelay");
 
-        String inputDcpName = args[0].substring(args[0].lastIndexOf("/")+1);
+        String inputDcpName = args[0].substring(args[0].lastIndexOf("/") + 1);
         Design design = Design.readCheckpoint(args[0]);
         boolean useUTurnNodes = false;
-        DelayEstimatorBase estimator = new DelayEstimatorBase(design.getDevice(), new InterconnectInfo(), useUTurnNodes, 0);
+        DelayEstimatorBase estimator =
+            new DelayEstimatorBase(design.getDevice(), new InterconnectInfo(), useUTurnNodes, 0);
 
         Net net = design.getNet(args[2]);
         if (net == null) {
@@ -69,9 +70,10 @@ public class SourceToSinkINTTileDelayWriter {
             return;
         }
 
-        Map<SitePinInst, Pair<Node,Short>> sourceToSinkINTDelays = RouterHelper.getSourceToSinkINTNodeDelays(net, estimator);
+        Map<SitePinInst, Pair<Node, Short>> sourceToSinkINTDelays =
+            RouterHelper.getSourceToSinkINTNodeDelays(net, estimator);
 
-        String outputFile = args[3].endsWith("/")? args[3] : args[3] + "/";
+        String outputFile = args[3].endsWith("/") ? args[3] : args[3] + "/";
         outputFile += inputDcpName.replace(".dcp", "_getDelayToSinkINT.txt");
 
         try {
@@ -79,7 +81,7 @@ public class SourceToSinkINTTileDelayWriter {
 
             if (writeAllSinkDelay) {
                 System.out.println("INFO: Write delay from source to all sink to file \n      " + outputFile);
-                for (Entry<SitePinInst, Pair<Node,Short>> sinkINTNodeDelay : sourceToSinkINTDelays.entrySet()) {
+                for (Entry<SitePinInst, Pair<Node, Short>> sinkINTNodeDelay : sourceToSinkINTDelays.entrySet()) {
                     Node node = sinkINTNodeDelay.getValue().getFirst();
                     Short delay = sinkINTNodeDelay.getValue().getSecond();
                     myWriter.write(node + " \t\t" + delay + "\n");
@@ -87,8 +89,9 @@ public class SourceToSinkINTTileDelayWriter {
                 }
 
             } else {
-                System.out.println("INFO: Write delay from source to IMUX node of CLK_IN to file \n      " + outputFile);
-                for (Entry<SitePinInst, Pair<Node,Short>> sinkINTNodeDelay : sourceToSinkINTDelays.entrySet()) {
+                System.out.println("INFO: Write delay from source to IMUX node of CLK_IN to file \n      " +
+                                   outputFile);
+                for (Entry<SitePinInst, Pair<Node, Short>> sinkINTNodeDelay : sourceToSinkINTDelays.entrySet()) {
                     Node node = sinkINTNodeDelay.getValue().getFirst();
                     Short delay = sinkINTNodeDelay.getValue().getSecond();
                     if (sinkINTNodeDelay.getKey().toString().contains("CLK_IN")) {

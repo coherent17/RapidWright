@@ -53,8 +53,7 @@ import com.xilinx.rapidwright.util.Utils;
  *
  * @author Chris Lavin Created on: Jun 22, 2010
  */
-public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
-
+public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst> {
     /** The design which contains this module instance */
     private transient Design design;
     /** The module of which this object is an instance of */
@@ -63,7 +62,8 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
     private SiteInst anchor;
     /** A list of all primitive instances which make up this module instance */
     private ArrayList<SiteInst> instances;
-    /** A list of all nets internal to this module instance 
+    /**
+     * A list of all nets internal to this module instance
      * Note: These are references to nets inside 'design' that this ModuleInst
      * inserted and is exclusively responsible for. As such, any static nets present in
      * this list must be handled with care.
@@ -96,8 +96,8 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
      * as the module instance passed in.  This is primarily used for classes
      * which extend {@link ModuleInst}.
      *
-     * This performs a shallow copy of the original Module Instance. It will point to the same cell and instances as the
-     * original module.
+     * This performs a shallow copy of the original Module Instance. It will point to the same cell
+     * and instances as the original module.
      * @param moduleInst The module instance to mimic.
      */
     public ModuleInst(ModuleInst moduleInst) {
@@ -105,7 +105,7 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
         this.setDesign(moduleInst.design);
         this.module = moduleInst.module;
         this.setAnchor(moduleInst.anchor);
-        instances =  moduleInst.instances;
+        instances = moduleInst.instances;
         nets = moduleInst.nets;
         setCellInst(getCellInst());
     }
@@ -221,7 +221,8 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
      */
     public ArrayList<Site> getAllValidPlacements() {
         ArrayList<Site> validSites = new ArrayList<Site>();
-        if (getAnchor() == null) return validSites;
+        if (getAnchor() == null)
+            return validSites;
         Site originalSite = getAnchor().getSite();
         Design design = getDesign();
         Site[] sites = design.getDevice().getAllCompatibleSites(getAnchor().getSiteTypeEnum());
@@ -233,7 +234,8 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
         }
 
         // Put hard macro back
-        if (originalSite != null) place(originalSite);
+        if (originalSite != null)
+            place(originalSite);
 
         return validSites;
     }
@@ -263,7 +265,7 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
 
     /**
      * Places the module instance anchor at the newAnchorSite as well as all other
-     * instances and nets within the module instance at their relative offsets of the new site.  Note
+     * instances and nets within the module instance at their relative offsets of the new site. Note
      * that this method allows placement overlap by default.  See
      * {@link #place(Site, boolean, boolean)} to disallow module overlap.
      * @param newAnchorSite The new site for the anchor of the module instance.
@@ -285,7 +287,8 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
      * does not match the floorplan according to the original module and simply leave it unplaced.
      * Setting to false will cause placement to fail on first mismatch of floorplan placement
      * attempt.
-     * @param allowOverlap True if the module instance is allowed to overlap with existing placed logic.
+     * @param allowOverlap True if the module instance is allowed to overlap with existing placed
+     *     logic.
      * @return True if placement was successful, false otherwise.
      */
     public boolean place(Site newAnchorSite, boolean skipIncompatible, boolean allowOverlap) {
@@ -296,14 +299,15 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
         Device dev = newAnchorSite.getDevice();
 
         // Do some error checking on the newAnchorSite
-        if (module.getAnchor() == null) return false;
+        if (module.getAnchor() == null)
+            return false;
         Site p = module.getAnchor();
         Tile t = newAnchorSite.getTile();
         Site newValidSite = p.getCorrespondingSite(module.getAnchor().getSiteTypeEnum(), t);
         if (!newAnchorSite.equals(newValidSite)) {
-            //MessageGenerator.briefError("New anchor site (" + newAnchorSite.getName() +
-            //        ") is incorrect.  Should be " + newValidSite.getName());
-            //this.unplace();
+            // MessageGenerator.briefError("New anchor site (" + newAnchorSite.getName() +
+            //         ") is incorrect.  Should be " + newValidSite.getName());
+            // this.unplace();
             return false;
         }
 
@@ -363,10 +367,10 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
             }
 
             if (newSite == null || existingSiteInst != null) {
-                //MessageGenerator.briefError("ERROR: No matching site found." +
-                //    " (Template Site:"    + templateSite.getName() +
-                //    ", Template Tile:" + templateSite.getTile() +
-                //    " => New Site:" + newSite + ", New Tile:" + newTile+")");
+                // MessageGenerator.briefError("ERROR: No matching site found." +
+                //     " (Template Site:"    + templateSite.getName() +
+                //     ", Template Tile:" + templateSite.getTile() +
+                //     " => New Site:" + newSite + ", New Tile:" + newTile+")");
 
                 // revert placement to original placement before method call
                 if (originalSites == null) {
@@ -391,7 +395,9 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
                     }
                 }
                 if (design.isSiteUsed(newSite)) {
-                    throw new RuntimeException("ERROR: BlockGuide ("+ getName() +") contains a BUFGCE that is already fully occupied in the tile specified.");
+                    throw new RuntimeException("ERROR: BlockGuide (" + getName() +
+                                               (") contains a BUFGCE that is already fully "
+                                                + "occupied in the tile specified."));
                 }
             }
 
@@ -401,10 +407,11 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
             inst.place(newSite);
         }
 
-        //=======================================================//
-        /* Place net at new location                             */
-        //=======================================================//
-        nextnet: for (Net net : nets) {
+    //=======================================================//
+    /* Place net at new location                             */
+    //=======================================================//
+    nextnet:
+        for (Net net : nets) {
             unrouteNet(net, placedPreviously);
 
             Net templateNet = net.getModuleTemplateNet();
@@ -417,7 +424,8 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
                         continue nextnet;
                     } else {
                         unplace();
-                        MessageGenerator.briefError("Warning: Unable to return module instance "+ getName() +" back to original placement.");
+                        MessageGenerator.briefError("Warning: Unable to return module instance " + getName() +
+                                                    " back to original placement.");
                         return false;
                     }
                 }
@@ -428,8 +436,8 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
                 }
                 // Some tiles have nodes that are depopulated, we need to detect those
                 Node endNode = newPip.getEndNode();
-                if (endNode != null && endNode.getAllDownhillPIPs().size() == 0
-                        && pip.getEndNode().getAllDownhillPIPs().size() != 0) {
+                if (endNode != null && endNode.getAllDownhillPIPs().size() == 0 &&
+                    pip.getEndNode().getAllDownhillPIPs().size() != 0) {
                     return false;
                 }
                 net.addPIP(newPip);
@@ -468,11 +476,12 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
             // Any static nets that appear in 'nets' is not the exclusive responsibility
             // of this ModuleInst, instead it is shared with everything in 'design'.
             if (placedPreviously) {
-                // We need to remove the GND/VCC PIPs inserted by this ModuleInst out of the global design net
+                // We need to remove the GND/VCC PIPs inserted by this ModuleInst out of the global
+                // design net
                 Net designNet = design.getNet(net.getName());
                 Set<PIP> prevUsed = getUsedStaticPIPs(designNet);
                 designNet.getPIPs().removeIf(p -> prevUsed.remove(p));
-                assert(prevUsed.isEmpty());
+                assert (prevUsed.isEmpty());
             }
         } else {
             net.getPIPs().clear();
@@ -498,12 +507,14 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
      * @return The corresponding pin on this module instance, or null if could not be found.
      */
     private SitePinInst getCorrespondingPin(SitePinInst modulePin) {
-        if (modulePin == null) return null;
+        if (modulePin == null)
+            return null;
 
-        String siteInstName = getName()+"/"+modulePin.getSiteInst().getName();
+        String siteInstName = getName() + "/" + modulePin.getSiteInst().getName();
         SiteInst newSiteInst = design.getSiteInst(siteInstName);
         if (newSiteInst == null) {
-            throw new RuntimeException("Did not find corresponding Site Inst for "+modulePin.getSiteInst().getName()+" in "+getName());
+            throw new RuntimeException("Did not find corresponding Site Inst for " + modulePin.getSiteInst().getName() +
+                                       " in " + getName());
         }
         return newSiteInst.getSitePinInst(modulePin.getName());
     }
@@ -520,18 +531,18 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
 
     /**
      * Gets the single corresponding port pin (SitePinInst) on this module instance
-     * that corresponds to the module's port. If the module port has multiple pins, this will throw an Exception.
+     * that corresponds to the module's port. If the module port has multiple pins, this will throw
+     * an Exception.
      * @param port The port on the prototype module.
      * @return The corresponding port pin on this module instance, or null if could not be found.
      */
     public SitePinInst getSingleCorrespondingPin(Port port) {
-
-        if (port.getSitePinInsts().size()>1) {
-            throw new IllegalStateException("Cannot get single SitePinInst of Module "+module.getName()+"."+port.getName()+", as it has "+port.getSitePinInsts().size()+" pins");
+        if (port.getSitePinInsts().size() > 1) {
+            throw new IllegalStateException("Cannot get single SitePinInst of Module " + module.getName() + "." +
+                                            port.getName() + ", as it has " + port.getSitePinInsts().size() + " pins");
         }
         return getCorrespondingPin(port.getSingleSitePinInst());
     }
-
 
     private Port findPassthruInput(Port p) {
         for (String passthroughName : p.getPassThruPortNames()) {
@@ -565,7 +576,6 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
         return null;
     }
 
-
     /**
      * Gets the corresponding port on the module by name.
      * @param name
@@ -574,7 +584,6 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
     public Port getPort(String name) {
         return module.getPort(name);
     }
-
 
     /**
      * Get's the current lower left site as used for a placement directive
@@ -597,7 +606,8 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
     public Site getLowerLeftPlacement(SiteTypeEnum type) {
         // Calculate anchor offset
         Site anchor = getModule().getAnchor();
-        if (anchor == null) return null;
+        if (anchor == null)
+            return null;
 
         Tile origAnchor = anchor.getTile();
         Tile currAnchor = getAnchor().getSite().getTile();
@@ -608,17 +618,20 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
         Tile origLowerLeft = getLowerLeftTile(type);
 
         String origTilePrefix = origLowerLeft.getRootName();
-        String newSuffix = "_X" + (origLowerLeft.getTileXCoordinate() + dx) + "Y" + (origLowerLeft.getTileYCoordinate() + dy);
+        String newSuffix =
+            "_X" + (origLowerLeft.getTileXCoordinate() + dx) + "Y" + (origLowerLeft.getTileYCoordinate() + dy);
 
         Tile newTile = origLowerLeft.getDevice().getTile(origTilePrefix + newSuffix);
         if (type == null) {
             if (newTile.getSites().length == 0) {
-                throw new RuntimeException("no sites in tile "+newTile+", orig lower left is "+origLowerLeft+" for mi " + getName());
+                throw new RuntimeException("no sites in tile " + newTile + ", orig lower left is " + origLowerLeft +
+                                           " for mi " + getName());
             }
             return newTile.getSites()[0];
         }
         for (Site s : newTile.getSites()) {
-            if (s.getSiteTypeEnum() == type) return s;
+            if (s.getSiteTypeEnum() == type)
+                return s;
         }
         return null;
     }
@@ -643,13 +656,13 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
             }
         }
 
-
         SiteInst lowerLeftIP = null;
         int x = Integer.MAX_VALUE;
         int y = Integer.MAX_VALUE;
         for (SiteInst s : getModule().getSiteInsts()) {
-            boolean isSiteCompatible = type == null ? PBlock.isPBlockCornerSiteType(s.getSiteTypeEnum()) :
-                (s.getSite().isCompatibleSiteType(type) || (Utils.isSLICE(s) && Utils.isSLICE(type)));
+            boolean isSiteCompatible =
+                type == null ? PBlock.isPBlockCornerSiteType(s.getSiteTypeEnum())
+                             : (s.getSite().isCompatibleSiteType(type) || (Utils.isSLICE(s) && Utils.isSLICE(type)));
             if (isSiteCompatible) {
                 if (lowerLeftIP == null) {
                     lowerLeftIP = s;
@@ -666,7 +679,8 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
         }
 
         Device dev = getDesign().getDevice();
-        String prefix = lowerLeftIP.getSite().getName().substring(0, lowerLeftIP.getSite().getName().lastIndexOf('_')+1);
+        String prefix =
+            lowerLeftIP.getSite().getName().substring(0, lowerLeftIP.getSite().getName().lastIndexOf('_') + 1);
         Site target = dev.getSite(prefix + "X" + x + "Y" + y);
 
         return target.getTile();
@@ -675,7 +689,8 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
     /**
      * Attempts to place the module instance such that it's lower left tile falls
      * on the specified IP tile (CLB,DSP,BRAM,...)
-     * @param ipTile The specific tile onto which the lower left tile of the {@link ModuleInst} should be placed.
+     * @param ipTile The specific tile onto which the lower left tile of the {@link ModuleInst}
+     *     should be placed.
      * @param type The specific site type in the tile.
      * @return True if the placement succeeded, false otherwise.
      */
@@ -684,14 +699,18 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
         Device dev = targetTile.getDevice();
 
         Tile newAnchorTile = getModule().getCorrespondingAnchorTile(targetTile, ipTile, dev);
-        if (newAnchorTile == null) return false;
+        if (newAnchorTile == null)
+            return false;
 
         Site anchor = getModule().getAnchor();
-        if (anchor == null) return false;
+        if (anchor == null)
+            return false;
         Site moduleAnchor = anchor;
         boolean success = place(newAnchorTile.getSites()[moduleAnchor.getTile().getSiteIndex(moduleAnchor)]);
 
-        if (!success) System.out.println("Failed placement attempt, TargetTile="+targetTile.getName()+" ipTile="+ipTile.getName());
+        if (!success)
+            System.out.println("Failed placement attempt, TargetTile=" + targetTile.getName() +
+                               " ipTile=" + ipTile.getName());
         return success;
     }
 
@@ -708,7 +727,8 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
      * an out of context design where there might not be a source/sink.
      * @param otherPortName The port name on the other module instance to connect to or
      * the top-level port of the the cell instance.
-     * @param busIndex1 If the port (of the other module instance or the existing parent cell) is multi-bit,
+     * @param busIndex1 If the port (of the other module instance or the existing parent cell) is
+     *     multi-bit,
      * specify the index to connect or -1 if single bit bus.
      */
     @Override
@@ -766,10 +786,10 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
 
     /**
      * Connects a ModuleInst's single bit input port to GND or VCC
-     * 
+     *
      * @param type     The static net type to connect the port to
      * @param portName The name of the port
-     * 
+     *
      */
     public void connect(NetType type, String portName) {
         connect(type, portName, -1);
@@ -779,7 +799,7 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
      * Connects a ModuleInst's input port to GND or VCC. If the port is already
      * connected to another net, this will disconnect it and connect it to the
      * specified static net.
-     * 
+     *
      * @param type     The static net type to connect the port to
      * @param portName The name of the port
      * @param busIndex The index of bit into the port, or -1 if it is a single bit
@@ -791,13 +811,12 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
         }
         Port input = getPort(busIndex == -1 ? portName : portName + "[" + busIndex + "]");
         if (input == null) {
-            throw new RuntimeException(
-                    "ERROR: Couldn't find port " + portName + ", idx=" + busIndex + " on ModuleInst "
-                            + getName());
+            throw new RuntimeException("ERROR: Couldn't find port " + portName + ", idx=" + busIndex +
+                                       " on ModuleInst " + getName());
         }
         if (input.isOutPort()) {
-            throw new RuntimeException("ERROR: Port " + input.getName() + " on ModuleInst " + getName()
-                    + " is an output, cannot connect it to " + type);
+            throw new RuntimeException("ERROR: Port " + input.getName() + " on ModuleInst " + getName() +
+                                       " is an output, cannot connect it to " + type);
         }
         Net physNet = type == NetType.GND ? getDesign().getGndNet() : getDesign().getVccNet();
         EDIFNet logNet = EDIFTools.getStaticNet(type, getCellInst().getParentCell(), getDesign().getNetlist());
@@ -837,8 +856,8 @@ public class ModuleInst extends AbstractModuleInst<Module, Site, ModuleInst>{
     }
 
     /**
-     * Gets the current set of used GND/VCC PIPs by this ModuleInst.  If the module instance 
-     * is not placed, the set will be empty.  
+     * Gets the current set of used GND/VCC PIPs by this ModuleInst.  If the module instance
+     * is not placed, the set will be empty.
      * @param staticNet A static net of the type to get.
      * @return The set of PIPs used by this module instance if placed, null if the net provided is
      * not a static net.

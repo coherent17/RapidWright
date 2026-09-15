@@ -33,7 +33,6 @@ import java.util.stream.Stream;
  * Created on: Jan 25, 2018
  */
 public class PackagePinConstraint implements Constraint<PackagePinConstraint> {
-
     private String portName;
 
     private String packagePin;
@@ -93,11 +92,11 @@ public class PackagePinConstraint implements Constraint<PackagePinConstraint> {
 
     public Stream<String> asXdc() {
         Stream.Builder<String> res = Stream.builder();
-        if (packagePin!=null) {
-            res.add("set_property PACKAGE_PIN "+packagePin+" [get_ports "+portName+"]");
+        if (packagePin != null) {
+            res.add("set_property PACKAGE_PIN " + packagePin + " [get_ports " + portName + "]");
         }
-        if (ioStandard!=null) {
-            res.add("set_property IOSTANDARD "+ioStandard+" [get_ports "+portName+"]");
+        if (ioStandard != null) {
+            res.add("set_property IOSTANDARD " + ioStandard + " [get_ports " + portName + "]");
         }
         return res.build();
     }

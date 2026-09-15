@@ -29,14 +29,13 @@ import java.util.Set;
  *
  */
 public enum DesignDiffType {
-
     DESIGN_PARTNAME,
     SITEINST_MISSING,
     SITEINST_EXTRA,
     SITEINST_NAME,
     SITEINST_TYPE,
-    PLACED_CELL_MISSING, 
-    PLACED_CELL_EXTRA, 
+    PLACED_CELL_MISSING,
+    PLACED_CELL_EXTRA,
     PLACED_CELL_TYPE,
     PLACED_CELL_NAME,
     PLACED_CELL_IS_BEL_FIXED,
@@ -51,9 +50,8 @@ public enum DesignDiffType {
     NET_EXTRA,
     PIP_MISSING,
     PIP_EXTRA,
-    PIP_FLAGS; 
-    
-    
+    PIP_FLAGS;
+
     private boolean isMissingType;
 
     private boolean isExtraType;
@@ -62,10 +60,10 @@ public enum DesignDiffType {
 
     private boolean isNameType;
 
-    private static Set<DesignDiffType> siteInstParentTypes = EnumSet.of(SITEINST_TYPE,
-            PLACED_CELL_MISSING, PLACED_CELL_EXTRA, PLACED_CELL_TYPE, PLACED_CELL_NAME,
-            SITEPIP_MISSING, SITEPIP_EXTRA, SITEPIP_INPIN_NAME, SITEWIRE_NET_MISSING, SITEWIRE_NET_EXTRA,
-            SITEWIRE_NET_NAME, PLACED_CELL_IS_BEL_FIXED, PLACED_CELL_IS_SITE_FIXED);
+    private static Set<DesignDiffType> siteInstParentTypes =
+        EnumSet.of(SITEINST_TYPE, PLACED_CELL_MISSING, PLACED_CELL_EXTRA, PLACED_CELL_TYPE, PLACED_CELL_NAME,
+                   SITEPIP_MISSING, SITEPIP_EXTRA, SITEPIP_INPIN_NAME, SITEWIRE_NET_MISSING, SITEWIRE_NET_EXTRA,
+                   SITEWIRE_NET_NAME, PLACED_CELL_IS_BEL_FIXED, PLACED_CELL_IS_SITE_FIXED);
 
     private static Set<DesignDiffType> netParentTypes = EnumSet.of(PIP_EXTRA, PIP_FLAGS, PIP_MISSING);
 

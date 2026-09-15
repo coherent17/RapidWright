@@ -32,8 +32,6 @@ import java.util.Map;
 import com.xilinx.rapidwright.util.StringPool;
 
 public abstract class AbstractEDIFParserWorker {
-
-
     public static final String LEFT_PAREN = "(";
     public static final String RIGHT_PAREN = ")";
     public static final String EDIF = "edif";
@@ -80,17 +78,20 @@ public abstract class AbstractEDIFParserWorker {
     protected final InputStream in;
     protected final EDIFReadLegalNameCache cache;
 
-    public AbstractEDIFParserWorker(Path fileName, InputStream in, StringPool uniquifier, int maxTokenLength, EDIFReadLegalNameCache cache) {
+    public AbstractEDIFParserWorker(Path fileName, InputStream in, StringPool uniquifier, int maxTokenLength,
+                                    EDIFReadLegalNameCache cache) {
         this.in = in;
         this.cache = cache;
         this.tokenizer = new EDIFTokenizer(fileName, in, uniquifier, maxTokenLength);
     }
 
-    public AbstractEDIFParserWorker(Path fileName, InputStream in, StringPool uniquifier, EDIFReadLegalNameCache cache) {
+    public AbstractEDIFParserWorker(Path fileName, InputStream in, StringPool uniquifier,
+                                    EDIFReadLegalNameCache cache) {
         this(fileName, in, uniquifier, EDIFTokenizer.DEFAULT_MAX_TOKEN_LENGTH, cache);
     }
 
-    public AbstractEDIFParserWorker(Path fileName, StringPool uniquifier, EDIFReadLegalNameCache cache) throws FileNotFoundException {
+    public AbstractEDIFParserWorker(Path fileName, StringPool uniquifier, EDIFReadLegalNameCache cache)
+        throws FileNotFoundException {
         in = EDIFTools.openEDIFInputStream(fileName);
         tokenizer = new EDIFTokenizer(fileName, in, uniquifier);
         this.cache = cache;
@@ -119,7 +120,7 @@ public abstract class AbstractEDIFParserWorker {
     }
 
     private static <T> T requireToken(T t) {
-        if (t==null) {
+        if (t == null) {
             throw EDIFParseException.unexpectedEOF();
         }
         return t;
@@ -133,15 +134,14 @@ public abstract class AbstractEDIFParserWorker {
         return requireToken(tokenizer.getOptionalNextTokenString(isShortLived));
     }
 
-
-    protected<T extends EDIFName> T parseEDIFNameObject(T o) {
+    protected <T extends EDIFName> T parseEDIFNameObject(T o) {
         String currToken = getNextToken(false);
         if (currToken.equals(EDIFParser.LEFT_PAREN)) {
             expect(EDIFParser.RENAME, getNextToken(true));
             String rename = getNextToken(false);
             // Handle issue with names beginning with '[]'
             String name = getNextToken(false);
-            if (name.charAt(0) == '[' && name.length() >= 2 &&  name.charAt(1) == ']') {
+            if (name.charAt(0) == '[' && name.length() >= 2 && name.charAt(1) == ']') {
                 String tmpName = name.substring(2);
                 name = tokenizer.getUniquifier().uniquifyName(tmpName);
             }
@@ -156,8 +156,8 @@ public abstract class AbstractEDIFParserWorker {
 
     protected void expect(String expectedString, String token) {
         if (!expectedString.equalsIgnoreCase(token)) {
-            throw new EDIFParseException("Parsing Error: Expected token: " + expectedString +
-                    ", encountered: " + token + " before byte offset "+tokenizer.getByteOffset()+".");
+            throw new EDIFParseException("Parsing Error: Expected token: " + expectedString + ", encountered: " +
+                                         token + " before byte offset " + tokenizer.getByteOffset() + ".");
         }
     }
 
@@ -185,8 +185,6 @@ public abstract class AbstractEDIFParserWorker {
 
         return netlist;
     }
-
-
 
     protected EDIFCell parseEDIFCell(String libraryLegalName, String cellToken) {
         expect(CELL, cellToken);
@@ -242,7 +240,7 @@ public abstract class AbstractEDIFParserWorker {
                 expect(CONTENTS + " | " + PROPERTY, contentsOrProperty);
             }
         }
-        expect(RIGHT_PAREN, currToken); // View end
+        expect(RIGHT_PAREN, currToken);          // View end
         expect(RIGHT_PAREN, getNextToken(true)); // Cell end
         return cell;
     }
@@ -288,14 +286,13 @@ public abstract class AbstractEDIFParserWorker {
             } else if (writtenEntry.equals(METAX)) {
                 String key = getNextToken(false);
                 EDIFPropertyValue value = parsePropertyValue();
-                currNetlist.addMetax(key,value);
+                currNetlist.addMetax(key, value);
             } else if (writtenEntry.equals(PROPERTY)) {
                 // Discard this property for now
                 parseProperty(new EDIFPropertyObject(), writtenEntry);
                 continue;
             } else {
-                expect(PROGRAM + "|" + AUTHOR + "|" + COMMENT + "|" + METAX + "|" + PROPERTY,
-                        writtenEntry);
+                expect(PROGRAM + "|" + AUTHOR + "|" + COMMENT + "|" + METAX + "|" + PROPERTY, writtenEntry);
             }
             expect(RIGHT_PAREN, getNextToken(true));
         }
@@ -322,8 +319,7 @@ public abstract class AbstractEDIFParserWorker {
         EDIFLibrary library = parseEDIFNameObject(new EDIFLibrary());
         expect(LEFT_PAREN, getNextToken(true));
         expect(EDIFLEVEL, getNextToken(true));
-        @SuppressWarnings("unused")
-        int level = Integer.parseInt(getNextToken(true));
+        @SuppressWarnings("unused") int level = Integer.parseInt(getNextToken(true));
         expect(RIGHT_PAREN, getNextToken(true));
 
         expect(LEFT_PAREN, getNextToken(true));
@@ -339,16 +335,15 @@ public abstract class AbstractEDIFParserWorker {
         expect(PROPERTY, nextToken);
         EDIFName key = parseEDIFNameObject(new EDIFName());
         EDIFPropertyValue value = parsePropertyValue();
-        o.addProperty(key.getName(),value);
+        o.addProperty(key.getName(), value);
         String paren = getNextToken(true);
         if (paren.equals(RIGHT_PAREN)) {
             // pass - nothing more to do here
-        }
-        else if (paren.equals(LEFT_PAREN)) {
+        } else if (paren.equals(LEFT_PAREN)) {
             expect(OWNER, getNextToken(true));
             value.setOwner(getNextToken(false));
-            expect(RIGHT_PAREN,getNextToken(true));
-            expect(RIGHT_PAREN,getNextToken(true));
+            expect(RIGHT_PAREN, getNextToken(true));
+            expect(RIGHT_PAREN, getNextToken(true));
         } else {
             expect(RIGHT_PAREN + "|" + LEFT_PAREN, paren);
         }
@@ -356,7 +351,8 @@ public abstract class AbstractEDIFParserWorker {
         return o;
     }
 
-    protected EDIFNet parseEDIFNet(EDIFCell cell, Map<String, EDIFCellInst> instanceLookup, String netToken, EDIFReadLegalNameCache cache) {
+    protected EDIFNet parseEDIFNet(EDIFCell cell, Map<String, EDIFCellInst> instanceLookup, String netToken,
+                                   EDIFReadLegalNameCache cache) {
         expect(NET, netToken);
         EDIFNet net = parseEDIFNameObject(new EDIFNet());
         expect(LEFT_PAREN, getNextToken(true));
@@ -364,14 +360,13 @@ public abstract class AbstractEDIFParserWorker {
         String currToken = null;
         cell.addNet(net);
         while (LEFT_PAREN.equals(currToken = getNextToken(true))) {
-            parseEDIFPortInst(cell, instanceLookup,net);
+            parseEDIFPortInst(cell, instanceLookup, net);
         }
         expect(RIGHT_PAREN, currToken);
         while (LEFT_PAREN.equals(currToken = getNextToken(true))) {
             parseProperty(net, getNextToken(true));
         }
-        expect(RIGHT_PAREN,currToken);
-
+        expect(RIGHT_PAREN, currToken);
 
         return net;
     }
@@ -395,13 +390,13 @@ public abstract class AbstractEDIFParserWorker {
 
         if (currToken.equals(LEFT_PAREN)) {
             expect(INSTANCEREF, getNextToken(true));
-            String instanceref = getNextToken(false); //TODO change longevity?
+            String instanceref = getNextToken(false); // TODO change longevity?
             portInst.setCellInstRaw(getRefEDIFCellInst(instanceref, instanceLookup));
             expect(RIGHT_PAREN, getNextToken(true));
             expect(RIGHT_PAREN, getNextToken(true));
         } else {
             // This is a port to higher level
-            expect(RIGHT_PAREN,currToken);
+            expect(RIGHT_PAREN, currToken);
         }
 
         linkEdifPortInstToCellInst(parentCell, portInst, net);
@@ -416,7 +411,7 @@ public abstract class AbstractEDIFParserWorker {
     protected EDIFCellInst getRefEDIFCellInst(String edifCellInstName, Map<String, EDIFCellInst> instanceLookup) {
         EDIFCellInst inst = instanceLookup.get(edifCellInstName);
         if (inst == null) {
-            throw new EDIFParseException("ERROR: Bad instance ref "+ edifCellInstName);
+            throw new EDIFParseException("ERROR: Bad instance ref " + edifCellInstName);
         }
         return inst;
     }
@@ -457,7 +452,8 @@ public abstract class AbstractEDIFParserWorker {
         return port;
     }
 
-    private EDIFCellInst parseEDIFCellInst(String currentLibraryName, Map<String, EDIFCellInst> instanceLookup, EDIFCell currentCell, String instanceToken) {
+    private EDIFCellInst parseEDIFCellInst(String currentLibraryName, Map<String, EDIFCellInst> instanceLookup,
+                                           EDIFCell currentCell, String instanceToken) {
         expect(INSTANCE, instanceToken);
         EDIFCellInst inst = parseEDIFNameObject(new EDIFCellInst());
         inst = updateEDIFRefCellInstMap(inst, instanceLookup);
@@ -491,7 +487,8 @@ public abstract class AbstractEDIFParserWorker {
         return inst;
     }
 
-    protected abstract void linkCellInstToCell(EDIFCellInst inst, String cellref, String libraryref, EDIFCell currentCell);
+    protected abstract void linkCellInstToCell(EDIFCellInst inst, String cellref, String libraryref,
+                                               EDIFCell currentCell);
 
     /**
      * This method arbitrates between freshly created {@link EDIFCellInst} and
@@ -518,7 +515,7 @@ public abstract class AbstractEDIFParserWorker {
         if (portInst.getCellInst() != null) {
             portCell = portInst.getCellInst().getCellType();
         }
-        if (portCell ==null) {
+        if (portCell == null) {
             throw new NullPointerException();
         }
         return portCell;
@@ -530,7 +527,7 @@ public abstract class AbstractEDIFParserWorker {
 
         if (port == null) {
             throw new EDIFParseException("ERROR: Couldn't find EDIFPort for "
-                    + "EDIFPortInst " + portInst.getName());
+                                         + "EDIFPortInst " + portInst.getName());
         }
         portInst.setPort(port);
         String portInstName = portInst.getPortInstNameFromPort();

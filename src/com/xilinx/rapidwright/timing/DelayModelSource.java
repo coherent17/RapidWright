@@ -30,11 +30,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * An abstract class defining interface for DelayModelSource, used to provide data source to DelayModel class.
- * It also defines equivalent sites and bels.
+ * An abstract class defining interface for DelayModelSource, used to provide data source to
+ * DelayModel class. It also defines equivalent sites and bels.
  */
 abstract class DelayModelSource {
-
     protected String name = "DelayModelSource";
     // pass data to DelayModel. The data will be stored in a different way for runtime efficiency.
     /**
@@ -51,7 +50,6 @@ abstract class DelayModelSource {
      */
     protected Map<String, Integer> configCodeMap;
 
-
     // TODO: populate from files
     /**
      * Specify equivalent bels for logic delays. Equivalent bels map to the same index.
@@ -59,45 +57,45 @@ abstract class DelayModelSource {
     private static final Map<String, Short> bel2IdxMap;
     static {
         HashMap<String, Short> aMap = new HashMap<String, Short>();
-        aMap.put("CARRY8", (short) 0);
-        aMap.put("A6LUT",  (short) 1);
-        aMap.put("B6LUT",  (short) 1);
-        aMap.put("C6LUT",  (short) 1);
-        aMap.put("D6LUT",  (short) 1);
-        aMap.put("E6LUT",  (short) 1);
-        aMap.put("F6LUT",  (short) 1);
-        aMap.put("G6LUT",  (short) 1);
-        aMap.put("H6LUT",  (short) 1);
-        aMap.put("A5LUT",  (short) 2);
-        aMap.put("B5LUT",  (short) 2);
-        aMap.put("C5LUT",  (short) 2);
-        aMap.put("D5LUT",  (short) 2);
-        aMap.put("E5LUT",  (short) 2);
-        aMap.put("F5LUT",  (short) 2);
-        aMap.put("G5LUT",  (short) 2);
-        aMap.put("H5LUT",  (short) 2);
-        aMap.put("AFF",    (short) 3);
-        aMap.put("AFF2",   (short) 3);
-        aMap.put("BFF",    (short) 3);
-        aMap.put("BFF2",   (short) 3);
-        aMap.put("CFF",    (short) 3);
-        aMap.put("CFF2",   (short) 3);
-        aMap.put("DFF",    (short) 3);
-        aMap.put("DFF2",   (short) 3);
-        aMap.put("EFF",    (short) 3);
-        aMap.put("EFF2",   (short) 3);
-        aMap.put("FFF",    (short) 3);
-        aMap.put("FFF2",   (short) 3);
-        aMap.put("GFF",    (short) 3);
-        aMap.put("GFF2",   (short) 3);
-        aMap.put("HFF",    (short) 3);
-        aMap.put("HFF2",   (short) 3);
-        aMap.put("F7MUX_AB",   (short) 4);
-        aMap.put("F7MUX_CD",   (short) 4);
-        aMap.put("F7MUX_EF",   (short) 4);
-        aMap.put("F7MUX_GH",   (short) 4);
-        aMap.put("RAMB36E2", (short) 5);
-        aMap.put("URAM288", (short) 6);
+        aMap.put("CARRY8", (short)0);
+        aMap.put("A6LUT", (short)1);
+        aMap.put("B6LUT", (short)1);
+        aMap.put("C6LUT", (short)1);
+        aMap.put("D6LUT", (short)1);
+        aMap.put("E6LUT", (short)1);
+        aMap.put("F6LUT", (short)1);
+        aMap.put("G6LUT", (short)1);
+        aMap.put("H6LUT", (short)1);
+        aMap.put("A5LUT", (short)2);
+        aMap.put("B5LUT", (short)2);
+        aMap.put("C5LUT", (short)2);
+        aMap.put("D5LUT", (short)2);
+        aMap.put("E5LUT", (short)2);
+        aMap.put("F5LUT", (short)2);
+        aMap.put("G5LUT", (short)2);
+        aMap.put("H5LUT", (short)2);
+        aMap.put("AFF", (short)3);
+        aMap.put("AFF2", (short)3);
+        aMap.put("BFF", (short)3);
+        aMap.put("BFF2", (short)3);
+        aMap.put("CFF", (short)3);
+        aMap.put("CFF2", (short)3);
+        aMap.put("DFF", (short)3);
+        aMap.put("DFF2", (short)3);
+        aMap.put("EFF", (short)3);
+        aMap.put("EFF2", (short)3);
+        aMap.put("FFF", (short)3);
+        aMap.put("FFF2", (short)3);
+        aMap.put("GFF", (short)3);
+        aMap.put("GFF2", (short)3);
+        aMap.put("HFF", (short)3);
+        aMap.put("HFF2", (short)3);
+        aMap.put("F7MUX_AB", (short)4);
+        aMap.put("F7MUX_CD", (short)4);
+        aMap.put("F7MUX_EF", (short)4);
+        aMap.put("F7MUX_GH", (short)4);
+        aMap.put("RAMB36E2", (short)5);
+        aMap.put("URAM288", (short)6);
         bel2IdxMap = Collections.unmodifiableMap(aMap);
     }
 
@@ -109,9 +107,9 @@ abstract class DelayModelSource {
     private static final Map<String, Short> site2IdxMap;
     static {
         HashMap<String, Short> aMap = new HashMap<String, Short>();
-        aMap.put("SLICEL", (short) 0);
-        aMap.put("SLICEM", (short) 0);
-        site2IdxMap= Collections.unmodifiableMap(aMap);
+        aMap.put("SLICEL", (short)0);
+        aMap.put("SLICEM", (short)0);
+        site2IdxMap = Collections.unmodifiableMap(aMap);
     }
 
     public String getName() {
@@ -133,9 +131,3 @@ abstract class DelayModelSource {
         return Collections.unmodifiableMap(site2IdxMap);
     }
 }
-
-
-
-
-
-

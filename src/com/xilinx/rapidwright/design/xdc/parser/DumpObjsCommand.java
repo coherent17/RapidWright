@@ -38,8 +38,6 @@ public class DumpObjsCommand implements Command {
         this.cellLookup = cellLookup;
     }
 
-
-
     @Override
     public void cmdProc(Interp interp, TclObject[] objv) throws TclException {
         TclObject tclObject = objv[1];
@@ -47,7 +45,7 @@ public class DumpObjsCommand implements Command {
         if (obj.isPresent()) {
             System.out.println(obj.get());
         } else {
-            System.out.println("no java obj: "+tclObject);
+            System.out.println("no java obj: " + tclObject);
         }
     }
 }

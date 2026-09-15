@@ -24,6 +24,11 @@
 
 package com.xilinx.rapidwright.rwroute;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.interchange.Interchange;
 import com.xilinx.rapidwright.tests.CodePerfTracker;
@@ -32,48 +37,47 @@ import com.xilinx.rapidwright.timing.delayestimator.InterconnectInfo;
 import com.xilinx.rapidwright.util.ParallelismTools;
 import com.xilinx.rapidwright.util.RuntimeTracker;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  *  This is the implementation of the parallel structure Recursive Partitioning Ternary Tree (RPTT)
- *  in the solution of our team CUFR for the Runtime-First FPGA Interchange Routing Contest @ FPGA'24.
- *  More detailed descriptions of our methods are in the following paper:
+ *  in the solution of our team CUFR for the Runtime-First FPGA Interchange Routing Contest @
+ * FPGA'24. More detailed descriptions of our methods are in the following paper:
  *
- *  Xinshi Zang, Wenhao Lin, Shiju Lin, Jinwei Liu and Evangeline F.Y. Young. An Open-Source Fast Parallel
- *  Routing Approach for Commercial FPGAs. In Proceedings of the Great Lakes Symposium on VLSI 2024.
+ *  Xinshi Zang, Wenhao Lin, Shiju Lin, Jinwei Liu and Evangeline F.Y. Young. An Open-Source Fast
+ * Parallel Routing Approach for Commercial FPGAs. In Proceedings of the Great Lakes Symposium on
+ * VLSI 2024.
  *
  *  Team CUFR improved the runtime performance of RWRoute through the following two aspects:
- *  1.  Implemented Recursive Partitioning Ternary Tree (RPTT), an enhanced tree-based parallel structure,
- *      enabling CUFR to perform multi-threaded routing compared to the single-threaded RWRoute, thereby
- *      improving the runtime.
+ *  1.  Implemented Recursive Partitioning Ternary Tree (RPTT), an enhanced tree-based parallel
+ * structure, enabling CUFR to perform multi-threaded routing compared to the single-threaded
+ * RWRoute, thereby improving the runtime.
  *
- *      The traditional bi-partition tree algorithm uses a cutline to bisect a partition, with connections
- *      crossing the cutlines placed in the corresponding tree nodes, and then recursively building sub-trees
- *      for two sub-partitions. During routing, it first sequetially routes the connections within a tree node,
- *      and then parallelly routes the two sub-trees.
+ *      The traditional bi-partition tree algorithm uses a cutline to bisect a partition, with
+ * connections crossing the cutlines placed in the corresponding tree nodes, and then recursively
+ * building sub-trees for two sub-partitions. During routing, it first sequetially routes the
+ * connections within a tree node, and then parallelly routes the two sub-trees.
  *
- *      It was observed that the traditional bi-partition tree has a small number of tree nodes in the layers
- *      closer to the tree root, with each node containing a large amount of connections to be sequentially
- *      routed. This makes it difficult to fully utilize the available threads during the early stage of the
- *      routing process. To address this issue, RPTT also builds a sub-tree for the connections crossing the
- *      cutline to achieve more parallelism, and this sub-tree is routed prior to the sub-trees of the two
- *      sub-partitions.
+ *      It was observed that the traditional bi-partition tree has a small number of tree nodes in
+ * the layers closer to the tree root, with each node containing a large amount of connections to be
+ * sequentially routed. This makes it difficult to fully utilize the available threads during the
+ * early stage of the routing process. To address this issue, RPTT also builds a sub-tree for the
+ * connections crossing the cutline to achieve more parallelism, and this sub-tree is routed prior
+ * to the sub-trees of the two sub-partitions.
  *
- *  2.  Proposed Hybrid Updating Strategy (HUS) targeting on larger and more difficult routing cases.
- *      (this strategy has been integrated into RWRoute)
+ *  2.  Proposed Hybrid Updating Strategy (HUS) targeting on larger and more difficult routing
+ * cases. (this strategy has been integrated into RWRoute)
  */
 public class CUFR extends RWRoute {
     /* A recursive partitioning ternary tree */
     private CUFRpartitionTree partitionTree;
     /** Timer to store partitioning runtime */
     private RuntimeTracker partitionTimer;
-    /** A unique ConnectionState instance to be reused by each thread (shadows RWRoute.connectionState)
-     *  (do not use ThreadLocal as the only way to have its values garbage collected is through calling
-     *  ThreadLocal.remove() from the owning thread; this cannot be done elegantly when routing has finished) */
-    private final Map<Thread,ConnectionState> connectionState;
+    /**
+     * A unique ConnectionState instance to be reused by each thread (shadows
+     * RWRoute.connectionState) (do not use ThreadLocal as the only way to have its values garbage
+     * collected is through calling ThreadLocal.remove() from the owning thread; this cannot be done
+     * elegantly when routing has finished)
+     */
+    private final Map<Thread, ConnectionState> connectionState;
 
     public CUFR(Design design, RWRouteConfig config) {
         super(design, config);
@@ -87,24 +91,29 @@ public class CUFR extends RWRoute {
 
         // Do not track createRnodeTime since it is meaningless when multithreading
         @Override
-        protected void addCreateRnodeTime(long time) {}
+        protected void addCreateRnodeTime(long time) {
+        }
     }
 
     public static class RouteNodeGraphCUFRTimingDriven extends RouteNodeGraphTimingDriven {
-        public RouteNodeGraphCUFRTimingDriven(Design design, RWRouteConfig config, DelayEstimatorBase<InterconnectInfo> delayEstimator) {
+        public RouteNodeGraphCUFRTimingDriven(Design design, RWRouteConfig config,
+                                              DelayEstimatorBase<InterconnectInfo> delayEstimator) {
             super(design, config, delayEstimator);
         }
 
         // Do not track createRnodeTime since it is meaningless when multithreading
         @Override
-        protected void addCreateRnodeTime(long time) {}
+        protected void addCreateRnodeTime(long time) {
+        }
     }
 
     @Override
     protected RouteNodeGraph createRouteNodeGraph() {
         if (config.isTimingDriven()) {
-            /* An instantiated delay estimator that is used to calculate delay of routing resources */
-            DelayEstimatorBase<InterconnectInfo> estimator = new DelayEstimatorBase<>(design.getDevice(), new InterconnectInfo(), config.isUseUTurnNodes(), 0);
+            /* An instantiated delay estimator that is used to calculate delay of routing resources
+             */
+            DelayEstimatorBase<InterconnectInfo> estimator =
+                new DelayEstimatorBase<>(design.getDevice(), new InterconnectInfo(), config.isUseUTurnNodes(), 0);
             return new RouteNodeGraphCUFRTimingDriven(design, config, estimator);
         } else {
             return new RouteNodeGraphCUFR(design, config);
@@ -134,20 +143,17 @@ public class CUFR extends RWRoute {
      * Parallel route a partition tree.
      */
     private void routePartitionTree(CUFRpartitionTree.PartitionTreeNode node) {
-        assert(node != null);
+        assert (node != null);
         if (node.left == null && node.right == null) {
-            assert(node.middle == null);
+            assert (node.middle == null);
             super.routeIndirectConnections(node.connections);
         } else {
-            assert(node.left != null && node.right != null);
+            assert (node.left != null && node.right != null);
             if (node.middle != null) {
                 routePartitionTree(node.middle);
             }
 
-            ParallelismTools.invokeAll(
-                    () -> routePartitionTree(node.left),
-                    () -> routePartitionTree(node.right)
-            );
+            ParallelismTools.invokeAll(() -> routePartitionTree(node.left), () -> routePartitionTree(node.right));
         }
     }
 
@@ -156,7 +162,8 @@ public class CUFR extends RWRoute {
         boolean firstIteration = (routeIteration == 1);
         if (firstIteration || config.isEnlargeBoundingBox()) {
             partitionTimer.start();
-            partitionTree = new CUFRpartitionTree(sortedIndirectConnections, design.getDevice().getColumns(), design.getDevice().getRows());
+            partitionTree = new CUFRpartitionTree(sortedIndirectConnections, design.getDevice().getColumns(),
+                                                  design.getDevice().getRows());
             partitionTimer.stop();
         }
         routePartitionTree(partitionTree.root);
@@ -167,9 +174,7 @@ public class CUFR extends RWRoute {
      * @param design The {@link Design} instance to be routed.
      */
     public static Design routeDesignFullTimingDriven(Design design) {
-        return routeDesignWithUserDefinedArguments(design, new String[] {
-                "--hus"
-        });
+        return routeDesignWithUserDefinedArguments(design, new String[] {"--hus"});
     }
 
     /**
@@ -177,18 +182,16 @@ public class CUFR extends RWRoute {
      * @param design The {@link Design} instance to be routed.
      */
     public static Design routeDesignFullNonTimingDriven(Design design) {
-        return routeDesignWithUserDefinedArguments(design, new String[] {
-                "--hus",
-                "--nonTimingDriven"
-        });
+        return routeDesignWithUserDefinedArguments(design, new String[] {"--hus", "--nonTimingDriven"});
     }
 
     /**
      * Routes a {@link Design} instance using CUFR.
      * @param design The {@link Design} instance to be routed.
      * @param args An array of string arguments, can be null.
-     * If null, the design will be routed in the full timing-driven routing mode with default a {@link RWRouteConfig} instance.
-     * For more options of the configuration, please refer to the {@link RWRouteConfig} class.
+     * If null, the design will be routed in the full timing-driven routing mode with default a
+     * {@link RWRouteConfig} instance. For more options of the configuration, please refer to the
+     * {@link RWRouteConfig} class.
      * @return Routed design.
      */
     public static Design routeDesignWithUserDefinedArguments(Design design, String[] args) {
@@ -235,7 +238,7 @@ public class CUFR extends RWRoute {
         Design routed = routeDesign(new CUFR(input, config));
 
         // Writes out the routed design checkpoint
-        routed.writeCheckpoint(routedDCPfileName,t);
+        routed.writeCheckpoint(routedDCPfileName, t);
         System.out.println("\nINFO: Wrote routed design\n " + routedDCPfileName + "\n");
     }
 }

@@ -62,7 +62,6 @@ public class SimpleTileRectangle extends TileRectangle {
         return TileRectangle.collector(SimpleTileRectangle::new, SimpleTileRectangle::extendTo);
     }
 
-
     private void extendToRect(int otherMinColumn, int otherMaxColumn, int otherMinRow, int otherMaxRow) {
         if (empty) {
             minColumn = otherMinColumn;
@@ -96,7 +95,7 @@ public class SimpleTileRectangle extends TileRectangle {
      */
     @Override
     public void extendTo(RelocatableTileRectangle rect) {
-        extendTo((TileRectangle) rect);
+        extendTo((TileRectangle)rect);
     }
 
     /**
@@ -111,20 +110,30 @@ public class SimpleTileRectangle extends TileRectangle {
     }
 
     /**
-     * Extend the Rectangle so that a shifted rectangle is inside. The Rectangle is assumed to be located relative to some anchor.
-     * The anchor is shifted from {@code templateAnchor} to {@code currentAnchor}. This location relative to the new
-     * anchor is then included in the Rectangle.
+     * Extend the Rectangle so that a shifted rectangle is inside. The Rectangle is assumed to be
+     * located relative to some anchor. The anchor is shifted from {@code templateAnchor} to {@code
+     * currentAnchor}. This location relative to the new anchor is then included in the Rectangle.
      * @param rect Rectangle to include after shifting
      * @param currentAnchor target anchor
      * @param templateAnchor source anchor
      */
     public void extendToCorresponding(RelocatableTileRectangle rect, Site currentAnchor, SiteInst templateAnchor) {
-        extendToRect(
-                Objects.requireNonNull(Module.getCorrespondingTile(rect.getMinColumnTile(), currentAnchor.getTile(), templateAnchor.getTile())).getColumn(),
-                Objects.requireNonNull(Module.getCorrespondingTile(rect.getMaxColumnTile(), currentAnchor.getTile(), templateAnchor.getTile())).getColumn(),
-                Objects.requireNonNull(Module.getCorrespondingTile(rect.getMinRowTile(), currentAnchor.getTile(), templateAnchor.getTile())).getRow(),
-                Objects.requireNonNull(Module.getCorrespondingTile(rect.getMaxRowTile(), currentAnchor.getTile(), templateAnchor.getTile())).getRow()
-        );
+        extendToRect(Objects
+                         .requireNonNull(Module.getCorrespondingTile(rect.getMinColumnTile(), currentAnchor.getTile(),
+                                                                     templateAnchor.getTile()))
+                         .getColumn(),
+                     Objects
+                         .requireNonNull(Module.getCorrespondingTile(rect.getMaxColumnTile(), currentAnchor.getTile(),
+                                                                     templateAnchor.getTile()))
+                         .getColumn(),
+                     Objects
+                         .requireNonNull(Module.getCorrespondingTile(rect.getMinRowTile(), currentAnchor.getTile(),
+                                                                     templateAnchor.getTile()))
+                         .getRow(),
+                     Objects
+                         .requireNonNull(Module.getCorrespondingTile(rect.getMaxRowTile(), currentAnchor.getTile(),
+                                                                     templateAnchor.getTile()))
+                         .getRow());
     }
 
     @Override
@@ -151,7 +160,6 @@ public class SimpleTileRectangle extends TileRectangle {
     public boolean isEmpty() {
         return empty;
     }
-
 
     public static SimpleTileRectangle of(Tile... tiles) {
         final SimpleTileRectangle result = new SimpleTileRectangle();

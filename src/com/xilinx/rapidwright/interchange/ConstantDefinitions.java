@@ -32,10 +32,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.capnproto.PrimitiveList;
-import org.capnproto.StructList;
-import org.capnproto.StructList.Builder;
-
 import com.xilinx.rapidwright.design.CellPinStaticDefaults;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.Net;
@@ -60,6 +56,9 @@ import com.xilinx.rapidwright.interchange.DeviceResources.Device.Constants.NodeC
 import com.xilinx.rapidwright.interchange.DeviceResources.Device.Constants.SiteConstantSource;
 import com.xilinx.rapidwright.interchange.DeviceResources.Device.TileType;
 import com.xilinx.rapidwright.interchange.DeviceResources.Device.WireConstantSources;
+import org.capnproto.PrimitiveList;
+import org.capnproto.StructList;
+import org.capnproto.StructList.Builder;
 
 public class ConstantDefinitions {
     private Map<Map.Entry<SiteTypeEnum, String>, String> vccBels;
@@ -69,7 +68,8 @@ public class ConstantDefinitions {
     private Set<Map.Entry<String, String>> exceptionalVccNodes;
     private Set<Map.Entry<String, String>> exceptionalGndNodes;
 
-    public ConstantDefinitions(StringEnumerator allStrings, Constants.Reader reader, Map<TileTypeEnum, TileType.Reader> tileTypes) {
+    public ConstantDefinitions(StringEnumerator allStrings, Constants.Reader reader,
+                               Map<TileTypeEnum, TileType.Reader> tileTypes) {
         vccBels = new HashMap<Map.Entry<SiteTypeEnum, String>, String>();
         gndBels = new HashMap<Map.Entry<SiteTypeEnum, String>, String>();
         vccWires = new HashSet<Map.Entry<TileTypeEnum, Integer>>();
@@ -116,7 +116,8 @@ public class ConstantDefinitions {
                 PrimitiveList.Int.Reader wires = source.getWires();
                 for (int i = 0; i < wires.size(); ++i) {
                     Integer wireIndex = wires.get(i);
-                    Map.Entry<TileTypeEnum, Integer> key = new AbstractMap.SimpleEntry<TileTypeEnum, Integer>(tileTypeEnum, wireIndex);
+                    Map.Entry<TileTypeEnum, Integer> key =
+                        new AbstractMap.SimpleEntry<TileTypeEnum, Integer>(tileTypeEnum, wireIndex);
                     if (constant == ConstantType.VCC) {
                         vccWires.add(key);
                     } else if (constant == ConstantType.GND) {
@@ -177,10 +178,10 @@ public class ConstantDefinitions {
             return false;
         }
 
-
         for (Wire wire : node.getAllWiresInNode()) {
             TileTypeEnum tileType = wire.getTile().getTileTypeEnum();
-            boolean found = vccWires.contains(new AbstractMap.SimpleEntry<TileTypeEnum, Integer>(tileType, wire.getWireIndex()));
+            boolean found =
+                vccWires.contains(new AbstractMap.SimpleEntry<TileTypeEnum, Integer>(tileType, wire.getWireIndex()));
             if (found) {
                 return true;
             }
@@ -200,7 +201,8 @@ public class ConstantDefinitions {
 
         for (Wire wire : node.getAllWiresInNode()) {
             TileTypeEnum tileType = wire.getTile().getTileTypeEnum();
-            boolean found = gndWires.contains(new AbstractMap.SimpleEntry<TileTypeEnum, Integer>(tileType, wire.getWireIndex()));
+            boolean found =
+                gndWires.contains(new AbstractMap.SimpleEntry<TileTypeEnum, Integer>(tileType, wire.getWireIndex()));
             if (found) {
                 return true;
             }
@@ -211,7 +213,7 @@ public class ConstantDefinitions {
     private static ArrayList<Long> getAllNodes(Device device) {
         ArrayList<Long> allNodes = new ArrayList<>();
         for (Tile tile : device.getAllTiles()) {
-            for (int i=0; i < tile.getWireCount(); i++) {
+            for (int i = 0; i < tile.getWireCount(); i++) {
                 Node node = Node.getNode(tile, i);
                 if (node == null)
                     continue;
@@ -225,7 +227,7 @@ public class ConstantDefinitions {
     private static ArrayList<Node> getAllTiedNodes(Device device) {
         ArrayList<Node> allNodes = new ArrayList<>();
         for (Tile tile : device.getAllTiles()) {
-            for (int i=0; i < tile.getWireCount(); i++) {
+            for (int i = 0; i < tile.getWireCount(); i++) {
                 Node node = Node.getNode(tile, i);
                 if (node == null || !node.isTied())
                     continue;
@@ -236,10 +238,12 @@ public class ConstantDefinitions {
         return allNodes;
     }
 
-
-    public static void verifyConstants(StringEnumerator allStrings, Device device, Design design, Map<SiteTypeEnum,Site> siteTypes, Constants.Reader reader, Map<TileTypeEnum, TileType.Reader> tileTypes) {
+    public static void verifyConstants(StringEnumerator allStrings, Device device, Design design,
+                                       Map<SiteTypeEnum, Site> siteTypes, Constants.Reader reader,
+                                       Map<TileTypeEnum, TileType.Reader> tileTypes) {
         if (reader.getDefaultBestConstant() != ConstantType.VCC) {
-            throw new RuntimeException("Expected that default best constant be VCC! Got " + reader.getDefaultBestConstant().name());
+            throw new RuntimeException("Expected that default best constant be VCC! Got " +
+                                       reader.getDefaultBestConstant().name());
         }
 
         if (!reader.getGndNetName().isName()) {
@@ -261,54 +265,54 @@ public class ConstantDefinitions {
         ConstantDefinitions constants = new ConstantDefinitions(allStrings, reader, tileTypes);
 
         ArrayList<Long> allNodes = getAllNodes(device);
-        for (int i=0; i < allNodes.size(); i++) {
+        for (int i = 0; i < allNodes.size(); i++) {
             long nodeKey = allNodes.get(i);
             Tile tile = device.getTile((int)(nodeKey >>> 32));
             Node node = new Node(tile, (int)(nodeKey & 0xffffffff));
 
             if (node.isTied() != constants.isNodeTied(node)) {
-                throw new RuntimeException(String.format("Node %s tie(gold)=%s =! tie(test)=%s",
-                        node.toString(), node.isTied(), constants.isNodeTied(node)));
+                throw new RuntimeException(String.format("Node %s tie(gold)=%s =! tie(test)=%s", node.toString(),
+                                                         node.isTied(), constants.isNodeTied(node)));
             }
 
             if (node.isTied()) {
                 if (node.isTiedToGnd() != constants.isNodeTiedGnd(node)) {
                     throw new RuntimeException(String.format("Tile %s node %s GND tie mismatch! %b != %b",
-                                tile.getName(),
-                                node.getWireName(),
-                                node.isTiedToGnd(),
-                                constants.isNodeTiedGnd(node)
-                                ));
+                                                             tile.getName(), node.getWireName(), node.isTiedToGnd(),
+                                                             constants.isNodeTiedGnd(node)));
                 }
 
                 if (node.isTiedToVcc() != constants.isNodeTiedVcc(node)) {
                     throw new RuntimeException(String.format("Tile %s node %s GND tie mismatch! %b != %b",
-                                tile.getName(),
-                                node.getWireName(),
-                                node.isTiedToVcc(),
-                                constants.isNodeTiedVcc(node)
-                                ));
+                                                             tile.getName(), node.getWireName(), node.isTiedToVcc(),
+                                                             constants.isNodeTiedVcc(node)));
                 }
             }
         }
 
-        for (Map.Entry<SiteTypeEnum,Site> e : siteTypes.entrySet()) {
+        for (Map.Entry<SiteTypeEnum, Site> e : siteTypes.entrySet()) {
             SiteTypeEnum siteType = e.getKey();
             Site site = e.getValue();
             SiteInst siteInst = design.createSiteInst("site_instance", siteType, site);
-            for (int j=0; j < siteInst.getBELs().length; j++) {
+            for (int j = 0; j < siteInst.getBELs().length; j++) {
                 BEL bel = siteInst.getBELs()[j];
                 if (bel.isGndSource()) {
                     if (!constants.isBelTiedGnd(bel)) {
-                        throw new RuntimeException(String.format("Site %s site type %s BEL %s is not tied to GND as expected", site.getName(), siteType, bel.getName()));
+                        throw new RuntimeException(
+                            String.format("Site %s site type %s BEL %s is not tied to GND as expected", site.getName(),
+                                          siteType, bel.getName()));
                     }
                 } else if (bel.isVccSource()) {
                     if (!constants.isBelTiedVcc(bel)) {
-                        throw new RuntimeException(String.format("Site %s site type %s BEL %s is not tied to VCC as expected", site.getName(), siteType, bel.getName()));
+                        throw new RuntimeException(
+                            String.format("Site %s site type %s BEL %s is not tied to VCC as expected", site.getName(),
+                                          siteType, bel.getName()));
                     }
                 } else {
                     if (constants.isBelTied(bel)) {
-                        throw new RuntimeException(String.format("Site %s site type %s BEL %s is tied, but isn't expected", site.getName(), siteType, bel.getName()));
+                        throw new RuntimeException(
+                            String.format("Site %s site type %s BEL %s is tied, but isn't expected", site.getName(),
+                                          siteType, bel.getName()));
                     }
                 }
             }
@@ -318,7 +322,7 @@ public class ConstantDefinitions {
 
         Map<Unisim, Map<String, NetType>> map = CellPinStaticDefaults.getCellPinDefaultsMap().get(device.getSeries());
         StructList.Reader<DefaultCellConnections.Reader> defaultsReader = reader.getDefaultCellConns();
-        for (int i=0; i < defaultsReader.size(); i++) {
+        for (int i = 0; i < defaultsReader.size(); i++) {
             DefaultCellConnections.Reader defaultReader = defaultsReader.get(i);
             String unisimName = allStrings.get(defaultReader.getCellType());
             Unisim u = Unisim.valueOf(unisimName);
@@ -335,8 +339,8 @@ public class ConstantDefinitions {
                 CellPinValue value = r.getValue();
                 NetType goldValue = pinMap.get(pinName);
                 if (value != getCellPinValue(goldValue)) {
-                    throw new RuntimeException("ERROR: Mismatch default on " + u + ", pin "
-                            + pinName + ". Expected " + goldValue + ", found " + value);
+                    throw new RuntimeException("ERROR: Mismatch default on " + u + ", pin " + pinName + ". Expected " +
+                                               goldValue + ", found " + value);
                 }
             }
         }
@@ -353,13 +357,12 @@ public class ConstantDefinitions {
     private static final int UNTIED = 2;
 
     private static Map<TileTypeEnum, Map<Integer, int[]>> getTiedWires(Device device, List<Node> allTiedNodes) {
-        Map<TileTypeEnum, Map<Integer,int[]>> tileTiedWires =
-                new HashMap<TileTypeEnum, Map<Integer, int[]>>();
+        Map<TileTypeEnum, Map<Integer, int[]>> tileTiedWires = new HashMap<TileTypeEnum, Map<Integer, int[]>>();
         // Count GND and VCC instances
         for (Node tiedNode : allTiedNodes) {
             TileTypeEnum type = tiedNode.getTile().getTileTypeEnum();
             int wireIdx = tiedNode.getWireIndex();
-            Map<Integer,int[]> wireMap = tileTiedWires.get(type);
+            Map<Integer, int[]> wireMap = tileTiedWires.get(type);
             if (wireMap == null) {
                 wireMap = new HashMap<Integer, int[]>();
                 tileTiedWires.put(type, wireMap);
@@ -374,20 +377,22 @@ public class ConstantDefinitions {
             } else if (tiedNode.isTiedToVcc()) {
                 tiedCounter[TIED_TO_VCC]++;
             } else {
-                throw new RuntimeException("ERROR: This node was presumed tied to GND or VCC: " +
-                        tiedNode);
+                throw new RuntimeException("ERROR: This node was presumed tied to GND or VCC: " + tiedNode);
             }
         }
         // For those tile type/wire pairs that have at least one tied instance, check for untied
         for (Tile tile : device.getAllTiles()) {
             TileTypeEnum type = tile.getTileTypeEnum();
             Map<Integer, int[]> wireMap = tileTiedWires.get(type);
-            if (wireMap == null) continue;
-            for (int wireIdx=0; wireIdx < tile.getWireCount(); wireIdx++) {
+            if (wireMap == null)
+                continue;
+            for (int wireIdx = 0; wireIdx < tile.getWireCount(); wireIdx++) {
                 int[] tiedCounter = wireMap.get(wireIdx);
-                if (tiedCounter == null) continue;
-                Node node = Node.getNode(tile,wireIdx);
-                if (node == null) continue;
+                if (tiedCounter == null)
+                    continue;
+                Node node = Node.getNode(tile, wireIdx);
+                if (node == null)
+                    continue;
                 if (!node.isTied()) {
                     tiedCounter[UNTIED]++;
                 }
@@ -397,16 +402,15 @@ public class ConstantDefinitions {
         return tileTiedWires;
     }
 
-    public static void writeTiedWires(StringEnumerator allStrings, Device device,
-            Constants.Builder builder, Map<TileTypeEnum, TileType.Builder> tileTypes) {
-
+    public static void writeTiedWires(StringEnumerator allStrings, Device device, Constants.Builder builder,
+                                      Map<TileTypeEnum, TileType.Builder> tileTypes) {
         ArrayList<Node> allTiedNodes = getAllTiedNodes(device);
         Map<TileTypeEnum, Map<Integer, int[]>> tileTiedWires = getTiedWires(device, allTiedNodes);
 
         // Find exceptionally tied nodes (inconsistent across tile type / wire)
         ArrayList<Node> tiedNodeExceptions = new ArrayList<Node>();
-        Map<TileTypeEnum,Set<Integer>> vccTiedNodes = new HashMap<TileTypeEnum,Set<Integer>>();
-        Map<TileTypeEnum,Set<Integer>> gndTiedNodes = new HashMap<TileTypeEnum,Set<Integer>>();
+        Map<TileTypeEnum, Set<Integer>> vccTiedNodes = new HashMap<TileTypeEnum, Set<Integer>>();
+        Map<TileTypeEnum, Set<Integer>> gndTiedNodes = new HashMap<TileTypeEnum, Set<Integer>>();
         for (Node tiedNode : allTiedNodes) {
             TileTypeEnum tileType = tiedNode.getTile().getTileTypeEnum();
             Map<Integer, int[]> wireMap = tileTiedWires.get(tileType);
@@ -443,7 +447,7 @@ public class ConstantDefinitions {
 
         int i = 0;
         StructList.Builder<NodeConstantSource.Builder> nodeSourcesObj =
-                builder.initNodeSources(tiedNodeExceptions.size());
+            builder.initNodeSources(tiedNodeExceptions.size());
         for (Node tiedNodeException : tiedNodeExceptions) {
             NodeConstantSource.Builder nodeSourceObj = nodeSourcesObj.get(i);
             nodeSourceObj.setTile(allStrings.getIndex(tiedNodeException.getTile().getName()));
@@ -452,7 +456,7 @@ public class ConstantDefinitions {
             i++;
         }
 
-        for (Entry<TileTypeEnum,Map<Integer, int[]>> e : tileTiedWires.entrySet()) {
+        for (Entry<TileTypeEnum, Map<Integer, int[]>> e : tileTiedWires.entrySet()) {
             TileType.Builder tileType = tileTypes.get(e.getKey());
             Set<Integer> gndWireIdxs = gndTiedNodes.get(e.getKey());
             Set<Integer> vccWireIdxs = vccTiedNodes.get(e.getKey());
@@ -467,7 +471,7 @@ public class ConstantDefinitions {
                 WireConstantSources.Builder gndWires = wireConstants.get(idx++);
                 gndWires.setConstant(ConstantType.GND);
                 PrimitiveList.Int.Builder wiresObj = gndWires.initWires(gndWireIdxs.size());
-                int j=0;
+                int j = 0;
                 for (Integer wireIdx : gndWireIdxs) {
                     wiresObj.set(j, wireIdx);
                     j++;
@@ -477,7 +481,7 @@ public class ConstantDefinitions {
                 WireConstantSources.Builder vccWires = wireConstants.get(idx++);
                 vccWires.setConstant(ConstantType.VCC);
                 PrimitiveList.Int.Builder wiresObj = vccWires.initWires(vccWireIdxs.size());
-                int j=0;
+                int j = 0;
                 for (Integer wireIdx : vccWireIdxs) {
                     wiresObj.set(j, wireIdx);
                     j++;
@@ -486,17 +490,17 @@ public class ConstantDefinitions {
         }
     }
 
-    private static void writeTiedBels(StringEnumerator allStrings, Device device, Constants.Builder builder, Design design, Map<SiteTypeEnum,Site> siteTypes) {
+    private static void writeTiedBels(StringEnumerator allStrings, Device device, Constants.Builder builder,
+                                      Design design, Map<SiteTypeEnum, Site> siteTypes) {
         Set<List<String>> siteVccSources = new HashSet<List<String>>();
         Set<List<String>> siteGndSources = new HashSet<List<String>>();
 
-        for (Map.Entry<SiteTypeEnum,Site> e : siteTypes.entrySet()) {
+        for (Map.Entry<SiteTypeEnum, Site> e : siteTypes.entrySet()) {
             Site site = e.getValue();
             SiteInst siteInst = design.createSiteInst("site_instance", e.getKey(), site);
-            for (int j=0; j < siteInst.getBELs().length; j++) {
+            for (int j = 0; j < siteInst.getBELs().length; j++) {
                 BEL bel = siteInst.getBELs()[j];
                 if (bel.isGndSource() || bel.isVccSource()) {
-
                     List<String> source = new ArrayList<String>();
 
                     source.add(e.getKey().name());
@@ -504,9 +508,8 @@ public class ConstantDefinitions {
 
                     BELPin[] pins = bel.getPins();
                     if (pins.length != 1) {
-                        throw new RuntimeException(String.format(
-                                    "BEL %s has %d pins, which is not expected",
-                                    bel.getName(), pins.length));
+                        throw new RuntimeException(
+                            String.format("BEL %s has %d pins, which is not expected", bel.getName(), pins.length));
                     }
                     source.add(pins[0].getName());
 
@@ -523,7 +526,8 @@ public class ConstantDefinitions {
             design.removeSiteInst(siteInst);
         }
 
-        StructList.Builder<SiteConstantSource.Builder> sources = builder.initSiteSources(siteVccSources.size() + siteGndSources.size());
+        StructList.Builder<SiteConstantSource.Builder> sources =
+            builder.initSiteSources(siteVccSources.size() + siteGndSources.size());
 
         int i = 0;
         for (List<String> siteVccSource : siteVccSources) {
@@ -548,7 +552,7 @@ public class ConstantDefinitions {
     }
 
     public static CellPinValue getCellPinValue(NetType netType) {
-        switch(netType) {
+        switch (netType) {
             case GND:
                 return CellPinValue.GND;
             case VCC:
@@ -559,15 +563,17 @@ public class ConstantDefinitions {
     }
 
     private static void writeCellPinDefaults(StringEnumerator allStrings, Device device, Constants.Builder builder) {
-        Map<Unisim,Map<String,NetType>> map = CellPinStaticDefaults.getCellPinDefaultsMap().get(device.getSeries());
-        Builder<DefaultCellConnections.Builder> defaultCellConnsBuilder = builder.initDefaultCellConns(map.keySet().size());
-        int i=0;
-        for (Entry<Unisim,Map<String,NetType>> e : map.entrySet()) {
+        Map<Unisim, Map<String, NetType>> map = CellPinStaticDefaults.getCellPinDefaultsMap().get(device.getSeries());
+        Builder<DefaultCellConnections.Builder> defaultCellConnsBuilder =
+            builder.initDefaultCellConns(map.keySet().size());
+        int i = 0;
+        for (Entry<Unisim, Map<String, NetType>> e : map.entrySet()) {
             DefaultCellConnections.Builder defaultConnBuilder = defaultCellConnsBuilder.get(i);
             defaultConnBuilder.setCellType(allStrings.getIndex(e.getKey().name()));
-            Builder<DefaultCellConnection.Builder> pinsDefaultBuilder = defaultConnBuilder.initPins(e.getValue().size());
+            Builder<DefaultCellConnection.Builder> pinsDefaultBuilder =
+                defaultConnBuilder.initPins(e.getValue().size());
             int j = 0;
-            for (Entry<String,NetType> e2 : e.getValue().entrySet()) {
+            for (Entry<String, NetType> e2 : e.getValue().entrySet()) {
                 DefaultCellConnection.Builder pinDefault = pinsDefaultBuilder.get(j);
                 pinDefault.setName(allStrings.getIndex(e2.getKey()));
                 pinDefault.setValue(getCellPinValue(e2.getValue()));
@@ -577,7 +583,9 @@ public class ConstantDefinitions {
         }
     }
 
-    public static void writeConstants(StringEnumerator allStrings, Device device, Constants.Builder builder, Design design, Map<SiteTypeEnum,Site> siteTypes, Map<TileTypeEnum, TileType.Builder> tileTypes) {
+    public static void writeConstants(StringEnumerator allStrings, Device device, Constants.Builder builder,
+                                      Design design, Map<SiteTypeEnum, Site> siteTypes,
+                                      Map<TileTypeEnum, TileType.Builder> tileTypes) {
         builder.setDefaultBestConstant(ConstantType.VCC);
 
         builder.setGndCellType(allStrings.getIndex("GND"));

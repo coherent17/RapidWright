@@ -50,7 +50,6 @@ import com.xilinx.rapidwright.edif.EDIFTools;
  * Widget that allows a tree view of the provided netlist.
  */
 public class NetlistTreeWidget extends QTreeWidget {
-
     private EDIFNetlist netlist;
 
     private QTreeWidgetItem rootItem;
@@ -119,7 +118,6 @@ public class NetlistTreeWidget extends QTreeWidget {
         }
         ports.setExpanded(false);
 
-
         QTreeWidgetItem nets = new QTreeWidgetItem(curr);
         nets.setText(0, NETS + " (" + cell.getNets().size() + ")");
         List<EDIFNet> edifNets = new ArrayList<>(cell.getNets());
@@ -134,7 +132,6 @@ public class NetlistTreeWidget extends QTreeWidget {
             objectLookup.put(netLookup, n);
         }
         nets.setExpanded(false);
-
 
         List<EDIFHierCellInst> leaves = new ArrayList<>();
         List<EDIFHierCellInst> nonLeaves = new ArrayList<>();
@@ -160,7 +157,6 @@ public class NetlistTreeWidget extends QTreeWidget {
         }
         leafCells.setExpanded(false);
 
-
         for (EDIFHierCellInst i : nonLeaves) {
             HierCellInstTreeWidgetItem cellInst = new HierCellInstTreeWidgetItem(curr);
             cellInst.setText(0, i.getInst().getName() + " (" + i.getCellName() + ")");
@@ -179,13 +175,13 @@ public class NetlistTreeWidget extends QTreeWidget {
     /**
      * This method is invoked when the tree is clicked or expanded and will populate
      * the current instance tree.
-     * 
+     *
      * @param qmIndex The index of the part to load.
      */
     public void expandCell(QModelIndex qmIndex) {
         QTreeWidgetItem item = this.itemFromIndex(qmIndex);
         if (item instanceof HierCellInstTreeWidgetItem) {
-            populateCellInst(item, ((HierCellInstTreeWidgetItem) item).getInst());
+            populateCellInst(item, ((HierCellInstTreeWidgetItem)item).getInst());
         }
     }
 
@@ -267,7 +263,8 @@ public class NetlistTreeWidget extends QTreeWidget {
     }
 
     private void createCopyAction(String text, QMenu menu) {
-        if (text == null) return;
+        if (text == null)
+            return;
         QAction copyName = new QAction("Copy '" + text + "'", menu);
         copyName.triggered.connect(new Runnable() {
             @Override

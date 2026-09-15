@@ -31,26 +31,23 @@ import org.junit.jupiter.params.provider.CsvSource;
 public class TestBEL {
     @ParameterizedTest
     @CsvSource({
-            "LAGUNA_X0Y598,TX_OPTINV_SR",
-            "LAGUNA_X0Y598,RX_OPTINV_SR",
-            "DSP48E2_X0Y358,CLKINV",
+        "LAGUNA_X0Y598,TX_OPTINV_SR",
+        "LAGUNA_X0Y598,RX_OPTINV_SR",
+        "DSP48E2_X0Y358,CLKINV",
     })
-    public void testCanInvert(String siteName, String belName) {
+    public void
+    testCanInvert(String siteName, String belName) {
         Device d = Device.getDevice(Device.AWS_F1);
         Site s = d.getSite(siteName);
         BEL b = s.getBEL(belName);
         Assertions.assertTrue(b.canInvert());
-
     }
 
     @ParameterizedTest
-    @CsvSource({
-        "xc7z020clg400-1,SLICE_X10Y10",
-        "xcku040-ffva1156-2-e,SLICE_X10Y10",
-        "xcau10p-ffvb676-1-i,SLICE_X10Y10",
-        "xcve1752-vsva2197-1LP-i-S,SLICE_X40Y0"
-    })
-    public void testIsFF(String deviceName, String siteName) {
+    @CsvSource({"xc7z020clg400-1,SLICE_X10Y10", "xcku040-ffva1156-2-e,SLICE_X10Y10", "xcau10p-ffvb676-1-i,SLICE_X10Y10",
+                "xcve1752-vsva2197-1LP-i-S,SLICE_X40Y0"})
+    public void
+    testIsFF(String deviceName, String siteName) {
         Device d = Device.getDevice(deviceName);
 
         Site s = d.getSite(siteName);
@@ -72,47 +69,43 @@ public class TestBEL {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "xcvc1902,IOB_X0Y0,DIFFRXTX",
-            "xcvu3p,HPIOBDIFFINBUF_X0Y0,DIFFINBUF",
-            "xcvu3p,HPIOBDIFFOUTBUF_X0Y0,DIFFOUTBUF"
-    })
-    public void testDIFFsAreNotFF(String partName, String siteName, String belName) {
+    @CsvSource({"xcvc1902,IOB_X0Y0,DIFFRXTX", "xcvu3p,HPIOBDIFFINBUF_X0Y0,DIFFINBUF",
+                "xcvu3p,HPIOBDIFFOUTBUF_X0Y0,DIFFOUTBUF"})
+    public void
+    testDIFFsAreNotFF(String partName, String siteName, String belName) {
         Device d = Device.getDevice(partName);
         Site s = d.getSite(siteName);
         BEL b = s.getBEL(belName);
         Assertions.assertNotNull(b);
         Assertions.assertFalse(b.isFF());
     }
-    
 
     @Test
     public void testIMRFlags() {
         Device d = Device.getDevice("xcv80");
-        String[] siteNames = new String[] { "IRI_QUAD_X34Y8", "IRI_QUAD_X34Y9", "SLICE_X48Y0",
-                                "SLICE_X49Y0" };
+        String[] siteNames = new String[] {"IRI_QUAD_X34Y8", "IRI_QUAD_X34Y9", "SLICE_X48Y0", "SLICE_X49Y0"};
 
         for (String siteName : siteNames) {
             Site s = d.getSite(siteName);
             for (BEL bel : s.getBELs()) {
-                Assertions.assertEquals(bel.isCEIMR(), bel.getBELType().endsWith("_IMC_FF")
-                        && (bel.getName().contains("CE") || bel.getName().contains("WE"))
-                        && bel.getName().contains("IMR"));
+                Assertions.assertEquals(bel.isCEIMR(),
+                                        bel.getBELType().endsWith("_IMC_FF") &&
+                                            (bel.getName().contains("CE") || bel.getName().contains("WE")) &&
+                                            bel.getName().contains("IMR"));
 
-                Assertions.assertEquals(bel.isSRIMR(), bel.getBELType().endsWith("_IMC_FF_T")
-                        && (bel.getName().contains("SR") || bel.getName().contains("RST"))
-                        && bel.getName().contains("IMR"));
-                
-                Assertions.assertEquals(bel.isIMR(), bel.getBELType().startsWith("SLICE_IMI_FF")
-                        && bel.getName().contains("IMR"));
+                Assertions.assertEquals(bel.isSRIMR(),
+                                        bel.getBELType().endsWith("_IMC_FF_T") &&
+                                            (bel.getName().contains("SR") || bel.getName().contains("RST")) &&
+                                            bel.getName().contains("IMR"));
 
-                Assertions.assertEquals(bel.isSliceFFClkMod(),
-                        bel.getBELType().equals("SLICE_FF_CLK_MOD")
-                                && bel.getName().contains("CLK_MOD"));
+                Assertions.assertEquals(bel.isIMR(),
+                                        bel.getBELType().startsWith("SLICE_IMI_FF") && bel.getName().contains("IMR"));
 
-                Assertions.assertEquals(bel.isSliceIMRClkMod(),
-                        bel.getBELType().equals("SLICE_IMR_CLK_MOD")
-                                && bel.getName().contains("CLK_MOD"));
+                Assertions.assertEquals(bel.isSliceFFClkMod(), bel.getBELType().equals("SLICE_FF_CLK_MOD") &&
+                                                                   bel.getName().contains("CLK_MOD"));
+
+                Assertions.assertEquals(bel.isSliceIMRClkMod(), bel.getBELType().equals("SLICE_IMR_CLK_MOD") &&
+                                                                    bel.getName().contains("CLK_MOD"));
             }
         }
     }

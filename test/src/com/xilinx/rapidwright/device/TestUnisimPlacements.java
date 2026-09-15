@@ -22,16 +22,14 @@
 
 package com.xilinx.rapidwright.device;
 
+import com.xilinx.rapidwright.design.Cell;
+import com.xilinx.rapidwright.design.Design;
+import com.xilinx.rapidwright.edif.EDIFCell;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-import com.xilinx.rapidwright.design.Cell;
-import com.xilinx.rapidwright.design.Design;
-import com.xilinx.rapidwright.edif.EDIFCell;
-
 public class TestUnisimPlacements {
-
     @ParameterizedTest
     @EnumSource(FamilyType.class)
     public void testUnisimPlacements(FamilyType familyType) {

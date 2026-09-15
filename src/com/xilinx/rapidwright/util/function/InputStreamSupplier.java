@@ -31,9 +31,8 @@ import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.commons.io.function.IOSupplier;
-
 import com.xilinx.rapidwright.util.FileTools;
+import org.apache.commons.io.function.IOSupplier;
 
 public interface InputStreamSupplier extends IOSupplier<InputStream> {
     static InputStreamSupplier fromPath(Path p, boolean decompressToDisk) {
@@ -44,7 +43,7 @@ public interface InputStreamSupplier extends IOSupplier<InputStream> {
      * Gets the InputStream for the provided file path. If the file is gzipped (*.gz
      * extension), it will decompress the file alongside the original with the '.gz'
      * extension removed.
-     * 
+     *
      * @param fileName         Path to the file or gzipped file from which to get an
      *                         InputStream.
      * @param decompressToDisk To make certain operations faster, decompress the

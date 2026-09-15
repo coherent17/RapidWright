@@ -30,12 +30,10 @@ import com.xilinx.rapidwright.design.DesignTools;
 import com.xilinx.rapidwright.design.Net;
 import com.xilinx.rapidwright.design.SitePinInst;
 
-
 /**
  * Simple tool for get the partially routed nets in a design.
  */
 public class CountRoutedNets {
-
     public static void main(String[] args) {
         if (args.length != 1) {
             System.out.println("Usage: <input DCP>");
@@ -52,7 +50,8 @@ public class CountRoutedNets {
         int partiallyRoutedNetCount = 0;
 
         for (Net net : design.getNets()) {
-            if (!net.hasPIPs()) continue;
+            if (!net.hasPIPs())
+                continue;
 
             boolean isPartiallyRouted = false;
             ArrayList<String> unroutedPins = new ArrayList<>();

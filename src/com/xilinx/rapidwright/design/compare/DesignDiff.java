@@ -27,10 +27,9 @@ import com.xilinx.rapidwright.design.SiteInst;
 
 /**
  * Stores a design difference found from DesignComparator.
- * 
+ *
  */
 public class DesignDiff {
-
     private DesignDiffType type;
 
     private Object gold;
@@ -61,15 +60,15 @@ public class DesignDiff {
         if (contextParent == null)
             return "";
         if (type.isSiteInstParentContext()) {
-            SiteInst si = (SiteInst) contextParent;
+            SiteInst si = (SiteInst)contextParent;
             return " in SiteInst placed at " + si.getSiteName();
         }
         if (type.isNetParentContext()) {
-            Net net = (Net) contextParent;
+            Net net = (Net)contextParent;
             return " in Net " + net.getName();
         }
         if (contextParent instanceof Design) {
-            return " in Design " + ((Design) contextParent).getName();
+            return " in Design " + ((Design)contextParent).getName();
         }
         throw new RuntimeException("ERROR: Unhandled DesignDiffType: " + type);
     }

@@ -41,21 +41,25 @@ import com.xilinx.rapidwright.router.RouteNode;
  * Created on: May 26, 2017
  */
 public class DeviceTools {
-
     public static void printFanout(RouteNode start, int depth) {
         start.setLevel(0);
-        ///Queue<RouteNode> q = new LinkedList<>();
+        /// Queue<RouteNode> q = new LinkedList<>();
         PriorityQueue<RouteNode> q = new PriorityQueue<RouteNode>(16, new Comparator<RouteNode>() {
-            public int compare(RouteNode i, RouteNode j) {return j.getLevel() - i.getLevel();}});
+            public int compare(RouteNode i, RouteNode j) {
+                return j.getLevel() - i.getLevel();
+            }
+        });
         q.add(start);
         while (!q.isEmpty()) {
             RouteNode curr = q.poll();
-            if (curr.getLevel() > depth) continue;
+            if (curr.getLevel() > depth)
+                continue;
             System.out.println(StringTools.makeWhiteSpace(curr.getLevel()) + curr);
             for (Wire w : curr.getConnections()) {
-                RouteNode next = new RouteNode(w.getTile(),w.getWireIndex(),curr,curr.getLevel()+1);
-                if (next.getConnections().isEmpty()) continue;
-                next.setLevel(curr.getLevel()+1);
+                RouteNode next = new RouteNode(w.getTile(), w.getWireIndex(), curr, curr.getLevel() + 1);
+                if (next.getConnections().isEmpty())
+                    continue;
+                next.setLevel(curr.getLevel() + 1);
                 q.add(next);
             }
         }
@@ -65,13 +69,14 @@ public class DeviceTools {
      * Creates a list of tiles within the rectangle created by the two provided tiles (inclusive).
      * @param lowerLeft The lower left tile in the rectangle
      * @param upperRight The upper right tile in the rectangle
-     * @return List of all tiles (inclusive) within the bounding rectangle defined by the two provided tiles.
+     * @return List of all tiles (inclusive) within the bounding rectangle defined by the two
+     *     provided tiles.
      */
     public static List<Tile> getAllTilesInRectangle(Tile lowerLeft, Tile upperRight) {
         ArrayList<Tile> tiles = new ArrayList<>();
         for (int col = lowerLeft.getColumn(); col <= upperRight.getColumn(); col++) {
             for (int row = upperRight.getRow(); row <= lowerLeft.getRow(); row++) {
-                tiles.add(lowerLeft.getDevice().getTile(row,col));
+                tiles.add(lowerLeft.getDevice().getTile(row, col));
             }
         }
         return tiles;

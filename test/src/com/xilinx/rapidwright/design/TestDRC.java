@@ -66,5 +66,4 @@ public class TestDRC {
         boolean strict = true;
         Assertions.assertEquals(drc.run(design, strict), 4);
     }
-
 }

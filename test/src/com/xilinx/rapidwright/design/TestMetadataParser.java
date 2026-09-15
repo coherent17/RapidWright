@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class TestMetadataParser {
-
     private static WeakReference<Design> moduleDesign = null;
 
     private static Design loadDesign() {
@@ -47,26 +46,25 @@ public class TestMetadataParser {
         return design;
     }
     private static Module loadModule(String metadataSuffix) {
-        return new Module(loadDesign(), RapidWrightDCP.getString("module_no_site_pin_for_output_metadata_"+metadataSuffix+".txt"));
+        return new Module(loadDesign(), RapidWrightDCP.getString("module_no_site_pin_for_output_metadata_" +
+                                                                 metadataSuffix + ".txt"));
     }
     @Test
     public void testMissingSpi() {
-        Assertions.assertThrows(NoSuchElementException.class, () -> {
-            loadModule("explicit");
-        });
+        Assertions.assertThrows(NoSuchElementException.class, () -> { loadModule("explicit"); });
     }
     @Test
-    public void testMetadataParser(){
+    public void testMetadataParser() {
         Module explicit = loadModule("explicit_manualfix");
         Module implicit = loadModule("implicit");
 
-        Assertions.assertEquals(explicit.getPorts().size()+1, implicit.getPorts().size());
+        Assertions.assertEquals(explicit.getPorts().size() + 1, implicit.getPorts().size());
         for (Port explicitPort : explicit.getPorts()) {
             Port implicitPort = implicit.getPort(explicitPort.getName());
             Assertions.assertNotNull(implicitPort);
 
-            Assertions.assertEquals(explicitPort.getSitePinInsts(), implicitPort.getSitePinInsts(), () -> "expected same site pin insts for " + explicitPort.getName());
-
+            Assertions.assertEquals(explicitPort.getSitePinInsts(), implicitPort.getSitePinInsts(),
+                                    () -> "expected same site pin insts for " + explicitPort.getName());
         }
     }
 }

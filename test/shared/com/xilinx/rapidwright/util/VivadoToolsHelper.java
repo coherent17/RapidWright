@@ -24,9 +24,8 @@ package com.xilinx.rapidwright.util;
 
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Assertions;
-
 import com.xilinx.rapidwright.design.Design;
+import org.junit.jupiter.api.Assertions;
 
 public class VivadoToolsHelper {
     public static void assertFullyRouted(Design design) {
@@ -49,7 +48,7 @@ public class VivadoToolsHelper {
 
     /**
      * Ensures that the provided design can be routed successfully in Vivado.
-     * 
+     *
      * @param design The design to route.
      * @param dir    The directory to work within.
      */
@@ -76,7 +75,7 @@ public class VivadoToolsHelper {
         ReportRouteStatusResult rrs = VivadoTools.routeDesignAndGetStatus(dcp, dir, hasEncryptedCells);
         Assertions.assertTrue(rrs.isFullyRouted());
     }
-    
+
     public static void assertPortCountAfterRoundTripInVivado(Design design, Path dir, boolean expectEquals) {
         if (!FileTools.isVivadoOnPath()) {
             return;

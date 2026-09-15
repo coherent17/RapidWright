@@ -36,7 +36,6 @@ import org.junit.jupiter.api.Test;
 
 @LargeTest
 public class TestBlockPlacer2 {
-
     private void placeSomePicoBlazeArray(PicoBlazeArray.PicoBlazeArrayCreator<?> arrayCreator) {
         CodePerfTracker t = new CodePerfTracker("PicoBlazeArray Test");
         File srcDir = RapidWrightDCP.getPath("PicoBlazeArray").toFile();
@@ -51,7 +50,6 @@ public class TestBlockPlacer2 {
 
         t.stop();
         t.printSummary();
-
     }
 
     @Test

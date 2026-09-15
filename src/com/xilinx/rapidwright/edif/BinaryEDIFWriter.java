@@ -47,7 +47,6 @@ import com.xilinx.rapidwright.util.FileTools;
  * additional tradeoff is that it takes about 2.5-3X longer to write than text-based EDIF.
  */
 public class BinaryEDIFWriter {
-
     public static final String EDIF_BINARY_FILE_TAG = "RAPIDWRIGHT_EDIF_BINARY";
     public static final String EDIF_BINARY_FILE_VERSION = "0.0.2";
 
@@ -57,33 +56,29 @@ public class BinaryEDIFWriter {
     public static final int EDIF_PROP_FLAG = 0x40000000;
     public static final int EDIF_HAS_OWNER = 0x80000000;
 
-
-    public static final int EDIF_DIR_INPUT_MASK  = 0x40000000;
+    public static final int EDIF_DIR_INPUT_MASK = 0x40000000;
     public static final int EDIF_DIR_OUTPUT_MASK = 0x20000000;
-    public static final int EDIF_DIR_INOUT_MASK  = 0x10000000;
-    public static final int EDIF_RENAME_MASK     = 0x80000000;
-    public static final int PORT_WIDTH_MASK      = ~(EDIF_RENAME_MASK
-                                                   | EDIF_DIR_INPUT_MASK
-                                                   | EDIF_DIR_OUTPUT_MASK
-                                                   | EDIF_DIR_INOUT_MASK);
-    public static final int EDIF_PROP_TYPE_BIT   = 30;
-    public static final int EDIF_PROP_VALUE_MASK  = 0x3fffffff;
-    public static final int EDIF_NULL_INST       = -1;
-    public static final int EDIF_MACRO_LIB       = 0x40000000;
+    public static final int EDIF_DIR_INOUT_MASK = 0x10000000;
+    public static final int EDIF_RENAME_MASK = 0x80000000;
+    public static final int PORT_WIDTH_MASK =
+        ~(EDIF_RENAME_MASK | EDIF_DIR_INPUT_MASK | EDIF_DIR_OUTPUT_MASK | EDIF_DIR_INOUT_MASK);
+    public static final int EDIF_PROP_TYPE_BIT = 30;
+    public static final int EDIF_PROP_VALUE_MASK = 0x3fffffff;
+    public static final int EDIF_NULL_INST = -1;
+    public static final int EDIF_MACRO_LIB = 0x40000000;
 
-
-    private static void addStringToStringMap(String s, Map<String,Integer> stringMap) {
+    private static void addStringToStringMap(String s, Map<String, Integer> stringMap) {
         stringMap.computeIfAbsent(s, v -> stringMap.size());
         if (stringMap.size() >= EDIF_PROP_FLAG) {
             throw new RuntimeException("ERROR: Too many unique strings for this encoding");
         }
     }
 
-    private static void addNameToStringMap(EDIFName o, Map<String,Integer> stringMap) {
+    private static void addNameToStringMap(EDIFName o, Map<String, Integer> stringMap) {
         addStringToStringMap(o.getName(), stringMap);
     }
 
-    private static void addObjectToStringMap(EDIFPropertyObject o, Map<String,Integer> stringMap) {
+    private static void addObjectToStringMap(EDIFPropertyObject o, Map<String, Integer> stringMap) {
         addNameToStringMap(o, stringMap);
         for (Entry<String, EDIFPropertyValue> e : o.getPropertiesMap().entrySet()) {
             addStringToStringMap(e.getKey(), stringMap);
@@ -133,7 +128,7 @@ public class BinaryEDIFWriter {
      * @param stringMap The string map to reference enumerations from
      * @see BinaryEDIFReader#readEDIFName(EDIFName, Input, String[])
      */
-    private static void writeEDIFName(EDIFName o, Output os, Map<String,Integer> stringMap) {
+    private static void writeEDIFName(EDIFName o, Output os, Map<String, Integer> stringMap) {
         writeEDIFName(o, os, stringMap, false);
     }
 
@@ -146,8 +141,7 @@ public class BinaryEDIFWriter {
      * expect an EDIF property map
      * @see BinaryEDIFReader#readEDIFName(EDIFName, Input, String[])
      */
-    private static void writeEDIFName(EDIFName o, Output os, Map<String,Integer> stringMap,
-            boolean hasPropMap) {
+    private static void writeEDIFName(EDIFName o, Output os, Map<String, Integer> stringMap, boolean hasPropMap) {
         os.writeInt((hasPropMap ? EDIF_PROP_FLAG : 0) | stringMap.get(o.getName()));
     }
 
@@ -158,13 +152,13 @@ public class BinaryEDIFWriter {
      * @param stringMap Map of String to enumeration integers
      * @see BinaryEDIFReader#readEDIFObject(EDIFPropertyObject, Input, String[])
      */
-    private static void writeEDIFObject(EDIFPropertyObject o, Output os, Map<String,Integer> stringMap) {
+    private static void writeEDIFObject(EDIFPropertyObject o, Output os, Map<String, Integer> stringMap) {
         boolean hasProperties = o.getPropertyCount() > 0;
         writeEDIFName(o, os, stringMap, hasProperties);
         if (hasProperties) {
             if (o.getPropertyCount() > 0x0000ffff) {
                 throw new RuntimeException("ERROR: EDIF object exceeded number of encoded "
-                        + "properties on object '" + o.getName() + "'");
+                                           + "properties on object '" + o.getName() + "'");
             }
 
             os.writeInt(o.getPropertyCount());
@@ -188,7 +182,7 @@ public class BinaryEDIFWriter {
      * @param stringMap Map of String to enumeration integers
      * @see BinaryEDIFReader#readEDIFDesign(Input, String[], EDIFNetlist)
      */
-    static void writeEDIFDesign(EDIFDesign design, Output os, Map<String,Integer> stringMap) {
+    static void writeEDIFDesign(EDIFDesign design, Output os, Map<String, Integer> stringMap) {
         writeEDIFObject(design, os, stringMap);
         EDIFCell topCell = design.getTopCell();
         writeEDIFCellRef(topCell, os, stringMap, null);
@@ -204,8 +198,7 @@ public class BinaryEDIFWriter {
      * @param parentCellLib The current library context, or null if it is for EDIFDesign
      * @see BinaryEDIFReader#readEDIFCellRef(Input, String[], EDIFNetlist, EDIFLibrary)
      */
-    static void writeEDIFCellRef(EDIFCell ref, Output os, Map<String,Integer> stringMap,
-                                         EDIFLibrary parentCellLib) {
+    static void writeEDIFCellRef(EDIFCell ref, Output os, Map<String, Integer> stringMap, EDIFLibrary parentCellLib) {
         int libMask = ref.getLibrary().equals(parentCellLib) ? EDIF_SAME_LIB_FLAG : 0;
         os.writeInt(libMask | stringMap.get(ref.getName()));
         if (libMask != EDIF_SAME_LIB_FLAG) {
@@ -220,7 +213,7 @@ public class BinaryEDIFWriter {
      * @param stringMap Map of string to integer enumerations to use to reference strings
      * @see BinaryEDIFReader#readEDIFCell(Input, String[], EDIFLibrary, EDIFNetlist)
      */
-    public static void writeEDIFCell(EDIFCell c, Output os, Map<String,Integer> stringMap) {
+    public static void writeEDIFCell(EDIFCell c, Output os, Map<String, Integer> stringMap) {
         writeEDIFObject(c, os, stringMap);
         boolean hasUniqueView = c.getEDIFView() != EDIFCell.DEFAULT_VIEW;
         os.writeInt((hasUniqueView ? EDIF_UNIQUE_VIEW_FLAG : 0) | c.getPorts().size());
@@ -231,8 +224,8 @@ public class BinaryEDIFWriter {
             writeEDIFObject(p, os, stringMap);
             int dirAndWidth = p.getWidth();
             if (dirAndWidth >= EDIF_DIR_INOUT_MASK) {
-                throw new RuntimeException("ERROR: Port " + p.getName() + " is too wide ("+
-                        dirAndWidth+") to be encoded in this file format.");
+                throw new RuntimeException("ERROR: Port " + p.getName() + " is too wide (" + dirAndWidth +
+                                           ") to be encoded in this file format.");
             }
             EDIFDirection dir = p.getDirection();
             if (dir == EDIFDirection.INPUT) {
@@ -258,8 +251,7 @@ public class BinaryEDIFWriter {
                 String name = getPortInstKey(pi);
                 os.writeInt(stringMap.get(name));
                 os.writeInt(pi.getIndex());
-                os.writeInt(pi.getCellInst() == null ?
-                        EDIF_NULL_INST : stringMap.get(pi.getCellInst().getName()));
+                os.writeInt(pi.getCellInst() == null ? EDIF_NULL_INST : stringMap.get(pi.getCellInst().getName()));
             }
         }
     }
@@ -274,7 +266,8 @@ public class BinaryEDIFWriter {
         EDIFPort port = portInst.getPort();
         String returnValue = null;
         if (port.isBus()) {
-            EDIFCell cell = portInst.getCellInst() == null ? portInst.getParentCell() : portInst.getCellInst().getCellType();
+            EDIFCell cell =
+                portInst.getCellInst() == null ? portInst.getParentCell() : portInst.getCellInst().getCellType();
             EDIFPort portCollision = cell.getPort(portInst.getPort().getName());
             returnValue = portCollision != null ? port.getName() : port.getBusName(true);
         } else {
@@ -315,7 +308,7 @@ public class BinaryEDIFWriter {
             os.writeString(EDIF_BINARY_FILE_TAG);
             os.writeString(EDIF_BINARY_FILE_VERSION);
             String[] strings = new String[stringMap.size()];
-            for (Entry<String,Integer> e : stringMap.entrySet()) {
+            for (Entry<String, Integer> e : stringMap.entrySet()) {
                 strings[e.getValue()] = e.getKey();
             }
             FileTools.writeStringArray(os, strings);

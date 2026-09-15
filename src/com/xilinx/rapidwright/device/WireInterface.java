@@ -25,14 +25,13 @@ package com.xilinx.rapidwright.device;
  * An interface to enable methods to operate on the common methods of a Wire
  * object as well as a Node object. At their heart, they both specify a Tile and
  * a wire (in the case of a Node it is the base wire).
- * 
+ *
  * @since 2023.2.1
  */
 public interface WireInterface {
-
     /**
      * Gets the tile corresponding to this wire/base wire.
-     * 
+     *
      * @return The tile of this wire/base wire.
      * @since 2023.2.1
      */
@@ -40,7 +39,7 @@ public interface WireInterface {
 
     /**
      * Gets the tile name corresponding to this wire/base wire.
-     * 
+     *
      * @return The tile name of this wire/base wire.
      * @since 2023.2.1
      */
@@ -50,7 +49,7 @@ public interface WireInterface {
 
     /**
      * Gets the wire index corresponding to this wire/base wire.
-     * 
+     *
      * @return The wire index of this wire/base wire.
      * @since 2023.2.1
      */
@@ -58,7 +57,7 @@ public interface WireInterface {
 
     /**
      * Gets the wire name corresponding to this wire/base wire.
-     * 
+     *
      * @return The wire name of this wire/base wire.
      * @since 2023.2.1
      */
@@ -68,7 +67,7 @@ public interface WireInterface {
 
     /**
      * Gets the intent code corresponding to this wire/base wire.
-     * 
+     *
      * @return The intent code of this wire/base wire.
      * @since 2023.2.1
      */
@@ -76,7 +75,7 @@ public interface WireInterface {
 
     /**
      * Gets the corresponding site pin (if any) to this wire/base wire.
-     * 
+     *
      * @return The site pin connected to this wire/base wire, or null if not
      *         present.
      * @since 2023.2.1
@@ -85,7 +84,7 @@ public interface WireInterface {
 
     /**
      * Produces a hash code based on the tile and wire of the object.
-     * 
+     *
      * @return A hash code derived from the tile and wire.
      * @since 2023.2.1
      */
@@ -94,7 +93,7 @@ public interface WireInterface {
     /**
      * Checks equality (based on tile and wire values) between this and another
      * WireInterface
-     * 
+     *
      * @param w The other object to check against for equality.
      * @return True if the two objects have the same tile and wire index, false
      *         otherwise.

@@ -1,0 +1,32 @@
+---
+Language: Java
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 120
+UseTab: Never
+InsertNewlineAtEOF: true
+BreakBeforeBraces: Attach
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+BinPackArguments: true
+BinPackParameters: true
+IndentCaseLabels: true
+SortIncludes: Never
+PointerAlignment: Left
+SpaceAfterCStyleCast: false
+SpaceBeforeParens: ControlStatements
+AlignTrailingComments: true
+AllowAllParametersOfDeclarationOnNextLine: true
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: None
+PenaltyBreakBeforeFirstCallParameter: 19
+PenaltyReturnTypeOnItsOwnLine: 60
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceInEmptyBlock: false
+SpacesInAngles: false
+Standard: Cpp11
+---
+

@@ -37,7 +37,6 @@ import java.util.Objects;
  * Created on: May 11, 2017
  */
 public class EDIFPropertyValue {
-
     private EDIFValueType type;
 
     private String value;
@@ -45,7 +44,6 @@ public class EDIFPropertyValue {
     private String owner;
 
     public EDIFPropertyValue() {
-
     }
 
     public EDIFPropertyValue(String value, EDIFValueType type, String owner) {
@@ -132,7 +130,6 @@ public class EDIFPropertyValue {
                     return Integer.parseInt(value.substring(i + 1), radix);
                 }
                 return Integer.parseUnsignedInt(value.substring(i + 1), radix);
-
             }
             if (c == '\'') {
                 lastCharWasTick = true;
@@ -157,7 +154,7 @@ public class EDIFPropertyValue {
         int radix = 10;
         boolean lastCharWasTick = false;
         boolean isSigned = false;
-        for (int i=0; i < value.length(); i++) {
+        for (int i = 0; i < value.length(); i++) {
             char c = value.charAt(i);
             if (lastCharWasTick) {
                 switch (c) {
@@ -183,10 +180,9 @@ public class EDIFPropertyValue {
                         continue;
                 }
                 if (isSigned) {
-                    return Long.parseLong(value.substring(i+1), radix);
+                    return Long.parseLong(value.substring(i + 1), radix);
                 }
-                return Long.parseUnsignedLong(value.substring(i+1), radix);
-
+                return Long.parseUnsignedLong(value.substring(i + 1), radix);
             }
             if (c == '\'') {
                 lastCharWasTick = true;
@@ -217,7 +213,7 @@ public class EDIFPropertyValue {
         this.value = value;
     }
 
-    public void writeEDIFString(OutputStream os) throws IOException{
+    public void writeEDIFString(OutputStream os) throws IOException {
         os.write('(');
         os.write(type.toString().getBytes(StandardCharsets.UTF_8));
         os.write(' ');
@@ -237,44 +233,42 @@ public class EDIFPropertyValue {
 
     @Override
     public String toString() {
-        return type + "("+value+")";
+        return type + "(" + value + ")";
     }
 
     public static void main(String[] args) {
-        int[] testValues = new int[] {0, 1, -1, 4, 15, -15, 16,
-                Integer.MAX_VALUE, Integer.MIN_VALUE};
-        int[] radixValues = new int[] { 2,   8,  10,  16};
+        int[] testValues = new int[] {0, 1, -1, 4, 15, -15, 16, Integer.MAX_VALUE, Integer.MIN_VALUE};
+        int[] radixValues = new int[] {2, 8, 10, 16};
         char[] radixChars = new char[] {'b', 'o', 'd', 'h'};
 
-        Map<String,Integer> examples = new HashMap<>();
+        Map<String, Integer> examples = new HashMap<>();
         for (int testValue : testValues) {
-            for (int i=0; i < radixValues.length; i++) {
+            for (int i = 0; i < radixValues.length; i++) {
                 int radix = radixValues[i];
                 char radixChar = radixChars[i];
                 for (String signed : new String[] {"s", "S", ""}) {
-                    if (testValue < 0 && signed.length() != 0) continue;
-                    String value = signed.length() == 0 ? Integer.toUnsignedString(testValue,radix) :
-                        Integer.toString(testValue,radix);
+                    if (testValue < 0 && signed.length() != 0)
+                        continue;
+                    String value = signed.length() == 0 ? Integer.toUnsignedString(testValue, radix)
+                                                        : Integer.toString(testValue, radix);
                     examples.put("32'" + Character.toString(radixChar) + value, testValue);
-                    examples.put("32'" + Character.toString(Character.toUpperCase(radixChar))
-                        + value, testValue);
+                    examples.put("32'" + Character.toString(Character.toUpperCase(radixChar)) + value, testValue);
                     examples.put(Integer.toUnsignedString(testValue), testValue);
                 }
             }
         }
 
-        for (Entry<String,Integer> e : examples.entrySet()) {
+        for (Entry<String, Integer> e : examples.entrySet()) {
             EDIFPropertyValue p = new EDIFPropertyValue();
             p.setType(EDIFValueType.INTEGER);
             p.setValue(e.getKey());
             System.out.print(e.getKey() + " " + e.getValue());
             Integer parsedValue = p.getIntValue();
-            System.out.println( " " + parsedValue);
+            System.out.println(" " + parsedValue);
             if (!e.getValue().equals(parsedValue)) {
                 throw new RuntimeException("ERROR: Couldn't parse test value " + e.getKey());
             }
         }
-
     }
 
     public String getOwner() {
@@ -293,7 +287,7 @@ public class EDIFPropertyValue {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        EDIFPropertyValue other = (EDIFPropertyValue) obj;
+        EDIFPropertyValue other = (EDIFPropertyValue)obj;
         if (!type.equals(other.type))
             return false;
         if (!value.equals(other.value))

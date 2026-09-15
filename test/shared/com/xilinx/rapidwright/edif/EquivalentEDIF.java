@@ -118,8 +118,7 @@ public class EquivalentEDIF {
     public static boolean equivalentEDIFNetlists(EDIFNetlist golden, EDIFNetlist test) {
         Assertions.assertEquals(golden.getName(), test.getName());
         Assertions.assertTrue(equivalentEDIFPropObject(golden.getDesign(), test.getDesign()));
-        Assertions.assertTrue(equivalentEDIFCells(golden.getDesign().getTopCell(),
-                                                  test.getDesign().getTopCell()));
+        Assertions.assertTrue(equivalentEDIFCells(golden.getDesign().getTopCell(), test.getDesign().getTopCell()));
         Assertions.assertEquals(golden.getLibraries().size(), test.getLibraries().size());
         for (EDIFLibrary lib : golden.getLibraries()) {
             EDIFLibrary testLib = test.getLibrary(lib.getName());
@@ -138,8 +137,10 @@ public class EquivalentEDIF {
         try (BufferedReader br = new BufferedReader(new FileReader(path.toFile()))) {
             String line = null;
             while ((line = br.readLine()) != null) {
-                if (line.contains("(metax")) continue;
-                if (line.contains("(timeStamp")) continue;
+                if (line.contains("(metax"))
+                    continue;
+                if (line.contains("(timeStamp"))
+                    continue;
                 lines.add(line);
             }
         } catch (IOException e) {
@@ -160,12 +161,13 @@ public class EquivalentEDIF {
         List<String> testLines = readEDIFLines(test);
         Collections.sort(goldenLines);
         Collections.sort(testLines);
-        if (goldenLines.size() != testLines.size()) return false;
+        if (goldenLines.size() != testLines.size())
+            return false;
         int length = goldenLines.size();
-        for (int i=0 ; i < length; i++) {
+        for (int i = 0; i < length; i++) {
             if (!goldenLines.get(i).equals(testLines.get(i))) {
-                System.err.println("EDIF mismatch on line " + i + ": >>"
-                        + goldenLines.get(i) +"<<  >>" + testLines.get(i) + "<<");
+                System.err.println("EDIF mismatch on line " + i + ": >>" + goldenLines.get(i) + "<<  >>" +
+                                   testLines.get(i) + "<<");
                 return false;
             }
         }

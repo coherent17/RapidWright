@@ -57,15 +57,14 @@ import com.xilinx.rapidwright.util.Utils;
  * routed design.
  */
 public class FanOutOptimization {
-
     public static final String UNIQUE_SUFFIX = "_copy";
 
     private static Set<Unisim> supportedCellTypes;
     public static Map<String, String> ffTypeRstName;
 
     static {
-        supportedCellTypes = EnumSet.of(Unisim.FDRE, Unisim.FDSE, Unisim.FDCE, Unisim.FDPE,
-                Unisim.LUT1, Unisim.LUT2, Unisim.LUT3, Unisim.LUT4, Unisim.LUT5, Unisim.LUT6);
+        supportedCellTypes = EnumSet.of(Unisim.FDRE, Unisim.FDSE, Unisim.FDCE, Unisim.FDPE, Unisim.LUT1, Unisim.LUT2,
+                                        Unisim.LUT3, Unisim.LUT4, Unisim.LUT5, Unisim.LUT6);
         ffTypeRstName = new HashMap<>();
         ffTypeRstName.put("FDRE", "R");
         ffTypeRstName.put("FDSE", "S");
@@ -73,9 +72,8 @@ public class FanOutOptimization {
         ffTypeRstName.put("FDPE", "PRE");
     }
 
-
-    private static Pair<Site, BEL> findValidPlacementOption(Design design, Cell srcCell,
-            Iterator<Site> itr, ECOPlacementHelper ecoHelper, boolean onlyFindEmptySites) {
+    private static Pair<Site, BEL> findValidPlacementOption(Design design, Cell srcCell, Iterator<Site> itr,
+                                                            ECOPlacementHelper ecoHelper, boolean onlyFindEmptySites) {
         boolean isFF = srcCell.getBEL().isFF();
 
         SiteInst si = srcCell.getSiteInst();
@@ -98,8 +96,7 @@ public class FanOutOptimization {
             } else if (onlyFindEmptySites) {
                 continue;
             }
-            BEL bel = isFF ? ecoHelper.getUnusedFlop(candidate, clk, ce, rst)
-                    : ecoHelper.getUnusedLUT(candidate);
+            BEL bel = isFF ? ecoHelper.getUnusedFlop(candidate, clk, ce, rst) : ecoHelper.getUnusedLUT(candidate);
             if (bel != null) {
                 return new Pair<Site, BEL>(curr, bel);
             }
@@ -120,20 +117,20 @@ public class FanOutOptimization {
      * Given a fully placed and routed design and a net driven by a flip flop, this
      * will replicate the flop by splitByCount times and divide the set of sinks on
      * the net into neighborhood clusters to be re-routed.
-     * 
+     *
      * @param design       The design
      * @param net          The high fan out net
      * @param splitByCount Desired number to split the fan out.
      */
     public static void cutFanOutOfRoutedNet(Design design, Net net, int splitByCount) {
-        cutFanOutOfRoutedNet(design, net, splitByCount, /* onlyUseEmptySites= */true);
+        cutFanOutOfRoutedNet(design, net, splitByCount, /* onlyUseEmptySites= */ true);
     }
 
     /**
      * Given a fully placed and routed design and a net driven by a flip flop, this
      * will replicate the flop by splitByCount times and divide the set of sinks on
      * the net into neighborhood clusters to be re-routed.
-     * 
+     *
      * @param design            The design
      * @param net               The high fan out net
      * @param splitByCount      Desired number to split the fan out.
@@ -146,28 +143,26 @@ public class FanOutOptimization {
         EDIFHierNet logicalNet = net.getLogicalHierNet();
         int srcIdx = -1;
         List<EDIFHierPortInst> snks = logicalNet.getLeafHierPortInsts();
-        for (int i=0; i < snks.size(); i++) {
-            if (snks.get(i).isOutput()) { 
+        for (int i = 0; i < snks.size(); i++) {
+            if (snks.get(i).isOutput()) {
                 srcIdx = i;
                 break;
             }
         }
         EDIFHierPortInst src = snks.remove(srcIdx);
-        
+
         // Replicate source flop splitByCount-1 times
         Cell driverCell = src.getPhysicalCell(design);
         Unisim cellType = Unisim.valueOf(driverCell.getType());
         if (!supportedCellTypes.contains(cellType)) {
-            throw new RuntimeException("ERROR: Unsupported driver cell type for fan out optimization "
-                    + cellType
-                    + " of cell '" + driverCell.getName() + "'.");
+            throw new RuntimeException("ERROR: Unsupported driver cell type for fan out optimization " + cellType +
+                                       " of cell '" + driverCell.getName() + "'.");
         }
 
         SiteInst si = driverCell.getSiteInst();
 
         boolean isFF = driverCell.getBEL().isFF();
-        Net highFanoutNet = si
-                .getNetFromSiteWire(driverCell.getSiteWireNameFromLogicalPin(isFF ? "Q" : "O"));
+        Net highFanoutNet = si.getNetFromSiteWire(driverCell.getSiteWireNameFromLogicalPin(isFF ? "Q" : "O"));
         Net clk = null;
         Net rst = null;
         Net ce = null;
@@ -180,9 +175,10 @@ public class FanOutOptimization {
             rst = si.getNetFromSiteWire(driverCell.getSiteWireNameFromLogicalPin(rstName));
             ce = si.getNetFromSiteWire(driverCell.getSiteWireNameFromLogicalPin("CE"));
         } else {
-            assert(driverCell.getBEL().isLUT());
-            for (EDIFPortInst pi : driverCell.getEDIFCellInst().getPortInsts()) { 
-                if (!pi.isInput()) continue;
+            assert (driverCell.getBEL().isLUT());
+            for (EDIFPortInst pi : driverCell.getEDIFCellInst().getPortInsts()) {
+                if (!pi.isInput())
+                    continue;
                 String logPinName = pi.getName();
                 Net srcNet = si.getNetFromSiteWire(driverCell.getSiteWireNameFromLogicalPin(logPinName));
                 srcNets.put(logPinName, srcNet);
@@ -194,15 +190,14 @@ public class FanOutOptimization {
         Map<Point, List<EDIFHierPortInst>> pinMap = new HashMap<>();
         boolean includeSources = false;
         // Add all sinks of high fanout pins
-        List<EDIFHierPortInst> highFanoutSinks = highFanoutNet.getLogicalHierNet()
-                .getLeafHierPortInsts(includeSources);
+        List<EDIFHierPortInst> highFanoutSinks = highFanoutNet.getLogicalHierNet().getLeafHierPortInsts(includeSources);
         List<EDIFHierPortInst> clusterPins = new ArrayList<>(highFanoutSinks);
         // Also add source pins of nets driving to-be-replicated cell if we are replicating a LUT
         if (!isFF) {
             for (Net srcNet : srcNets.values()) {
                 List<EDIFHierPortInst> srcs = srcNet.getLogicalHierNet().getSourcePortInsts(false);
                 clusterPins.addAll(srcs);
-            }            
+            }
         }
         for (EDIFHierPortInst ehpi : clusterPins) {
             Point point = createPoint(ehpi.getPhysicalCell(design));
@@ -217,7 +212,7 @@ public class FanOutOptimization {
         List<Net> sourceNets = new ArrayList<>();
         sourceNets.add(highFanoutNet);
         ECOPlacementHelper ecoHelper = new ECOPlacementHelper(design, null);
-        int copyIdx=0; 
+        int copyIdx = 0;
 
         // For each cluster of sinks, find a suitable location for a source cell
         for (Entry<Point, List<Point>> cluster : clusters.entrySet()) {
@@ -238,13 +233,11 @@ public class FanOutOptimization {
                 // Move the original cell to the new valid location (approx. centroid)
                 design.placeCell(driverCell, loc.getFirst(), loc.getSecond());
                 driverCell.getSiteInst().routeSite();
-            }
-            else {
+            } else {
                 // Create a new copy of the original driver cell and place on valid location
                 String suffix = UNIQUE_SUFFIX + copyIdx;
                 String copyName = driverCell.getName() + suffix;
-                Cell copy = design.createAndPlaceCell(parent, copyName, cellType, loc.getFirst(),
-                        loc.getSecond());
+                Cell copy = design.createAndPlaceCell(parent, copyName, cellType, loc.getFirst(), loc.getSecond());
                 copy.setPropertiesMap(driverCell.getEDIFCellInst().createDuplicatePropertiesMap());
                 for (Entry<String, Net> e : srcNets.entrySet()) {
                     e.getValue().connect(copy, e.getKey());
@@ -273,8 +266,8 @@ public class FanOutOptimization {
             Point centroid = e.getKey();
             int minDist = Integer.MAX_VALUE;
             int closestCellToCluster = -1;
-            
-            for(int i=0; i < sources.size(); i++) {
+
+            for (int i = 0; i < sources.size(); i++) {
                 if (assigned[i])
                     continue;
                 Cell source = sources.get(i);
@@ -317,12 +310,11 @@ public class FanOutOptimization {
                     Net net = si.getNetFromSiteWire(srcBELPin.getSiteWireName());
                     return new Pair<>(srcPin, net);
                 }
-
             }
         }
         return null;
     }
-    
+
     private static Site findClosestSLICE(Point point, Device device) {
         Tile tile = device.getTile(point.y, point.x);
         Iterator<Tile> tileItr = ECOPlacementHelper.spiralOutFrom(tile, null, false).iterator();
@@ -347,7 +339,7 @@ public class FanOutOptimization {
         int k = Integer.parseInt(args[2]);
 
         cutFanOutOfRoutedNet(d, n, k);
-        
+
         d.writeCheckpoint(args[3]);
     }
 }

@@ -43,9 +43,7 @@ public class EDIFName implements Comparable<EDIFName> {
     /** Name of the EDIF object */
     private String name;
 
-
     protected EDIFName() {
-
     }
 
     public EDIFName(String name) {
@@ -70,7 +68,6 @@ public class EDIFName implements Comparable<EDIFName> {
 
     public static final byte[] EXPORT_CONST_RENAME_START = "(rename ".getBytes(StandardCharsets.UTF_8);
 
-
     public static void exportSomeEDIFName(OutputStream os, String name, byte[] legalName) throws IOException {
         if (legalName == null) {
             os.write(name.getBytes(StandardCharsets.UTF_8));
@@ -91,7 +88,7 @@ public class EDIFName implements Comparable<EDIFName> {
      * @param os The stream to export the EDIF syntax to.
      * @throws IOException
      */
-    public void exportEDIFName(OutputStream os, EDIFWriteLegalNameCache<?> cache) throws IOException{
+    public void exportEDIFName(OutputStream os, EDIFWriteLegalNameCache<?> cache) throws IOException {
         exportSomeEDIFName(os, getName(), cache.getEDIFRename(getName()));
     }
 
@@ -114,7 +111,7 @@ public class EDIFName implements Comparable<EDIFName> {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        EDIFName other = (EDIFName) obj;
+        EDIFName other = (EDIFName)obj;
         if (name == null) {
             if (other.name != null)
                 return false;
@@ -128,12 +125,11 @@ public class EDIFName implements Comparable<EDIFName> {
     }
 
     public static <K, V> Map<K, V> getNewMap() {
-        //Save some memory for small maps
-        return new HashMap<K,V>(2);
+        // Save some memory for small maps
+        return new HashMap<K, V>(2);
     }
 
     public int compareTo(EDIFName o) {
         return this.getName().compareTo(o.getName());
     }
-
 }

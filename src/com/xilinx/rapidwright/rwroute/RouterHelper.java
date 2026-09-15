@@ -102,7 +102,8 @@ public class RouterHelper {
     }
 
     /**
-     * Checks if a {@link Net} instance has source and sink {@link SitePinInst} instances to be routable.
+     * Checks if a {@link Net} instance has source and sink {@link SitePinInst} instances to be
+     * routable.
      * @param net The net to be checked.
      * @return true, if the net has source and sink pins.
      */
@@ -159,7 +160,8 @@ public class RouterHelper {
     }
 
     /**
-     * Gets a {@link Node} instance that connects to an INT {@link Tile} instance from an output {@link SitePinInst} instance.
+     * Gets a {@link Node} instance that connects to an INT {@link Tile} instance from an output
+     * {@link SitePinInst} instance.
      * @param output The output pin.
      * @return A node that connects to an INT tile from an output pin.
      */
@@ -172,7 +174,7 @@ public class RouterHelper {
 
         // Laguna crossings from the output of the TX flop
         final boolean isLagunaTXQ = Utils.isLaguna(source.getTile().getTileTypeEnum());
-        assert(!isLagunaTXQ || output.getName().startsWith("TXQ"));
+        assert (!isLagunaTXQ || output.getName().startsWith("TXQ"));
 
         // Starting from the SPI's connected node, perform a downhill breadth-first search
         Queue<Node> queue = new ArrayDeque<>();
@@ -187,7 +189,8 @@ public class RouterHelper {
                     return node;
                 }
                 if (isLagunaTXQ && downhill.getTile() == source.getTile() && node.getWireName().startsWith("UBUMP")) {
-                    // For Laguna crossings using the TX flop, do not project back the way we came from
+                    // For Laguna crossings using the TX flop, do not project back the way we came
+                    // from
                     continue;
                 }
                 if (blockClocking && Utils.isClocking(downhillTileType)) {
@@ -201,7 +204,8 @@ public class RouterHelper {
     }
 
     /**
-     * Gets a list of {@link Node} instances that connect an input {@link SitePinInst} instance to an INT {@link Tile} instance.
+     * Gets a list of {@link Node} instances that connect an input {@link SitePinInst} instance to
+     * an INT {@link Tile} instance.
      * @param input The input pin.
      * @return A node that connects to an INT tile from an input pin.
      */
@@ -214,7 +218,7 @@ public class RouterHelper {
 
         // Laguna crossings to the input of the RX flop
         final boolean isLagunaRXD = Utils.isLaguna(sink.getTile().getTileTypeEnum());
-        assert(!isLagunaRXD || input.getName().startsWith("RXD"));
+        assert (!isLagunaRXD || input.getName().startsWith("RXD"));
 
         int watchdog = 40;
 
@@ -227,12 +231,15 @@ public class RouterHelper {
             for (Node uphill : node.getAllUphillNodes()) {
                 TileTypeEnum uphillTileType = uphill.getTile().getTileTypeEnum();
                 if (uphillTileType == TileTypeEnum.INT ||
-                        // Versal only: Terminate at non INT (e.g. CLE_BC_CORE) tile type for CTRL pin inputs
-                        EnumSet.of(IntentCode.NODE_CLE_CTRL, IntentCode.NODE_INTF_CTRL, IntentCode.NODE_SLL_INPUT).contains(uphill.getIntentCode())) {
+                    // Versal only: Terminate at non INT (e.g. CLE_BC_CORE) tile type for CTRL pin
+                    // inputs
+                    EnumSet.of(IntentCode.NODE_CLE_CTRL, IntentCode.NODE_INTF_CTRL, IntentCode.NODE_SLL_INPUT)
+                        .contains(uphill.getIntentCode())) {
                     return uphill;
                 }
                 if (isLagunaRXD && uphill.getTile() == sink.getTile() && node.getWireName().startsWith("UBUMP")) {
-                    // For Laguna crossings using the RX flop, do not project back the way we came from
+                    // For Laguna crossings using the RX flop, do not project back the way we came
+                    // from
                     continue;
                 }
                 if (uphillTileType != sinkTileType && Utils.isClocking(uphillTileType)) {
@@ -256,7 +263,8 @@ public class RouterHelper {
 
     /**
      * Gets a list of {@link PIP} instances for routing a connection.
-     * @param connection The {@link Connection} instance that has been routed with a list of {@link Node} instances.
+     * @param connection The {@link Connection} instance that has been routed with a list of {@link
+     *     Node} instances.
      * @return A list of PIPs for the connection.
      */
     public static List<PIP> getConnectionPIPs(Connection connection) {
@@ -265,7 +273,7 @@ public class RouterHelper {
 
     /**
      * Gets a list of {@link PIP} instances from a list of {@link Node} instances.
-     * 
+     *
      * @param connectionNodes The list of nodes of a routed {@link Connection}
      *                        instance.
      * @return A list of PIPs generated from the list of nodes.
@@ -276,7 +284,7 @@ public class RouterHelper {
 
     /**
      * Gets a list of {@link PIP} instances from a list of {@link Node} instances.
-     * 
+     *
      * @param connectionNodes The list of nodes of a routed {@link Connection}
      *                        instance.
      * @param srcToSinkOrder  Specifies the order of the connection nodes. True
@@ -286,7 +294,8 @@ public class RouterHelper {
      */
     public static List<PIP> getPIPsFromNodes(List<Node> connectionNodes, boolean srcToSinkOrder) {
         List<PIP> connectionPIPs = new ArrayList<>();
-        if (connectionNodes == null) return connectionPIPs;
+        if (connectionNodes == null)
+            return connectionPIPs;
         // Nodes of a connection are added to the list starting from its sink to its
         // source -- unless srcToSinkOrder is true (as is the case in static routing)
         int driverOffsetIdx = 1;
@@ -308,7 +317,7 @@ public class RouterHelper {
                 }
                 connectionPIPs.add(pip);
             } else {
-                System.err.println("ERROR: Null PIP connecting these two nodes: " + driver+ ", " + load);
+                System.err.println("ERROR: Null PIP connecting these two nodes: " + driver + ", " + load);
             }
         }
         return connectionPIPs;
@@ -324,9 +333,9 @@ public class RouterHelper {
         List<SitePinInst> pins = net.getPins();
         List<Node> nodes = new ArrayList<>(net.getPins().size() + net.getPIPs().size() / 2);
         SitePinInst sourcePin = net.getSource();
-        assert(sourcePin == null || pins.contains(sourcePin));
+        assert (sourcePin == null || pins.contains(sourcePin));
         SitePinInst altSourcePin = net.getAlternateSource();
-        assert(altSourcePin == null || pins.contains(altSourcePin));
+        assert (altSourcePin == null || pins.contains(altSourcePin));
         for (SitePinInst pin : net.getPins()) {
             // SitePinInst.isRouted() is meaningless for output pins
             if (!pin.isRouted() && !pin.isOutPin()) {
@@ -366,15 +375,15 @@ public class RouterHelper {
      * @param pins The GND net pins.
      * @param invertLutInputs True to invert LUT inputs.
      */
-    public static Set<SitePinInst> invertPossibleGndPinsToVccPins(Design design,
-                                                                  List<SitePinInst> pins,
+    public static Set<SitePinInst> invertPossibleGndPinsToVccPins(Design design, List<SitePinInst> pins,
                                                                   boolean invertLutInputs) {
         final boolean isVersal = (design.getSeries() == Series.Versal);
         final Net gndNet = design.getGndNet();
         final Net vccNet = design.getVccNet();
         final EDIFNetlist netlist = design.getNetlist();
         Set<SitePinInst> toInvertPins = new HashSet<>();
-        nextSitePin: for (SitePinInst spi : pins) {
+    nextSitePin:
+        for (SitePinInst spi : pins) {
             if (!spi.getNet().equals(gndNet))
                 throw new RuntimeException(spi.toString());
             if (spi.isOutPin()) {
@@ -394,7 +403,7 @@ public class RouterHelper {
                             // Since DesignTools.getConnectedCells() will only return cells
                             // for which a logical pin mapping exists, for the purpose of
                             // identifying SRL16s walk through this IMR
-                            bel = si.getBEL(bel.getName().substring(0,1) + "6LUT");
+                            bel = si.getBEL(bel.getName().substring(0, 1) + "6LUT");
                         }
                         Cell cell = si.getCell(bel);
                         if (cell == null) {
@@ -426,9 +435,10 @@ public class RouterHelper {
 
                     if (!ehci.getParent().isUniquified()) {
                         // Parent cell (instantiating this LUT) is not unique
-                        // This parent may be a LUT6_2 macro cell that has been expanded into LUT6+LUT5,
-                        // and which does not get uniquified by EDIFTools.uniqueifyNetlist().
-                        // Thus, LUT6/LUT5 inside expanded LUT6_2 macros are not eligible for inversion.
+                        // This parent may be a LUT6_2 macro cell that has been expanded into
+                        // LUT6+LUT5, and which does not get uniquified by
+                        // EDIFTools.uniqueifyNetlist(). Thus, LUT6/LUT5 inside expanded LUT6_2
+                        // macros are not eligible for inversion.
                         continue nextSitePin;
                     }
 
@@ -446,7 +456,7 @@ public class RouterHelper {
                     if (cellBelPin == null) {
                         cellBelPin = cell.getBELPin(ehpi);
                     } else {
-                        assert(cellBelPin.getSiteWireIndex() == cell.getBELPin(ehpi).getSiteWireIndex());
+                        assert (cellBelPin.getSiteWireIndex() == cell.getBELPin(ehpi).getSiteWireIndex());
                     }
                 }
 
@@ -460,13 +470,15 @@ public class RouterHelper {
 
                     // Get the LUT equation
                     String lutEquation = LUTTools.getLUTEquation(cell);
-                    assert(lutEquation.contains(logicalPinName));
+                    assert (lutEquation.contains(logicalPinName));
 
                     // Compute a new LUT equation with that logical input inverted
-                    String newLutEquation = lutEquation.replace(logicalPinName, "!" + logicalPinName)
-                            // Cancel out double inversions
-                            // (Note: LUTTools.getLUTEquation() only produces equations with '!' instead of '~')
-                            .replace("!!", "");
+                    String newLutEquation = lutEquation
+                                                .replace(logicalPinName, "!" + logicalPinName)
+                                                // Cancel out double inversions
+                                                // (Note: LUTTools.getLUTEquation() only produces
+                                                // equations with '!' instead of '~')
+                                                .replace("!!", "");
                     LUTTools.configureLUT(cell, newLutEquation);
 
                     // Change the logical pin connection
@@ -481,9 +493,10 @@ public class RouterHelper {
             } else {
                 BELPin[] belPins = si.getSiteWirePins(siteWireName);
                 if (belPins.length != 2) {
-                    if (belPins.length == 3 && si.getSiteTypeEnum() == SiteTypeEnum.DSP58 && siteWireName.equals("RSTD")) {
-                        assert(isVersal);
-                        assert(belPins[1].toString().equals("SRCMXINV.RSTAD_UNUSED"));
+                    if (belPins.length == 3 && si.getSiteTypeEnum() == SiteTypeEnum.DSP58 &&
+                        siteWireName.equals("RSTD")) {
+                        assert (isVersal);
+                        assert (belPins[1].toString().equals("SRCMXINV.RSTAD_UNUSED"));
                     } else {
                         continue;
                     }
@@ -496,9 +509,7 @@ public class RouterHelper {
                         continue;
                     }
                     // Emulate Vivado's behaviour and do not invert CLK* site pins
-                    if (Utils.isBRAM(spi.getSiteInst()) &&
-                            belPin.getBELName().startsWith("CLK") &&
-                            !isVersal) {
+                    if (Utils.isBRAM(spi.getSiteInst()) && belPin.getBELName().startsWith("CLK") && !isVersal) {
                         continue;
                     }
                     toInvertPins.add(spi);
@@ -516,11 +527,10 @@ public class RouterHelper {
         gndNet.getPins().removeAll(toInvertPins);
 
         for (SitePinInst toinvert : toInvertPins) {
-            assert(toinvert.getSiteInst() != null);
+            assert (toinvert.getSiteInst() != null);
             boolean updateSiteRouting = false;
             if (!vccNet.addPin(toinvert, updateSiteRouting)) {
-                  throw new RuntimeException("ERROR: Couldn't invert site pin " +
-                          toinvert);
+                throw new RuntimeException("ERROR: Couldn't invert site pin " + toinvert);
             }
         }
 
@@ -531,10 +541,13 @@ public class RouterHelper {
      * Adds the {@link IntentCode} and wirelength of an used node to the map.
      * @param node The target node.
      * @param wlNode The wirelength of the node.
-     * @param typeUsage The map between each node type and the number of used nodes for the node type.
-     * @param typeLength The map between each node type and the total wirelength of used nodes for the node type.
+     * @param typeUsage The map between each node type and the number of used nodes for the node
+     *     type.
+     * @param typeLength The map between each node type and the total wirelength of used nodes for
+     *     the node type.
      */
-    public static void addNodeTypeLengthToMap(Node node, long wlNode, Map<IntentCode, Long> typeUsage, Map<IntentCode, Long> typeLength) {
+    public static void addNodeTypeLengthToMap(Node node, long wlNode, Map<IntentCode, Long> typeUsage,
+                                              Map<IntentCode, Long> typeLength) {
         IntentCode ic = node.getIntentCode();
         if (node.getTile().getTileTypeEnum() == TileTypeEnum.LAGUNA_TILE) {
             // UltraScale only
@@ -548,21 +561,24 @@ public class RouterHelper {
     }
 
     /**
-     * Gets a map containing net delay for each sink pin paired with an INT tile node of a routed net.
-     * The delay to each sink is accumulated by walking upstream from it to the start of the net's
-     * routing; the net is assumed to be loop-free, and this walk does not terminate on one that is not.
+     * Gets a map containing net delay for each sink pin paired with an INT tile node of a routed
+     * net. The delay to each sink is accumulated by walking upstream from it to the start of the
+     * net's routing; the net is assumed to be loop-free, and this walk does not terminate on one
+     * that is not.
      * @param net The target routed net.
      * @param estimator An instantiation of DelayEstimatorBase.
-     * @return The map containing net delay for each sink pin paired with an INT tile node of a routed net.
+     * @return The map containing net delay for each sink pin paired with an INT tile node of a
+     *     routed net.
      */
-    public static Map<SitePinInst, Pair<Node,Short>> getSourceToSinkINTNodeDelays(Net net, DelayEstimatorBase estimator) {
+    public static Map<SitePinInst, Pair<Node, Short>> getSourceToSinkINTNodeDelays(Net net,
+                                                                                   DelayEstimatorBase estimator) {
         // Net.getPIPs() is in no particular order, so accumulating delay by walking it would use
         // an upstream delay that is not yet final. Walk upstream from each sink instead, using a
         // map that also gives bidirectional PIPs the direction PIP.isReversed() indicates.
         Map<Node, Node> nodeToDriver = NetTools.getNodeToDriver(net);
         Map<Node, Integer> delayMap = new HashMap<>();
 
-        Map<SitePinInst, Pair<Node,Short>> sinkNodeDelays = new HashMap<>();
+        Map<SitePinInst, Pair<Node, Short>> sinkNodeDelays = new HashMap<>();
         for (SitePinInst sink : net.getSinkPins()) {
             Node sinkNode = sink.getConnectedNode();
             if (sinkNode.getTile().getTileTypeEnum() != TileTypeEnum.INT) {
@@ -596,15 +612,15 @@ public class RouterHelper {
             int delay = (knownDelay == null) ? 0 : knownDelay;
             for (int i = upstreamNodes.size() - 1; i >= 0; i--) {
                 Node downhill = upstreamNodes.get(i);
-                if (downhill.getTile().getTileTypeEnum() == TileTypeEnum.INT) {//device independent?
-                    delay += computeNodeDelay(estimator, downhill)
-                            + DelayEstimatorBase.getExtraDelay(downhill, DelayEstimatorBase.isLong(curr));
+                if (downhill.getTile().getTileTypeEnum() == TileTypeEnum.INT) { // device independent?
+                    delay += computeNodeDelay(estimator, downhill) +
+                             DelayEstimatorBase.getExtraDelay(downhill, DelayEstimatorBase.isLong(curr));
                 }
                 delayMap.put(downhill, delay);
                 curr = downhill;
             }
 
-            sinkNodeDelays.put(sink, new Pair<>(sinkNode,(short) delay));
+            sinkNodeDelays.put(sink, new Pair<>(sinkNode, (short)delay));
         }
 
         return sinkNodeDelays;
@@ -624,18 +640,21 @@ public class RouterHelper {
     }
 
     /**
-     * Routes and assigns nodes to a direct connection, e.g. carry chain connections and connections between cascaded BRAMs.
+     * Routes and assigns nodes to a direct connection, e.g. carry chain connections and connections
+     * between cascaded BRAMs.
      * @param directConnection The target direct connection.
      * @return true, if the connection is successfully routed.
      */
     public static boolean routeDirectConnection(Connection directConnection) {
-        directConnection.setNodes(findPathBetweenNodes(directConnection.getSource().getConnectedNode(), directConnection.getSink().getConnectedNode()));
+        directConnection.setNodes(findPathBetweenNodes(directConnection.getSource().getConnectedNode(),
+                                                       directConnection.getSink().getConnectedNode()));
         return !directConnection.getNodes().isEmpty();
     }
 
     /**
      * Find a path from a source node to a sink node.
-     * Intermediate nodes with tile type returning true for {@link Utils#isClocking(TileTypeEnum)} will be ignored.
+     * Intermediate nodes with tile type returning true for {@link Utils#isClocking(TileTypeEnum)}
+     * will be ignored.
      * @param source The source node.
      * @param sink The sink node.
      * @return A list of nodes making up the path.
@@ -654,7 +673,7 @@ public class RouterHelper {
 
         // Only block clocking tiles if both source and sink are not in a clock tile
         final boolean blockClocking = !Utils.isClocking(source.getTile().getTileTypeEnum()) &&
-                !Utils.isClocking(sink.getTile().getTileTypeEnum());
+                                      !Utils.isClocking(sink.getTile().getTileTypeEnum());
 
         int watchdog = 10000;
         while (!queue.isEmpty()) {

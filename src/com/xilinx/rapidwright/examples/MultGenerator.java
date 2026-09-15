@@ -54,7 +54,6 @@ import com.xilinx.rapidwright.edif.EDIFTools;
 import com.xilinx.rapidwright.tests.CodePerfTracker;
 import com.xilinx.rapidwright.util.MessageGenerator;
 import com.xilinx.rapidwright.util.StringTools;
-
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
@@ -86,37 +85,37 @@ public class MultGenerator extends ArithmeticGenerator {
         }
         EDIFCellInst i = dsp48e2.createCellInst(name, parent);
 
-        i.addProperty("USE_MULT","MULTIPLY");
-        i.addProperty("SEL_PATTERN","PATTERN");
-        i.addProperty("USE_SIMD","ONE48");
-        i.addProperty("USE_PATTERN_DETECT","NO_PATDET");
-        i.addProperty("XORSIMD","XOR24_48_96");
-        i.addProperty("USE_WIDEXOR","FALSE");
-        i.addProperty("ACASCREG",1);
-        i.addProperty("ADREG",1);
-        i.addProperty("ALUMODEREG",0);
-        i.addProperty("AMULTSEL","A");
-        i.addProperty("AREG",1);
-        i.addProperty("AUTORESET_PATDET","NO_RESET");
-        i.addProperty("AUTORESET_PRIORITY","RESET");
-        i.addProperty("A_INPUT","DIRECT");
-        i.addProperty("BCASCREG",1);
-        i.addProperty("BMULTSEL","B");
-        i.addProperty("BREG",1);
-        i.addProperty("B_INPUT","DIRECT");
-        i.addProperty("CARRYINREG",0);
-        i.addProperty("CARRYINSELREG",0);
-        i.addProperty("CREG",0);
-        i.addProperty("DREG",1);
-        i.addProperty("INMODEREG",0);
-        i.addProperty("MASK","48'h3FFFFFFFFFFF");
-        i.addProperty("MREG",1);
-        i.addProperty("OPMODEREG",0);
-        i.addProperty("PATTERN","48'h000000000000");
-        i.addProperty("PREADDINSEL","A");
-        i.addProperty("PREG",1);
-        i.addProperty("RND","48'h000000000000");
-        i.addProperty("SEL_MASK","MASK");
+        i.addProperty("USE_MULT", "MULTIPLY");
+        i.addProperty("SEL_PATTERN", "PATTERN");
+        i.addProperty("USE_SIMD", "ONE48");
+        i.addProperty("USE_PATTERN_DETECT", "NO_PATDET");
+        i.addProperty("XORSIMD", "XOR24_48_96");
+        i.addProperty("USE_WIDEXOR", "FALSE");
+        i.addProperty("ACASCREG", 1);
+        i.addProperty("ADREG", 1);
+        i.addProperty("ALUMODEREG", 0);
+        i.addProperty("AMULTSEL", "A");
+        i.addProperty("AREG", 1);
+        i.addProperty("AUTORESET_PATDET", "NO_RESET");
+        i.addProperty("AUTORESET_PRIORITY", "RESET");
+        i.addProperty("A_INPUT", "DIRECT");
+        i.addProperty("BCASCREG", 1);
+        i.addProperty("BMULTSEL", "B");
+        i.addProperty("BREG", 1);
+        i.addProperty("B_INPUT", "DIRECT");
+        i.addProperty("CARRYINREG", 0);
+        i.addProperty("CARRYINSELREG", 0);
+        i.addProperty("CREG", 0);
+        i.addProperty("DREG", 1);
+        i.addProperty("INMODEREG", 0);
+        i.addProperty("MASK", "48'h3FFFFFFFFFFF");
+        i.addProperty("MREG", 1);
+        i.addProperty("OPMODEREG", 0);
+        i.addProperty("PATTERN", "48'h000000000000");
+        i.addProperty("PREADDINSEL", "A");
+        i.addProperty("PREG", 1);
+        i.addProperty("RND", "48'h000000000000");
+        i.addProperty("SEL_MASK", "MASK");
 
         return i;
     }
@@ -128,29 +127,26 @@ public class MultGenerator extends ArithmeticGenerator {
         EDIFNet clk = top.createNet(clkName);
         clk.createPortInst(clkPort);
 
-        String[] dspCells = new String[]{
-                "DSP_PREADD_DATA", "DSP_A_B_DATA", "DSP_C_DATA", "DSP_MULTIPLIER",
-                "DSP_ALU", "DSP_M_DATA", "DSP_OUTPUT", "DSP_PREADD",
-                };
+        String[] dspCells = new String[] {
+            "DSP_PREADD_DATA", "DSP_A_B_DATA", "DSP_C_DATA", "DSP_MULTIPLIER",
+            "DSP_ALU",         "DSP_M_DATA",   "DSP_OUTPUT", "DSP_PREADD",
+        };
         SiteInst si = null;
         for (String elem : dspCells) {
-            Cell c = d.createAndPlaceCell(null, designName+"/"+elem +"_INST",
-                    Unisim.valueOf(elem), origin,origin.getBEL(elem));
+            Cell c = d.createAndPlaceCell(null, designName + "/" + elem + "_INST", Unisim.valueOf(elem), origin,
+                                          origin.getBEL(elem));
             si = c.getSiteInst();
         }
-        EDIFCellInst inst = createDSP48E2CellInstance(d,top,designName);
+        EDIFCellInst inst = createDSP48E2CellInstance(d, top, designName);
 
-        String[] gndPins = new String[]{
-                "CEA1","CEAD","CEALUMODE","CEB1","CEC",
-                "CECARRYIN","CECTRL","CED","CEINMODE",
-                "CARRYIN", "RSTA", "RSTALLCARRYIN", "RSTALUMODE", "RSTB", "RSTC", "RSTCTRL", "RSTD", "RSTINMODE",
-                "RSTM", "RSTP",
+        String[] gndPins = new String[] {
+            "CEA1", "CEAD",     "CEALUMODE", "CEB1",      "CEC",           "CECARRYIN",  "CECTRL",
+            "CED",  "CEINMODE", "CARRYIN",   "RSTA",      "RSTALLCARRYIN", "RSTALUMODE", "RSTB",
+            "RSTC", "RSTCTRL",  "RSTD",      "RSTINMODE", "RSTM",          "RSTP",
         };
 
-        String[] vccPins = new String[] { "CEA2", "CEB2", "CEM", "CEP" };
-        String[] gndBusses = new String[]{
-                "A", "B", "CARRYINSEL", "C", "D", "ALUMODE", "INMODE"
-        };
+        String[] vccPins = new String[] {"CEA2", "CEB2", "CEM", "CEP"};
+        String[] gndBusses = new String[] {"A", "B", "CARRYINSEL", "C", "D", "ALUMODE", "INMODE"};
         String[] vccBusses = new String[] {};
 
         // Setup GND/VCC inputs
@@ -159,7 +155,7 @@ public class MultGenerator extends ArithmeticGenerator {
         Net logic0 = d.getStaticNet(NetType.GND);
         Net logic1 = d.getStaticNet(NetType.VCC);
 
-        for (NetType type : new NetType[]{NetType.GND,NetType.VCC}) {
+        for (NetType type : new NetType[] {NetType.GND, NetType.VCC}) {
             EDIFNet logicSrc = type == NetType.GND ? gnd : vcc;
             Net physNet = type == NetType.GND ? logic0 : logic1;
             String[] pins = type == NetType.GND ? gndPins : vccPins;
@@ -177,9 +173,10 @@ public class MultGenerator extends ArithmeticGenerator {
                     // Don't gnd the inputs
                     stop = p.getWidth() - width;
                 }
-                for (int i=0; i < stop; i++) {
+                for (int i = 0; i < stop; i++) {
                     logicSrc.createPortInst(p, i, inst);
-                    if (bus.equals("D")) bus = "DIN";
+                    if (bus.equals("D"))
+                        bus = "DIN";
                     physNet.createPin(bus + (isAorB ? i + width : i), si);
                 }
             }
@@ -196,7 +193,7 @@ public class MultGenerator extends ArithmeticGenerator {
         }
 
         // Connect logical outside connections/ports
-        clk.createPortInst("CLK",inst);
+        clk.createPortInst("CLK", inst);
         Net physClk = d.createNet(clk.getName());
         physClk.createPin("CLK", si);
 
@@ -204,25 +201,24 @@ public class MultGenerator extends ArithmeticGenerator {
         int bWidth = inst.getPort(INPUT_B_NAME).getWidth();
         int pWidth = inst.getPort(RESULT_NAME).getWidth();
 
-        String suffix = "["+(width-1)+":0]";
+        String suffix = "[" + (width - 1) + ":0]";
         EDIFPort a = top.createPort(INPUT_A_NAME + suffix, EDIFDirection.INPUT, width);
         EDIFPort b = top.createPort(INPUT_B_NAME + suffix, EDIFDirection.INPUT, width);
-        EDIFPort r = top.createPort(RESULT_NAME + "["+(pWidth-1)+":0]", EDIFDirection.OUTPUT, pWidth);
+        EDIFPort r = top.createPort(RESULT_NAME + "[" + (pWidth - 1) + ":0]", EDIFDirection.OUTPUT, pWidth);
 
-        for (int i=0; i < width; i++) {
-            suffix = "["+i+"]";
+        for (int i = 0; i < width; i++) {
+            suffix = "[" + i + "]";
             EDIFNet aNet = top.createNet(INPUT_A_NAME + suffix);
             EDIFNet bNet = top.createNet(INPUT_B_NAME + suffix);
             EDIFNet rNet = top.createNet(RESULT_NAME + suffix);
 
-            aNet.createPortInst(a,width-i-1);
-            bNet.createPortInst(b,width-i-1);
-            rNet.createPortInst(r,pWidth-i-1);
+            aNet.createPortInst(a, width - i - 1);
+            bNet.createPortInst(b, width - i - 1);
+            rNet.createPortInst(r, pWidth - i - 1);
 
-            aNet.createPortInst(INPUT_A_NAME, aWidth-i-1, inst);
-            bNet.createPortInst(INPUT_B_NAME, bWidth-i-1, inst);
-            rNet.createPortInst(RESULT_NAME, pWidth-i-1, inst);
-
+            aNet.createPortInst(INPUT_A_NAME, aWidth - i - 1, inst);
+            bNet.createPortInst(INPUT_B_NAME, bWidth - i - 1, inst);
+            rNet.createPortInst(RESULT_NAME, pWidth - i - 1, inst);
 
             Net physA = d.createNet(inst + "/" + aNet.getName());
             Net physB = d.createNet(inst + "/" + bNet.getName());
@@ -232,32 +228,30 @@ public class MultGenerator extends ArithmeticGenerator {
             physB.createPin(INPUT_B_NAME + i, si);
             physR.createPin(RESULT_NAME + i, si);
         }
-        for (int i=width; i < pWidth; i++) {
-            suffix = "["+i+"]";
+        for (int i = width; i < pWidth; i++) {
+            suffix = "[" + i + "]";
             EDIFNet rNet = top.createNet(RESULT_NAME + suffix);
-            rNet.createPortInst(r,pWidth-i-1);
-            rNet.createPortInst(RESULT_NAME, pWidth-i-1, inst);
+            rNet.createPortInst(r, pWidth - i - 1);
+            rNet.createPortInst(RESULT_NAME, pWidth - i - 1, inst);
             Net physR = d.createNet(inst + "/" + rNet.getName());
             physR.createPin(RESULT_NAME + i, si);
         }
 
         // ADD SitePIPs
-        String[] sitePIPElements = new String[]{
-                "ALUMODE0INV","ALUMODE1INV","ALUMODE2INV","ALUMODE3INV",
-                "CARRYININV","CLKINV","INMODE0INV","INMODE1INV","INMODE2INV",
-                "INMODE3INV","INMODE4INV","OPMODE0INV","OPMODE1INV","OPMODE2INV",
-                "OPMODE3INV","OPMODE4INV","OPMODE5INV","OPMODE6INV","OPMODE7INV",
-                "OPMODE8INV","RSTAINV","RSTALLCARRYININV","RSTALUMODEINV","RSTBINV",
-                "RSTCINV","RSTCTRLINV","RSTDINV","RSTINMODEINV","RSTMINV","RSTPINV"
-        };
+        String[] sitePIPElements = new String[] {
+            "ALUMODE0INV", "ALUMODE1INV", "ALUMODE2INV", "ALUMODE3INV",      "CARRYININV",    "CLKINV",
+            "INMODE0INV",  "INMODE1INV",  "INMODE2INV",  "INMODE3INV",       "INMODE4INV",    "OPMODE0INV",
+            "OPMODE1INV",  "OPMODE2INV",  "OPMODE3INV",  "OPMODE4INV",       "OPMODE5INV",    "OPMODE6INV",
+            "OPMODE7INV",  "OPMODE8INV",  "RSTAINV",     "RSTALLCARRYININV", "RSTALUMODEINV", "RSTBINV",
+            "RSTCINV",     "RSTCTRLINV",  "RSTDINV",     "RSTINMODEINV",     "RSTMINV",       "RSTPINV"};
         for (String element : sitePIPElements) {
-            String pinName = element.substring(0, element.length()-3);
+            String pinName = element.substring(0, element.length() - 3);
             Net net = null;
             if (element.equals("CLKINV")) {
                 net = physClk;
             } else if (element.startsWith("OPMODE")) {
                 int idx = element.charAt(6) - 48;
-                char c = OPMODE_VALUE.charAt(OPMODE_VALUE.length()-idx-1);
+                char c = OPMODE_VALUE.charAt(OPMODE_VALUE.length() - idx - 1);
                 net = c == '1' ? logic1 : logic0;
             } else {
                 net = logic0;
@@ -267,9 +261,11 @@ public class MultGenerator extends ArithmeticGenerator {
         }
 
         for (EDIFPort port : inst.getCellType().getPorts()) {
-            if (!port.isOutput()) continue;
-            if (port.getBusName().equals(RESULT_NAME)) continue;
-            for (int i=0; i < port.getWidth(); i++) {
+            if (!port.isOutput())
+                continue;
+            if (port.getBusName().equals(RESULT_NAME))
+                continue;
+            for (int i = 0; i < port.getWidth(); i++) {
                 EDIFNet net = top.createNet(port.getBusName() + (port.getWidth() > 1 ? "[" + i + "]" : ""));
                 int ii = port.getWidth() - 1 - i;
                 if (port.isBus()) {
@@ -294,15 +290,17 @@ public class MultGenerator extends ArithmeticGenerator {
             }
         }
 
-        Set<String> specialCases = new HashSet<>(Arrays.asList("ALUMODE10","AMULT26","BMULT17","P_FDBK_47","INMODE_2"));
-
+        Set<String> specialCases =
+            new HashSet<>(Arrays.asList("ALUMODE10", "AMULT26", "BMULT17", "P_FDBK_47", "INMODE_2"));
 
         for (String dspCell : dspCells) {
             BEL elem = si.getSite().getBEL(dspCell);
-            next_pin : for (int i=elem.getHighestInputIndex()+1; i < elem.getPins().length; i++) {
+        next_pin:
+            for (int i = elem.getHighestInputIndex() + 1; i < elem.getPins().length; i++) {
                 BELPin outpin = elem.getPin(i);
                 for (BELPin conn : outpin.getSiteConns()) {
-                    if (conn.isSitePort()) continue next_pin;
+                    if (conn.isSitePort())
+                        continue next_pin;
                 }
                 String pinName = null;
                 if (specialCases.contains(outpin.getName())) {
@@ -320,32 +318,48 @@ public class MultGenerator extends ArithmeticGenerator {
             }
         }
 
-        return new PBlock(d.getDevice(),origin.getName() +":"+origin.getName());
+        return new PBlock(d.getDevice(), origin.getName() + ":" + origin.getName());
     }
 
     private static OptionParser createOptionParser() {
         // Defaults
         String partName = Device.AWS_F1;
         String designName = "mult";
-        String outputDCPFileName = System.getProperty("user.dir") + File.separator + designName +".dcp";
+        String outputDCPFileName = System.getProperty("user.dir") + File.separator + designName + ".dcp";
         String clkName = "clk";
         double clkPeriodConstraint = 1.291; // 775 MHz
-        int width = 16;//*30*5;
+        int width = 16;                     //*30*5;
         String dspSite = "DSP48E2_X9Y60";
         boolean verbose = true;
 
-
-        OptionParser p = new OptionParser() {{
-            accepts(PART_OPT).withOptionalArg().defaultsTo(partName).describedAs("UltraScale+ Part Name");
-            accepts(DESIGN_NAME_OPT).withOptionalArg().defaultsTo(designName).describedAs("Design Name");
-            accepts(OUT_DCP_OPT).withOptionalArg().defaultsTo(outputDCPFileName).describedAs("Output DCP File Name");
-            accepts(CLK_NAME_OPT).withOptionalArg().defaultsTo(clkName).describedAs("Clk net name");
-            accepts(CLK_CONSTRAINT_OPT).withOptionalArg().ofType(Double.class).defaultsTo(clkPeriodConstraint).describedAs("Clk period constraint (ns)");
-            accepts(WIDTH_OPT).withOptionalArg().ofType(Integer.class).defaultsTo(width).describedAs("Operand width");
-            accepts(DSP_SITE_OPT).withOptionalArg().defaultsTo(dspSite).describedAs("DSP48 to be used");
-            accepts(VERBOSE_OPT).withOptionalArg().ofType(Boolean.class).defaultsTo(verbose).describedAs("Print verbose output");
-            acceptsAll( Arrays.asList(HELP_OPT, "?"), "Print Help" ).forHelp();
-        }};
+        OptionParser p = new OptionParser() {
+            {
+                accepts(PART_OPT).withOptionalArg().defaultsTo(partName).describedAs("UltraScale+ Part Name");
+                accepts(DESIGN_NAME_OPT).withOptionalArg().defaultsTo(designName).describedAs("Design Name");
+                accepts(OUT_DCP_OPT)
+                    .withOptionalArg()
+                    .defaultsTo(outputDCPFileName)
+                    .describedAs("Output DCP File Name");
+                accepts(CLK_NAME_OPT).withOptionalArg().defaultsTo(clkName).describedAs("Clk net name");
+                accepts(CLK_CONSTRAINT_OPT)
+                    .withOptionalArg()
+                    .ofType(Double.class)
+                    .defaultsTo(clkPeriodConstraint)
+                    .describedAs("Clk period constraint (ns)");
+                accepts(WIDTH_OPT)
+                    .withOptionalArg()
+                    .ofType(Integer.class)
+                    .defaultsTo(width)
+                    .describedAs("Operand width");
+                accepts(DSP_SITE_OPT).withOptionalArg().defaultsTo(dspSite).describedAs("DSP48 to be used");
+                accepts(VERBOSE_OPT)
+                    .withOptionalArg()
+                    .ofType(Boolean.class)
+                    .defaultsTo(verbose)
+                    .describedAs("Print verbose output");
+                acceptsAll(Arrays.asList(HELP_OPT, "?"), "Print Help").forHelp();
+            }
+        };
 
         return p;
     }
@@ -353,8 +367,8 @@ public class MultGenerator extends ArithmeticGenerator {
     private static void printHelp(OptionParser p) {
         MessageGenerator.printHeader("Multiplier Generator");
         System.out.println("This RapidWright program creates a placed and routed DCP that can be \n"
-            + "imported into UltraScale+ designs that will perform integer multiplication.  See \n"
-            + "RapidWright documentation for more information.\n");
+                           + "imported into UltraScale+ designs that will perform integer multiplication.  See \n"
+                           + "RapidWright documentation for more information.\n");
         try {
             p.accepts(OUT_DCP_OPT).withOptionalArg().defaultsTo("mult.dcp").describedAs("Output DCP File Name");
             p.printHelpOn(System.out);
@@ -368,20 +382,21 @@ public class MultGenerator extends ArithmeticGenerator {
         // Extract program options
         OptionParser p = createOptionParser();
         OptionSet opts = p.parse(args);
-        boolean verbose = (boolean) opts.valueOf(VERBOSE_OPT);
+        boolean verbose = (boolean)opts.valueOf(VERBOSE_OPT);
         if (opts.has(HELP_OPT)) {
             printHelp(p);
             return;
         }
-        CodePerfTracker t = verbose ? new CodePerfTracker(MultGenerator.class.getSimpleName(),true).start("Init") : null;
+        CodePerfTracker t =
+            verbose ? new CodePerfTracker(MultGenerator.class.getSimpleName(), true).start("Init") : null;
 
-        String partName = (String) opts.valueOf(PART_OPT);
-        String designName = (String) opts.valueOf(DESIGN_NAME_OPT);
-        String outputDCPFileName = (String) opts.valueOf(OUT_DCP_OPT);
-        String clkName = (String) opts.valueOf(CLK_NAME_OPT);
-        double clkPeriodConstraint = (double) opts.valueOf(CLK_CONSTRAINT_OPT);
-        int width = (int) opts.valueOf(WIDTH_OPT);
-        String dspName = (String) opts.valueOf(DSP_SITE_OPT);
+        String partName = (String)opts.valueOf(PART_OPT);
+        String designName = (String)opts.valueOf(DESIGN_NAME_OPT);
+        String outputDCPFileName = (String)opts.valueOf(OUT_DCP_OPT);
+        String clkName = (String)opts.valueOf(CLK_NAME_OPT);
+        double clkPeriodConstraint = (double)opts.valueOf(CLK_CONSTRAINT_OPT);
+        int width = (int)opts.valueOf(WIDTH_OPT);
+        String dspName = (String)opts.valueOf(DSP_SITE_OPT);
 
         // Perform some error checking on inputs
         Part part = PartNameTools.getPart(partName);
@@ -389,7 +404,7 @@ public class MultGenerator extends ArithmeticGenerator {
             throw new RuntimeException("ERROR: Invalid/unsupport part " + partName + ".");
         }
 
-        Design d = new Design(designName,partName);
+        Design d = new Design(designName, partName);
         d.setAutoIOBuffers(false);
         Device dev = d.getDevice();
 
@@ -398,13 +413,15 @@ public class MultGenerator extends ArithmeticGenerator {
         createMult(d, dsp, width, designName, clkName);
 
         // Add a clock constraint
-        String tcl = "create_clock -name "+clkName+" -period "+clkPeriodConstraint+" [get_ports "+clkName+"]";
+        String tcl =
+            "create_clock -name " + clkName + " -period " + clkPeriodConstraint + " [get_ports " + clkName + "]";
         d.addXDCConstraint(ConstraintGroup.LATE, tcl);
         d.setAutoIOBuffers(false);
 
         t.stop();
 
         d.writeCheckpoint(outputDCPFileName, t);
-        if (verbose) System.out.println("Wrote final DCP: " + outputDCPFileName);
+        if (verbose)
+            System.out.println("Wrote final DCP: " + outputDCPFileName);
     }
 }

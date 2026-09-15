@@ -39,14 +39,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.capnproto.MessageBuilder;
-import org.capnproto.PrimitiveList;
-import org.capnproto.PrimitiveList.Int;
-import org.capnproto.StructList;
-import org.capnproto.Text;
-import org.capnproto.TextList;
-import org.capnproto.Void;
-
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.DesignTools;
 import com.xilinx.rapidwright.design.SiteInst;
@@ -101,13 +93,20 @@ import com.xilinx.rapidwright.interchange.LogicalNetlist.Netlist.Direction;
 import com.xilinx.rapidwright.interchange.LogicalNetlist.Netlist.PropertyMap;
 import com.xilinx.rapidwright.tests.CodePerfTracker;
 import com.xilinx.rapidwright.util.Pair;
+import org.capnproto.MessageBuilder;
+import org.capnproto.PrimitiveList;
+import org.capnproto.PrimitiveList.Int;
+import org.capnproto.StructList;
+import org.capnproto.Text;
+import org.capnproto.TextList;
+import org.capnproto.Void;
 
 public class DeviceResourcesWriter {
     private static StringEnumerator allStrings;
     private static IdentityEnumerator<SiteTypeEnum> allSiteTypes;
 
-    private static HashMap<TileTypeEnum,Tile> tileTypes;
-    private static HashMap<SiteTypeEnum,Site> siteTypes;
+    private static HashMap<TileTypeEnum, Tile> tileTypes;
+    private static HashMap<SiteTypeEnum, Site> siteTypes;
 
     public static void populateSiteEnumerations(SiteInst siteInst, Site site) {
         if (!siteTypes.containsKey(siteInst.getSiteTypeEnum())) {
@@ -134,11 +133,10 @@ public class DeviceResourcesWriter {
     }
 
     public static void populateEnumerations(Design design, Device device) {
-
         allStrings = new StringEnumerator();
         allSiteTypes = new IdentityEnumerator<>();
 
-        HashMap<SiteTypeEnum,Site> allAltSiteTypeEnums = new HashMap<>();
+        HashMap<SiteTypeEnum, Site> allAltSiteTypeEnums = new HashMap<>();
 
         tileTypes = new HashMap<>();
         siteTypes = new HashMap<>();
@@ -146,10 +144,10 @@ public class DeviceResourcesWriter {
             allStrings.addObject(tile.getName());
             if (!tileTypes.containsKey(tile.getTileTypeEnum())) {
                 allStrings.addObject(tile.getTileTypeEnum().name());
-                for (int i=0; i < tile.getWireCount(); i++) {
+                for (int i = 0; i < tile.getWireCount(); i++) {
                     allStrings.addObject(tile.getWireName(i));
                 }
-                tileTypes.put(tile.getTileTypeEnum(),tile);
+                tileTypes.put(tile.getTileTypeEnum(), tile);
             }
             for (Site site : tile.getSites()) {
                 allStrings.addObject(site.getName());
@@ -159,7 +157,7 @@ public class DeviceResourcesWriter {
                 design.removeSiteInst(siteInst);
 
                 SiteTypeEnum[] altSiteTypes = site.getAlternateSiteTypeEnums();
-                for (int i=0; i < altSiteTypes.length; i++) {
+                for (int i = 0; i < altSiteTypes.length; i++) {
                     SiteInst altSiteInst = design.createSiteInst("site_instance", altSiteTypes[i], site);
                     populateSiteEnumerations(altSiteInst, site);
                     design.removeSiteInst(altSiteInst);
@@ -168,11 +166,10 @@ public class DeviceResourcesWriter {
                     }
                 }
             }
-
         }
         Map<String, Pair<String, EnumSet<IOStandard>>> macroExpandExceptionMap =
-                EDIFNetlist.macroExpandExceptionMap.getOrDefault(device.getSeries(), Collections.emptyMap());
-        for (Entry<String,Pair<String, EnumSet<IOStandard>>> e : macroExpandExceptionMap.entrySet()) {
+            EDIFNetlist.macroExpandExceptionMap.getOrDefault(device.getSeries(), Collections.emptyMap());
+        for (Entry<String, Pair<String, EnumSet<IOStandard>>> e : macroExpandExceptionMap.entrySet()) {
             allStrings.addObject(e.getKey());
             allStrings.addObject(e.getValue().getFirst());
             for (IOStandard ioStd : e.getValue().getSecond()) {
@@ -187,30 +184,32 @@ public class DeviceResourcesWriter {
         }
     }
 
-    private static void writeCellParameterDefinitions(Series series, EDIFNetlist prims, ParameterDefinitions.Builder builder) {
+    private static void writeCellParameterDefinitions(Series series, EDIFNetlist prims,
+                                                      ParameterDefinitions.Builder builder) {
         Set<String> cellsWithParameters = new HashSet<String>();
         for (EDIFLibrary library : prims.getLibraries()) {
             for (EDIFCell cell : library.getCells()) {
                 String cellTypeName = cell.getName();
 
-                Map<String,VivadoProp> defaultCellProperties = Design.getDefaultCellProperties(series, cellTypeName);
+                Map<String, VivadoProp> defaultCellProperties = Design.getDefaultCellProperties(series, cellTypeName);
                 if (defaultCellProperties != null && defaultCellProperties.size() > 0) {
                     cellsWithParameters.add(cellTypeName);
                 }
             }
         }
 
-        StructList.Builder<CellParameterDefinition.Builder> cellParamDefs = builder.initCells(cellsWithParameters.size());
+        StructList.Builder<CellParameterDefinition.Builder> cellParamDefs =
+            builder.initCells(cellsWithParameters.size());
         int i = 0;
         for (String cellTypeName : cellsWithParameters) {
             CellParameterDefinition.Builder cellParamDef = cellParamDefs.get(i);
             i += 1;
 
-
             cellParamDef.setCellType(allStrings.getIndex(cellTypeName));
-            Map<String,VivadoProp> defaultCellProperties = Design.getDefaultCellProperties(series, cellTypeName);
+            Map<String, VivadoProp> defaultCellProperties = Design.getDefaultCellProperties(series, cellTypeName);
 
-            StructList.Builder<ParameterDefinition.Builder> paramDefs = cellParamDef.initParameters(defaultCellProperties.size());
+            StructList.Builder<ParameterDefinition.Builder> paramDefs =
+                cellParamDef.initParameters(defaultCellProperties.size());
             int j = 0;
             for (Map.Entry<String, VivadoProp> property : defaultCellProperties.entrySet()) {
                 ParameterDefinition.Builder paramDef = paramDefs.get(j);
@@ -245,7 +244,6 @@ public class DeviceResourcesWriter {
         }
     }
 
-
     protected static boolean containsUnusedMacros(EDIFCell cell, Set<EDIFCell> unusedMacros) {
         Queue<EDIFCell> q = new LinkedList<>();
         Set<EDIFCell> visited = new HashSet<>();
@@ -259,20 +257,21 @@ public class DeviceResourcesWriter {
             }
             for (EDIFCellInst inst : cell.getCellInsts()) {
                 EDIFCell child = inst.getCellType();
-                if (visited.contains(child)) continue;
+                if (visited.contains(child))
+                    continue;
                 q.add(child);
             }
         }
         return false;
     }
 
-    public static void writeDeviceResourcesFile(String part, Device device, CodePerfTracker t,
-            String fileName) throws IOException {
+    public static void writeDeviceResourcesFile(String part, Device device, CodePerfTracker t, String fileName)
+        throws IOException {
         writeDeviceResourcesFile(part, device, t, fileName, false);
     }
 
-    public static void writeDeviceResourcesFile(String part, Device device, CodePerfTracker t, 
-            String fileName, boolean skipRouteResources) throws IOException {
+    public static void writeDeviceResourcesFile(String part, Device device, CodePerfTracker t, String fileName,
+                                                boolean skipRouteResources) throws IOException {
         Design design = new Design();
         design.setPartName(part);
         Series series = device.getSeries();
@@ -326,7 +325,7 @@ public class DeviceResourcesWriter {
         macros = netlist.copyLibraryAndSubCells(macros);
 
         Map<String, Pair<String, EnumSet<IOStandard>>> macroCollapseExceptionMap =
-                EDIFNetlist.macroCollapseExceptionMap.getOrDefault(series, Collections.emptyMap());
+            EDIFNetlist.macroCollapseExceptionMap.getOrDefault(series, Collections.emptyMap());
         List<Unisim> unisims = new ArrayList<Unisim>();
         for (EDIFCell cell : macros.getCells()) {
             String cellName = cell.getName();
@@ -335,14 +334,14 @@ public class DeviceResourcesWriter {
                 cellName = entry.getFirst();
             }
             Unisim unisim = Unisim.valueOf(cellName);
-            Map<String,String> invertiblePins = DesignTools.getInvertiblePinMap(series, unisim);
+            Map<String, String> invertiblePins = DesignTools.getInvertiblePinMap(series, unisim);
             if (invertiblePins != null && invertiblePins.size() > 0) {
                 unisims.add(unisim);
             }
         }
         for (EDIFCell cell : prims.getCells()) {
             Unisim unisim = Unisim.valueOf(cell.getName());
-            Map<String,String> invertiblePins = DesignTools.getInvertiblePinMap(series, unisim);
+            Map<String, String> invertiblePins = DesignTools.getInvertiblePinMap(series, unisim);
             if (invertiblePins != null && invertiblePins.size() > 0) {
                 unisims.add(unisim);
             }
@@ -354,8 +353,9 @@ public class DeviceResourcesWriter {
             CellInversion.Builder cellInversion = cellInversions.get(i);
             cellInversion.setCell(allStrings.getIndex(unisim.name()));
 
-            Map<String,String> invertiblePins = DesignTools.getInvertiblePinMap(series, unisim);
-            StructList.Builder<CellPinInversion.Builder> cellPinInversions = cellInversion.initCellPins(invertiblePins.size());
+            Map<String, String> invertiblePins = DesignTools.getInvertiblePinMap(series, unisim);
+            StructList.Builder<CellPinInversion.Builder> cellPinInversions =
+                cellInversion.initCellPins(invertiblePins.size());
 
             int j = 0;
             for (Map.Entry<String, String> entry : invertiblePins.entrySet()) {
@@ -381,25 +381,25 @@ public class DeviceResourcesWriter {
 
         Netlist.Builder netlistBuilder = devBuilder.getPrimLibs();
         netlistBuilder.setName(netlist.getName());
-        LogNetlistWriter writer = new LogNetlistWriter(allStrings, new HashMap<String, String>() {{
-                    put(EDIFTools.EDIF_LIBRARY_HDI_PRIMITIVES_NAME, LogNetlistWriter.DEVICE_PRIMITIVES_LIB);
-                    put(series+"_"+EDIFTools.MACRO_PRIMITIVES_LIB, LogNetlistWriter.DEVICE_MACROS_LIB);
-                }}
-            );
+        LogNetlistWriter writer = new LogNetlistWriter(allStrings, new HashMap<String, String>() {
+            {
+                put(EDIFTools.EDIF_LIBRARY_HDI_PRIMITIVES_NAME, LogNetlistWriter.DEVICE_PRIMITIVES_LIB);
+                put(series + "_" + EDIFTools.MACRO_PRIMITIVES_LIB, LogNetlistWriter.DEVICE_MACROS_LIB);
+            }
+        });
         writer.populateNetlistBuilder(netlist, netlistBuilder, CodePerfTracker.SILENT);
 
         writeCellParameterDefinitions(series, netlist, devBuilder.getParameterDefs());
 
         // Write macro exception map
         Map<String, Pair<String, EnumSet<IOStandard>>> expandMap =
-                EDIFNetlist.macroExpandExceptionMap.getOrDefault(series, Collections.emptyMap());
+            EDIFNetlist.macroExpandExceptionMap.getOrDefault(series, Collections.emptyMap());
         Map<String, MacroParamRule[]> paramRules = MacroParamMappingRules.macroRules.get(series);
         Set<String> exceptionMacros = new TreeSet<>(expandMap.keySet());
         exceptionMacros.addAll(paramRules.keySet());
         int size = exceptionMacros.size();
-        StructList.Builder<PrimToMacroExpansion.Builder> exceptionMap =
-                devBuilder.initExceptionMap(size);
-        int i=0;
+        StructList.Builder<PrimToMacroExpansion.Builder> exceptionMap = devBuilder.initExceptionMap(size);
+        int i = 0;
         int ioStdPropIdx = allStrings.getIndex(EDIFNetlist.IOSTANDARD_PROP);
         for (String macroName : exceptionMacros) {
             PrimToMacroExpansion.Builder entryBuilder = exceptionMap.get(i);
@@ -412,8 +412,8 @@ public class DeviceResourcesWriter {
                 entryBuilder.setMacroName(allStrings.getIndex(expandException.getFirst()));
 
                 StructList.Builder<PropertyMap.Entry.Builder> ioStdEntries =
-                        entryBuilder.initParameters(expandException.getSecond().size());
-                int j=0;
+                    entryBuilder.initParameters(expandException.getSecond().size());
+                int j = 0;
                 for (IOStandard ioStd : expandException.getSecond()) {
                     PropertyMap.Entry.Builder ioStdEntry = ioStdEntries.get(j);
                     ioStdEntry.setKey(ioStdPropIdx);
@@ -425,17 +425,15 @@ public class DeviceResourcesWriter {
             // Check if this macro has a parameter propagation rule set
             if (paramRules.containsKey(macroName)) {
                 MacroParamRule[] rules = paramRules.get(macroName);
-                StructList.Builder<ParameterMapRule.Builder> parameterMap =
-                        entryBuilder.initParamMapping(rules.length);
-                int j=0;
+                StructList.Builder<ParameterMapRule.Builder> parameterMap = entryBuilder.initParamMapping(rules.length);
+                int j = 0;
                 for (MacroParamRule rule : rules) {
                     ParameterMapRule.Builder ruleBuilder = parameterMap.get(j);
                     ruleBuilder.setPrimParam(allStrings.getIndex(rule.getPrimParam()));
                     ruleBuilder.setInstName(allStrings.getIndex(rule.getInstName()));
                     ruleBuilder.setInstParam(allStrings.getIndex(rule.getInstParam()));
                     if (rule.getBitSlice() != null) {
-                        PrimitiveList.Int.Builder bitsBuilder =
-                                ruleBuilder.initBitSlice(rule.getBitSlice().length);
+                        PrimitiveList.Int.Builder bitsBuilder = ruleBuilder.initBitSlice(rule.getBitSlice().length);
                         for (int k = 0; k < rule.getBitSlice().length; k++) {
                             bitsBuilder.set(k, rule.getBitSlice()[k]);
                         }
@@ -465,7 +463,8 @@ public class DeviceResourcesWriter {
         populatePackages(allStrings, device, devBuilder);
 
         t.stop().start("Constants");
-        ConstantDefinitions.writeConstants(allStrings, device, devBuilder.initConstants(), design, siteTypes, tileTypesObj);
+        ConstantDefinitions.writeConstants(allStrings, device, devBuilder.initConstants(), design, siteTypes,
+                                           tileTypesObj);
 
         t.stop().start("Wire Types");
         writeWireTypes(allStrings, devBuilder);
@@ -508,7 +507,7 @@ public class DeviceResourcesWriter {
     public static void writeAllStringsToBuilder(DeviceResources.Device.Builder devBuilder) {
         int stringCount = allStrings.size();
         TextList.Builder strList = devBuilder.initStrList(stringCount);
-        for (int i=0; i < stringCount; i++) {
+        for (int i = 0; i < stringCount; i++) {
             strList.set(i, new Text.Reader(allStrings.get(i)));
         }
     }
@@ -535,11 +534,12 @@ public class DeviceResourcesWriter {
         return Direction._NOT_IN_SCHEMA;
     }
 
-    public static void writeAllSiteTypesToBuilder(Design design, Device device, DeviceResources.Device.Builder devBuilder) {
+    public static void writeAllSiteTypesToBuilder(Design design, Device device,
+                                                  DeviceResources.Device.Builder devBuilder) {
         StructList.Builder<SiteType.Builder> siteTypesList = devBuilder.initSiteTypeList(siteTypes.size());
 
-        int i=0;
-        for (Entry<SiteTypeEnum,Site> e : siteTypes.entrySet()) {
+        int i = 0;
+        for (Entry<SiteTypeEnum, Site> e : siteTypes.entrySet()) {
             SiteType.Builder siteType = siteTypesList.get(i);
             Site site = e.getValue();
             SiteInst siteInst = design.createSiteInst("site_instance", e.getKey(), site);
@@ -551,13 +551,13 @@ public class DeviceResourcesWriter {
 
             // BELs
             StructList.Builder<Builder> belBuilders = siteType.initBels(siteInst.getBELs().length);
-            for (int j=0; j < siteInst.getBELs().length; j++) {
+            for (int j = 0; j < siteInst.getBELs().length; j++) {
                 BEL bel = siteInst.getBELs()[j];
                 Builder belBuilder = belBuilders.get(j);
                 belBuilder.setName(allStrings.getIndex(bel.getName()));
                 belBuilder.setType(allStrings.getIndex(bel.getBELType()));
                 PrimitiveList.Int.Builder belPinsBuilder = belBuilder.initPins(bel.getPins().length);
-                for (int k=0; k < bel.getPins().length; k++) {
+                for (int k = 0; k < bel.getPins().length; k++) {
                     BELPin belPin = bel.getPin(k);
                     belPinsBuilder.set(k, allBELPins.getIndex(belPin));
                 }
@@ -581,7 +581,7 @@ public class DeviceResourcesWriter {
             siteType.setLastInput(highestIndexInputPin);
 
             StructList.Builder<SitePin.Builder> pins = siteType.initPins(pinNames.size());
-            for (int j=0; j < pinNames.size(); j++) {
+            for (int j = 0; j < pinNames.size(); j++) {
                 String primarySitePinName = pinNames.get(j);
                 int sitePinIndex = site.getPinIndex(pinNames.get(j));
                 if (sitePinIndex == -1) {
@@ -590,7 +590,9 @@ public class DeviceResourcesWriter {
                 }
 
                 if (sitePinIndex == -1) {
-                    throw new RuntimeException("Failed to find pin index for site " + site.getName() + " site type " + e.getKey().name()+ " site pin " + primarySitePinName + " / " + pinNames.get(j));
+                    throw new RuntimeException("Failed to find pin index for site " + site.getName() + " site type " +
+                                               e.getKey().name() + " site pin " + primarySitePinName + " / " +
+                                               pinNames.get(j));
                 }
 
                 SitePin.Builder pin = pins.get(j);
@@ -607,23 +609,22 @@ public class DeviceResourcesWriter {
 
             // SiteWires
             String[] siteWires = siteInst.getSiteWires();
-            StructList.Builder<SiteWire.Builder> swBuilders =
-                    siteType.initSiteWires(siteWires.length);
-            for (int j=0; j < siteWires.length; j++) {
+            StructList.Builder<SiteWire.Builder> swBuilders = siteType.initSiteWires(siteWires.length);
+            for (int j = 0; j < siteWires.length; j++) {
                 SiteWire.Builder swBuilder = swBuilders.get(j);
                 String siteWireName = siteWires[j];
                 swBuilder.setName(allStrings.getIndex(siteWireName));
                 BELPin[] swPins = siteInst.getSiteWirePins(siteWireName);
                 PrimitiveList.Int.Builder bpBuilders = swBuilder.initPins(swPins.length);
-                for (int k=0; k < swPins.length; k++) {
+                for (int k = 0; k < swPins.length; k++) {
                     bpBuilders.set(k, allBELPins.getIndex(swPins[k]));
                 }
             }
 
             // Write out BEL pins.
             StructList.Builder<DeviceResources.Device.BELPin.Builder> belPinBuilders =
-                    siteType.initBelPins(allBELPins.size());
-            for (int j=0; j < allBELPins.size(); j++) {
+                siteType.initBelPins(allBELPins.size());
+            for (int j = 0; j < allBELPins.size(); j++) {
                 DeviceResources.Device.BELPin.Builder belPinBuilder = belPinBuilders.get(j);
                 BELPin belPin = allBELPins.get(j);
                 belPinBuilder.setName(allStrings.getIndex(belPin.getName()));
@@ -634,8 +635,8 @@ public class DeviceResourcesWriter {
 
             // Write out SitePIPs
             StructList.Builder<DeviceResources.Device.SitePIP.Builder> spBuilders =
-                    siteType.initSitePIPs(allSitePIPs.length);
-            for (int j=0; j < allSitePIPs.length; j++) {
+                siteType.initSitePIPs(allSitePIPs.length);
+            for (int j = 0; j < allSitePIPs.length; j++) {
                 DeviceResources.Device.SitePIP.Builder spBuilder = spBuilders.get(j);
                 SitePIP sitePIP = allSitePIPs[j];
                 spBuilder.setInpin(allBELPins.getIndex(sitePIP.getInputPin()));
@@ -647,7 +648,7 @@ public class DeviceResourcesWriter {
         }
 
         i = 0;
-        for (Entry<SiteTypeEnum,Site> e : siteTypes.entrySet()) {
+        for (Entry<SiteTypeEnum, Site> e : siteTypes.entrySet()) {
             Site site = e.getValue();
 
             SiteType.Builder siteType = siteTypesList.get(i);
@@ -655,10 +656,11 @@ public class DeviceResourcesWriter {
             SiteTypeEnum[] altSiteTypes = site.getAlternateSiteTypeEnums();
             PrimitiveList.Int.Builder altSiteTypesBuilder = siteType.initAltSiteTypes(altSiteTypes.length);
 
-            for (int j=0; j < altSiteTypes.length; ++j) {
+            for (int j = 0; j < altSiteTypes.length; ++j) {
                 Integer siteTypeIdx = allSiteTypes.maybeGetIndex(altSiteTypes[j]);
                 if (siteTypeIdx == null) {
-                    throw new RuntimeException("Site type " + altSiteTypes[j].name() + " is missing from allSiteTypes Enumerator.");
+                    throw new RuntimeException("Site type " + altSiteTypes[j].name() +
+                                               " is missing from allSiteTypes Enumerator.");
                 }
                 altSiteTypesBuilder.set(j, siteTypeIdx);
             }
@@ -667,12 +669,10 @@ public class DeviceResourcesWriter {
         }
     }
 
-    private static void populateAltSitePins(
-            Design design,
-            Site site,
-            int primaryTypeIndex,
-            StructList.Builder<DeviceResources.Device.ParentPins.Builder> listOfParentPins,
-            DeviceResources.Device.Builder devBuilder) {
+    private static void
+    populateAltSitePins(Design design, Site site, int primaryTypeIndex,
+                        StructList.Builder<DeviceResources.Device.ParentPins.Builder> listOfParentPins,
+                        DeviceResources.Device.Builder devBuilder) {
         PrimitiveList.Int.Builder altSiteTypes = devBuilder.getSiteTypeList().get(primaryTypeIndex).getAltSiteTypes();
         SiteTypeEnum[] altSiteTypeEnums = site.getAlternateSiteTypeEnums();
         for (int i = 0; i < altSiteTypeEnums.length; ++i) {
@@ -693,14 +693,15 @@ public class DeviceResourcesWriter {
         }
     }
 
-    public static Map<TileTypeEnum, Integer> writeAllTileTypesToBuilder(Design design, Device device, DeviceResources.Device.Builder devBuilder) {
+    public static Map<TileTypeEnum, Integer> writeAllTileTypesToBuilder(Design design, Device device,
+                                                                        DeviceResources.Device.Builder devBuilder) {
         StructList.Builder<TileType.Builder> tileTypesList = devBuilder.initTileTypeList(tileTypes.size());
 
         Map<TileTypeEnum, Integer> tileTypeIndices = new HashMap<TileTypeEnum, Integer>();
 
         // Order tile types by their TILE_TYPE_IDX (may not be contiguous)
         Map<Integer, TileTypeEnum> tileTypeIndexMap = new TreeMap<>();
-        for (Entry<TileTypeEnum,Tile> e : tileTypes.entrySet()) {
+        for (Entry<TileTypeEnum, Tile> e : tileTypes.entrySet()) {
             tileTypeIndexMap.put(e.getValue().getTileTypeIndex(), e.getKey());
         }
 
@@ -715,37 +716,34 @@ public class DeviceResourcesWriter {
 
             // siteTypes
             Site[] sites = tile.getSites();
-            StructList.Builder<DeviceResources.Device.SiteTypeInTileType.Builder> siteTypes = tileType.initSiteTypes(sites.length);
-            for (int j=0; j < sites.length; j++) {
+            StructList.Builder<DeviceResources.Device.SiteTypeInTileType.Builder> siteTypes =
+                tileType.initSiteTypes(sites.length);
+            for (int j = 0; j < sites.length; j++) {
                 DeviceResources.Device.SiteTypeInTileType.Builder siteType = siteTypes.get(j);
                 int primaryTypeIndex = allSiteTypes.getIndex(sites[j].getSiteTypeEnum());
                 siteType.setPrimaryType(primaryTypeIndex);
 
                 int numPins = sites[j].getSitePinCount();
                 PrimitiveList.Int.Builder pinWires = siteType.initPrimaryPinsToTileWires(numPins);
-                for (int k=0; k < numPins; ++k) {
+                for (int k = 0; k < numPins; ++k) {
                     pinWires.set(k, allStrings.getIndex(sites[j].getTileWireNameFromPinName(sites[j].getPinName(k))));
                 }
 
-                populateAltSitePins(
-                        design,
-                        sites[j],
-                        primaryTypeIndex,
-                        siteType.initAltPinsToPrimaryPins(sites[j].getAlternateSiteTypeEnums().length),
-                        devBuilder);
+                populateAltSitePins(design, sites[j], primaryTypeIndex,
+                                    siteType.initAltPinsToPrimaryPins(sites[j].getAlternateSiteTypeEnums().length),
+                                    devBuilder);
             }
 
             // wires
             PrimitiveList.Int.Builder wires = tileType.initWires(tile.getWireCount());
-            for (int j=0 ; j < tile.getWireCount(); j++) {
+            for (int j = 0; j < tile.getWireCount(); j++) {
                 wires.set(j, allStrings.getIndex(tile.getWireName(j)));
             }
 
             // pips
             ArrayList<PIP> pips = tile.getPIPs();
-            StructList.Builder<DeviceResources.Device.PIP.Builder> pipBuilders =
-                    tileType.initPips(pips.size());
-            for (int j=0; j < pips.size(); j++) {
+            StructList.Builder<DeviceResources.Device.PIP.Builder> pipBuilders = tileType.initPips(pips.size());
+            for (int j = 0; j < pips.size(); j++) {
                 DeviceResources.Device.PIP.Builder pipBuilder = pipBuilders.get(j);
                 PIP pip = pips.get(j);
                 pipBuilder.setWire0(pip.getStartWireIndex());
@@ -763,9 +761,10 @@ public class DeviceResourcesWriter {
                 if (pip.isRouteThru()) {
                     PseudoPIPHelper pseudoPIPHelper = PseudoPIPHelper.getPseudoPIPHelper(pip);
                     List<BELPin> belPins = pseudoPIPHelper.getUsedBELPins();
-                    if (belPins == null || belPins.size() < 1) continue;
+                    if (belPins == null || belPins.size() < 1)
+                        continue;
 
-                    HashMap<BEL,ArrayList<BELPin>> pins = new HashMap<BEL, ArrayList<BELPin>>();
+                    HashMap<BEL, ArrayList<BELPin>> pins = new HashMap<BEL, ArrayList<BELPin>>();
                     for (BELPin pin : belPins) {
                         ArrayList<BELPin> currBELPins = pins.get(pin.getBEL());
                         if (currBELPins == null) {
@@ -775,14 +774,14 @@ public class DeviceResourcesWriter {
                         currBELPins.add(pin);
                     }
                     StructList.Builder<PseudoCell.Builder> pseudoCells = pipBuilder.initPseudoCells(pins.size());
-                    int k=0;
+                    int k = 0;
                     for (Entry<BEL, ArrayList<BELPin>> e3 : pins.entrySet()) {
                         PseudoCell.Builder pseudoCell = pseudoCells.get(k);
                         pseudoCell.setBel(allStrings.getIndex(e3.getKey().getName()));
                         List<BELPin> usedPins = e3.getValue();
                         int pinCount = usedPins.size();
                         Int.Builder pinsBuilder = pseudoCell.initPins(pinCount);
-                        for (int l=0; l < pinCount; l++) {
+                        for (int l = 0; l < pinCount; l++) {
                             pinsBuilder.set(l, allStrings.getIndex(usedPins.get(l).getName()));
                         }
                         k++;
@@ -795,30 +794,30 @@ public class DeviceResourcesWriter {
         return tileTypeIndices;
     }
 
-    public static void writeAllTilesToBuilder(Device device, DeviceResources.Device.Builder devBuilder, Map<TileTypeEnum, Integer> tileTypeIndices) {
+    public static void writeAllTilesToBuilder(Device device, DeviceResources.Device.Builder devBuilder,
+                                              Map<TileTypeEnum, Integer> tileTypeIndices) {
         StructList.Builder<DeviceResources.Device.Tile.Builder> tileBuilders =
-                devBuilder.initTileList(device.getColumns() * device.getRows());
+            devBuilder.initTileList(device.getColumns() * device.getRows());
 
-        int i=0;
+        int i = 0;
         for (Tile[] tiles : device.getTiles()) {
             for (Tile tile : tiles) {
                 DeviceResources.Device.Tile.Builder tileBuilder = tileBuilders.get(i);
                 tileBuilder.setName(allStrings.getIndex(tile.getName()));
                 tileBuilder.setType(tileTypeIndices.get(tile.getTileTypeEnum()));
                 Site[] sites = tile.getSites();
-                StructList.Builder<DeviceResources.Device.Site.Builder> siteBuilders = tileBuilder
-                        .initSites(sites.length);
+                StructList.Builder<DeviceResources.Device.Site.Builder> siteBuilders =
+                    tileBuilder.initSites(sites.length);
                 for (int j = 0; j < sites.length; j++) {
                     DeviceResources.Device.Site.Builder siteBuilder = siteBuilders.get(j);
                     siteBuilder.setName(allStrings.getIndex(sites[j].getName()));
                     siteBuilder.setType(j);
                 }
-                tileBuilder.setRow((short) tile.getRow());
-                tileBuilder.setCol((short) tile.getColumn());
+                tileBuilder.setRow((short)tile.getRow());
+                tileBuilder.setCol((short)tile.getColumn());
                 i++;
             }
         }
-
     }
 
     private static long makeKey(Tile tile, int wire) {
@@ -828,7 +827,7 @@ public class DeviceResourcesWriter {
     }
 
     public static void writeAllWiresAndNodesToBuilder(Device device, DeviceResources.Device.Builder devBuilder,
-            boolean skipRouteResources) {
+                                                      boolean skipRouteResources) {
         LongEnumerator allWires = new LongEnumerator();
         ArrayList<Long> allNodes = new ArrayList<>();
 
@@ -847,39 +846,39 @@ public class DeviceResourcesWriter {
             }
         }
 
-        StructList.Builder<DeviceResources.Device.Wire.Builder> wireBuilders =
-                devBuilder.initWires(allWires.size());
+        StructList.Builder<DeviceResources.Device.Wire.Builder> wireBuilders = devBuilder.initWires(allWires.size());
 
-        for (int i=0; i < allWires.size(); i++) {
+        for (int i = 0; i < allWires.size(); i++) {
             DeviceResources.Device.Wire.Builder wireBuilder = wireBuilders.get(i);
             long wireKey = allWires.get(i);
             Wire wire = new Wire(device.getTile((int)(wireKey >>> 32)), (int)(wireKey & 0xffffffff));
-            //Wire wire = allWires.get(i);
+            // Wire wire = allWires.get(i);
             wireBuilder.setTile(allStrings.getIndex(wire.getTile().getName()));
             wireBuilder.setWire(allStrings.getIndex(wire.getWireName()));
             wireBuilder.setType(wire.getIntentCode().ordinal());
         }
 
-        StructList.Builder<DeviceResources.Device.Node.Builder> nodeBuilders =
-                devBuilder.initNodes(allNodes.size());
-        for (int i=0; i < allNodes.size(); i++) {
+        StructList.Builder<DeviceResources.Device.Node.Builder> nodeBuilders = devBuilder.initNodes(allNodes.size());
+        for (int i = 0; i < allNodes.size(); i++) {
             DeviceResources.Device.Node.Builder nodeBuilder = nodeBuilders.get(i);
-            //Node node = allNodes.get(i);
+            // Node node = allNodes.get(i);
             long nodeKey = allNodes.get(i);
             Node node = Node.getNode(device.getTile((int)(nodeKey >>> 32)), (int)(nodeKey & 0xffffffff));
             Wire[] wires = node.getAllWiresInNode();
             PrimitiveList.Int.Builder wBuilders = nodeBuilder.initWires(wires.length);
-            for (int k=0; k < wires.length; k++) {
+            for (int k = 0; k < wires.length; k++) {
                 wBuilders.set(k, allWires.getIndex(makeKey(wires[k].getTile(), wires[k].getWireIndex())));
             }
         }
     }
-    private static void populatePackages(StringEnumerator allStrings, Device device, DeviceResources.Device.Builder devBuilder) {
+    private static void populatePackages(StringEnumerator allStrings, Device device,
+                                         DeviceResources.Device.Builder devBuilder) {
         Set<String> packages = device.getPackages();
         List<String> packagesList = new ArrayList<String>();
         packagesList.addAll(packages);
         packagesList.sort(new EnumerateCellBelMapping.StringCompare());
-        StructList.Builder<DeviceResources.Device.Package.Builder> packagesObj = devBuilder.initPackages(packages.size());
+        StructList.Builder<DeviceResources.Device.Package.Builder> packagesObj =
+            devBuilder.initPackages(packages.size());
 
         for (int i = 0; i < packages.size(); ++i) {
             Package pack = device.getPackage(packagesList.get(i));
@@ -887,12 +886,13 @@ public class DeviceResourcesWriter {
 
             packageBuilder.setName(allStrings.getIndex(pack.getName()));
 
-            LinkedHashMap<String,PackagePin> packagePinMap = pack.getPackagePinMap();
+            LinkedHashMap<String, PackagePin> packagePinMap = pack.getPackagePinMap();
             List<String> packagePins = new ArrayList<String>();
             packagePins.addAll(packagePinMap.keySet());
             packagePins.sort(new EnumerateCellBelMapping.StringCompare());
 
-            StructList.Builder<DeviceResources.Device.Package.PackagePin.Builder> packagePinsObj = packageBuilder.initPackagePins(packagePins.size());
+            StructList.Builder<DeviceResources.Device.Package.PackagePin.Builder> packagePinsObj =
+                packageBuilder.initPackagePins(packagePins.size());
             for (int j = 0; j < packagePins.size(); ++j) {
                 PackagePin packagePin = packagePinMap.get(packagePins.get(j));
                 DeviceResources.Device.Package.PackagePin.Builder packagePinObj = packagePinsObj.get(j);
@@ -913,7 +913,8 @@ public class DeviceResourcesWriter {
                 }
             }
 
-            StructList.Builder<DeviceResources.Device.Package.Grade.Builder> grades = packageBuilder.initGrades(pack.getGrades().length);
+            StructList.Builder<DeviceResources.Device.Package.Grade.Builder> grades =
+                packageBuilder.initGrades(pack.getGrades().length);
             for (int j = 0; j < pack.getGrades().length; ++j) {
                 Grade grade = pack.getGrades()[j];
                 DeviceResources.Device.Package.Grade.Builder gradeObj = grades.get(j);
@@ -925,7 +926,7 @@ public class DeviceResourcesWriter {
     }
     public static void writeWireTypes(StringEnumerator allStrings, DeviceResources.Device.Builder devBuilder) {
         StructList.Builder<DeviceResources.Device.WireType.Builder> wireTypesObj =
-                devBuilder.initWireTypes(IntentCode.values.length);
+            devBuilder.initWireTypes(IntentCode.values.length);
         for (IntentCode intent : IntentCode.values) {
             DeviceResources.Device.WireType.Builder wireType = wireTypesObj.get(intent.ordinal());
             wireType.setName(allStrings.getIndex(intent.toString()));

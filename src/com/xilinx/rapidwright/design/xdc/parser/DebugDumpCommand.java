@@ -40,7 +40,7 @@ public class DebugDumpCommand implements Command {
 
     public static void debugDump(Interp interp, TclObject[] tclObjects) {
         for (int i = 0; i < tclObjects.length; i++) {
-            System.out.print("index "+i+": ");
+            System.out.print("index " + i + ": ");
             debugDump(tclObjects[i], interp, "    ");
         }
     }
@@ -51,8 +51,8 @@ public class DebugDumpCommand implements Command {
             try {
                 TclObject[] items = TclList.getElements(interp, tclObject);
                 for (int i = 0; i < items.length; i++) {
-                    System.out.print(indent+" index "+i+": ");
-                    debugDump(items[i], interp,indent+"    ");
+                    System.out.print(indent + " index " + i + ": ");
+                    debugDump(items[i], interp, indent + "    ");
                 }
             } catch (TclException e) {
                 throw new RuntimeException(e);
@@ -60,12 +60,12 @@ public class DebugDumpCommand implements Command {
         } else if (tclObject.getInternalRep() instanceof ReflectObject) {
             try {
                 Object refl = ReflectObject.get(interp, tclObject);
-                System.out.println("reflect object "+tclObject+" "+refl);
+                System.out.println("reflect object " + tclObject + " " + refl);
             } catch (TclException e) {
                 throw new RuntimeException(e);
             }
         } else {
-            System.out.println(tclObject.getInternalRep().getClass().getName()+": "+tclObject);
+            System.out.println(tclObject.getInternalRep().getClass().getName() + ": " + tclObject);
         }
     }
 }

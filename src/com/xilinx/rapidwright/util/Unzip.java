@@ -22,7 +22,6 @@
  *
  */
 
-
 package com.xilinx.rapidwright.util;
 
 /**

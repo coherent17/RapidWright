@@ -49,17 +49,18 @@ import com.xilinx.rapidwright.rwroute.TestRWRoute;
 import com.xilinx.rapidwright.support.LargeTest;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
 import com.xilinx.rapidwright.util.VivadoToolsHelper;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.capnproto.MessageReader;
 import org.capnproto.ReaderOptions;
 import org.capnproto.StructList;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public class TestPhysNetlistWriter {
-    private void testAllRouteSegmentsEndInBELInputPins(Design design, RouteBranch.Reader routeBranch, List<String> strings) {
+    private void testAllRouteSegmentsEndInBELInputPins(Design design, RouteBranch.Reader routeBranch,
+                                                       List<String> strings) {
         StructList.Reader<RouteBranch.Reader> branches = routeBranch.getBranches();
         int branchesCount = branches.size();
         if (branchesCount == 0) {
@@ -92,9 +93,8 @@ public class TestPhysNetlistWriter {
         final Path interchangePath = tempDir.resolve("routethru_luts.phys");
         PhysNetlistWriter.writePhysNetlist(design, interchangePath.toString());
 
-        ReaderOptions rdOptions =
-                new ReaderOptions(ReaderOptions.DEFAULT_READER_OPTIONS.traversalLimitInWords * 64,
-                        ReaderOptions.DEFAULT_READER_OPTIONS.nestingLimit * 128);
+        ReaderOptions rdOptions = new ReaderOptions(ReaderOptions.DEFAULT_READER_OPTIONS.traversalLimitInWords * 64,
+                                                    ReaderOptions.DEFAULT_READER_OPTIONS.nestingLimit * 128);
         MessageReader readMsg = Interchange.readInterchangeFile(interchangePath.toString(), rdOptions);
 
         PhysNetlist.Reader physNetlist = readMsg.getRoot(PhysNetlist.factory);
@@ -125,9 +125,8 @@ public class TestPhysNetlistWriter {
         final Path interchangePath = tempDir.resolve("routethru_luts.phys");
         PhysNetlistWriter.writePhysNetlist(design, interchangePath.toString());
 
-        ReaderOptions rdOptions =
-                new ReaderOptions(ReaderOptions.DEFAULT_READER_OPTIONS.traversalLimitInWords * 64,
-                        ReaderOptions.DEFAULT_READER_OPTIONS.nestingLimit * 128);
+        ReaderOptions rdOptions = new ReaderOptions(ReaderOptions.DEFAULT_READER_OPTIONS.traversalLimitInWords * 64,
+                                                    ReaderOptions.DEFAULT_READER_OPTIONS.nestingLimit * 128);
         MessageReader readMsg = Interchange.readInterchangeFile(interchangePath.toString(), rdOptions);
 
         PhysNetlist.Reader physNetlist = readMsg.getRoot(PhysNetlist.factory);
@@ -156,9 +155,8 @@ public class TestPhysNetlistWriter {
         String interchangePath = tempDir.resolve("design.phys").toString();
         PhysNetlistWriter.writePhysNetlist(design, interchangePath);
 
-        ReaderOptions rdOptions =
-                new ReaderOptions(ReaderOptions.DEFAULT_READER_OPTIONS.traversalLimitInWords * 64,
-                        ReaderOptions.DEFAULT_READER_OPTIONS.nestingLimit * 128);
+        ReaderOptions rdOptions = new ReaderOptions(ReaderOptions.DEFAULT_READER_OPTIONS.traversalLimitInWords * 64,
+                                                    ReaderOptions.DEFAULT_READER_OPTIONS.nestingLimit * 128);
         MessageReader readMsg = Interchange.readInterchangeFile(interchangePath, rdOptions);
 
         PhysNetlist.Reader physNetlist = readMsg.getRoot(PhysNetlist.factory);
@@ -207,9 +205,8 @@ public class TestPhysNetlistWriter {
         String interchangePath = tempDir.resolve("design.phys").toString();
         PhysNetlistWriter.writePhysNetlist(design, interchangePath);
 
-        ReaderOptions rdOptions =
-                new ReaderOptions(ReaderOptions.DEFAULT_READER_OPTIONS.traversalLimitInWords * 64,
-                        ReaderOptions.DEFAULT_READER_OPTIONS.nestingLimit * 128);
+        ReaderOptions rdOptions = new ReaderOptions(ReaderOptions.DEFAULT_READER_OPTIONS.traversalLimitInWords * 64,
+                                                    ReaderOptions.DEFAULT_READER_OPTIONS.nestingLimit * 128);
         MessageReader readMsg = Interchange.readInterchangeFile(interchangePath, rdOptions);
 
         PhysNetlist.Reader physNetlist = readMsg.getRoot(PhysNetlist.factory);
@@ -243,9 +240,8 @@ public class TestPhysNetlistWriter {
         String interchangePath = tempDir.resolve("design.phys").toString();
         PhysNetlistWriter.writePhysNetlist(design, interchangePath);
 
-        ReaderOptions rdOptions =
-                new ReaderOptions(ReaderOptions.DEFAULT_READER_OPTIONS.traversalLimitInWords * 64,
-                        ReaderOptions.DEFAULT_READER_OPTIONS.nestingLimit * 128);
+        ReaderOptions rdOptions = new ReaderOptions(ReaderOptions.DEFAULT_READER_OPTIONS.traversalLimitInWords * 64,
+                                                    ReaderOptions.DEFAULT_READER_OPTIONS.nestingLimit * 128);
         MessageReader readMsg = Interchange.readInterchangeFile(interchangePath, rdOptions);
 
         PhysNetlist.Reader physNetlist = readMsg.getRoot(PhysNetlist.factory);
@@ -313,21 +309,20 @@ public class TestPhysNetlistWriter {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "bnn.dcp",
-            "optical-flow.dcp"
-    })
+    @ValueSource(strings = {"bnn.dcp", "optical-flow.dcp"})
     @LargeTest(max_memory_gb = 8)
     public void testSimulateSwappedLutPinsWithRWRoute(String path, @TempDir Path tempDir) throws IOException {
         Design inputDesign = RapidWrightDCP.loadDCP(path);
         try {
             System.setProperty("rapidwright.rwroute.lutPinSwapping.deferIntraSiteRoutingUpdates", "true");
-            RWRoute.routeDesignWithUserDefinedArguments(inputDesign, new String[]{"--nonTimingDriven", "--lutPinSwapping"});
+            RWRoute.routeDesignWithUserDefinedArguments(inputDesign,
+                                                        new String[] {"--nonTimingDriven", "--lutPinSwapping"});
 
             System.setProperty("rapidwright.physNetlistWriter.simulateSwappedLutPins", "true");
             String interchangePath = tempDir.resolve("testSimulateSwappedLutPinsWithRWRoute.phys").toString();
             PhysNetlistWriter.writePhysNetlist(inputDesign, interchangePath);
-            Design outputDesign = PhysNetlistReader.readPhysNetlist(interchangePath.toString(), inputDesign.getNetlist());
+            Design outputDesign =
+                PhysNetlistReader.readPhysNetlist(interchangePath.toString(), inputDesign.getNetlist());
             inputDesign = null;
 
             Assertions.assertTrue(LUTTools.swapLutPinsFromPIPs(outputDesign) > 0);
@@ -345,7 +340,7 @@ public class TestPhysNetlistWriter {
     public void testStaticSourceBELPin(@TempDir Path tempDir) throws IOException {
         Design inputDesign = RapidWrightDCP.loadDCP("picoblaze_ooc_X10Y235.dcp");
         Assertions.assertEquals(inputDesign.getGndNet(),
-                inputDesign.getSiteInst("SLICE_X15Y239").getNetFromSiteWire("A_O"));
+                                inputDesign.getSiteInst("SLICE_X15Y239").getNetFromSiteWire("A_O"));
 
         String interchangePath = tempDir.resolve("design.phys").toString();
         PhysNetlistWriter.writePhysNetlist(inputDesign, interchangePath);
@@ -353,7 +348,7 @@ public class TestPhysNetlistWriter {
         Design outputDesign = PhysNetlistReader.readPhysNetlist(interchangePath.toString(), inputDesign.getNetlist());
         inputDesign = null;
         Assertions.assertEquals(outputDesign.getGndNet(),
-                outputDesign.getSiteInst("SLICE_X15Y239").getNetFromSiteWire("A_O"));
+                                outputDesign.getSiteInst("SLICE_X15Y239").getNetFromSiteWire("A_O"));
     }
 
     @Test
@@ -363,9 +358,8 @@ public class TestPhysNetlistWriter {
         String interchangePath = tempDir.resolve("design.phys").toString();
         PhysNetlistWriter.writePhysNetlist(design, interchangePath);
 
-        ReaderOptions rdOptions =
-                new ReaderOptions(ReaderOptions.DEFAULT_READER_OPTIONS.traversalLimitInWords * 64,
-                        ReaderOptions.DEFAULT_READER_OPTIONS.nestingLimit * 128);
+        ReaderOptions rdOptions = new ReaderOptions(ReaderOptions.DEFAULT_READER_OPTIONS.traversalLimitInWords * 64,
+                                                    ReaderOptions.DEFAULT_READER_OPTIONS.nestingLimit * 128);
         MessageReader readMsg = Interchange.readInterchangeFile(interchangePath, rdOptions);
 
         PhysNetlist.Reader physNetlist = readMsg.getRoot(PhysNetlist.factory);

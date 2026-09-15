@@ -34,35 +34,31 @@ import tcl.lang.TclException;
 import tcl.lang.TclObject;
 
 public class AddCellsToPblockCommand<T> implements Command {
-
     private final XDCConstraints constraints;
     private final EdifCellLookup<T> cellLookup;
 
     public AddCellsToPblockCommand(XDCConstraints constraints, EdifCellLookup<T> cellLookup) {
-
         this.constraints = constraints;
         this.cellLookup = cellLookup;
     }
     @Override
     public void cmdProc(Interp interp, TclObject[] objv) throws TclException {
-
-        if (objv.length!=3) {
+        if (objv.length != 3) {
             throw new RuntimeException("wrong argument count");
         }
-        DesignObject<T> pblockDO = DesignObject.unwrapTclObject(interp, objv[1], cellLookup).orElseThrow(()->new RuntimeException("expected designObject"));
-        if (! (pblockDO instanceof NameDesignObject<?>)) {
-            throw new RuntimeException("wrong argument type: "+pblockDO.getClass());
+        DesignObject<T> pblockDO = DesignObject.unwrapTclObject(interp, objv[1], cellLookup)
+                                       .orElseThrow(() -> new RuntimeException("expected designObject"));
+        if (!(pblockDO instanceof NameDesignObject<?>)) {
+            throw new RuntimeException("wrong argument type: " + pblockDO.getClass());
         }
         NameDesignObject<?> pblock = (NameDesignObject<?>)pblockDO;
-        if (pblock.getType()!=ObjType.PBlock) {
-            throw new RuntimeException("wrong argument type: "+pblock.getType());
+        if (pblock.getType() != ObjType.PBlock) {
+            throw new RuntimeException("wrong argument type: " + pblock.getType());
         }
 
         String pblockName = pblock.requireOneObject();
-        PBlockConstraint pBlockConstraint = Objects.requireNonNull(
-                constraints.getPBlockConstraints().get(pblockName),
-                ()->"Did not find pblock "+pblockName
-        );
+        PBlockConstraint pBlockConstraint = Objects.requireNonNull(constraints.getPBlockConstraints().get(pblockName),
+                                                                   () -> "Did not find pblock " + pblockName);
 
         if (objv[2].toString().equals("-top")) {
             pBlockConstraint.getCells().add("");
@@ -71,14 +67,14 @@ public class AddCellsToPblockCommand<T> implements Command {
         DesignObject<?> cellsDO = DesignObject.requireUnwrapTclObject(interp, objv[2], cellLookup);
 
         if (cellsDO instanceof UnsupportedCmdResult<?>) {
-
-            List<UnsupportedConstraintElement> constraint = UnsupportedConstraintElement.commandToUnsupportedConstraints(interp, objv, cellLookup);
+            List<UnsupportedConstraintElement> constraint =
+                UnsupportedConstraintElement.commandToUnsupportedConstraints(interp, objv, cellLookup);
             constraints.getUnsupportedConstraints().add(constraint);
 
             interp.resetResult();
             return;
         } else if (cellsDO instanceof CellObject) {
-            for (T cell : ((CellObject<T>) cellsDO).getCells()) {
+            for (T cell : ((CellObject<T>)cellsDO).getCells()) {
                 String finalCell = cellLookup.getAbsoluteFinalName(cell);
                 pBlockConstraint.getCells().add(finalCell);
             }
@@ -86,11 +82,11 @@ public class AddCellsToPblockCommand<T> implements Command {
         }
 
         if (!(cellsDO instanceof NameDesignObject<?>)) {
-            throw new RuntimeException("expected NameDesignObject but got "+cellsDO.getClass()+": "+cellsDO);
+            throw new RuntimeException("expected NameDesignObject but got " + cellsDO.getClass() + ": " + cellsDO);
         }
-        NameDesignObject<?> cellsNDO = (NameDesignObject<?>) cellsDO;
-        if (cellsNDO.getType()!=ObjType.Cell) {
-            throw new RuntimeException("expected CellObject but got "+cellsNDO.getType());
+        NameDesignObject<?> cellsNDO = (NameDesignObject<?>)cellsDO;
+        if (cellsNDO.getType() != ObjType.Cell) {
+            throw new RuntimeException("expected CellObject but got " + cellsNDO.getType());
         }
         for (String object : cellsNDO.getObjects()) {
             pBlockConstraint.getCells().add(object);

@@ -31,8 +31,7 @@ import java.io.UncheckedIOException;
  * @author clavin
  *
  */
-public class MessageGenerator{
-
+public class MessageGenerator {
     /**
      * Used as a general way to create an error message and send it to
      * std.err. Prints the stack trace from this point and exits the
@@ -57,7 +56,7 @@ public class MessageGenerator{
 
     /**
      * Used as a general way to create an error message and send it to std.err.
-     * 
+     *
      * @param msg The message to print to standard error
      */
     public static void briefError(String msg) {
@@ -87,8 +86,7 @@ public class MessageGenerator{
     public static void waitOnAnyKeySilent() {
         try {
             System.in.read();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -116,11 +114,11 @@ public class MessageGenerator{
         String bar = "==============================================================================";
         String left;
         String right;
-        double whiteSpace = (72 - s.length())/2.0;
-        left = StringTools.makeWhiteSpace((int) (whiteSpace));
-        right = StringTools.makeWhiteSpace((int) (whiteSpace + 0.5));
+        double whiteSpace = (72 - s.length()) / 2.0;
+        left = StringTools.makeWhiteSpace((int)(whiteSpace));
+        right = StringTools.makeWhiteSpace((int)(whiteSpace + 0.5));
         System.out.println(bar);
-        System.out.println("== "+ left + s + right +" ==");
+        System.out.println("== " + left + s + right + " ==");
         System.out.println(bar);
     }
 
@@ -134,18 +132,17 @@ public class MessageGenerator{
         try {
             ch = System.in.read();
             while (ch != 'y' && ch != 'n' && ch != 'Y' && ch != 'N') {
-                while ((ch = System.in.read()) != '\n');
+                while ((ch = System.in.read()) != '\n')
+                    ;
                 System.out.print("Would you like to continue(y/n)? ");
                 ch = System.in.read();
             }
             if (ch == 'y' || ch == 'Y') {
                 return;
-            }
-            else {
+            } else {
                 System.exit(1);
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new UncheckedIOException("Error reading user input", e);
         }
     }
@@ -160,18 +157,17 @@ public class MessageGenerator{
         try {
             ch = System.in.read();
             while (ch != 'y' && ch != 'n' && ch != 'Y' && ch != 'N') {
-                while ((ch = System.in.read()) != '\n');
+                while ((ch = System.in.read()) != '\n')
+                    ;
                 System.out.print("Would you like to continue(y/n)? ");
                 ch = System.in.read();
             }
             if (ch == 'y' || ch == 'Y') {
                 return;
-            }
-            else {
+            } else {
                 System.exit(1);
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new UncheckedIOException("Error reading user input", e);
         }
     }

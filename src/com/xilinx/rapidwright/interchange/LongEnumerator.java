@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.Set;
 
 public class LongEnumerator extends ArrayList<Long> {
-
     private static final long serialVersionUID = 5235125492429382642L;
 
     private HashMap<Long, Integer> map = new HashMap<Long, Integer>();
@@ -69,7 +68,8 @@ public class LongEnumerator extends ArrayList<Long> {
 
     @Override
     public Long get(int index) {
-        if (size() -1 < index) return null;
+        if (size() - 1 < index)
+            return null;
         return super.get(index);
     }
 

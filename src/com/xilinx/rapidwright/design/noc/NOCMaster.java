@@ -32,7 +32,6 @@ import org.json.JSONObject;
  * @since 2022.1.0
  */
 public class NOCMaster extends NOCClient implements Serializable {
-
     private static final long serialVersionUID = 890366600283311022L;
     private TrafficClass readTC;
     private TrafficClass writeTC;
@@ -42,7 +41,6 @@ public class NOCMaster extends NOCClient implements Serializable {
      * @since 2026.1.0
      */
     public NOCMaster() {
-
     }
 
     /**
@@ -69,7 +67,7 @@ public class NOCMaster extends NOCClient implements Serializable {
 
     /**
      * Gets the corresponding connection based on slave client name.
-     * 
+     *
      * @param slaveName The name of the slave client that connects to this master.
      * @return The connection between the provided slave client name and this master
      *         or null if none found.
@@ -90,7 +88,7 @@ public class NOCMaster extends NOCClient implements Serializable {
      */
     public JSONObject toJSONObject() {
         JSONObject obj = super.toJSONObject();
-        obj.put(NOCJSONUtil.JSON_FIELD_IS_MASTER,true);
+        obj.put(NOCJSONUtil.JSON_FIELD_IS_MASTER, true);
         obj.put(NOCJSONUtil.JSON_FIELD_WRITE_TRAFFIC_CLASS, writeTC.toString());
         obj.put(NOCJSONUtil.JSON_FIELD_READ_TRAFFIC_CLASS, readTC.toString());
         obj.put(NOCJSONUtil.JSON_FIELD_MEMORY_APERTURES, new JSONArray());
@@ -99,7 +97,7 @@ public class NOCMaster extends NOCClient implements Serializable {
 
     /**
      * Gets the traffic class for master writes.
-     * 
+     *
      * @return The traffic class for master writes.
      * @since 2022.1.1
      */
@@ -109,7 +107,7 @@ public class NOCMaster extends NOCClient implements Serializable {
 
     /**
      * Gets the traffic class for master reads.
-     * 
+     *
      * @return The traffic class for master reads.
      * @since 2022.1.1
      */
@@ -134,5 +132,4 @@ public class NOCMaster extends NOCClient implements Serializable {
     public void setReadTC(TrafficClass readTC) {
         this.readTC = readTC;
     }
-
 }

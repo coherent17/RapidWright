@@ -46,7 +46,6 @@ import com.xilinx.rapidwright.util.MessageGenerator;
 import com.xilinx.rapidwright.util.Pair;
 import com.xilinx.rapidwright.util.RuntimeTrackerTree;
 
-
 /**
  * A TimingManager sets up and creates an example TimingModel and an example TimingGraph for a given
  * Design.
@@ -58,22 +57,26 @@ public class TimingManager {
     private Device device;
 
     public static final int BUILD_GRAPH_PATHS_DEFAULT_PARAM = 1; // use 0 instead for all paths
-    
+
     public RuntimeTrackerTree routerTimer;
     private boolean verbose;
-    
+
     private float timingRequirement;
-    private float pessimismA = (float) 1.03;
+    private float pessimismA = (float)1.03;
     private float pessimismB = 100;
 
-    /** Used to break the delay of the critical path down per node; null when no breakdown is wanted */
+    /**
+     * Used to break the delay of the critical path down per node; null when no breakdown is wanted
+     */
     private final DelayEstimatorBase<InterconnectInfo> estimator;
 
-    /** Format of one line of that breakdown: its delay, what kind of hop it is, and the hop itself */
+    /**
+     * Format of one line of that breakdown: its delay, what kind of hop it is, and the hop itself
+     */
     private static final String DELAY_LINE_FORMAT = "\tdelay = %4d, %-18s, %s\n";
 
     /**
-     * Default constructor: creates the TimingManager object, which the user needs to create for 
+     * Default constructor: creates the TimingManager object, which the user needs to create for
      * using our TimingModel, and then it builds the model.
      * @param design RapidWright Design object.
      */
@@ -85,17 +88,14 @@ public class TimingManager {
         timingGraph.setTimingManager(this);
         timingGraph.setTimingModel(timingModel);
         device = design.getDevice();
-        // No critical path breakdown is printed through this constructor, since it leaves verbose off
+        // No critical path breakdown is printed through this constructor, since it leaves verbose
+        // off
         estimator = null;
         build(false, design.getNets());
     }
-    
-    public TimingManager(Design design,
-                         RuntimeTrackerTree timer,
-                         RWRouteConfig config,
-                         ClkRouteTiming clkTiming,
-                         Collection<Net> targetNets,
-                         boolean isPartialRouting,
+
+    public TimingManager(Design design, RuntimeTrackerTree timer, RWRouteConfig config, ClkRouteTiming clkTiming,
+                         Collection<Net> targetNets, boolean isPartialRouting,
                          DelayEstimatorBase<InterconnectInfo> estimator) {
         this.design = design;
         setTimingRequirement();
@@ -111,52 +111,56 @@ public class TimingManager {
         this.estimator = estimator;
         build(isPartialRouting, targetNets);
     }
-    
+
     /**
      * Updates the delay of nets after the cycle removal and delay-aware path merging.
      * @param illegalNets {@link NetWrapper} instances in question.
      * @param nodesDelays Stored nodes and their delay values.
      */
     public void updateIllegalNetsDelays(List<NetWrapper> illegalNets, Map<Node, Float> nodesDelays) {
-         for (NetWrapper netWrapper:illegalNets) {
-             for (Connection connection:netWrapper.getConnections()) {
-                 float netDelay = 0;
-                 if (connection.isDirect()) continue;
-                 for (int i = connection.getNodes().size() - 2; i >= 0; i--) {
-                     Node child = connection.getNodes().get(i);
-                     Node parent = connection.getNodes().get(i+1);
-                     netDelay += nodesDelays.getOrDefault(child, 0f)
-                             + DelayEstimatorBase.getExtraDelay(child, DelayEstimatorBase.isLong(parent));
-                 }
-                 connection.setTimingEdgesDelay(netDelay);
-                 connection.setDlyPatched(true);
-             }
-         }
+        for (NetWrapper netWrapper : illegalNets) {
+            for (Connection connection : netWrapper.getConnections()) {
+                float netDelay = 0;
+                if (connection.isDirect())
+                    continue;
+                for (int i = connection.getNodes().size() - 2; i >= 0; i--) {
+                    Node child = connection.getNodes().get(i);
+                    Node parent = connection.getNodes().get(i + 1);
+                    netDelay += nodesDelays.getOrDefault(child, 0f) +
+                                DelayEstimatorBase.getExtraDelay(child, DelayEstimatorBase.isLong(parent));
+                }
+                connection.setTimingEdgesDelay(netDelay);
+                connection.setDlyPatched(true);
+            }
+        }
     }
-    
+
     /**
      * Patches up the delay of consecutive Long nodes for connections.
      * @param connections Connections in question.
      */
     public void patchUpDelayOfConnections(List<Connection> connections) {
         for (Connection connection : connections) {
-            if (connection.isDirect()) continue;
-            if (connection.isDlyPatched()) continue;
+            if (connection.isDirect())
+                continue;
+            if (connection.isDlyPatched())
+                continue;
             float netDelay = 0;
             for (int i = connection.getRnodes().size() - 2; i >= 0; i--) {
                 RouteNode child = connection.getRnodes().get(i);
-                RouteNode parent = connection.getRnodes().get(i+1);
-                netDelay += child.getDelay() + DelayEstimatorBase.getExtraDelay(child, DelayEstimatorBase.isLong(parent));
+                RouteNode parent = connection.getRnodes().get(i + 1);
+                netDelay +=
+                    child.getDelay() + DelayEstimatorBase.getExtraDelay(child, DelayEstimatorBase.isLong(parent));
             }
             connection.setTimingEdgesDelay(netDelay);
             connection.setDlyPatched(true);
         }
     }
-    
+
     /**
      * Calculates and returns the maximum arrival time and the associated TimingVertex
      */
-    public Pair<Float,TimingVertex> calculateArrivalRequiredTimes() {
+    public Pair<Float, TimingVertex> calculateArrivalRequiredTimes() {
         Pair<Float, TimingVertex> maxs;
 
         timingGraph.resetRequiredAndArrivalTime();
@@ -172,10 +176,10 @@ public class TimingManager {
         // minimum slack is zero leading to unnecessary router effort.
         float normalizedRequired = Float.max(maxArrival, timingRequirement);
         timingGraph.setTimingRequirementTopologicalOrder(normalizedRequired);
-        
+
         return maxs;
     }
-    
+
     /**
      * Sets critical path delay pessimism factors.
      */
@@ -187,7 +191,7 @@ public class TimingManager {
             pessimismB = b;
         }
     }
-    
+
     public void getCriticalPathInfo(Pair<Float, TimingVertex> maxDelayTimingVertex) {
         TimingVertex maxV = maxDelayTimingVertex.getSecond();
         float maxDelay = maxDelayTimingVertex.getFirst();
@@ -198,13 +202,14 @@ public class TimingManager {
         for (TimingEdge e : criticalEdges) {
             arr += e.getDelay();
         }
-        System.out.printf(MessageGenerator.formatString("Critical path delay (ps):", (int)(arr - criticalEdges.get(0).getDelay() - clkskew)));
+        System.out.printf(MessageGenerator.formatString("Critical path delay (ps):",
+                                                        (int)(arr - criticalEdges.get(0).getDelay() - clkskew)));
         System.out.printf(MessageGenerator.formatString("Slack (ps):", (int)(timingRequirement - maxDelay)));
         System.out.printf(MessageGenerator.formatString("With timing closure guarantee:"));
-        int adjusted = (int) (pessimismA * (arr - criticalEdges.get(0).getDelay() - clkskew) + pessimismB);
+        int adjusted = (int)(pessimismA * (arr - criticalEdges.get(0).getDelay() - clkskew) + pessimismB);
         System.out.printf(MessageGenerator.formatString("Critical path delay (ps):", adjusted));
         System.out.printf(MessageGenerator.formatString("Slack (ps):", (int)(timingRequirement - adjusted)));
-        
+
         printPathDelayBreakDown(arr, criticalEdges);
     }
 
@@ -236,21 +241,23 @@ public class TimingManager {
                 List<Node> nodes = connection.getNodes();
                 if (nodes.isEmpty()) {
                     if (connection.getNet().hasPIPs()) {
-                        // A connection only carries its nodes when a router assigned them to it; walk
-                        // the PIPs of its net to recover them otherwise. Only the connections of this
-                        // one path are worth paying that for, hence not doing so for every connection.
+                        // A connection only carries its nodes when a router assigned them to it;
+                        // walk the PIPs of its net to recover them otherwise. Only the connections
+                        // of this one path are worth paying that for, hence not doing so for every
+                        // connection.
                         nodes = NetTools.getNodesToSink(connection.getSink());
                     } else {
                         System.out.println("\t(no intersite routing)");
                     }
                 }
-                for (int iGroup = nodes.size() -1; iGroup >= 0; iGroup--) {
+                for (int iGroup = nodes.size() - 1; iGroup >= 0; iGroup--) {
                     Node node = nodes.get(iGroup);
                     short delay = RouterHelper.computeNodeDelay(estimator, node);
                     if (iGroup + 1 < nodes.size()) {
                         // Account for the extra delay this node incurs from its driver, as the
                         // accumulated route delay of the connection does
-                        delay += DelayEstimatorBase.getExtraDelay(node, DelayEstimatorBase.isLong(nodes.get(iGroup + 1)));
+                        delay +=
+                            DelayEstimatorBase.getExtraDelay(node, DelayEstimatorBase.isLong(nodes.get(iGroup + 1)));
                     }
                     System.out.printf(DELAY_LINE_FORMAT, delay, node.getIntentCode(), node);
                 }
@@ -259,16 +266,16 @@ public class TimingManager {
             } else if (edge.getNet() != null) {
                 // No Connection means RWRoute never routed this edge: it must be an intra-site
                 // connection (e.g. ALUT6/O -> CARRY8/S[0]).
-                short intraSiteDelay = (short) edge.getIntraSiteDelay();
-                assert(edge.getNetDelay() == intraSiteDelay);
+                short intraSiteDelay = (short)edge.getIntraSiteDelay();
+                assert (edge.getNetDelay() == intraSiteDelay);
                 // A direct connection crosses a site pin at each end, so describe those hops
-                Pair<String,Short> sourceTerm = (edge.getFirstPin() != null) ?
-                        timingModel.getSourceIntraSiteDelayTerm(edge.getFirstPin()) : null;
-                Pair<String,Short> sinkTerm = (edge.getSecondPin() != null) ?
-                        timingModel.getSinkIntraSiteDelayTerm(edge.getSecondPin()) : null;
+                Pair<String, Short> sourceTerm =
+                    (edge.getFirstPin() != null) ? timingModel.getSourceIntraSiteDelayTerm(edge.getFirstPin()) : null;
+                Pair<String, Short> sinkTerm =
+                    (edge.getSecondPin() != null) ? timingModel.getSinkIntraSiteDelayTerm(edge.getSecondPin()) : null;
                 System.out.printf("net = %s, %s\n", edge.getNet(), edge);
-                int recovered = (sourceTerm != null ? sourceTerm.getSecond() : 0)
-                              + (sinkTerm != null ? sinkTerm.getSecond() : 0);
+                int recovered =
+                    (sourceTerm != null ? sourceTerm.getSecond() : 0) + (sinkTerm != null ? sinkTerm.getSecond() : 0);
                 if (recovered == intraSiteDelay) {
                     printIntraSiteDelayTerm(sourceTerm);
                     printIntraSiteDelayTerm(sinkTerm);
@@ -281,14 +288,14 @@ public class TimingManager {
             }
         }
     }
-    
+
     /**
      * Prints one intra-site hop of the critical path, in the same format used for its nodes.
      * @param term The hop and its delay, as returned by
      *             {@link TimingModel#getSourceIntraSiteDelayTerm(SitePinInst)};
      *             nothing is printed when null.
      */
-    private static void printIntraSiteDelayTerm(Pair<String,Short> term) {
+    private static void printIntraSiteDelayTerm(Pair<String, Short> term) {
         if (term == null) {
             return;
         }
@@ -304,15 +311,14 @@ public class TimingManager {
      * @return The BEL pins the hop is between paired with that delay, falling back to a
      *         placeholder description when they cannot be recovered.
      */
-    private Pair<String,Short> getIntraSiteDelayTerm(TimingEdge edge, short intraSiteDelay) {
-        Pair<SiteInst,BELPin> source = getBELPinOfVertex(edge.getSrc());
-        Pair<SiteInst,BELPin> sink = getBELPinOfVertex(edge.getDst());
+    private Pair<String, Short> getIntraSiteDelayTerm(TimingEdge edge, short intraSiteDelay) {
+        Pair<SiteInst, BELPin> source = getBELPinOfVertex(edge.getSrc());
+        Pair<SiteInst, BELPin> sink = getBELPinOfVertex(edge.getDst());
         if (source != null && sink != null && source.getFirst() == sink.getFirst()) {
             String fromBelPin = describeBELPin(source.getSecond());
             String toBelPin = describeBELPin(sink.getSecond());
             // Only describe the hop once it is confirmed to be the one charged for
-            Short delay = timingModel.lookupIntraSiteDelay(
-                    source.getFirst().getSiteTypeEnum(), fromBelPin, toBelPin);
+            Short delay = timingModel.lookupIntraSiteDelay(source.getFirst().getSiteTypeEnum(), fromBelPin, toBelPin);
             if (delay != null && delay == intraSiteDelay) {
                 return new Pair<>(fromBelPin + " -> " + toBelPin, intraSiteDelay);
             }
@@ -326,13 +332,13 @@ public class TimingManager {
      * @return The site instance and BEL pin it is placed onto, or null if the netlist does not
      *         name such a cell pin, or it is not placed onto a BEL pin.
      */
-    private Pair<SiteInst,BELPin> getBELPinOfVertex(TimingVertex vertex) {
+    private Pair<SiteInst, BELPin> getBELPinOfVertex(TimingVertex vertex) {
         // Vertices are named after the cell pin they stand for, so let the netlist resolve it
         EDIFHierPortInst portInst = design.getNetlist().getHierPortInstFromName(vertex.getName());
         if (portInst == null) {
             return null;
         }
-        Pair<SiteInst,BELPin> belPin = portInst.getRoutedBELPin(design);
+        Pair<SiteInst, BELPin> belPin = portInst.getRoutedBELPin(design);
         return (belPin == null || belPin.getSecond() == null) ? null : belPin;
     }
 
@@ -348,21 +354,12 @@ public class TimingManager {
     private void printTimingPathInTable(List<TimingEdge> path, short arr) {
         System.out.println("\nDetail delays:");
         System.out.println("------------------------------------------------------------------------------");
-        System.out.printf("%10s  %8s  %16s  %10s    %-25s\n",
-                "Logic (ps)",
-                "Net (ps)",
-                "(intrasite (ps))",
-                "Total (ps)",
-                "Netlist Resource(s)"
-                );
+        System.out.printf("%10s  %8s  %16s  %10s    %-25s\n", "Logic (ps)", "Net (ps)", "(intrasite (ps))",
+                          "Total (ps)", "Netlist Resource(s)");
         System.out.printf("----------  --------------------------  ----------    ------------------------\n");
         for (TimingEdge e : path) {
-            System.out.printf("%10d  %8d  %16d  %10d    %-25s\n",
-                    (short) e.getLogicDelay(),
-                    (short) e.getNetDelay(),
-                    (short) e.getIntraSiteDelay(),
-                    (short) e.getDelay(),
-                    e.getSrc());
+            System.out.printf("%10d  %8d  %16d  %10d    %-25s\n", (short)e.getLogicDelay(), (short)e.getNetDelay(),
+                              (short)e.getIntraSiteDelay(), (short)e.getDelay(), e.getSrc());
             if (e.getNet() != null && e.getNet().getName() != null) {
                 System.out.printf("%50s  %-25s\n", "", "  net: " + e.getNet().getName());
             }
@@ -371,8 +368,7 @@ public class TimingManager {
         System.out.printf("%-38s  %10d\n", "Arrival time:", arr);
         System.out.println("------------------------------------------------------------------------------");
     }
-    
-    
+
     /**
      * Set the timing requirement of the design
      */
@@ -390,9 +386,9 @@ public class TimingManager {
 
     public static float getDesignTimingRequirement(Design design) {
         float treq = 0;
-        
+
         ConstraintGroup[] constraintGroups = {ConstraintGroup.NORMAL, ConstraintGroup.LATE};
-        //TODO CHECK which constraint to use. The maximum one as default?
+        // TODO CHECK which constraint to use. The maximum one as default?
         for (ConstraintGroup group : constraintGroups) {
             List<String> constraints = design.getXDCConstraints(group);
             for (String constraint : constraints) {
@@ -401,22 +397,23 @@ public class TimingManager {
                 }
                 if (constraint.contains("-period")) {
                     int startIndex = constraint.indexOf("-period");
-                    treq = Math.max(treq, Float.parseFloat(constraint.substring(startIndex+7, startIndex+13)));
+                    treq = Math.max(treq, Float.parseFloat(constraint.substring(startIndex + 7, startIndex + 13)));
                 }
             }
         }
-        
+
         return treq;
     }
-    
+
     /**
      * Calculates criticality for each connection.
      * @param connections Connections in question.
      * @param maxCriticality The maximum criticality value.
-     * @param criticalityExponent The criticality exponent to use. For more information, please refer to the {@link RWRouteConfig} class file.
+     * @param criticalityExponent The criticality exponent to use. For more information, please
+     *     refer to the {@link RWRouteConfig} class file.
      */
     public void calculateCriticality(List<Connection> connections, float maxCriticality, float criticalityExponent) {
-        for (Connection connection:connections) {
+        for (Connection connection : connections) {
             connection.resetCriticality();
         }
         float maxRequired = timingGraph.superSink.getRequiredTime();
@@ -430,23 +427,29 @@ public class TimingManager {
      * @return Indication of successful completion.
      */
     private boolean build(boolean isPartialRouting, Collection<Net> targetNets) {
-        if (routerTimer != null) routerTimer.createRuntimeTracker("build timing model", "Initialization").start();
+        if (routerTimer != null)
+            routerTimer.createRuntimeTracker("build timing model", "Initialization").start();
         timingModel.build();
-        if (routerTimer != null) routerTimer.getRuntimeTracker("build timing model").stop();
-        
-        if (routerTimer != null) routerTimer.createRuntimeTracker("build timing graph", "Initialization").start();
+        if (routerTimer != null)
+            routerTimer.getRuntimeTracker("build timing model").stop();
+
+        if (routerTimer != null)
+            routerTimer.createRuntimeTracker("build timing graph", "Initialization").start();
         timingGraph.build(isPartialRouting, targetNets);
-        if (routerTimer != null) routerTimer.getRuntimeTracker("build timing graph").stop();
-        
+        if (routerTimer != null)
+            routerTimer.getRuntimeTracker("build timing graph").stop();
+
         return postBuild();
     }
 
     private boolean postBuild() {
-        if (routerTimer != null) routerTimer.createRuntimeTracker("post graph build", "Initialization").start();
+        if (routerTimer != null)
+            routerTimer.createRuntimeTracker("post graph build", "Initialization").start();
         timingGraph.removeClockCrossingPaths();
         timingGraph.buildSuperGraphPaths();
         timingGraph.setOrderedTimingVertexLists();
-        if (routerTimer != null) routerTimer.getRuntimeTracker("post graph build").stop();
+        if (routerTimer != null)
+            routerTimer.getRuntimeTracker("post graph build").stop();
         return true;
     }
 
@@ -473,7 +476,7 @@ public class TimingManager {
     public Design getDesign() {
         return design;
     }
-    
+
     /**
      * Gets the corresponding device used in creating this TimingManager.
      * @return Corresponding device used in creating this TimingManager.
@@ -481,10 +484,8 @@ public class TimingManager {
     public Device getDevice() {
         return device;
     }
-    
+
     public void setTimingEdgesOfConnections(List<Connection> connections) {
         timingGraph.setTimingEdgesOfConnections(connections);
     }
-    
-    
 }

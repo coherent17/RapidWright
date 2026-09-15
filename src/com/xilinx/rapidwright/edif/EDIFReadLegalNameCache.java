@@ -28,11 +28,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Helper class that keeps track of EDIF Renames during parsing. Two different subclasses exist for thread-safe vs.
- * non-thread-safe implementation
+ * Helper class that keeps track of EDIF Renames during parsing. Two different subclasses exist for
+ * thread-safe vs. non-thread-safe implementation
  */
 public abstract class EDIFReadLegalNameCache {
-
     /**
      * Wrapper object that overrides equals and hashCode to require an identical wrapped object
      * @param <T>
@@ -46,10 +45,12 @@ public abstract class EDIFReadLegalNameCache {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            IdentityEqualsHash<?> that = (IdentityEqualsHash<?>) o;
-            return obj==that.obj;
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            IdentityEqualsHash<?> that = (IdentityEqualsHash<?>)o;
+            return obj == that.obj;
         }
 
         @Override

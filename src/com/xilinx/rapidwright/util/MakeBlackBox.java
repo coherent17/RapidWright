@@ -30,13 +30,13 @@ import com.xilinx.rapidwright.tests.CodePerfTracker;
 /**
  * Command line wrapper to black box one or more cell instances in a design.
  * Also prohibits partially used half SLICEs from being used.
- * 
+ *
  */
 public class MakeBlackBox {
-
     public static void main(String[] args) {
         if (args.length < 3) {
-            System.err.println("USAGE: <input.dcp> <output.dcp> <cellinst-to-be-blackboxed> [another-cellinst-to-be-blackboxed] [...]");
+            System.err.println("USAGE: <input.dcp> <output.dcp> <cellinst-to-be-blackboxed> "
+                               + "[another-cellinst-to-be-blackboxed] [...]");
             System.exit(1);
         }
         CodePerfTracker t = new CodePerfTracker("MakeBlackbox");

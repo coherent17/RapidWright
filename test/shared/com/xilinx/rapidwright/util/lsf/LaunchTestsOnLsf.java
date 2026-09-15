@@ -66,7 +66,6 @@ import org.junit.platform.launcher.core.LauncherFactory;
  * The working directory is cleared! Then outputs are placed there.
  */
 public class LaunchTestsOnLsf {
-
     private static String toJobDir(String id) {
         if (id.isEmpty()) {
             return "regularTests";
@@ -75,7 +74,8 @@ public class LaunchTestsOnLsf {
     }
 
     public static Stream<Pair<String, Integer>> discoverTests(Launcher launcher, TestPlan testPlan) {
-        //We have to do a fake test execution to enumerate dynamic tests and test template instantiations
+        // We have to do a fake test execution to enumerate dynamic tests and test template
+        // instantiations
         LsfInterceptor.ENABLED = true;
         Map<String, TestIdentifier> ids = new HashMap<>();
         launcher.registerTestExecutionListeners(new TestExecutionListener() {
@@ -101,10 +101,11 @@ public class LaunchTestsOnLsf {
         });
         launcher.execute(testPlan);
 
-        Stream<Pair<String, Integer>> lsfTests = ids.values().stream()
-                .filter(TestIdentifier::isTest)
-                .filter(ti -> RunTest.isLsfTest(ti, ids))
-                .map(ti -> new Pair<>(ti.getUniqueId(), requireLsfMem(ti, ids)));
+        Stream<Pair<String, Integer>> lsfTests = ids.values()
+                                                     .stream()
+                                                     .filter(TestIdentifier::isTest)
+                                                     .filter(ti -> RunTest.isLsfTest(ti, ids))
+                                                     .map(ti -> new Pair<>(ti.getUniqueId(), requireLsfMem(ti, ids)));
 
         if (ids.isEmpty()) {
             throw new RuntimeException("did not find any test?!");
@@ -114,7 +115,7 @@ public class LaunchTestsOnLsf {
     }
 
     public static void main(String[] args) {
-        //Testcases may have been removed since the last run, delete all to be sure
+        // Testcases may have been removed since the last run, delete all to be sure
         if (!FileTools.deleteFolderContents(".")) {
             throw new RuntimeException("could not empty working dir");
         }
@@ -130,17 +131,17 @@ public class LaunchTestsOnLsf {
         Map<Job, String> jobsToTests = new HashMap<>();
 
         discoverTests(launcher, testPlan).forEach(pair -> {
-            int memMB = pair.getSecond()*1024;
+            int memMB = pair.getSecond() * 1024;
             LSFJob job = new LSFJob();
             job.setRunDir(toJobDir(pair.getFirst()));
             job.setRapidWrightCommand(RunTest.class, memMB, true,
-                    '"'+testsJar.toString()+"\" \""+pair.getFirst()+'"');
+                                      '"' + testsJar.toString() + "\" \"" + pair.getFirst() + '"');
             job.setLsfResourceMemoryLimit(memMB);
             jq.addJob(job);
             jobsToTests.put(job, pair.getFirst());
         });
 
-        //Don't impose more limits on parallelism than what LSF allows us
+        // Don't impose more limits on parallelism than what LSF allows us
         if (!jq.runAllToCompletion(Integer.MAX_VALUE)) {
             StringBuilder sb = new StringBuilder();
             sb.append("LSF workers failed to execute tests:");
@@ -155,7 +156,8 @@ public class LaunchTestsOnLsf {
                         sb.append(" executing test ").append(test);
                         Optional<List<String>> lastLogLines = job.getLastLogLines();
                         if (lastLogLines.isPresent()) {
-                            String log = lastLogLines.get().stream().collect(Collectors.joining("\n","Execution failed. Last Lines of Log:\n",""));
+                            String log = lastLogLines.get().stream().collect(
+                                Collectors.joining("\n", "Execution failed. Last Lines of Log:\n", ""));
                             perTestMessages.put(test, log);
                         } else {
                             perTestMessages.put(test, "Execution failed, no log was generated");
@@ -171,13 +173,13 @@ public class LaunchTestsOnLsf {
 
     private static Optional<Integer> sourceToMem(TestSource ts) {
         if (ts instanceof ClassSource) {
-            LargeTest annotation = ((ClassSource) ts).getJavaClass().getAnnotation(LargeTest.class);
+            LargeTest annotation = ((ClassSource)ts).getJavaClass().getAnnotation(LargeTest.class);
             return Optional.ofNullable(annotation).map(LargeTest::max_memory_gb);
         } else if (ts instanceof MethodSource) {
-            LargeTest annotation = ((MethodSource) ts).getJavaMethod().getAnnotation(LargeTest.class);
+            LargeTest annotation = ((MethodSource)ts).getJavaMethod().getAnnotation(LargeTest.class);
             return Optional.ofNullable(annotation).map(LargeTest::max_memory_gb);
         } else {
-            throw new RuntimeException("Cannot get memory from "+ts);
+            throw new RuntimeException("Cannot get memory from " + ts);
         }
     }
 
@@ -186,21 +188,20 @@ public class LaunchTestsOnLsf {
         if (fromSource.isPresent()) {
             return fromSource;
         }
-        return ti.getParentId().flatMap(p->getLsfMem(ids.get(p), ids));
+        return ti.getParentId().flatMap(p -> getLsfMem(ids.get(p), ids));
     }
 
     private static int requireLsfMem(TestIdentifier x, Map<String, TestIdentifier> ids) {
-        return getLsfMem(x, ids).orElseThrow(()->new RuntimeException("Did not find memory requirement of test "+x.getUniqueId()));
+        return getLsfMem(x, ids).orElseThrow(
+            () -> new RuntimeException("Did not find memory requirement of test " + x.getUniqueId()));
     }
 
     @NotNull
     public static LauncherDiscoveryRequestBuilder getLauncherDiscoveryRequestBuilder(Path testsJar) {
         return LauncherDiscoveryRequestBuilder.request()
-                .configurationParameter(
-                        JupiterConfiguration.EXTENSIONS_AUTODETECTION_ENABLED_PROPERTY_NAME, "true"
-                )
-                .configurationParameter(LauncherConstants.CAPTURE_STDOUT_PROPERTY_NAME, "true")
-                .configurationParameter(LauncherConstants.CAPTURE_STDERR_PROPERTY_NAME, "true")
-                .selectors(DiscoverySelectors.selectClasspathRoots(Collections.singleton(testsJar)));
+            .configurationParameter(JupiterConfiguration.EXTENSIONS_AUTODETECTION_ENABLED_PROPERTY_NAME, "true")
+            .configurationParameter(LauncherConstants.CAPTURE_STDOUT_PROPERTY_NAME, "true")
+            .configurationParameter(LauncherConstants.CAPTURE_STDERR_PROPERTY_NAME, "true")
+            .selectors(DiscoverySelectors.selectClasspathRoots(Collections.singleton(testsJar)));
     }
 }

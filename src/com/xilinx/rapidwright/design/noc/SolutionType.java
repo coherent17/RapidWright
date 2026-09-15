@@ -35,7 +35,7 @@ public enum SolutionType {
     SUBOPTIMAL("SUBOPTIMAL"),
     DEADLOCKS("DEADLOCKS");
 
-    private static Map<String,SolutionType> map;
+    private static Map<String, SolutionType> map;
 
     private final String st;
 

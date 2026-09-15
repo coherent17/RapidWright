@@ -50,7 +50,6 @@ import java.util.Set;
  * EDIF object's properties are only ever mutated by one thread during parsing.
  */
 public class EDIFPropertyMap implements Map<String, EDIFPropertyValue> {
-
     private static final Object[] EMPTY = new Object[0];
 
     private final EDIFPropertyObject owner;
@@ -66,13 +65,13 @@ public class EDIFPropertyMap implements Map<String, EDIFPropertyValue> {
 
     @SuppressWarnings("unchecked")
     private static HashMap<String, EDIFPropertyValue> asMap(Object d) {
-        return (HashMap<String, EDIFPropertyValue>) d;
+        return (HashMap<String, EDIFPropertyValue>)d;
     }
 
     /** Returns the owner's compact array, or {@link #EMPTY} if not in compact mode. */
     private Object[] compactOrEmpty() {
         Object d = owner.getRawPropertyData();
-        return (d instanceof Object[]) ? (Object[]) d : EMPTY;
+        return (d instanceof Object[]) ? (Object[])d : EMPTY;
     }
 
     @Override
@@ -87,7 +86,7 @@ public class EDIFPropertyMap implements Map<String, EDIFPropertyValue> {
 
     @Override
     public boolean containsKey(Object key) {
-        return (key instanceof String) && owner.getProperty((String) key) != null;
+        return (key instanceof String) && owner.getProperty((String)key) != null;
     }
 
     @Override
@@ -99,7 +98,7 @@ public class EDIFPropertyMap implements Map<String, EDIFPropertyValue> {
         if (d instanceof HashMap) {
             return asMap(d).containsValue(value);
         }
-        Object[] a = (Object[]) d;
+        Object[] a = (Object[])d;
         for (int i = 1; i < a.length; i += 2) {
             if (Objects.equals(value, a[i])) {
                 return true;
@@ -110,7 +109,7 @@ public class EDIFPropertyMap implements Map<String, EDIFPropertyValue> {
 
     @Override
     public EDIFPropertyValue get(Object key) {
-        return (key instanceof String) ? owner.getProperty((String) key) : null;
+        return (key instanceof String) ? owner.getProperty((String)key) : null;
     }
 
     @Override
@@ -120,7 +119,7 @@ public class EDIFPropertyMap implements Map<String, EDIFPropertyValue> {
 
     @Override
     public EDIFPropertyValue remove(Object key) {
-        return (key instanceof String) ? owner.removeProperty((String) key) : null;
+        return (key instanceof String) ? owner.removeProperty((String)key) : null;
     }
 
     @Override
@@ -153,7 +152,7 @@ public class EDIFPropertyMap implements Map<String, EDIFPropertyValue> {
                 return new BaseIterator<String>() {
                     @Override
                     String elementAt(Object[] a, int idx) {
-                        return (String) a[idx];
+                        return (String)a[idx];
                     }
                 };
             }
@@ -182,7 +181,7 @@ public class EDIFPropertyMap implements Map<String, EDIFPropertyValue> {
                 return new BaseIterator<EDIFPropertyValue>() {
                     @Override
                     EDIFPropertyValue elementAt(Object[] a, int idx) {
-                        return (EDIFPropertyValue) a[idx + 1];
+                        return (EDIFPropertyValue)a[idx + 1];
                     }
                 };
             }
@@ -206,7 +205,7 @@ public class EDIFPropertyMap implements Map<String, EDIFPropertyValue> {
                 return new BaseIterator<Map.Entry<String, EDIFPropertyValue>>() {
                     @Override
                     Map.Entry<String, EDIFPropertyValue> elementAt(Object[] a, int idx) {
-                        return new MapEntry((String) a[idx]);
+                        return new MapEntry((String)a[idx]);
                     }
                 };
             }
@@ -249,7 +248,7 @@ public class EDIFPropertyMap implements Map<String, EDIFPropertyValue> {
             if (!(o instanceof Map.Entry)) {
                 return false;
             }
-            Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
+            Map.Entry<?, ?> e = (Map.Entry<?, ?>)o;
             return Objects.equals(key, e.getKey()) && Objects.equals(getValue(), e.getValue());
         }
 
@@ -308,7 +307,7 @@ public class EDIFPropertyMap implements Map<String, EDIFPropertyValue> {
             }
             checkForComodification();
             int idx = cursor - 2;
-            owner.removeProperty((String) snapshot[idx]);
+            owner.removeProperty((String)snapshot[idx]);
             // Our own remove replaced the owner's backing array; resync the snapshot.
             snapshot = compactOrEmpty();
             cursor = idx;
@@ -323,7 +322,7 @@ public class EDIFPropertyMap implements Map<String, EDIFPropertyValue> {
         if (!(o instanceof Map)) {
             return false;
         }
-        Map<?, ?> m = (Map<?, ?>) o;
+        Map<?, ?> m = (Map<?, ?>)o;
         if (m.size() != size()) {
             return false;
         }
@@ -331,7 +330,7 @@ public class EDIFPropertyMap implements Map<String, EDIFPropertyValue> {
         if (d instanceof HashMap) {
             return asMap(d).equals(m);
         }
-        Object[] a = (d instanceof Object[]) ? (Object[]) d : EMPTY;
+        Object[] a = (d instanceof Object[]) ? (Object[])d : EMPTY;
         for (int i = 0; i < a.length; i += 2) {
             if (!Objects.equals(a[i + 1], m.get(a[i]))) {
                 return false;
@@ -348,7 +347,7 @@ public class EDIFPropertyMap implements Map<String, EDIFPropertyValue> {
             return asMap(d).hashCode();
         }
         int h = 0;
-        Object[] a = (d instanceof Object[]) ? (Object[]) d : EMPTY;
+        Object[] a = (d instanceof Object[]) ? (Object[])d : EMPTY;
         for (int i = 0; i < a.length; i += 2) {
             int keyHash = a[i] == null ? 0 : a[i].hashCode();
             int valHash = a[i + 1] == null ? 0 : a[i + 1].hashCode();
@@ -363,7 +362,7 @@ public class EDIFPropertyMap implements Map<String, EDIFPropertyValue> {
         if (d instanceof HashMap) {
             return asMap(d).toString();
         }
-        Object[] a = (d instanceof Object[]) ? (Object[]) d : EMPTY;
+        Object[] a = (d instanceof Object[]) ? (Object[])d : EMPTY;
         if (a.length == 0) {
             return "{}";
         }

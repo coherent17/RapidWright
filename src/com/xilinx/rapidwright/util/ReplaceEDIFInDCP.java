@@ -33,8 +33,7 @@ import com.xilinx.rapidwright.design.Design;
 public class ReplaceEDIFInDCP {
     public static void main(String[] args) {
         if (args.length < 2 || args.length > 4) {
-            System.out.println(
-                    "USAGE: ReplaceEDIFInDCP <dcp filename> <new edif filename> [output dcp filename]");
+            System.out.println("USAGE: ReplaceEDIFInDCP <dcp filename> <new edif filename> [output dcp filename]");
             return;
         }
         boolean success = false;

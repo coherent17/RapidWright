@@ -48,22 +48,26 @@ public enum EDIFDirection {
         arr = toString().getBytes(StandardCharsets.UTF_8);
     }
 
-
     public static EDIFDirection getEnum(String s) {
         s = s.toUpperCase();
-        if (s.equals("BIDIR")) return INOUT;
+        if (s.equals("BIDIR"))
+            return INOUT;
         return valueOf(s);
     }
 
     public static EDIFDirection getDir(PinType p) {
-        if (p == PinType.IN) return INPUT;
-        if (p == PinType.OUT) return OUTPUT;
+        if (p == PinType.IN)
+            return INPUT;
+        if (p == PinType.OUT)
+            return OUTPUT;
         return INOUT;
     }
 
     public static EDIFDirection getDir(Direction p) {
-        if (p == Direction.INPUT) return INPUT;
-        if (p == Direction.OUTPUT) return OUTPUT;
+        if (p == Direction.INPUT)
+            return INPUT;
+        if (p == Direction.OUTPUT)
+            return OUTPUT;
         return INOUT;
     }
 

@@ -25,14 +25,4 @@ package com.xilinx.rapidwright.timing;
  * The current set of TimingGroup types including types for each of the basic wire length types,
  * bounces, pin types, and other.
  */
-public enum GroupDelayType {
-    SINGLE,
-    DOUBLE,
-    QUAD,
-    LONG,
-    PIN_BOUNCE,
-    INTERNAL,
-    GLOBAL,
-    PINFEED,
-    OTHER
-}
+public enum GroupDelayType { SINGLE, DOUBLE, QUAD, LONG, PIN_BOUNCE, INTERNAL, GLOBAL, PINFEED, OTHER }

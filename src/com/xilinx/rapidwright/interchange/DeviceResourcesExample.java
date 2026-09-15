@@ -29,7 +29,6 @@ import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.tests.CodePerfTracker;
 
 public class DeviceResourcesExample {
-
     public static final String SKIP_ROUTE_RESOURCES_OPTION = "--skip_route_resources";
 
     public static void main(String[] args) throws IOException {

@@ -37,10 +37,12 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class NicerStringifyList<T> implements List<T> {
-
     @Override
     public String toString() {
-        return list.stream().map(Object::toString).map(s -> s.replaceAll("] ", "] \" + \n  \"")).collect(Collectors.joining("\",\n\"", "\"", "\""));
+        return list.stream()
+            .map(Object::toString)
+            .map(s -> s.replaceAll("] ", "] \" + \n  \""))
+            .collect(Collectors.joining("\",\n\"", "\"", "\""));
     }
 
     public int size() {
@@ -109,9 +111,11 @@ public class NicerStringifyList<T> implements List<T> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        NicerStringifyList<?> that = (NicerStringifyList<?>) o;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        NicerStringifyList<?> that = (NicerStringifyList<?>)o;
         return Objects.equals(list, that.list);
     }
 

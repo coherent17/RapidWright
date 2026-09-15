@@ -27,7 +27,6 @@ package com.xilinx.rapidwright.util;
  * Aims to be a centralized helper class to manage global RapidWright settings.
  */
 public class Params {
-
     public static String RW_DECOMPRESS_GZIPPED_EDIF_TO_DISK_NAME = "RW_DECOMPRESS_GZIPPED_EDIF_TO_DISK";
 
     public static String RW_ZSTD_COMPRESSION_LEVEL_NAME = "RW_ZSTD_COMPRESSION_LEVEL";
@@ -56,10 +55,10 @@ public class Params {
     public static String RW_DCP_EDIF_EXTRACT_THRESHOLD_BYTES_NAME = "RW_DCP_EDIF_EXTRACT_THRESHOLD_BYTES";
 
     /**
-    * Max EDIF token size in bytes for {@link com.xilinx.rapidwright.edif.EDIFTokenizer}
-    * Must be a power of two. Set via environment variable or JVM system property.
-    * {@value #RW_EDIF_MAX_TOKEN_LENGTH_NAME}
-    */
+     * Max EDIF token size in bytes for {@link com.xilinx.rapidwright.edif.EDIFTokenizer}
+     * Must be a power of two. Set via environment variable or JVM system property.
+     * {@value #RW_EDIF_MAX_TOKEN_LENGTH_NAME}
+     */
     public static String RW_EDIF_MAX_TOKEN_LENGTH_NAME = "RW_EDIF_MAX_TOKEN_LENGTH";
     public static int RW_EDIF_DEFAULT_MAX_TOKEN_LENGTH = 8192 * 16 * 32;
 
@@ -71,14 +70,14 @@ public class Params {
      * file, but loading of the EDIF file will be ~2x faster.
      */
     public static boolean RW_DECOMPRESS_GZIPPED_EDIF_TO_DISK = isParamSet(RW_DECOMPRESS_GZIPPED_EDIF_TO_DISK_NAME);
-    
+
     /**
      * ZStandard compression effort level to use when compressing files. This can
      * range from -7 to 22, with higher numbers producing a more compact result for
      * more runtime.
      */
-    public static int RW_ZSTD_COMPRESSION_LEVEL = getParamOrDefaultIntSetting(RW_DECOMPRESS_GZIPPED_EDIF_TO_DISK_NAME,
-            RW_ZSTD_DEFAULT_COMPRESSION_LEVEL);
+    public static int RW_ZSTD_COMPRESSION_LEVEL =
+        getParamOrDefaultIntSetting(RW_DECOMPRESS_GZIPPED_EDIF_TO_DISK_NAME, RW_ZSTD_DEFAULT_COMPRESSION_LEVEL);
 
     /**
      * Flag to have RapidWright write out DCPs such that they will only be readable
@@ -113,8 +112,7 @@ public class Params {
      * the threshold was not set explicitly.
      */
     public static long RW_DCP_EDIF_EXTRACT_THRESHOLD_BYTES =
-            getParamOrDefaultLongSetting(RW_DCP_EDIF_EXTRACT_THRESHOLD_BYTES_NAME, -1L);
-
+        getParamOrDefaultLongSetting(RW_DCP_EDIF_EXTRACT_THRESHOLD_BYTES_NAME, -1L);
 
     /**
      * Configured max EDIF token length; falls back to {@link #RW_EDIF_DEFAULT_MAX_TOKEN_LENGTH}
@@ -127,7 +125,7 @@ public class Params {
     /**
      * Checks if the named RapidWright parameter is set via an environment variable
      * or by a JVM parameter of the same name.
-     * 
+     *
      * @param key Name of the global RapidWright parameter
      * @return True if the parameter is set (as defined by {@link #isSet(String)}),
      *         false otherwise
@@ -138,22 +136,18 @@ public class Params {
 
     /**
      * Checks if a parameter is set by examining the provided value.
-     * 
+     *
      * @param value An environment variable or JVM parameter value
      * @return True if (1) value is not null, (2) is not an empty string, (3) is not
      *         0 and (4) is not false (case-insensitive).
      */
     public static boolean isSet(String value) {
-        return !( value == null 
-               || value.length() == 0 
-               || value.equals("0") 
-               || value.toLowerCase().equals("false")
-               );         
+        return !(value == null || value.length() == 0 || value.equals("0") || value.toLowerCase().equals("false"));
     }
 
     /**
      * Gets the integer value of the provided parameter name.
-     * 
+     *
      * @param key Name of the system parameter to get.
      * @return The set integer value of the parameter, or null if none was set. If
      *         the property is set to a value that is not a parsable integer, a
@@ -165,8 +159,8 @@ public class Params {
             try {
                 return Integer.parseInt(envValue);
             } catch (NumberFormatException e) {
-                System.err.println("WARNING: Couldn't interpret the value '" + envValue 
-                        + "' from the parameter '" + key + "' as an integer.");
+                System.err.println("WARNING: Couldn't interpret the value '" + envValue + "' from the parameter '" +
+                                   key + "' as an integer.");
             }
         }
         return null;
@@ -186,8 +180,8 @@ public class Params {
             try {
                 return Long.parseLong(envValue);
             } catch (NumberFormatException e) {
-                System.err.println("WARNING: Couldn't interpret the value '" + envValue
-                        + "' from the parameter '" + key + "' as a long.");
+                System.err.println("WARNING: Couldn't interpret the value '" + envValue + "' from the parameter '" +
+                                   key + "' as a long.");
             }
         }
         return null;
@@ -195,7 +189,7 @@ public class Params {
 
     /**
      * Gets the string value of the provided parameter name.
-     * 
+     *
      * @param key Name of the system parameter to get.
      * @return The set string value of the parameter, or null if none was set.
      */
@@ -210,7 +204,7 @@ public class Params {
     /**
      * Checks the parameter value of the provided key. If it is set, it returns the
      * set value. Otherwise it will return the default value.
-     * 
+     *
      * @param key          Name of the system parameter to check.
      * @param defaultValue The default value to return if the paramter is not set.
      * @return The system parameter value if is set, otherwise it returns
@@ -237,9 +231,8 @@ public class Params {
 
     private static int validatedEdifMaxTokenLength(int value, int defaultValue) {
         if (value <= 0 || (value & (value - 1)) != 0) {
-            System.err.println("WARNING: " + RW_EDIF_MAX_TOKEN_LENGTH_NAME
-                + " must be a positive power of two (" + value + ") using default "
-                + defaultValue);
+            System.err.println("WARNING: " + RW_EDIF_MAX_TOKEN_LENGTH_NAME + " must be a positive power of two (" +
+                               value + ") using default " + defaultValue);
             return defaultValue;
         }
         return value;

@@ -25,19 +25,17 @@ package com.xilinx.rapidwright.examples;
 
 import java.nio.file.Path;
 
+import com.xilinx.rapidwright.util.FileTools;
+import com.xilinx.rapidwright.util.VivadoToolsHelper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.xilinx.rapidwright.util.FileTools;
-import com.xilinx.rapidwright.util.VivadoToolsHelper;
-
 public class TestPicoBlazeArray {
-
     @Test
     public void testPicoBlazeArray(@TempDir Path dir) {
         Path outputDCP = dir.resolve("picoblaze_array.dcp");
-        PicoBlazeArray.main(new String[] { FileTools.getRapidWrightPath() + "/test/RapidWrightDCP/PicoBlazeArray",
-                                "xcvu3p-ffvc1517-2-i", outputDCP.toString(), "--no_hand_placer" });
+        PicoBlazeArray.main(new String[] {FileTools.getRapidWrightPath() + "/test/RapidWrightDCP/PicoBlazeArray",
+                                          "xcvu3p-ffvc1517-2-i", outputDCP.toString(), "--no_hand_placer"});
 
         boolean hasEncryptedCells = false;
         VivadoToolsHelper.assertCanBeFullyRoutedByVivado(outputDCP, dir, hasEncryptedCells);

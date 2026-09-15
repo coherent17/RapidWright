@@ -43,11 +43,8 @@ import org.jetbrains.annotations.NotNull;
  * Created on: Sep 13, 2017
  */
 public class EDIFHierNet implements Comparable<EDIFHierNet> {
-
-    @NotNull
-    private final EDIFHierCellInst hierarchicalInst;
-    @NotNull
-    private final EDIFNet net;
+    @NotNull private final EDIFHierCellInst hierarchicalInst;
+    @NotNull private final EDIFNet net;
 
     /**
      * Constructor
@@ -112,7 +109,7 @@ public class EDIFHierNet implements Comparable<EDIFHierNet> {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        //TODO does it make sense for hierarchicalInst or net to be null?
+        // TODO does it make sense for hierarchicalInst or net to be null?
         result = prime * result + ((hierarchicalInst == null) ? 0 : hierarchicalInst.hashCode());
         result = prime * result + ((net == null) ? 0 : net.hashCode());
         return result;
@@ -129,7 +126,7 @@ public class EDIFHierNet implements Comparable<EDIFHierNet> {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        EDIFHierNet other = (EDIFHierNet) obj;
+        EDIFHierNet other = (EDIFHierNet)obj;
         if (hierarchicalInst == null) {
             if (other.hierarchicalInst != null)
                 return false;
@@ -150,7 +147,6 @@ public class EDIFHierNet implements Comparable<EDIFHierNet> {
     public String toString() {
         return getHierarchicalNetName();
     }
-
 
     public EDIFHierCellInst getHierarchicalInst() {
         return hierarchicalInst;
@@ -194,8 +190,8 @@ public class EDIFHierNet implements Comparable<EDIFHierNet> {
     }
 
     /**
-     * Gets all connected leaf port instances (inputs, and optionally outputs, but not inouts) on this
-     * hierarchical net and its aliases.
+     * Gets all connected leaf port instances (inputs, and optionally outputs, but not inouts) on
+     * this hierarchical net and its aliases.
      * @param includeSourcePins A flag to include source pins in the result.  Setting this to false
      * only returns the sinks.
      * @return The list of all leaf cell port instances connected to this hierarchical net and its
@@ -204,7 +200,6 @@ public class EDIFHierNet implements Comparable<EDIFHierNet> {
     public List<EDIFHierPortInst> getLeafHierPortInsts(boolean includeSourcePins) {
         return getLeafHierPortInsts(includeSourcePins, true);
     }
-
 
     /**
      * Gets all connected leaf port instances (inputs, and/or outputs, but not inouts) on this
@@ -220,8 +215,8 @@ public class EDIFHierNet implements Comparable<EDIFHierNet> {
     }
 
     /**
-     * Gets all connected leaf port instances (inputs, and optionally outputs, but not inouts) on this
-     * hierarchical net and its aliases.
+     * Gets all connected leaf port instances (inputs, and optionally outputs, but not inouts) on
+     * this hierarchical net and its aliases.
      * @param includeSourcePins A flag to include source pins in the result.
      * @param visited An initial set of EDIFHierNet-s that have already been visited and will not
      * be visited again. Pre-populating this set can be useful for blocking traversal.
@@ -242,7 +237,8 @@ public class EDIFHierNet implements Comparable<EDIFHierNet> {
      * @return The list of all leaf cell port instances connected to this hierarchical net and its
      * aliases.
      */
-    public List<EDIFHierPortInst> getLeafHierPortInsts(boolean includeSourcePins, boolean includeSinkPins, boolean includeTopLevelPins) {
+    public List<EDIFHierPortInst> getLeafHierPortInsts(boolean includeSourcePins, boolean includeSinkPins,
+                                                       boolean includeTopLevelPins) {
         return getLeafHierPortInsts(includeSourcePins, includeSinkPins, includeTopLevelPins, new HashSet<>());
     }
 
@@ -257,7 +253,8 @@ public class EDIFHierNet implements Comparable<EDIFHierNet> {
      * @return The list of all leaf cell port instances connected to this hierarchical net and its
      * aliases.
      */
-    public List<EDIFHierPortInst> getLeafHierPortInsts(boolean includeSourcePins, boolean includeSinkPins, Set<EDIFHierNet> visited) {
+    public List<EDIFHierPortInst> getLeafHierPortInsts(boolean includeSourcePins, boolean includeSinkPins,
+                                                       Set<EDIFHierNet> visited) {
         return getLeafHierPortInsts(includeSourcePins, includeSinkPins, false, visited);
     }
 
@@ -273,7 +270,8 @@ public class EDIFHierNet implements Comparable<EDIFHierNet> {
      * @return The list of all leaf cell port instances connected to this hierarchical net and its
      * aliases.
      */
-    public List<EDIFHierPortInst> getLeafHierPortInsts(boolean includeSourcePins, boolean includeSinkPins, boolean includeTopLevelPins, Set<EDIFHierNet> visited) {
+    public List<EDIFHierPortInst> getLeafHierPortInsts(boolean includeSourcePins, boolean includeSinkPins,
+                                                       boolean includeTopLevelPins, Set<EDIFHierNet> visited) {
         if (!includeSourcePins && !includeSinkPins) {
             return Collections.emptyList();
         }
@@ -291,14 +289,16 @@ public class EDIFHierNet implements Comparable<EDIFHierNet> {
             for (EDIFPortInst relP : net.getNet().getPortInsts()) {
                 EDIFHierPortInst p = new EDIFHierPortInst(net.getHierarchicalInst(), relP);
 
-                boolean isCellPin = relP.getCellInst() != null && relP.getCellInst().getCellType().isLeafCellOrBlackBox();
+                boolean isCellPin =
+                    relP.getCellInst() != null && relP.getCellInst().getCellType().isLeafCellOrBlackBox();
                 if (isCellPin) {
                     if ((includeSinkPins && p.isInput()) || (includeSourcePins && p.isOutput())) {
                         leafCellPins.add(p);
                     }
                 }
 
-                boolean isToplevelInput = p.getHierarchicalInst().isTopLevelInst() && relP.getCellInst() == null && p.isInput();
+                boolean isToplevelInput =
+                    p.getHierarchicalInst().isTopLevelInst() && relP.getCellInst() == null && p.isInput();
                 if (isToplevelInput || (isCellPin && p.isOutput())) {
                     if (parentNet != null) {
                         throw new RuntimeException("Multiple sources!");
@@ -314,7 +314,8 @@ public class EDIFHierNet implements Comparable<EDIFHierNet> {
                         if (upNet != null) {
                             queue.add(upPort.getHierarchicalNet());
                         }
-                    } else if (includeTopLevelPins && ((includeSinkPins && p.isOutput()) || (includeSourcePins && p.isInput()))) {
+                    } else if (includeTopLevelPins &&
+                               ((includeSinkPins && p.isOutput()) || (includeSourcePins && p.isInput()))) {
                         // Add top-level hierarchical port insts
                         leafCellPins.add(p);
                     }
@@ -335,7 +336,7 @@ public class EDIFHierNet implements Comparable<EDIFHierNet> {
      * Gets the first leaf cell source port inst for this net, or null if none could
      * be found. If there are multiple sources, this method will return the first
      * arbitrarily chosen source encountered.
-     * 
+     *
      * @return First source port instance for this net, or null if none exists.
      */
     public EDIFHierPortInst getLeafSourcePortInst() {
@@ -355,7 +356,7 @@ public class EDIFHierNet implements Comparable<EDIFHierNet> {
      * scale, but is always operating on the current state of the netlist
      * connectivity. See {@link EDIFNetlist#getParentNet(EDIFHierNet)} for scaling
      * queries of this kind.
-     * 
+     *
      * @param possibleAlias The logical hierarchical net to check if this net is an
      *                      alias.
      * @return True if this net and the provided net are aliases (samephysical net).

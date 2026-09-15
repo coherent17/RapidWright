@@ -29,7 +29,6 @@ package com.xilinx.rapidwright.design.tools;
  * @author clavin
  */
 public class LUTEquationEvaluator {
-
     public static final char XOR = '^';
     public static final char XOR2 = '@';
     public static final char AND = '&';
@@ -57,11 +56,12 @@ public class LUTEquationEvaluator {
     }
 
     private void nextChar() {
-        ch = (char) ((++pos < equation.length()) ? equation.charAt(pos) : -1);
+        ch = (char)((++pos < equation.length()) ? equation.charAt(pos) : -1);
     }
 
     private boolean checkNextChar(char checkFor) {
-        while (ch == ' ' || ch == '\t' || ch == '=' || ch == 'O') nextChar();
+        while (ch == ' ' || ch == '\t' || ch == '=' || ch == 'O')
+            nextChar();
         if (ch == checkFor) {
             nextChar();
             return true;
@@ -79,16 +79,17 @@ public class LUTEquationEvaluator {
         boolean x = evalOR();
         nextChar();
         if (pos < equation.length())
-            throw new RuntimeException("Unexpected: '" + (char)ch +
-                    "' in LUT equation '" + equation + "'");
+            throw new RuntimeException("Unexpected: '" + (char)ch + "' in LUT equation '" + equation + "'");
         return x;
     }
 
     boolean evalOR() {
         boolean x = evalXORAND();
         for (;;) {
-            if (checkNextChar(OR) || checkNextChar(OR2)) x |= evalXORAND(); // OR
-            else return x;
+            if (checkNextChar(OR) || checkNextChar(OR2))
+                x |= evalXORAND(); // OR
+            else
+                return x;
         }
     }
 
@@ -100,13 +101,15 @@ public class LUTEquationEvaluator {
             else if (checkNextChar(AND) || checkNextChar(AND2) || checkNextChar(AND3))
                 x &= evalLiteral(); // AND
 
-            else return x;
+            else
+                return x;
         }
     }
 
     boolean evalLiteral() {
         boolean invert = false;
-        if (checkNextChar(NOT) || checkNextChar(NOT2)) invert = true;
+        if (checkNextChar(NOT) || checkNextChar(NOT2))
+            invert = true;
         boolean x = false;
 
         if (checkNextChar('(')) {
@@ -121,8 +124,7 @@ public class LUTEquationEvaluator {
             x = LUTTools.getBit(row, ch - 48) == 0 ? false : true;
             nextChar();
         } else {
-            throw new RuntimeException("Unexpected: '" + (char)ch +
-                    "' in LUT equation '" + equation + "'");
+            throw new RuntimeException("Unexpected: '" + (char)ch + "' in LUT equation '" + equation + "'");
         }
 
         return invert ? !x : x;

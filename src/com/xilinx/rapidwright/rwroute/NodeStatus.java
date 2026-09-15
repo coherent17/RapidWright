@@ -25,8 +25,4 @@ package com.xilinx.rapidwright.rwroute;
 /**
  * Enumeration designating the routing status of a Node.
  */
-public enum NodeStatus {
-    AVAILABLE,
-    UNAVAILABLE,
-    INUSE
-}
+public enum NodeStatus { AVAILABLE, UNAVAILABLE, INUSE }

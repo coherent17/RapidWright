@@ -50,7 +50,6 @@ import com.xilinx.rapidwright.tests.CodePerfTracker;
  * interface.
  */
 public class MergeDesigns {
-
     private static Design mergeDesigns(Design design0, Design design1, AbstractDesignMerger merger) {
         EDIFCell topCell0 = design0.getTopEDIFCell();
         EDIFCell topCell1 = design1.getTopEDIFCell();
@@ -118,21 +117,21 @@ public class MergeDesigns {
         return design0;
     }
 
-    public static Design mergeDesigns(Design...designs) {
+    public static Design mergeDesigns(Design... designs) {
         return mergeDesigns(() -> new DefaultDesignMerger(), designs);
     }
 
     /**
      * Merges two or more designs together into a single design.  Merges both logical and physical
-     * netlist.  Assumes that designs are compatible for merging. Assumes that if there are duplicate
-     * cells in the set of designs to be merged that they are flip-flops and that they are always
-     * connected to a top-level port.
+     * netlist.  Assumes that designs are compatible for merging. Assumes that if there are
+     * duplicate cells in the set of designs to be merged that they are flip-flops and that they are
+     * always connected to a top-level port.
      * @param merger The specific design merger instance to use to merge the designs
      * @param designs The set of designs to be merged into a single design.
      * @return The merged design that contains the superset of all logic, placement and routing of
      * the input designs.
      */
-    public static Design mergeDesigns(Supplier<AbstractDesignMerger> merger, Design...designs) {
+    public static Design mergeDesigns(Supplier<AbstractDesignMerger> merger, Design... designs) {
         Design result = null;
         for (Design design : designs) {
             if (result == null) {
@@ -166,10 +165,9 @@ public class MergeDesigns {
         Path start = Paths.get(args[0]);
         List<File> dcps = null;
         try (Stream<Path> stream = Files.walk(start, Integer.MAX_VALUE)) {
-            dcps = stream
-                    .map(p -> p.toFile())
-                    .filter(p -> p.isFile() && p.getAbsolutePath().matches(dcpRegex))
-                    .collect(Collectors.toList());
+            dcps = stream.map(p -> p.toFile())
+                       .filter(p -> p.isFile() && p.getAbsolutePath().matches(dcpRegex))
+                       .collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -179,7 +177,7 @@ public class MergeDesigns {
         }
 
         Design[] designs = new Design[dcps.size()];
-        for (int i=0; i < designs.length; i++) {
+        for (int i = 0; i < designs.length; i++) {
             t.start("Read DCP " + i);
             designs[i] = Design.readCheckpoint(dcps.get(i).toPath(), CodePerfTracker.SILENT);
             t.stop();

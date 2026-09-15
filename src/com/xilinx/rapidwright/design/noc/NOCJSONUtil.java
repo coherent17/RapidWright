@@ -35,7 +35,6 @@ import org.json.JSONObject;
  * @since 2026.1.0
  */
 public class NOCJSONUtil implements Serializable {
-
     private static final long serialVersionUID = 3364483400091126305L;
     protected static final String JSON_FIELD_NAME = "Name";
     protected static final String JSON_FIELD_IS_MASTER = "IsMaster";
@@ -114,7 +113,8 @@ public class NOCJSONUtil implements Serializable {
                 mapField.setAccessible(true);
             }
             mapField.set(result, new LinkedHashMap<>());
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
         return result;
     }
 
@@ -129,51 +129,53 @@ public class NOCJSONUtil implements Serializable {
         StringBuilder sb = new StringBuilder();
         boolean isInQuotes = false;
         String indent = "";
-        for (int i=0; i<jsonChars.length; i++) {
-            switch(jsonChars[i]) {
-            case '}':
-            case ']':
-                if (isInQuotes) break;
-                sb.append("\n");
-                indent = indent.substring(2);
-                sb.append(indent);
-            default:
-                break;
+        for (int i = 0; i < jsonChars.length; i++) {
+            switch (jsonChars[i]) {
+                case '}':
+                case ']':
+                    if (isInQuotes)
+                        break;
+                    sb.append("\n");
+                    indent = indent.substring(2);
+                    sb.append(indent);
+                default:
+                    break;
             }
             sb.append(jsonChars[i]);
-            switch(jsonChars[i]) {
-            case ':':
-                sb.append(' ');
-                break;
-            case '"':
-                isInQuotes = !isInQuotes;
-                break;
-            case '{':
-            case '[':
-                if (isInQuotes) break;
-                if (jsonChars[i+1] == ']') {
-                    sb.append(jsonChars[++i]);
-                    continue;
-                }
-                indent += "  ";
-                sb.append('\n');
-                sb.append(indent);
-                break;
-            case ',':
-                if (isInQuotes) break;
-                sb.append('\n');
-                sb.append(indent);
-            default:
-                break;
+            switch (jsonChars[i]) {
+                case ':':
+                    sb.append(' ');
+                    break;
+                case '"':
+                    isInQuotes = !isInQuotes;
+                    break;
+                case '{':
+                case '[':
+                    if (isInQuotes)
+                        break;
+                    if (jsonChars[i + 1] == ']') {
+                        sb.append(jsonChars[++i]);
+                        continue;
+                    }
+                    indent += "  ";
+                    sb.append('\n');
+                    sb.append(indent);
+                    break;
+                case ',':
+                    if (isInQuotes)
+                        break;
+                    sb.append('\n');
+                    sb.append(indent);
+                default:
+                    break;
             }
         }
         String s = sb.toString();
         try {
             out.write(s.getBytes());
-        } catch(IOException e) {
+        } catch (IOException e) {
             System.out.println("Exception while writing JSON.");
             e.printStackTrace();
         }
     }
-
 }

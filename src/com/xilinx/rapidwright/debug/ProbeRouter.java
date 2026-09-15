@@ -48,11 +48,11 @@ import com.xilinx.rapidwright.tests.CodePerfTracker;
 import com.xilinx.rapidwright.util.FileTools;
 
 public class ProbeRouter {
-
-    public static Map<String,String> readProbeRequestFile(String fileName) {
-        Map<String,String> map = new TreeMap<>();
+    public static Map<String, String> readProbeRequestFile(String fileName) {
+        Map<String, String> map = new TreeMap<>();
         for (String line : FileTools.getLinesFromTextFile(fileName)) {
-            if (line.trim().startsWith("#")) continue;
+            if (line.trim().startsWith("#"))
+                continue;
             String[] parts = line.split(" ");
             map.put(parts[0], parts[1]);
         }
@@ -63,9 +63,10 @@ public class ProbeRouter {
      * Updates a design containing an ILA (integrated logic analyzer) probe connections
      * that already exist in a design.
      * @param d The existing placed and routed design with an ILA.
-     * @param probeToTargetNets A map from probe names to desired net names (full hierarchical names).
+     * @param probeToTargetNets A map from probe names to desired net names (full hierarchical
+     *     names).
      */
-    public static void updateProbeConnections(Design d, Map<String,String> probeToTargetNets) {
+    public static void updateProbeConnections(Design d, Map<String, String> probeToTargetNets) {
         updateProbeConnections(d, probeToTargetNets, null);
     }
 
@@ -73,29 +74,37 @@ public class ProbeRouter {
      * Updates a design containing an ILA (integrated logic analyzer) probe connections
      * that already exist in a design.
      * @param d The existing placed and routed design with an ILA.
-     * @param probeToTargetNets A map from probe names to desired net names (full hierarchical names).
+     * @param probeToTargetNets A map from probe names to desired net names (full hierarchical
+     *     names).
      * @param pblock An optional pblock (area constraint) to contain routing within a certain area.
      */
-    public static void updateProbeConnections(Design d, Map<String,String> probeToTargetNets, PBlock pblock) {
+    public static void updateProbeConnections(Design d, Map<String, String> probeToTargetNets, PBlock pblock) {
         ArrayList<SitePinInst> pinsToRoute = new ArrayList<>();
-        for (Entry<String,String> e : probeToTargetNets.entrySet()) {
+        for (Entry<String, String> e : probeToTargetNets.entrySet()) {
             String hierPinName = e.getKey();
             EDIFHierCellInst parent = d.getNetlist().getHierCellInstFromName(hierPinName).getParent();
             String cellInstName = parent.toString();
             EDIFCellInst i = parent.getInst();
-            String pinName = hierPinName.substring(hierPinName.lastIndexOf(EDIFTools.EDIF_HIER_SEP)+1);
+            String pinName = hierPinName.substring(hierPinName.lastIndexOf(EDIFTools.EDIF_HIER_SEP) + 1);
             EDIFPortInst portInst = i.getPortInst(pinName);
             EDIFNet net = portInst.getNet();
-            String parentCellInstName = cellInstName.contains(EDIFTools.EDIF_HIER_SEP) ? cellInstName.substring(0,cellInstName.lastIndexOf(EDIFTools.EDIF_HIER_SEP)) : "";
+            String parentCellInstName =
+                cellInstName.contains(EDIFTools.EDIF_HIER_SEP)
+                    ? cellInstName.substring(0, cellInstName.lastIndexOf(EDIFTools.EDIF_HIER_SEP))
+                    : "";
             Net oldPhysNet = d.getNetlist().getPhysicalNetFromPin(parentCellInstName, portInst, d);
 
             // Find the sink flop
-            String hierInstName = cellInstName.contains(EDIFTools.EDIF_HIER_SEP) ? cellInstName.substring(0, cellInstName.lastIndexOf('/')) : "";
-            EDIFHierPortInst startingPoint = new EDIFHierPortInst(d.getNetlist().getHierCellInstFromName(hierInstName), portInst);
+            String hierInstName = cellInstName.contains(EDIFTools.EDIF_HIER_SEP)
+                                      ? cellInstName.substring(0, cellInstName.lastIndexOf('/'))
+                                      : "";
+            EDIFHierPortInst startingPoint =
+                new EDIFHierPortInst(d.getNetlist().getHierCellInstFromName(hierInstName), portInst);
             ArrayList<EDIFHierPortInst> sinks = EDIFTools.findSinks(startingPoint);
             if (sinks.size() != 1) {
                 System.err.println("ERROR: Currently we only support a single flip flop "
-                        + "sink for probe re-routes, found " + sinks.size() + " on " + e.getKey() + ", skipping...");
+                                   + "sink for probe re-routes, found " + sinks.size() + " on " + e.getKey() +
+                                   ", skipping...");
                 continue;
             }
 
@@ -107,14 +116,12 @@ public class ProbeRouter {
             net.removePortInst(portInst);
             // Unroute the portion of physical route to old probe net
             if (physProbeInPin != null)
-                oldPhysNet.removePin(physProbeInPin,true);
+                oldPhysNet.removePin(physProbeInPin, true);
 
             // Connect probe to new net
-            String newPortName = "rw_"+ pinName;
+            String newPortName = "rw_" + pinName;
             EDIFNet newNet = net.getParentCell().createNet(newPortName);
             newNet.addPortInst(portInst);
-
-
 
             EDIFHierCellInst parentInst = d.getNetlist().getHierCellInstFromName(parentCellInstName);
             EDIFTools.connectDebugProbe(newNet, e.getValue(), newPortName, parentInst, d.getNetlist(), null);
@@ -126,11 +133,12 @@ public class ProbeRouter {
 
             /*String siteWire = c.getSiteWireNameFromLogicalPin(sinkFlop.getPortInst().getName());
             c.getSiteInst().addCTag(destPhysNet, siteWire);
-            BELPin inPin = c.getBEL().getPin(c.getPhysicalPinMapping(sinkFlop.getPortInst().getName()));
-            BELPin rbel = inPin.getSiteConns().get(0);
-            c.getSiteInst().addSitePIP(rbel.getBEL().getName(), "BYP", rbel.getName());
-            String siteWireName = rbel.getBEL().getPin("BYP").getSiteWireName();
-            c.getSiteInst().addCTag(destPhysNet, siteWireName);*/
+            BELPin inPin =
+            c.getBEL().getPin(c.getPhysicalPinMapping(sinkFlop.getPortInst().getName())); BELPin
+            rbel = inPin.getSiteConns().get(0); c.getSiteInst().addSitePIP(rbel.getBEL().getName(),
+            "BYP", rbel.getName()); String siteWireName =
+            rbel.getBEL().getPin("BYP").getSiteWireName(); c.getSiteInst().addCTag(destPhysNet,
+            siteWireName);*/
 
             String sitePinName = c.getBELName().charAt(0) + "X";
             BELPin inPin = c.getBEL().getPin(c.getPhysicalPinMapping(sinkFlop.getPortInst().getName()));
@@ -147,14 +155,16 @@ public class ProbeRouter {
         // Attempt route new net to probe
         // TODO - Should we add a flop?
         Router r = new Router(d);
-        if (pblock != null) r.setRoutingPblock(pblock);
+        if (pblock != null)
+            r.setRoutingPblock(pblock);
         r.routePinsReEntrant(pinsToRoute, false);
     }
 
     public static List<EDIFHierCellInst> findILAs(Design d) {
         List<EDIFHierCellInst> candidates = d.getNetlist().getAllDescendants("", "u_ila_*", false);
         ArrayList<EDIFHierCellInst> ilas = new ArrayList<EDIFHierCellInst>();
-        nextInst: for (EDIFHierCellInst i : candidates) {
+    nextInst:
+        for (EDIFHierCellInst i : candidates) {
             if (i.getCellName().contains("u_ila_")) {
                 for (EDIFPort p : i.getCellType().getPorts()) {
                     if (p.getName().contains("SL_IPORT_")) {
@@ -170,8 +180,8 @@ public class ProbeRouter {
     private static final String PBLOCK_SWITCH = "--pblock";
 
     private static void printHelp() {
-        System.out.println("USAGE: <input.dcp> <probes.txt> <output.dcp> ["+
-            PBLOCK_SWITCH+" 'CLOCKREGION_X0Y10:CLOCKREGION_X5Y14 CLOCKREGION_X0Y0:CLOCKREGION_X3Y9']");
+        System.out.println("USAGE: <input.dcp> <probes.txt> <output.dcp> [" + PBLOCK_SWITCH +
+                           " 'CLOCKREGION_X0Y10:CLOCKREGION_X5Y14 CLOCKREGION_X0Y0:CLOCKREGION_X3Y9']");
     }
 
     public static void main(String[] args) {
@@ -185,7 +195,7 @@ public class ProbeRouter {
         PBlock pblock = null;
 
         CodePerfTracker t = new CodePerfTracker("Probe Router");
-        Design d = Design.readCheckpoint(inputDCP,t);
+        Design d = Design.readCheckpoint(inputDCP, t);
 
         if (args.length == 5) {
             if (!args[3].equals(PBLOCK_SWITCH)) {
@@ -196,9 +206,9 @@ public class ProbeRouter {
         }
 
         t.start("Unroute/route probes");
-        Map<String,String> probeMap = readProbeRequestFile(probesFile);
+        Map<String, String> probeMap = readProbeRequestFile(probesFile);
         updateProbeConnections(d, probeMap, pblock);
         t.stop();
-        d.writeCheckpoint(outputDCP,t);
+        d.writeCheckpoint(outputDCP, t);
     }
 }

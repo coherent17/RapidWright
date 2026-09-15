@@ -43,17 +43,17 @@ import com.xilinx.rapidwright.tests.CodePerfTracker;
  *
  */
 public class RelocateHierarchy {
-
     public static void main(String[] args) {
         if (args.length != 5 && args.length != 6) {
-            System.out.println("USAGE: <input_dcp> <hierarchical_path> <tile_col_offset> <tile_row_offset> <output_dcp> [comma separated list of additional SiteTypeEnums to relocate]");
+            System.out.println("USAGE: <input_dcp> <hierarchical_path> <tile_col_offset> <tile_row_offset> "
+                               + "<output_dcp> [comma separated list of additional SiteTypeEnums to relocate]");
             return;
         }
 
         CodePerfTracker t = new CodePerfTracker("Relocate Design", true).start("Loading design");
 
         String dcpName = args[0];
-        Design design = Design.readCheckpoint(dcpName,CodePerfTracker.SILENT);
+        Design design = Design.readCheckpoint(dcpName, CodePerfTracker.SILENT);
 
         t.stop().start("Relocation");
 

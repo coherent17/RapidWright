@@ -32,7 +32,7 @@ public enum ProtocolType {
     AXI_MEMORY_MAPPED("AXI_MM"),
     AXI_STREAM("AXI_STRM");
 
-    private static Map<String,ProtocolType> map;
+    private static Map<String, ProtocolType> map;
 
     static {
         map = new HashMap<>();

@@ -42,7 +42,6 @@ import com.trolltech.qt.gui.QWidget;
  *
  */
 public class GUIMultiNetLine extends QGraphicsLineItem {
-
     private QGraphicsItemInterface srcItem;
     private QGraphicsItemInterface destItem;
     private int hue;
@@ -64,7 +63,6 @@ public class GUIMultiNetLine extends QGraphicsLineItem {
         this.setPen(pen);
         setZValue(3.0);
         updateToolTip();
-
     }
 
     private void updateToolTip() {
@@ -91,8 +89,7 @@ public class GUIMultiNetLine extends QGraphicsLineItem {
         this.setLine(line);
     }
 
-    public void paint(QPainter painter, QStyleOptionGraphicsItem option,
-            QWidget widget) {
+    public void paint(QPainter painter, QStyleOptionGraphicsItem option, QWidget widget) {
         if (srcItem != null && destItem != null) {
             updateLine();
         }
@@ -116,7 +113,7 @@ public class GUIMultiNetLine extends QGraphicsLineItem {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        GUIMultiNetLine other = (GUIMultiNetLine) obj;
+        GUIMultiNetLine other = (GUIMultiNetLine)obj;
         if (destItem == null) {
             if (other.destItem != null)
                 return false;
@@ -129,7 +126,4 @@ public class GUIMultiNetLine extends QGraphicsLineItem {
             return false;
         return true;
     }
-
-
-
 }

@@ -23,6 +23,12 @@
 
 package com.xilinx.rapidwright.util.lsf;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.stream.Stream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -31,12 +37,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.stream.Stream;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -44,24 +44,19 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 /**
- * Junit 5 generates XML reports that have multiple system-out and system-err elements inside testcases.
- * Jenkins parses only the first one.
+ * Junit 5 generates XML reports that have multiple system-out and system-err elements inside
+ * testcases. Jenkins parses only the first one.
  *
  * This class patches the xml output to align with Jenkins' expectation.
  */
 public class XmlReportPatcher {
-
-
     /**
      * Patch all documents in a directory
      */
     public static void fixOutputXmls(Path path) throws IOException {
         try (Stream<Path> files = Files.list(path)) {
-            files
-                    .filter(p -> p.toString().endsWith(".xml"))
-                    .forEach(XmlReportPatcher::fixOutputXml);
+            files.filter(p -> p.toString().endsWith(".xml")).forEach(XmlReportPatcher::fixOutputXml);
         }
-
     }
 
     /**
@@ -72,7 +67,6 @@ public class XmlReportPatcher {
 
         Document doc;
         try (InputStream is = Files.newInputStream(path)) {
-
             // parse XML file
             DocumentBuilder db = dbf.newDocumentBuilder();
 
@@ -101,12 +95,12 @@ public class XmlReportPatcher {
      * @param node
      */
     private static void fixOutputXmlDoc(Node node) {
-        if (node.getNodeType()==Node.ELEMENT_NODE && ((Element)node).getTagName().equals("testcase")) {
+        if (node.getNodeType() == Node.ELEMENT_NODE && ((Element)node).getTagName().equals("testcase")) {
             Node seenStdout = null;
             Node seenStderr = null;
-            for (int i=0; i< node.getChildNodes().getLength();i++) {
+            for (int i = 0; i < node.getChildNodes().getLength(); i++) {
                 Node currentChild = node.getChildNodes().item(i);
-                if (currentChild.getNodeType()!=Node.ELEMENT_NODE) {
+                if (currentChild.getNodeType() != Node.ELEMENT_NODE) {
                     continue;
                 }
 
@@ -141,7 +135,7 @@ public class XmlReportPatcher {
      * @param parent node's parent
      */
     private static void unifyElements(Node moveTarget, Node node, Node parent) {
-        while (node.getChildNodes().getLength()>0) {
+        while (node.getChildNodes().getLength() > 0) {
             Node toMove = node.getChildNodes().item(0);
             node.removeChild(toMove);
             moveTarget.appendChild(toMove);

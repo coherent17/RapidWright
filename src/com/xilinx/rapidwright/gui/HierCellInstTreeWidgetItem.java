@@ -29,7 +29,6 @@ import com.xilinx.rapidwright.edif.EDIFHierCellInst;
  * Wrapper class to store hierarchical instance reference with tree widget item.
  */
 public class HierCellInstTreeWidgetItem extends QTreeWidgetItem {
-
     private EDIFHierCellInst inst;
 
     public HierCellInstTreeWidgetItem(QTreeWidgetItem parent) {
@@ -47,6 +46,4 @@ public class HierCellInstTreeWidgetItem extends QTreeWidgetItem {
     public EDIFHierCellInst getInst() {
         return inst;
     }
-
-
 }

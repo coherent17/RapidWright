@@ -30,14 +30,12 @@ package com.xilinx.rapidwright.util;
  *
  * @param <T>
  */
-public class Pair<T,U> {
-
+public class Pair<T, U> {
     private T first;
 
     private U second;
 
     public Pair() {
-
     }
 
     public Pair(T first, U second) {
@@ -72,12 +70,13 @@ public class Pair<T,U> {
      * @param u Second array, stored in the second location
      * @return An array of populated Pair objects or null if input was invalid.
      */
-    public static <V,W> Pair<V,W>[] zip(V[] t, W[] u) {
-        if (t==null || u == null) return null;
-        if (t.length != u.length) return null;
-        @SuppressWarnings("unchecked")
-        Pair<V,W>[] arr = new Pair[t.length];
-        for (int i=0; i < t.length; i++) {
+    public static <V, W> Pair<V, W>[] zip(V[] t, W[] u) {
+        if (t == null || u == null)
+            return null;
+        if (t.length != u.length)
+            return null;
+        @SuppressWarnings("unchecked") Pair<V, W>[] arr = new Pair[t.length];
+        for (int i = 0; i < t.length; i++) {
             arr[i].first = t[i];
             arr[i].second = u[i];
         }
@@ -101,7 +100,7 @@ public class Pair<T,U> {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        Pair<?,?> other = (Pair<?,?>) obj;
+        Pair<?, ?> other = (Pair<?, ?>)obj;
         if (first == null) {
             if (other.first != null)
                 return false;

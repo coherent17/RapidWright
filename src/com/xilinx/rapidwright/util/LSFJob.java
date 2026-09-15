@@ -39,8 +39,9 @@ import org.json.JSONObject;
  * Created on: Jan 26, 2018
  */
 public class LSFJob extends Job {
-
-    public static final String LSF_RESOURCE = "select[osver=ws8]";//"select[type=X86_64 && osdistro=rhel && (osver=ws6 || osver=sv6)] rusage[mem=6000]";
+    public static final String LSF_RESOURCE =
+        "select[osver=ws8]"; //"select[type=X86_64 && osdistro=rhel && (osver=ws6 || osver=sv6)]
+                             // rusage[mem=6000]";
 
     public static final String LSF_PROJECT = "RapidWright";
 
@@ -63,7 +64,7 @@ public class LSFJob extends Job {
      * Appends a memory liimt to this Job's LSF Resource.
      */
     public void setLsfResourceMemoryLimit(int memLimitMb) {
-        this.lsfResource += " rusage[mem="+memLimitMb+"]";
+        this.lsfResource += " rusage[mem=" + memLimitMb + "]";
     }
 
     public String getLsfProject() {
@@ -91,13 +92,15 @@ public class LSFJob extends Job {
      */
     @Override
     public long launchJob() {
-        Pair<String,String> launchScriptNames = createLaunchScript();
+        Pair<String, String> launchScriptNames = createLaunchScript();
         List<String> cmd = new ArrayList<>();
         Collections.addAll(cmd, "bsub");
         Collections.addAll(cmd, "-R", lsfResource);
-        Collections.addAll(cmd, "-J", getRunDir()==null? System.getProperty("user.dir") : getRunDir());
-        Collections.addAll(cmd, "-oo", launchScriptNames.getSecond().replace(DEFAULT_LOG_EXTENSION, "_lsf_%J" + DEFAULT_LOG_EXTENSION));
-        Collections.addAll(cmd, "-P", lsfProject +"-"+ System.getenv("USER"));
+        Collections.addAll(cmd, "-J", getRunDir() == null ? System.getProperty("user.dir") : getRunDir());
+        Collections.addAll(
+            cmd, "-oo",
+            launchScriptNames.getSecond().replace(DEFAULT_LOG_EXTENSION, "_lsf_%J" + DEFAULT_LOG_EXTENSION));
+        Collections.addAll(cmd, "-P", lsfProject + "-" + System.getenv("USER"));
         Collections.addAll(cmd, "-q", lsfQueue);
         if (lsfExclusive) {
             Collections.addAll(cmd, "-x");
@@ -114,11 +117,12 @@ public class LSFJob extends Job {
             if (startIdx == -1 || endIdx == -1) {
                 throw new RuntimeException("did not find < or >");
             }
-            String jobID = line.substring(startIdx+1, endIdx);
+            String jobID = line.substring(startIdx + 1, endIdx);
             setJobNumber(Integer.parseInt(jobID));
             return getJobNumber();
         } catch (RuntimeException e) {
-            throw new RuntimeException("unexpected output when starting lsf job:\n"+String.join("\n", commandOutput), e);
+            throw new RuntimeException("unexpected output when starting lsf job:\n" + String.join("\n", commandOutput),
+                                       e);
         }
     }
 
@@ -132,7 +136,8 @@ public class LSFJob extends Job {
         if (savedExitCode != null) {
             return new Pair<>(JobState.EXITED, savedExitCode);
         }
-        List<String> cmdOutput = FileTools.getCommandOutput(new String[]{"bjobs", "-o", "jobid stat exit_code exit_reason", "-json", Long.toString(getJobNumber())});
+        List<String> cmdOutput = FileTools.getCommandOutput(
+            new String[] {"bjobs", "-o", "jobid stat exit_code exit_reason", "-json", Long.toString(getJobNumber())});
         String outputString = String.join("\n", cmdOutput);
         try {
             JSONObject rootObject = new JSONObject(outputString);
@@ -149,10 +154,10 @@ public class LSFJob extends Job {
             if (jobInfo.has("ERROR")) {
                 String error = jobInfo.getString("ERROR");
                 if (error.contains("is not found")) {
-                    //We assume the job has not yet started
+                    // We assume the job has not yet started
                     return new Pair<>(JobState.PENDING, 0);
                 } else {
-                    throw new RuntimeException("LSF Error: "+error);
+                    throw new RuntimeException("LSF Error: " + error);
                 }
             }
 
@@ -180,11 +185,11 @@ public class LSFJob extends Job {
                 case "SSUSP":
                     return new Pair<>(JobState.SUSPENDED, 0);
                 default:
-                    throw new RuntimeException("Unknown job state: "+stateString);
+                    throw new RuntimeException("Unknown job state: " + stateString);
             }
 
         } catch (RuntimeException e) {
-            throw new RuntimeException("Failed getting status. cmd Output: \n"+outputString, e);
+            throw new RuntimeException("Failed getting status. cmd Output: \n" + outputString, e);
         }
     }
 
@@ -210,9 +215,8 @@ public class LSFJob extends Job {
      */
     @Override
     public void killJob() {
-        for (String line : FileTools.getCommandOutput(new String[]{"bkill " + getJobNumber()})) {
+        for (String line : FileTools.getCommandOutput(new String[] {"bkill " + getJobNumber()})) {
             System.out.println(line);
         }
     }
-
 }

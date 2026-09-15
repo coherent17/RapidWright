@@ -50,7 +50,6 @@ import org.jspecify.annotations.NonNull;
  * Created on: May 10, 2016
  */
 public class MetadataParser {
-
     private String line;
 
     private String nextLine;
@@ -94,11 +93,36 @@ public class MetadataParser {
     private static final String PPLOCS = "pplocs";
     private static final String _ARROW = "-->";
 
-    private enum MDParserState {BLOCK_BEGIN, BLOCK_NAME, BLOCK_PBLOCKS, BLOCK_CLOCKS, BLOCK_INPUTS, BLOCK_OUTPUTS,
-                                PBLOCK_BEGIN, PBLOCK_NAME, PBLOCK_GRID_RANGES, PBLOCK_END,
-                                CLOCK_BEGIN, CONNECTIONS_EXPLICITNESS, CLOCK_NAME, CLOCK_PERIOD, CLOCK_END,
-                                PORT_BEGIN, PORT_NAME, PORT_NET, PORT_NUMPRIMS, PORT_TYPE, PORT_MAXDELAY,
-                                PORT_CONNS_BEGIN, PORT_CONNS_PIN, PORT_CONNS_END, PORT_END, PORT_PPLOCS, BLOCK_END};
+    private enum MDParserState {
+        BLOCK_BEGIN,
+        BLOCK_NAME,
+        BLOCK_PBLOCKS,
+        BLOCK_CLOCKS,
+        BLOCK_INPUTS,
+        BLOCK_OUTPUTS,
+        PBLOCK_BEGIN,
+        PBLOCK_NAME,
+        PBLOCK_GRID_RANGES,
+        PBLOCK_END,
+        CLOCK_BEGIN,
+        CONNECTIONS_EXPLICITNESS,
+        CLOCK_NAME,
+        CLOCK_PERIOD,
+        CLOCK_END,
+        PORT_BEGIN,
+        PORT_NAME,
+        PORT_NET,
+        PORT_NUMPRIMS,
+        PORT_TYPE,
+        PORT_MAXDELAY,
+        PORT_CONNS_BEGIN,
+        PORT_CONNS_PIN,
+        PORT_CONNS_END,
+        PORT_END,
+        PORT_PPLOCS,
+        BLOCK_END
+    }
+    ;
 
     private Device dev;
 
@@ -118,7 +142,7 @@ public class MetadataParser {
             while ((line = br.readLine()) != null) {
                 if (line.contains("instanceName")) {
                     br.close();
-                    return line.substring(line.indexOf('>')+1, line.indexOf("</", 0));
+                    return line.substring(line.indexOf('>') + 1, line.indexOf("</", 0));
                 }
             }
             br.close();
@@ -147,17 +171,19 @@ public class MetadataParser {
         br = FileTools.getProperInputStream(metadataFileName);
         getNextLine();
         getNextLine();
-        outer: while (line != null) {
-            switch(currState) {
-                case BLOCK_BEGIN:{
+    outer:
+        while (line != null) {
+            switch (currState) {
+                case BLOCK_BEGIN: {
                     expect(BEGIN, tokens[0]);
                     expect(BLOCK, tokens[1]);
                     currState = MDParserState.BLOCK_NAME;
                     break;
                 }
-                case BLOCK_NAME:{
+                case BLOCK_NAME: {
                     expect(NAME, tokens[1]);
-                    if (originalInstName != null) expect(originalInstName,tokens[2]);
+                    if (originalInstName != null)
+                        expect(originalInstName, tokens[2]);
                     if (nextTokens[1].equals(CLOCKS)) {
                         currState = MDParserState.BLOCK_CLOCKS;
                     } else {
@@ -165,25 +191,25 @@ public class MetadataParser {
                     }
                     break;
                 }
-                case BLOCK_PBLOCKS:{
+                case BLOCK_PBLOCKS: {
                     expect(PBLOCKS, tokens[1]);
                     pblockCount = Integer.parseInt(tokens[2]);
                     currState = MDParserState.BLOCK_CLOCKS;
                     break;
                 }
-                case BLOCK_CLOCKS:{
+                case BLOCK_CLOCKS: {
                     expect(CLOCKS, tokens[1]);
                     clockCount = Integer.parseInt(tokens[2]);
                     currState = MDParserState.BLOCK_INPUTS;
                     break;
                 }
-                case BLOCK_INPUTS:{
+                case BLOCK_INPUTS: {
                     expect(INPUTS, tokens[1]);
                     inputCount = Integer.parseInt(tokens[2]);
                     currState = MDParserState.BLOCK_OUTPUTS;
                     break;
                 }
-                case BLOCK_OUTPUTS:{
+                case BLOCK_OUTPUTS: {
                     expect(OUTPUTS, tokens[1]);
                     outputCount = Integer.parseInt(tokens[2]);
                     if (nextTokens[2].equals(PBLOCK)) {
@@ -196,25 +222,25 @@ public class MetadataParser {
                     break;
                 }
 
-                case PBLOCK_BEGIN:{
-                    expect(BEGIN,tokens[1]);
-                    expect(PBLOCK,tokens[2]);
+                case PBLOCK_BEGIN: {
+                    expect(BEGIN, tokens[1]);
+                    expect(PBLOCK, tokens[2]);
                     currState = MDParserState.PBLOCK_NAME;
                     break;
                 }
-                case PBLOCK_NAME:{
-                    expect(NAME,tokens[1]);
+                case PBLOCK_NAME: {
+                    expect(NAME, tokens[1]);
                     currPBlockName = tokens[2];
                     currState = MDParserState.PBLOCK_GRID_RANGES;
                     break;
                 }
-                case PBLOCK_GRID_RANGES:{
+                case PBLOCK_GRID_RANGES: {
                     expect(GRID_RANGES, tokens[1]);
                     m.setPBlock(line.replace(GRID_RANGES, "").trim());
                     currState = MDParserState.PBLOCK_END;
                     break;
                 }
-                case PBLOCK_END:{
+                case PBLOCK_END: {
                     expect(END, tokens[1]);
                     expect(PBLOCK, tokens[2]);
                     pblockCount--;
@@ -230,25 +256,25 @@ public class MetadataParser {
                     break;
                 }
 
-                case CLOCK_BEGIN:{
-                    expect(BEGIN,tokens[1]);
-                    expect(CLOCK,tokens[2]);
+                case CLOCK_BEGIN: {
+                    expect(BEGIN, tokens[1]);
+                    expect(CLOCK, tokens[2]);
                     currState = MDParserState.CLOCK_NAME;
                     break;
                 }
-                case CLOCK_NAME:{
-                    expect(NAME,tokens[1]);
+                case CLOCK_NAME: {
+                    expect(NAME, tokens[1]);
                     currClockName = tokens[2];
                     currState = MDParserState.CLOCK_PERIOD;
                     break;
                 }
-                case CLOCK_PERIOD:{
+                case CLOCK_PERIOD: {
                     expect(PERIOD, tokens[1]);
                     m.addClock(currClockName, Float.parseFloat(tokens[2]));
                     currState = MDParserState.CLOCK_END;
                     break;
                 }
-                case CLOCK_END:{
+                case CLOCK_END: {
                     expect(END, tokens[1]);
                     expect(CLOCK, tokens[2]);
                     clockCount--;
@@ -268,10 +294,10 @@ public class MetadataParser {
                         currState = MDParserState.PORT_BEGIN;
                         break;
                     }
-                    //fallthrough
+                    // fallthrough
                 }
-                case PORT_BEGIN:{
-                    expect(BEGIN,tokens[1]);
+                case PORT_BEGIN: {
+                    expect(BEGIN, tokens[1]);
                     currPort = new Port();
                     if (inputCount > 0) {
                         expect(INPUT, tokens[2]);
@@ -287,8 +313,8 @@ public class MetadataParser {
                     currState = MDParserState.PORT_NAME;
                     break;
                 }
-                case PORT_NAME:{
-                    expect(NAME,tokens[1]);
+                case PORT_NAME: {
+                    expect(NAME, tokens[1]);
                     currPort.setName(tokens[2]);
                     if (nextTokens[1].equals(TYPE)) {
                         currState = MDParserState.PORT_TYPE;
@@ -299,7 +325,7 @@ public class MetadataParser {
                     }
                     break;
                 }
-                case PORT_PPLOCS:{
+                case PORT_PPLOCS: {
                     expect(PPLOCS, tokens[1]);
                     currPort.setPartitionPinLoc(dev.getTile(tokens[2]));
                     if (nextTokens[1].equals(TYPE)) {
@@ -309,17 +335,17 @@ public class MetadataParser {
                     }
                     break;
                 }
-                case PORT_NET:{
+                case PORT_NET: {
                     expect(NETNAME, tokens[1]);
                     currPortNet = m.getNet(tokens[2]);
-                    if (currPortNet==null) {
+                    if (currPortNet == null) {
                         // The physical net is named after the parent (canonical) net of this
                         // alias.  Nets without a driver (such as an unused output port) have no
                         // parent, fall back onto the name provided by the metadata in that case.
                         String parentNetName = m.getNetlist().getParentNetName(tokens[2]);
                         String netName = parentNetName != null ? parentNetName : tokens[2];
                         currPortNet = m.getNet(netName);
-                        if (currPortNet==null && implicitConnections) {
+                        if (currPortNet == null && implicitConnections) {
                             // Only implicit connections need a Net to group the ports by, don't
                             // burden modules with explicit connections with empty nets.
                             currPortNet = new Net(netName);
@@ -329,39 +355,49 @@ public class MetadataParser {
                     currState = MDParserState.PORT_NUMPRIMS;
                     break;
                 }
-                case PORT_NUMPRIMS:{
+                case PORT_NUMPRIMS: {
                     expect(NUMPRIMS, tokens[1]);
                     currPrimCount = Integer.parseInt(tokens[2]);
                     currState = MDParserState.PORT_TYPE;
                     break;
                 }
-                case PORT_TYPE:{
+                case PORT_TYPE: {
                     expect(TYPE, tokens[1]);
-                    expect(currPort.isOutPort() ? OUTPUT : INPUT,tokens[2]);
+                    expect(currPort.isOutPort() ? OUTPUT : INPUT, tokens[2]);
                     String type = tokens[3];
                     if (type.equals(CLOCK)) {
-                        if (tokens[4].equals("local")) currPort.setType(PortType.LOCAL_CLOCK);
-                        else if (tokens[4].equals("global")) currPort.setType(PortType.GLOBAL_CLOCK);
-                        else if (tokens[4].equals("regional")) currPort.setType(PortType.REGIONAL_CLOCK);
-                        else expect("<local|global|regional>", tokens[4]);
-                    }
-                    else if (type.equals("signal")) currPort.setType(PortType.SIGNAL);
-                    else if (type.equals("ground")) currPort.setType(PortType.GROUND);
-                    else if (type.equals("power")) currPort.setType(PortType.POWER);
-                    else if (type.equals("unconnected")) currPort.setType(PortType.UNCONNECTED);
-                    else if (type.equals("dontcare")) currPort.setType(PortType.DONT_CARE);
-                    else if (type.equals("unknown")) currPort.setType(PortType.UNKNOWN);
-                    else expect("<signal|ground|power|dontcare|unknown>",tokens[3]);
+                        if (tokens[4].equals("local"))
+                            currPort.setType(PortType.LOCAL_CLOCK);
+                        else if (tokens[4].equals("global"))
+                            currPort.setType(PortType.GLOBAL_CLOCK);
+                        else if (tokens[4].equals("regional"))
+                            currPort.setType(PortType.REGIONAL_CLOCK);
+                        else
+                            expect("<local|global|regional>", tokens[4]);
+                    } else if (type.equals("signal"))
+                        currPort.setType(PortType.SIGNAL);
+                    else if (type.equals("ground"))
+                        currPort.setType(PortType.GROUND);
+                    else if (type.equals("power"))
+                        currPort.setType(PortType.POWER);
+                    else if (type.equals("unconnected"))
+                        currPort.setType(PortType.UNCONNECTED);
+                    else if (type.equals("dontcare"))
+                        currPort.setType(PortType.DONT_CARE);
+                    else if (type.equals("unknown"))
+                        currPort.setType(PortType.UNKNOWN);
+                    else
+                        expect("<signal|ground|power|dontcare|unknown>", tokens[3]);
                     currState = MDParserState.PORT_MAXDELAY;
                     break;
                 }
-                case PORT_MAXDELAY:{
-                    expect(MAXDELAY,tokens[1]);
+                case PORT_MAXDELAY: {
+                    expect(MAXDELAY, tokens[1]);
                     currPort.setWorstCasePortDelay(Float.parseFloat(tokens[2]));
                     if (nextTokens[1].equals(END)) {
                         currState = MDParserState.PORT_END;
                         if (implicitConnections) {
-                            if (currPort.getType()!=PortType.UNCONNECTED) {
+                            if (currPort.getType() != PortType.UNCONNECTED) {
                                 netsToPorts.computeIfAbsent(currPortNet, x -> new ArrayList<>()).add(currPort);
                             }
                         }
@@ -370,34 +406,35 @@ public class MetadataParser {
                     }
                     break;
                 }
-                case PORT_CONNS_BEGIN:{
-                    expect(BEGIN,tokens[1]);
+                case PORT_CONNS_BEGIN: {
+                    expect(BEGIN, tokens[1]);
                     expect(CONNECTIONS, tokens[2]);
                     if (nextTokens[1].equals(END)) {
                         currPort.setType(PortType.UNCONNECTED);
                         currState = MDParserState.PORT_CONNS_END;
-                    }
-                    else currState = MDParserState.PORT_CONNS_PIN;
+                    } else
+                        currState = MDParserState.PORT_CONNS_PIN;
                     break;
                 }
-                case PORT_CONNS_PIN:{
+                case PORT_CONNS_PIN: {
                     if (tokens[1].equals(PIN)) {
                         String logPinName = tokens[2];
                         if (tokens.length > 4) {
                             String siteName = tokens.length > 3 ? tokens[3] : null;
                             String sitePinName = tokens.length > 4 ? tokens[4] : null;
-                            String pinName = sitePinName.substring(sitePinName.indexOf('/')+1);
+                            String pinName = sitePinName.substring(sitePinName.indexOf('/') + 1);
                             if (tokens.length > 5 && currPort.isOutPort()) {
                                 SiteInst i = m.getSiteInstAtSite(dev.getSite(siteName));
                                 if (i.getSitePinInst(pinName) == null) {
                                     sitePinName = tokens.length > 5 ? tokens[5] : sitePinName;
-                                    pinName = sitePinName.substring(sitePinName.indexOf('/')+1);
+                                    pinName = sitePinName.substring(sitePinName.indexOf('/') + 1);
                                 }
                             }
                             SiteInst si = m.getSiteInstAtSite(dev.getSite(siteName));
 
-                            if (si==null) {
-                                throw new RuntimeException("did not find site inst at "+siteName+" in device "+dev);
+                            if (si == null) {
+                                throw new RuntimeException("did not find site inst at " + siteName + " in device " +
+                                                           dev);
                             }
 
                             SitePinInst p = si.getSitePinInst(pinName);
@@ -415,50 +452,51 @@ public class MetadataParser {
                                 p = new SitePinInst(si.getSite().isOutputPin(pinName), pinName, si);
                                 n.addPin(p);
                             }
-                            //Skip inputs on an output port. Happens if the output signal is used internally
+                            // Skip inputs on an output port. Happens if the output signal is used
+                            // internally
                             if (p.isOutPin() == currPort.isOutPort()) {
                                 currPort.addSitePinInst(p);
                             } else {
                                 if (!currPort.isOutPort()) {
-                                    throw new RuntimeException("Output pin on input port "+currPort.getName()+": "+p);
+                                    throw new RuntimeException("Output pin on input port " + currPort.getName() + ": " +
+                                                               p);
                                 }
                             }
                         }
                     } else if (tokens[1].equals(PORT)) {
                         currPort.addPassThruPortName(tokens[2]);
                     } else {
-                        expect("<pin|port>",tokens[1]);
+                        expect("<pin|port>", tokens[1]);
                     }
                     if (nextTokens[1].equals(END)) {
                         currState = MDParserState.PORT_CONNS_END;
                     }
                     break;
                 }
-                case PORT_CONNS_END:{
+                case PORT_CONNS_END: {
                     expect(END, tokens[1]);
                     expect(CONNECTIONS, tokens[2]);
                     currState = MDParserState.PORT_END;
                     break;
                 }
-                case PORT_END:{
-                    expect(END,tokens[1]);
+                case PORT_END: {
+                    expect(END, tokens[1]);
                     expect(currPort.isOutPort() ? OUTPUT : INPUT, tokens[2]);
                     m.addPort(currPort);
                     currPort = null;
                     if (nextTokens[1].equals(BEGIN)) {
                         currState = MDParserState.PORT_BEGIN;
-                    }
-                    else if (nextTokens[0].equals(END)) {
+                    } else if (nextTokens[0].equals(END)) {
                         currState = MDParserState.BLOCK_END;
                     }
                     break;
                 }
-                case BLOCK_END:{
-                    expect(END,tokens[0]);
-                    expect(BLOCK,tokens[1]);
+                case BLOCK_END: {
+                    expect(END, tokens[0]);
+                    expect(BLOCK, tokens[1]);
                     break outer;
                 }
-                default:{
+                default: {
                     break;
                 }
             }
@@ -494,23 +532,24 @@ public class MetadataParser {
         if (!port.isOutPort()) {
             return;
         }
-        if (!port.getSitePinInsts().isEmpty() || port.getType() == PortType.GROUND || port.getType() == PortType.POWER
-                || port.getType() == PortType.UNCONNECTED) {
+        if (!port.getSitePinInsts().isEmpty() || port.getType() == PortType.GROUND ||
+            port.getType() == PortType.POWER || port.getType() == PortType.UNCONNECTED) {
             // An unconnected port is not expected to have a source
             return;
         }
-        //Any input among passthru ports?
-        if (port.getPassThruPortNames().stream().map(name->m.getPort(name)).anyMatch(p->!p.isOutPort())) {
+        // Any input among passthru ports?
+        if (port.getPassThruPortNames().stream().map(name -> m.getPort(name)).anyMatch(p -> !p.isOutPort())) {
             return;
         }
-        throw new NoSuchElementException("in module "+m+" we have output port "+port+" which neither passes through an input nor has any assigned SPIs");
+        throw new NoSuchElementException("in module " + m + " we have output port " + port +
+                                         " which neither passes through an input nor has any assigned SPIs");
     }
 
     private void addPassThruNames(Map<Net, List<Port>> netsToPorts) {
         for (List<Port> passedThru : netsToPorts.values()) {
             for (Port from : passedThru) {
                 for (Port to : passedThru) {
-                    if (from==to) {
+                    if (from == to) {
                         continue;
                     }
                     from.addPassThruPortName(to.getName());
@@ -520,59 +559,62 @@ public class MetadataParser {
     }
 
     private void createImplicitConnections(Net currPortNet, Port currPort) {
-        if (currPort.getType().equals(PortType.POWER) || currPort.getType().equals(PortType.GROUND) || currPort.getType().equals(PortType.UNCONNECTED)) {
+        if (currPort.getType().equals(PortType.POWER) || currPort.getType().equals(PortType.GROUND) ||
+            currPort.getType().equals(PortType.UNCONNECTED)) {
             return;
         }
-        if (currPortNet==null) {
-            throw new RuntimeException("no net for port "+currPort);
+        if (currPortNet == null) {
+            throw new RuntimeException("no net for port " + currPort);
         }
         List<EDIFHierPortInst> physicalPins = m.getNetlist().getPhysicalPins(currPortNet);
 
-        if (physicalPins==null || physicalPins.isEmpty()) {
-            //Need to figure out if this is allowed
+        if (physicalPins == null || physicalPins.isEmpty()) {
+            // Need to figure out if this is allowed
             if (!currPort.isOutPort()) {
-                //Port is actually unused
+                // Port is actually unused
                 return;
             }
-            if (currPort.getPassThruPortNames().stream().map(p->m.getPort(p)).anyMatch(p->!p.isOutPort())) {
-                //Passthru for an input
+            if (currPort.getPassThruPortNames().stream().map(p -> m.getPort(p)).anyMatch(p -> !p.isOutPort())) {
+                // Passthru for an input
                 return;
             }
-            throw new RuntimeException("no prims are driving output port "+currPort.getName());
+            throw new RuntimeException("no prims are driving output port " + currPort.getName());
         }
 
         physicalPins.stream()
-                .flatMap(pin -> getSitePinsFromEdifPort(currPortNet, currPort, pin))
-                .distinct()
-                .forEach(sitePinInst -> {
-                    currPort.addSitePinInst(sitePinInst);
-                    if (sitePinInst.getNet() != currPortNet) {
-                        currPortNet.addPin(sitePinInst);
-                    }
-                });
+            .flatMap(pin -> getSitePinsFromEdifPort(currPortNet, currPort, pin))
+            .distinct()
+            .forEach(sitePinInst -> {
+                currPort.addSitePinInst(sitePinInst);
+                if (sitePinInst.getNet() != currPortNet) {
+                    currPortNet.addPin(sitePinInst);
+                }
+            });
 
         if (currPort.getSitePinInsts().isEmpty() && currPort.isOutPort() && currPort.getPassThruPortNames().isEmpty()) {
-            throw new RuntimeException("in creating implicit module connections, no pin for "+currPort+" is routed to Site Pin");
+            throw new RuntimeException("in creating implicit module connections, no pin for " + currPort +
+                                       " is routed to Site Pin");
         }
     }
 
     private @NonNull Stream<SitePinInst> getSitePinsFromEdifPort(Net currPortNet, Port currPort, EDIFHierPortInst pin) {
-        //Is this an internal use of an output port?
+        // Is this an internal use of an output port?
         if (pin.isOutput() != currPort.isOutPort()) {
             return Stream.empty();
         }
 
         Cell cell = pin.getPhysicalCell(m);
         if (cell == null) {
-            throw new RuntimeException("did not find physical cell for " + pin + " in " + m + ". Are macro unisims expanded?");
+            throw new RuntimeException("did not find physical cell for " + pin + " in " + m +
+                                       ". Are macro unisims expanded?");
         }
 
         SiteInst siteInst = cell.getSiteInst();
         return cell.getPinMappingsL2P()
-                .get(pin.getPortInst().getName())
-                .stream()
-                .flatMap(physical -> getSitePinNamesFromBelPin(currPortNet, pin, physical, cell))
-                .map(p -> getSitePinsInstFromName(currPort, p, siteInst));
+            .get(pin.getPortInst().getName())
+            .stream()
+            .flatMap(physical -> getSitePinNamesFromBelPin(currPortNet, pin, physical, cell))
+            .map(p -> getSitePinsInstFromName(currPort, p, siteInst));
     }
 
     private static @NonNull SitePinInst getSitePinsInstFromName(Port currPort, String sitePinName, SiteInst siteInst) {
@@ -588,7 +630,8 @@ public class MetadataParser {
         return spi;
     }
 
-    private @NonNull Stream<String> getSitePinNamesFromBelPin(Net currPortNet, EDIFHierPortInst pin, String physical, Cell cell) {
+    private @NonNull Stream<String> getSitePinNamesFromBelPin(Net currPortNet, EDIFHierPortInst pin, String physical,
+                                                              Cell cell) {
         List<String> spis = DesignTools.getAllRoutedSitePinsFromPhysicalPin(cell, currPortNet, physical);
         if (spis.isEmpty()) {
             String newSitePin = bringOutputToSitePin(cell, currPortNet, pin.getPortInst().getName(), physical);
@@ -598,33 +641,37 @@ public class MetadataParser {
     }
 
     /**
-     * Handle the rare case where Vivado does not route an output to a Site Pin. We have to choose a Site Pin ourselves.
+     * Handle the rare case where Vivado does not route an output to a Site Pin. We have to choose a
+     * Site Pin ourselves.
      */
     private String bringOutputToSitePin(Cell cell, Net net, String logicalPin, String pin) {
         BELPin cellPin = Objects.requireNonNull(cell.getBEL().getPin(pin));
         String sitePinName = cellPin.getConnectedSitePinName();
-        if (sitePinName==null) {
+        if (sitePinName == null) {
             sitePinName = cell.getCorrespondingSitePinName(logicalPin, pin, null);
         }
-        if (sitePinName==null) {
-            throw new RuntimeException("did not find Site Pin for "+logicalPin+" physical pin "+pin+" on "+cell.getSite()+"."+cell.getBEL() +" "+cell.getType());
+        if (sitePinName == null) {
+            throw new RuntimeException("did not find Site Pin for " + logicalPin + " physical pin " + pin + " on " +
+                                       cell.getSite() + "." + cell.getBEL() + " " + cell.getType());
         }
         SitePinInst existing = cell.getSiteInst().getSitePinInst(sitePinName);
         if (existing != null) {
-            throw new RuntimeException("cannot bring cell pin "+cell+"."+pin+" with net "+net+" out to site pin "+sitePinName+" as it is used by "+existing.getNet());
+            throw new RuntimeException("cannot bring cell pin " + cell + "." + pin + " with net " + net +
+                                       " out to site pin " + sitePinName + " as it is used by " + existing.getNet());
         }
         SitePinInst newPin = new SitePinInst(cellPin.isOutput(), sitePinName, cell.getSiteInst());
         if (!cell.getSiteInst().routeIntraSiteNet(net, cellPin, newPin.getBELPin())) {
-            throw new RuntimeException("while bringing cellpin "+cell+"."+pin+" out to site pin "+sitePinName+", failed to route site net");
+            throw new RuntimeException("while bringing cellpin " + cell + "." + pin + " out to site pin " +
+                                       sitePinName + ", failed to route site net");
         }
         return sitePinName;
     }
 
     private boolean expect(String expected, String found) {
         if (!expected.equals(found)) {
-            throw new RuntimeException("\nERROR: While parsing "+fileName+":\n   '" +
-                line + "' (line number " + lineNumber + ")\n" + "   Expected: '" +
-                    expected + "'\n      Found: '" + found + "'\nStack Trace:");
+            throw new RuntimeException(
+                "\nERROR: While parsing " + fileName + ":\n   '" + line + "' (line number " + lineNumber + ")\n"
+                + "   Expected: '" + expected + "'\n      Found: '" + found + "'\nStack Trace:");
         }
         return true;
     }
@@ -655,6 +702,6 @@ public class MetadataParser {
             return;
         }
         Design d = Design.readCheckpoint(args[0]);
-        Module m = new Module(d,args[1]);
+        Module m = new Module(d, args[1]);
     }
 }

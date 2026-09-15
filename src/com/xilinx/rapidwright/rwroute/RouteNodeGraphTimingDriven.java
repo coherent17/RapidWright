@@ -23,6 +23,11 @@
 
 package com.xilinx.rapidwright.rwroute;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.device.Node;
@@ -31,48 +36,49 @@ import com.xilinx.rapidwright.device.TileTypeEnum;
 import com.xilinx.rapidwright.timing.delayestimator.DelayEstimatorBase;
 import com.xilinx.rapidwright.timing.delayestimator.InterconnectInfo;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * Extends {@link RouteNodeGraph} with timing-driven capabilities.
  */
 public class RouteNodeGraphTimingDriven extends RouteNodeGraph {
     /** The instantiated delayEstimator to compute delays */
     protected final DelayEstimatorBase<InterconnectInfo> delayEstimator;
-    /** A flag to indicate if the routing resource exclusion should disable exclusion of nodes cross RCLK */
+    /**
+     * A flag to indicate if the routing resource exclusion should disable exclusion of nodes cross
+     * RCLK
+     */
     protected final boolean maskNodesCrossRCLK;
 
     private static final Set<String> excludeAboveRclkString;
     private static final Set<String> excludeBelowRclkString;
     static {
         // these nodes are bleeding down
-        excludeAboveRclkString = new HashSet<String>() {{
-            add("SDQNODE_E_0_FT1");
-            add("SDQNODE_E_2_FT1");
-            add("SDQNODE_W_0_FT1");
-            add("SDQNODE_W_2_FT1");
-            add("EE12_BEG0");
-            add("WW2_E_BEG0");
-            add("WW2_W_BEG0");
-        }};
+        excludeAboveRclkString = new HashSet<String>() {
+            {
+                add("SDQNODE_E_0_FT1");
+                add("SDQNODE_E_2_FT1");
+                add("SDQNODE_W_0_FT1");
+                add("SDQNODE_W_2_FT1");
+                add("EE12_BEG0");
+                add("WW2_E_BEG0");
+                add("WW2_W_BEG0");
+            }
+        };
         // these nodes are bleeding up
-        excludeBelowRclkString = new HashSet<String>() {{
-            add("SDQNODE_E_91_FT0");
-            add("SDQNODE_E_93_FT0");
-            add("SDQNODE_E_95_FT0");
-            add("SDQNODE_W_91_FT0");
-            add("SDQNODE_W_93_FT0");
-            add("SDQNODE_W_95_FT0");
-            add("EE12_BEG7");
-            add("WW1_W_BEG7");
-        }};
+        excludeBelowRclkString = new HashSet<String>() {
+            {
+                add("SDQNODE_E_91_FT0");
+                add("SDQNODE_E_93_FT0");
+                add("SDQNODE_E_95_FT0");
+                add("SDQNODE_W_91_FT0");
+                add("SDQNODE_W_93_FT0");
+                add("SDQNODE_W_95_FT0");
+                add("EE12_BEG7");
+                add("WW1_W_BEG7");
+            }
+        };
     }
 
-    protected RouteNodeGraphTimingDriven(Design design,
-                                         RWRouteConfig config,
+    protected RouteNodeGraphTimingDriven(Design design, RWRouteConfig config,
                                          DelayEstimatorBase<InterconnectInfo> delayEstimator) {
         super(design, config);
         this.delayEstimator = delayEstimator;
@@ -103,7 +109,6 @@ public class RouteNodeGraphTimingDriven extends RouteNodeGraph {
     }
 
     protected static class RouteNodeTimingDriven extends RouteNode {
-
         /** The delay of this rnode computed based on the timing model */
         private final float delay;
 
@@ -150,9 +155,9 @@ public class RouteNodeGraphTimingDriven extends RouteNodeGraph {
             Tile tile = child.getTile();
             if (tile.getTileTypeEnum() == TileTypeEnum.INT) {
                 int y = tile.getTileYCoordinate();
-                if ((y-30)%60 == 0) { // above RCLK
+                if ((y - 30) % 60 == 0) { // above RCLK
                     return excludeAboveRclk.contains(child.getWireIndex());
-                } else if ((y-29)%60 == 0) { // below RCLK
+                } else if ((y - 29) % 60 == 0) { // below RCLK
                     return excludeBelowRclk.contains(child.getWireIndex());
                 }
             }

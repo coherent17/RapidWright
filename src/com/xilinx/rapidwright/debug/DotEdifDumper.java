@@ -40,7 +40,8 @@ import com.xilinx.rapidwright.util.Pair;
 /**
  * Dump an EDIF cell's contents to a Graphviz Dot Graph
  */
-public class DotEdifDumper extends DotGraphDumper<EDIFCellInst, EDIFPortInst, Pair<EDIFPort, Integer>, EDIFNet, EDIFCell> {
+public class DotEdifDumper
+    extends DotGraphDumper<EDIFCellInst, EDIFPortInst, Pair<EDIFPort, Integer>, EDIFNet, EDIFCell> {
     public DotEdifDumper() {
         super(true);
     }
@@ -60,8 +61,8 @@ public class DotEdifDumper extends DotGraphDumper<EDIFCellInst, EDIFPortInst, Pa
     }
 
     @Override
-    protected Stream<Pair<EDIFPort,Integer>> getPortTemplates(EDIFCellInst edifCellInst) {
-        return edifCellInst.getCellType().getPorts().stream().flatMap(p-> {
+    protected Stream<Pair<EDIFPort, Integer>> getPortTemplates(EDIFCellInst edifCellInst) {
+        return edifCellInst.getCellType().getPorts().stream().flatMap(p -> {
             if (p.isBus()) {
                 return Arrays.stream(p.getBitBlastedIndices()).mapToObj(i -> new Pair<>(p, i));
             }
@@ -85,13 +86,13 @@ public class DotEdifDumper extends DotGraphDumper<EDIFCellInst, EDIFPortInst, Pa
     }
 
     @Override
-    protected boolean isOutputPortTemplate(Pair<EDIFPort,Integer> port) {
+    protected boolean isOutputPortTemplate(Pair<EDIFPort, Integer> port) {
         return port.getFirst().isOutput();
     }
 
     @Override
     protected String getInstanceName(EDIFCellInst edifCellInst) {
-        return edifCellInst.getName()+" ("+edifCellInst.getCellType()+")";
+        return edifCellInst.getName() + " (" + edifCellInst.getCellType() + ")";
     }
 
     @Override
@@ -100,17 +101,20 @@ public class DotEdifDumper extends DotGraphDumper<EDIFCellInst, EDIFPortInst, Pa
     }
 
     @Override
-    protected String getPortTemplateName(Pair<EDIFPort,Integer> port) {
-        if (port.getFirst().getWidth()==1) {
+    protected String getPortTemplateName(Pair<EDIFPort, Integer> port) {
+        if (port.getFirst().getWidth() == 1) {
             return port.getFirst().getName();
         }
-        return port.getFirst().getBusName()+"["+port.getSecond()+"]";
+        return port.getFirst().getBusName() + "[" + port.getSecond() + "]";
     }
 
     @Override
     protected Stream<EDIFPortInst> getRootPorts(EDIFCell top) {
-        return top.getNets().stream().flatMap(n->n.getPortInsts().stream())
-                .filter(p->p.getCellInst() == null).distinct();
+        return top.getNets()
+            .stream()
+            .flatMap(n -> n.getPortInsts().stream())
+            .filter(p -> p.getCellInst() == null)
+            .distinct();
     }
 
     @Override
@@ -122,7 +126,6 @@ public class DotEdifDumper extends DotGraphDumper<EDIFCellInst, EDIFPortInst, Pa
     protected Map<?, ?> getInstanceProperties(EDIFCellInst edifCellInst, EDIFCell top) {
         return edifCellInst.getPropertiesMap();
     }
-
 
     /**
      * Dump an edif cell to a file while filtering the cellInsts that are shown
@@ -141,7 +144,7 @@ public class DotEdifDumper extends DotGraphDumper<EDIFCellInst, EDIFPortInst, Pa
      * @param filter A function that filters the instances that are shown
      */
     public static void dump(Path to, EDIFCell cell, Predicate<EDIFCellInst> filter) {
-        dump(to, cell, (i, d)->filter.test(i));
+        dump(to, cell, (i, d) -> filter.test(i));
     }
 
     /**
@@ -150,7 +153,7 @@ public class DotEdifDumper extends DotGraphDumper<EDIFCellInst, EDIFPortInst, Pa
      * @param cell the cell to dump
      */
     public static void dump(Path to, EDIFCell cell) {
-        dump(to, cell, (BiPredicate<EDIFCellInst, EDIFCell>) null);
+        dump(to, cell, (BiPredicate<EDIFCellInst, EDIFCell>)null);
     }
 
     @Override

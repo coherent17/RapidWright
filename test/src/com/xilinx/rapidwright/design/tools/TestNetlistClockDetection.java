@@ -35,15 +35,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import com.xilinx.rapidwright.support.RapidWrightDCP;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.xilinx.rapidwright.support.RapidWrightDCP;
-
 public class TestNetlistClockDetection {
-
     @Test
     public void testNetlistClockDetection(@TempDir Path dir) {
         Path path = RapidWrightDCP.getPath("test_clock_detection.edif");
@@ -55,12 +53,15 @@ public class TestNetlistClockDetection {
         testMap.put("u_x/O5", new HashSet<>(Arrays.asList("A", "B", "C", "D", "VCC/P")));
         testMap.put("u_x/I0", new HashSet<>(Arrays.asList("A")));
         testMap.put("out_q", new HashSet<>(Arrays.asList("A")));
-        testMap.put("y_o7", new HashSet<>(Arrays.asList("A", "B", "C", "D", "GND/G", "VCC/P", "VCC_1/P", "VCC_2/P", "VCC_3/P", "VCC_4/P", "VCC_5/P", "VCC_6/P", "VCC_7/P", "VCC_8/P", "VCC_9/P", "VCC_10/P", "VCC_11/P", "VCC_12/P", "VCC_13/P", "VCC_14/P", "VCC_15/P", "VCC_16/P")));
+        testMap.put("y_o7", new HashSet<>(Arrays.asList("A", "B", "C", "D", "GND/G", "VCC/P", "VCC_1/P", "VCC_2/P",
+                                                        "VCC_3/P", "VCC_4/P", "VCC_5/P", "VCC_6/P", "VCC_7/P",
+                                                        "VCC_8/P", "VCC_9/P", "VCC_10/P", "VCC_11/P", "VCC_12/P",
+                                                        "VCC_13/P", "VCC_14/P", "VCC_15/P", "VCC_16/P")));
         testMap.put("u_y_LUT6CY_1/I4", new HashSet<>(Arrays.asList("A", "B", "C", "D", "VCC/P", "VCC_1/P", "VCC_2/P")));
         testMap.put("A", new HashSet<>(Arrays.asList("A")));
         testMap.put("u_x/I5", new HashSet<>(Arrays.asList("GND/G")));
 
-        String[] args = Stream.concat(Stream.of(path.toString()), testMap.keySet().stream()).toArray(String[]::new);
+        String[] args = Stream.concat(Stream.of(path.toString()), testMap.keySet().stream()).toArray(String[] ::new);
 
         ByteArrayOutputStream capturedStdoutStream = new ByteArrayOutputStream();
         System.setOut(new PrintStream(capturedStdoutStream));
@@ -75,8 +76,7 @@ public class TestNetlistClockDetection {
 
         Map<String, Set<String>> retMap = new HashMap<>();
         for (Entry<String, Object> e : retJson.toMap().entrySet()) {
-            @SuppressWarnings("unchecked")
-            List<String> pinsArr = (ArrayList<String>) e.getValue();
+            @SuppressWarnings("unchecked") List<String> pinsArr = (ArrayList<String>)e.getValue();
             retMap.put(e.getKey(), new HashSet<>(pinsArr));
         }
 

@@ -21,28 +21,25 @@
 
 package com.xilinx.rapidwright.timing;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 import com.xilinx.rapidwright.design.SitePinInst;
 import com.xilinx.rapidwright.device.IntentCode;
 import com.xilinx.rapidwright.device.Node;
 import com.xilinx.rapidwright.device.PIP;
 import com.xilinx.rapidwright.device.Tile;
 import com.xilinx.rapidwright.device.Wire;
-
 import static com.xilinx.rapidwright.timing.TimingDirection.NORTH;
 import static com.xilinx.rapidwright.timing.TimingDirection.SOUTH;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
-
 /**
- * A TimingGroup is our main hardware abstraction proposed by our FPT'19 paper: a TimingGroup 
- * abstracts over a set of connected PIPs, Nodes, and pins in order to create a coarser grain unit 
+ * A TimingGroup is our main hardware abstraction proposed by our FPT'19 paper: a TimingGroup
+ * abstracts over a set of connected PIPs, Nodes, and pins in order to create a coarser grain unit
  * for which we calculate the delay.
  */
 public class TimingGroup implements Comparable<TimingGroup> {
-
     private TimingModel timingModel;
     private List<Node> nodes;
     private List<PIP> pips;
@@ -97,22 +94,22 @@ public class TimingGroup implements Comparable<TimingGroup> {
         if (node != null) {
             Wire[] wires = node.getAllWiresInNode();
             IntentCode ic = wires[0].getIntentCode();
-            add(startPin.getConnectedNode(),ic);
+            add(startPin.getConnectedNode(), ic);
         }
         computeTypes();
         timingModel.calcDelay(this);
     }
 
     /**
-     * Method used by the Router example to get the downhill TimingGroups from a given TimingGroup.  
-     * For example a user may create a TimingGroup at a given SitePinInst using that constructor, 
-     * and then request the possible downhill TimingGroups using this method.  The resulting array 
+     * Method used by the Router example to get the downhill TimingGroups from a given TimingGroup.
+     * For example a user may create a TimingGroup at a given SitePinInst using that constructor,
+     * and then request the possible downhill TimingGroups using this method.  The resulting array
      * of TimingGroups can easily be filtered using the "filter" method within TimingModel.
      * @return Array of downhill/adjacent TimingGroups from the current TimingGroup
      */
     public TimingGroup[] getNextTimingGroups() {
         List<TimingGroup> preResult = new ArrayList<>();
-        Node prevLastNode = nodes.get(nodes.size()-1);
+        Node prevLastNode = nodes.get(nodes.size() - 1);
         List<Node> downhillNodes = prevLastNode.getAllDownhillNodes();
         for (Node nextNode : downhillNodes) {
             Wire[] wires = nextNode.getAllWiresInNode();
@@ -122,8 +119,7 @@ public class TimingGroup implements Comparable<TimingGroup> {
             for (PIP p : prevLastNode.getAllDownhillPIPs()) {
                 Node startNode = p.getStartNode();
                 Node endNode = p.getEndNode();
-                if (startNode.equals(prevLastNode) &&
-                        endNode.equals(nextNode)) {
+                if (startNode.equals(prevLastNode) && endNode.equals(nextNode)) {
                     pip = p;
                     break;
                 }
@@ -142,11 +138,7 @@ public class TimingGroup implements Comparable<TimingGroup> {
                 newTS.computeTypes();
                 timingModel.calcDelay(newTS);
                 preResult.add(newTS);
-            }
-            else if (nextNodeHasGlobalWire ||
-                    ic == IntentCode.NODE_HLONG ||
-                    ic == IntentCode.NODE_VLONG
-            ) {
+            } else if (nextNodeHasGlobalWire || ic == IntentCode.NODE_HLONG || ic == IntentCode.NODE_VLONG) {
                 TimingGroup newTS = new TimingGroup(timingModel);
                 newTS.add(nextNode, ic);
                 if (pip != null)
@@ -160,8 +152,7 @@ public class TimingGroup implements Comparable<TimingGroup> {
 
                 for (Node nextNextNode : nextNode.getAllDownhillNodes()) {
                     for (PIP p : nextNode.getAllDownhillPIPs()) {
-                        if (p.getStartNode().equals(nextNode) &&
-                                p.getEndNode().equals(nextNextNode)) {
+                        if (p.getStartNode().equals(nextNode) && p.getEndNode().equals(nextNextNode)) {
                             nextNextPip = p;
                             break;
                         }
@@ -185,7 +176,6 @@ public class TimingGroup implements Comparable<TimingGroup> {
         }
         return preResult.toArray(EMPTY_ARRAY);
     }
-
 
     /**
      * Used for adding a node into a TimingGroup.
@@ -219,13 +209,13 @@ public class TimingGroup implements Comparable<TimingGroup> {
         boolean moreNodesThanPips = nodes.size() > pips.size();
         String result = "<";
         if (moreNodesThanPips) {
-            for (int i=0; i<nodes.size(); i++) {
+            for (int i = 0; i < nodes.size(); i++) {
                 result += "n";
                 if (i < pips.size())
                     result += "p";
             }
             result += ">";
-            result += ":" +nodeTypes.get(nodeTypes.size()-1);
+            result += ":" + nodeTypes.get(nodeTypes.size() - 1);
         } else if (pips.size() == 1 && nodes.size() == 1) {
             result += "pn>:";
             result += nodeTypes.get(0);
@@ -243,14 +233,14 @@ public class TimingGroup implements Comparable<TimingGroup> {
      */
     int computeD(Node n) {
         int result = 0;
-        int minRow = 1<<20;
+        int minRow = 1 << 20;
         int maxRow = 0;
-        int minCol = 1<<20;
+        int minCol = 1 << 20;
         int maxCol = 0;
         List<Wire> wList = new LinkedList<>();
         for (Wire w : n.getAllWiresInNode()) {
             if (w.getWireName().contains("BEG")) {
-                wList.add(0,w);
+                wList.add(0, w);
             }
             if (w.getWireName().contains("END")) {
                 wList.add(w);
@@ -289,9 +279,8 @@ public class TimingGroup implements Comparable<TimingGroup> {
         }
         IntentCode nodeToCheckIntent;
         int nodeToCheckInx;
-        if (nodes.size()>1 &&
-                (nodeTypes.get(1)==IntentCode.NODE_PINBOUNCE ||
-                        nodeTypes.get(0)==IntentCode.NODE_LOCAL)) {
+        if (nodes.size() > 1 &&
+            (nodeTypes.get(1) == IntentCode.NODE_PINBOUNCE || nodeTypes.get(0) == IntentCode.NODE_LOCAL)) {
             nodeToCheckInx = 1;
         } else {
             nodeToCheckInx = 0;
@@ -302,8 +291,7 @@ public class TimingGroup implements Comparable<TimingGroup> {
         Wire[] wires;
         String wName;
 
-        switch(nodeToCheckIntent) {
-
+        switch (nodeToCheckIntent) {
             case NODE_PINBOUNCE:
                 dist = 0;
                 groupDelayType = GroupDelayType.PIN_BOUNCE;
@@ -312,7 +300,7 @@ public class TimingGroup implements Comparable<TimingGroup> {
                 dist = 1;
                 wires = nodes.get(nodeToCheckInx).getAllWiresInNode();
                 Tile t1 = wires[0].getTile();
-                Tile t2 = wires[wires.length-1].getTile();
+                Tile t2 = wires[wires.length - 1].getTile();
                 wName = wires[0].getWireName();
                 if (wName.startsWith("SS"))
                     direction = TimingDirection.SOUTH;
@@ -324,16 +312,12 @@ public class TimingGroup implements Comparable<TimingGroup> {
                     direction = TimingDirection.WEST;
                 if (t1 == t2) {
                     groupDelayType = GroupDelayType.INTERNAL;
-                }
-                else {
+                } else {
                     groupDelayType = GroupDelayType.SINGLE;
-                    if (direction == NORTH ||
-                            direction == TimingDirection.SOUTH) {
+                    if (direction == NORTH || direction == TimingDirection.SOUTH) {
                         groupWireDir = GroupWireDirection.VERTICAL;
                         computeD(nodes.get(nodeToCheckInx));
-                    }
-                    else if (direction == TimingDirection.EAST ||
-                            direction == TimingDirection.WEST) {
+                    } else if (direction == TimingDirection.EAST || direction == TimingDirection.WEST) {
                         groupWireDir = GroupWireDirection.HORIZONTAL;
                         computeD(nodes.get(nodeToCheckInx));
                     }
@@ -353,13 +337,10 @@ public class TimingGroup implements Comparable<TimingGroup> {
                     direction = TimingDirection.EAST;
                 else if (wName.startsWith("WW"))
                     direction = TimingDirection.WEST;
-                if (direction == NORTH ||
-                        direction == TimingDirection.SOUTH) {
+                if (direction == NORTH || direction == TimingDirection.SOUTH) {
                     groupWireDir = GroupWireDirection.VERTICAL;
                     computeD(nodes.get(nodeToCheckInx));
-                }
-                else if (direction == TimingDirection.EAST ||
-                        direction == TimingDirection.WEST) {
+                } else if (direction == TimingDirection.EAST || direction == TimingDirection.WEST) {
                     groupWireDir = GroupWireDirection.HORIZONTAL;
                     computeD(nodes.get(nodeToCheckInx));
                 }
@@ -378,8 +359,7 @@ public class TimingGroup implements Comparable<TimingGroup> {
                     direction = TimingDirection.EAST;
                 else if (wName.startsWith("WW"))
                     direction = TimingDirection.WEST;
-                if (direction == TimingDirection.EAST ||
-                        direction == TimingDirection.WEST) {
+                if (direction == TimingDirection.EAST || direction == TimingDirection.WEST) {
                     groupWireDir = GroupWireDirection.HORIZONTAL;
                     computeD(nodes.get(nodeToCheckInx));
                 }
@@ -398,8 +378,7 @@ public class TimingGroup implements Comparable<TimingGroup> {
                     direction = TimingDirection.EAST;
                 else if (wName.startsWith("WW"))
                     direction = TimingDirection.WEST;
-                if (direction == NORTH ||
-                        direction == TimingDirection.SOUTH) {
+                if (direction == NORTH || direction == TimingDirection.SOUTH) {
                     groupWireDir = GroupWireDirection.VERTICAL;
                     computeD(nodes.get(nodeToCheckInx));
                 }
@@ -418,8 +397,7 @@ public class TimingGroup implements Comparable<TimingGroup> {
                     direction = TimingDirection.EAST;
                 else if (wName.startsWith("WW"))
                     direction = TimingDirection.WEST;
-                if (direction == TimingDirection.EAST ||
-                        direction == TimingDirection.WEST) {
+                if (direction == TimingDirection.EAST || direction == TimingDirection.WEST) {
                     groupWireDir = GroupWireDirection.HORIZONTAL;
                     computeD(nodes.get(nodeToCheckInx));
                 }
@@ -438,11 +416,9 @@ public class TimingGroup implements Comparable<TimingGroup> {
                     direction = TimingDirection.EAST;
                 else if (wName.startsWith("WW"))
                     direction = TimingDirection.WEST;
-                if (direction == NORTH ||
-                        direction == SOUTH) {
+                if (direction == NORTH || direction == SOUTH) {
                     groupWireDir = GroupWireDirection.VERTICAL;
                     computeD(nodes.get(nodeToCheckInx));
-
                 }
                 break;
             case NODE_LOCAL:
@@ -465,17 +441,19 @@ public class TimingGroup implements Comparable<TimingGroup> {
     }
 
     /**
-     * This object implements the comparable object interface so that TimingGroup objects may be 
-     * compared.  For example, this is used in the example Router to compare TimingGroups based on 
+     * This object implements the comparable object interface so that TimingGroup objects may be
+     * compared.  For example, this is used in the example Router to compare TimingGroups based on
      * delay cost in picoseconds.
      * @param tg Second TimingGroup to compare this object to.
-     * @return Returns -1 if this object has lower cost, 0 if the costs are the same, and 1 if this 
+     * @return Returns -1 if this object has lower cost, 0 if the costs are the same, and 1 if this
      * object has higher cost.
      */
     public int compareTo(TimingGroup tg) {
         int result = 0;
-        if (cost < tg.cost) result = -1;
-        if (cost > tg.cost) result = 1;
+        if (cost < tg.cost)
+            result = -1;
+        if (cost > tg.cost)
+            result = 1;
         return result;
     }
 
@@ -494,7 +472,7 @@ public class TimingGroup implements Comparable<TimingGroup> {
     public List<Node> getNodes() {
         return nodes;
     }
-    
+
     /**
      * Gets the node in the timing group at the specified index
      * @param i Index of the node to get.
@@ -503,7 +481,7 @@ public class TimingGroup implements Comparable<TimingGroup> {
     public Node getNode(int i) {
         return nodes.get(i);
     }
-    
+
     /**
      * Gets the last node in the timing group
      * @return The last node in the timing group
@@ -511,56 +489,56 @@ public class TimingGroup implements Comparable<TimingGroup> {
     public Node getLastNode() {
         return nodes.get(nodes.size() - 1);
     }
-    
+
     public List<PIP> getPIPs() {
         return pips;
     }
-    
+
     public PIP getPIP(int i) {
         return pips.get(i);
     }
-    
+
     public PIP getLastPIP() {
-        return pips.get(pips.size()-1);
+        return pips.get(pips.size() - 1);
     }
-    
+
     public List<IntentCode> getNodeTypes() {
-        return nodeTypes; 
+        return nodeTypes;
     }
-    
+
     public IntentCode getNodeType(int i) {
         return nodeTypes.get(i);
     }
-    
+
     public GroupDelayType getDelayType() {
-        return groupDelayType; 
+        return groupDelayType;
     }
-    
+
     public GroupWireDirection getWireDirection() {
         return groupWireDir;
     }
-    
+
     public TimingDirection getDirection() {
         return direction;
     }
-    
+
     public boolean isInitialGroup() {
         return isInitialGroup;
     }
-    
+
     public boolean isFinalGroup() {
         return isFinalGroup;
     }
-    
+
     public void setInitialGroup(boolean value) {
         isInitialGroup = value;
     }
-    
+
     public void setFinalGroup(boolean value) {
         isFinalGroup = value;
     }
-    
+
     public boolean hasPinFeed() {
         return hasPinFeed;
-    }  
+    }
 }

@@ -42,15 +42,16 @@ import com.xilinx.rapidwright.device.Site;
  * A helper class to read and set clock buffer tap levels.
  * To read: input.dcp --read input_file output_file_directory
  * "input_file" is the file that contains buffers sites.
- * "output_file_directory" is the path to store the output file that contains the buffer sites and tap levels.
- * To set: input.dcp --set input_file output_file_directory
- * "input_file" is the file that contains buffers sites and tap levels.
- * "output_file_directory" is the path to store the output DCP file with tap levels of the buffer sites set.
+ * "output_file_directory" is the path to store the output file that contains the buffer sites and
+ * tap levels. To set: input.dcp --set input_file output_file_directory "input_file" is the file
+ * that contains buffers sites and tap levels. "output_file_directory" is the path to store the
+ * output DCP file with tap levels of the buffer sites set.
  */
 public class BufferTapTool {
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.out.println("BASIC USAGE:\n <input.dcp> <--read <file directory> or --set <file>> <output directory>\n");
+            System.out.println("BASIC USAGE:\n <input.dcp> <--read <file directory> or --set "
+                               + "<file>> <output directory>\n");
             return;
         }
         boolean read = args[1].equals("--read");
@@ -63,7 +64,7 @@ public class BufferTapTool {
             return;
         }
 
-        String inputDcpName = args[0].substring(args[0].lastIndexOf("/")+1);
+        String inputDcpName = args[0].substring(args[0].lastIndexOf("/") + 1);
         Design design = Design.readCheckpoint(args[0]);
         Device dev = design.getDevice();
 
@@ -79,14 +80,14 @@ public class BufferTapTool {
         }
 
         if (read) {
-            String filePath = args[3].endsWith("/")? args[3] : args[3] + "/";
+            String filePath = args[3].endsWith("/") ? args[3] : args[3] + "/";
             readBufferTapsToFile(inputDcpName, clock, siteTaps, dev, filePath);
             return;
         }
 
         // set
         setBufferTaps(siteTaps, clock, dev);
-        String outputDCP = args[3].endsWith("/")? args[3] : args[3] + "/";
+        String outputDCP = args[3].endsWith("/") ? args[3] : args[3] + "/";
         outputDCP += inputDcpName.replace(".dcp", "_buffer_set.dcp");
         design.writeCheckpoint(outputDCP);
     }
@@ -145,7 +146,8 @@ public class BufferTapTool {
      * @param dev The device instance to use.
      * @param filePath The file path of the output file.
      */
-    private static void readBufferTapsToFile(String inputDCPName, Net clock, Map<String, Integer> siteTaps, Device dev, String filePath) {
+    private static void readBufferTapsToFile(String inputDCPName, Net clock, Map<String, Integer> siteTaps, Device dev,
+                                             String filePath) {
         String readToFile = inputDCPName.replace(".dcp", "_buffer_tap.txt");
         try {
             FileWriter myWriter = new FileWriter(filePath + readToFile);

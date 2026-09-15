@@ -23,6 +23,13 @@
 
 package com.xilinx.rapidwright.design.tools;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.device.Part;
 import com.xilinx.rapidwright.device.PartNameTools;
@@ -34,20 +41,12 @@ import com.xilinx.rapidwright.util.MessageGenerator;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 /**
  * A collection of customizable parameters for a {@link ArrayBuilder} Object.
  * Modifications of default parameter values can be done by adding corresponding
  * options with values to the arguments or by calling the applicable setter method.
  */
 public class ArrayBuilderConfig {
-
     private Design kernelDesign;
 
     private Design topDesign;
@@ -162,15 +161,20 @@ public class ArrayBuilderConfig {
                 acceptsAll(LIMIT_INSTS_OPTS, "Limit number of instance copies").withRequiredArg();
                 acceptsAll(WRITE_PLACEMENT_OPTS, "Write the chosen placement to the specified file").withRequiredArg();
                 acceptsAll(PLACEMENT_FILE_OPTS, "Use placement specified in file").withRequiredArg();
-                acceptsAll(PLACEMENT_GRID_OPTS, "Write grid of possible placement locations to specified file").withRequiredArg();
+                acceptsAll(PLACEMENT_GRID_OPTS, "Write grid of possible placement locations to specified file")
+                    .withRequiredArg();
                 acceptsAll(TOP_LEVEL_DESIGN_OPTS, "Top level design with blackboxes/kernel insts").withRequiredArg();
-                acceptsAll(EXACT_PLACEMENT_OPTS, "Use exact module overlap calculation instead of the faster bounding-box method");
+                acceptsAll(EXACT_PLACEMENT_OPTS, "Use exact module overlap calculation instead "
+                                                     + "of the faster bounding-box method");
                 acceptsAll(OUT_OF_CONTEXT_OPTS, "Specifies that the array will be compiled out of context");
-                acceptsAll(UNROUTE_STATIC_NETS_OPTS, "Unroute static (GND/VCC) nets to potentially help with routability");
+                acceptsAll(UNROUTE_STATIC_NETS_OPTS,
+                           "Unroute static (GND/VCC) nets to potentially help with routability");
                 acceptsAll(ROUTE_CLOCK_OPTS, "Route clock using RWRoute");
                 acceptsAll(ROUTE_DESIGN_OPTS, "Route the built array using RWRoute");
-                acceptsAll(SIDE_MAP_OPTS, "Provide a text file specifying which side of the pblock each " +
-                        "top-level port routes to. Used to place array optimally for routability.").withRequiredArg();
+                acceptsAll(SIDE_MAP_OPTS,
+                           "Provide a text file specifying which side of the pblock each "
+                               + "top-level port routes to. Used to place array optimally for routability.")
+                    .withRequiredArg();
                 acceptsAll(HELP_OPTS, "Print this help message").forHelp();
             }
         };
@@ -197,25 +201,25 @@ public class ArrayBuilderConfig {
         setUnrouteStaticNets(options.has(UNROUTE_STATIC_NETS_OPTS.get(0)));
         setRouteClock(options.has(ROUTE_CLOCK_OPTS.get(0)));
         setRouteDesign(options.has(ROUTE_DESIGN_OPTS.get(0)));
-        setSideMapFile((String) options.valueOf(SIDE_MAP_OPTS.get(0)));
+        setSideMapFile((String)options.valueOf(SIDE_MAP_OPTS.get(0)));
 
         if (options.has(PART_OPTS.get(0))) {
-            setPart(PartNameTools.getPart((String) options.valueOf(PART_OPTS.get(0))));
+            setPart(PartNameTools.getPart((String)options.valueOf(PART_OPTS.get(0))));
         }
 
         String kernelDesignPath;
         if (options.has(KERNEL_DESIGN_OPTS.get(0))) {
-            kernelDesignPath = (String) options.valueOf(KERNEL_DESIGN_OPTS.get(0));
+            kernelDesignPath = (String)options.valueOf(KERNEL_DESIGN_OPTS.get(0));
         } else {
             throw new RuntimeException("No input design found. "
-                    + "Please specify an input kernel (*.dcp or *.edf) using options "
-                    + KERNEL_DESIGN_OPTS);
+                                       + "Please specify an input kernel (*.dcp or *.edf) using options " +
+                                       KERNEL_DESIGN_OPTS);
         }
 
         Path inputFile = Paths.get(kernelDesignPath);
         if (inputFile.toString().endsWith(".dcp")) {
             if (options.has(INPUT_EDIF_OPTS.get(0))) {
-                Path companionEDIF = Paths.get((String) options.valueOf(INPUT_EDIF_OPTS.get(0)));
+                Path companionEDIF = Paths.get((String)options.valueOf(INPUT_EDIF_OPTS.get(0)));
                 setKernelDesign(Design.readCheckpoint(inputFile, companionEDIF, CodePerfTracker.SILENT));
             } else {
                 setKernelDesign(Design.readCheckpoint(inputFile));
@@ -235,53 +239,53 @@ public class ArrayBuilderConfig {
         }
 
         if (options.has(TOP_LEVEL_DESIGN_OPTS.get(0))) {
-            Design d = Design.readCheckpoint((String) options.valueOf(TOP_LEVEL_DESIGN_OPTS.get(0)));
+            Design d = Design.readCheckpoint((String)options.valueOf(TOP_LEVEL_DESIGN_OPTS.get(0)));
             setTopDesign(d);
         }
 
         if (options.has(TARGET_CLK_PERIOD_OPTS.get(0))) {
-            setClockPeriod(Double.parseDouble((String) options.valueOf(TARGET_CLK_PERIOD_OPTS.get(0))));
+            setClockPeriod(Double.parseDouble((String)options.valueOf(TARGET_CLK_PERIOD_OPTS.get(0))));
         } else {
             setClockPeriod(DEFAULT_CLK_PERIOD_TARGET);
             System.out.println("[INFO] No clock period set, defaulting to: " + getClockPeriod() + "ns");
         }
 
         if (options.has(LIMIT_INSTS_OPTS.get(0))) {
-            setInstCountLimit(Integer.parseInt((String) options.valueOf(LIMIT_INSTS_OPTS.get(0))));
+            setInstCountLimit(Integer.parseInt((String)options.valueOf(LIMIT_INSTS_OPTS.get(0))));
         }
 
         if (options.has(WRITE_PLACEMENT_OPTS.get(0))) {
-            setOutputPlacementFileName((String) options.valueOf(WRITE_PLACEMENT_OPTS.get(0)));
+            setOutputPlacementFileName((String)options.valueOf(WRITE_PLACEMENT_OPTS.get(0)));
         }
 
         if (options.has(PLACEMENT_FILE_OPTS.get(0))) {
-            setInputPlacementFileName((String) options.valueOf(PLACEMENT_FILE_OPTS.get(0)));
+            setInputPlacementFileName((String)options.valueOf(PLACEMENT_FILE_OPTS.get(0)));
         }
 
         if (options.has(PLACEMENT_GRID_OPTS.get(0))) {
-            setOutputPlacementLocsFileName((String) options.valueOf(PLACEMENT_GRID_OPTS.get(0)));
+            setOutputPlacementLocsFileName((String)options.valueOf(PLACEMENT_GRID_OPTS.get(0)));
         }
 
         if (options.has(PBLOCK_OPTS.get(0))) {
-            String pblockString = (String) options.valueOf(PBLOCK_OPTS.get(0));
+            String pblockString = (String)options.valueOf(PBLOCK_OPTS.get(0));
             setPBlockStrings(pblockString.split(";"));
         }
 
         if (options.has(UTILIZATION_OPTS.get(0)) && options.has(SHAPES_OPTS.get(0))) {
-            setUtilReport((String) options.valueOf(UTILIZATION_OPTS.get(0)));
-            setShapesReport((String) options.valueOf(SHAPES_OPTS.get(0)));
+            setUtilReport((String)options.valueOf(UTILIZATION_OPTS.get(0)));
+            setShapesReport((String)options.valueOf(SHAPES_OPTS.get(0)));
         }
 
         if (options.has(KERNEL_CLK_NAME_OPTS.get(0))) {
-            setKernelClockName(((String) options.valueOf(KERNEL_CLK_NAME_OPTS.get(0))));
+            setKernelClockName(((String)options.valueOf(KERNEL_CLK_NAME_OPTS.get(0))));
         }
 
         if (options.has(TOP_CLK_NAME_OPTS.get(0))) {
-            setTopClockName(((String) options.valueOf(TOP_CLK_NAME_OPTS.get(0))));
+            setTopClockName(((String)options.valueOf(TOP_CLK_NAME_OPTS.get(0))));
         }
 
         if (options.has(REUSE_RESULTS_OPTS.get(0))) {
-            setWorkDir((String) options.valueOf(REUSE_RESULTS_OPTS.get(0)));
+            setWorkDir((String)options.valueOf(REUSE_RESULTS_OPTS.get(0)));
         }
     }
 
@@ -295,12 +299,11 @@ public class ArrayBuilderConfig {
         OptionParser p = createOptionParser();
         OptionSet options = p.parse(args);
         if (options.has(OUTPUT_DESIGN_OPTS.get(0))) {
-            return (String) options.valueOf(OUTPUT_DESIGN_OPTS.get(0));
+            return (String)options.valueOf(OUTPUT_DESIGN_OPTS.get(0));
         }
 
         return "array.dcp";
     }
-
 
     public void setKernelDesign(Design kernelDesign) {
         this.kernelDesign = kernelDesign;

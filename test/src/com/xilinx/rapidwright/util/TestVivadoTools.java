@@ -22,6 +22,11 @@
 
 package com.xilinx.rapidwright.util;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.examples.Lesson1;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
@@ -31,11 +36,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
 
 public class TestVivadoTools {
     @Test
@@ -51,9 +51,8 @@ public class TestVivadoTools {
     public void testRunTclCmdThrowsException(@TempDir Path tempDir) {
         Assumptions.assumeTrue(FileTools.isVivadoOnPath());
 
-        RuntimeException ex = Assertions.assertThrows(RuntimeException.class,
-                () -> VivadoTools.runTcl(tempDir.resolve("outputLog.log"), "exit 1", true)
-        );
+        RuntimeException ex = Assertions.assertThrows(
+            RuntimeException.class, () -> VivadoTools.runTcl(tempDir.resolve("outputLog.log"), "exit 1", true));
         Assertions.assertEquals("Vivado exited with code: 1", ex.getMessage());
     }
 
@@ -81,11 +80,7 @@ public class TestVivadoTools {
 
     @Test
     public void testReportRouteStatusInvalid() {
-        ReportRouteStatusResult rrs = new ReportRouteStatusResult(Arrays.asList(
-                "foo",
-                "bar",
-                "blah"
-        ));
+        ReportRouteStatusResult rrs = new ReportRouteStatusResult(Arrays.asList("foo", "bar", "blah"));
         Assertions.assertFalse(rrs.isFullyRouted());
     }
 
@@ -115,11 +110,7 @@ public class TestVivadoTools {
 
     @Test
     public void testReportPlaceStatusInvalid() {
-        ReportPlaceStatusResult rps = new ReportPlaceStatusResult(Arrays.asList(
-                "foo",
-                "bar",
-                "blah"
-        ));
+        ReportPlaceStatusResult rps = new ReportPlaceStatusResult(Arrays.asList("foo", "bar", "blah"));
         Assertions.assertFalse(rps.isFullyPlaced());
     }
 
@@ -130,11 +121,10 @@ public class TestVivadoTools {
         FileTools.makeDir(dcpFolder.toString());
         Path dcp = dcpFolder.resolve("HelloWorld.dcp");
         Path bit = tempDir.resolve("HelloWorld.bit");
-        Lesson1.main(new String[] { dcp.toString() });
+        Lesson1.main(new String[] {dcp.toString()});
         List<String> log = VivadoTools.writeBitstream(dcp, bit, false);
         assertVivadoLogContains(log, "write_bitstream completed successfully");
         assertVivadoLogContains(log, "Exiting Vivado");
         Assertions.assertTrue(Files.exists(bit));
     }
 }
-

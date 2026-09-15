@@ -82,7 +82,6 @@ import com.xilinx.rapidwright.util.Params;
  *       modifying 'top/u1(foo1)/lut1' would no longer affect 'top/u2(foo2)/lut1'.
  */
 public class ECOTools {
-
     private static int UNIQUE_COUNT = 0;
 
     /**
@@ -95,7 +94,7 @@ public class ECOTools {
     public static void disconnectNet(Design design, EDIFHierPortInst... pins) {
         disconnectNet(design, Arrays.asList(pins), null);
     }
-    
+
     /**
      * Given a list of EDIFHierPortInst objects, disconnect these pins from their current nets.
      * This method modifies the EDIF (logical) netlist as well as the place-and-route (physical)
@@ -103,29 +102,30 @@ public class ECOTools {
      * @param design The design where the pin(s) are instantiated.
      * @param pins A list of hierarchical pins for disconnection.
      */
-    public static void disconnectNet(Design design,
-                                     List<EDIFHierPortInst> pins) {
+    public static void disconnectNet(Design design, List<EDIFHierPortInst> pins) {
         disconnectNet(design, pins, null);
     }
 
     /**
-     * The internal netlist of a macro primitive (e.g. LUT6_2, DSP48E2, RAM32M, IOBUFDS) is immutable,
-     * so {@link #disconnectNet(Design, List, Map)}/{@link #connectNet(Design, Map, Map)} cannot operate
-     * on a leaf pin located inside a macro directly; instead the operation must be lifted to the macro's
-     * external port. A macro port may fan out to (or in from) multiple internal leaf pins, and lifting
-     * affects all of them, so every such sibling pin must be present in {@code pinSet} or a
-     * RuntimeException is thrown naming the ones that are missing. Siblings (other than {@code ehpi})
-     * are added to {@code skip} so the caller does not process them again.
+     * The internal netlist of a macro primitive (e.g. LUT6_2, DSP48E2, RAM32M, IOBUFDS) is
+     * immutable, so {@link #disconnectNet(Design, List, Map)}/{@link #connectNet(Design, Map, Map)}
+     * cannot operate on a leaf pin located inside a macro directly; instead the operation must be
+     * lifted to the macro's external port. A macro port may fan out to (or in from) multiple
+     * internal leaf pins, and lifting affects all of them, so every such sibling pin must be
+     * present in {@code pinSet} or a RuntimeException is thrown naming the ones that are missing.
+     * Siblings (other than {@code ehpi}) are added to {@code skip} so the caller does not process
+     * them again.
      *
      * If {@code ehpi} is not inside a macro it is returned unchanged. Nested macros (e.g.
-     * IOBUFDS &rarr; OBUFTDS) are handled by lifting repeatedly until the parent cell is no longer a
-     * macro. Returns null if a lifted macro port is not connected to a net in its parent.
+     * IOBUFDS &rarr; OBUFTDS) are handled by lifting repeatedly until the parent cell is no longer
+     * a macro. Returns null if a lifted macro port is not connected to a net in its parent.
      *
      * @param ehpi A (potential) leaf pin inside a macro.
      * @param macros The macro primitive library for the design's series (may be null).
      * @param pinSet All pins included in this invocation, used to validate sibling completeness.
      * @param skip Updated with the macro sibling pins that can be skipped by the caller.
-     * @return The macro-level (external) port to operate on, the original pin if not inside a macro,
+     * @return The macro-level (external) port to operate on, the original pin if not inside a
+     *     macro,
      *         or null if a lifted macro port has no net in its parent.
      */
     private static EDIFHierPortInst liftMacroLeafPin(EDIFHierPortInst ehpi, EDIFLibrary macros,
@@ -134,17 +134,18 @@ public class ECOTools {
             return ehpi;
         }
         while (ehpi != null && macros.containsCell(ehpi.getParentCell())) {
-            EDIFHierCellInst macroInst = ehpi.getHierarchicalInst();   // the macro instance
-            EDIFNet internalNet = ehpi.getNet();                       // net inside the macro
-            // An input pin is a sink of the internal net and shares it with sibling sinks (the macro
-            // port's fan-out); an output pin is the unique source and has no required siblings.
+            EDIFHierCellInst macroInst = ehpi.getHierarchicalInst(); // the macro instance
+            EDIFNet internalNet = ehpi.getNet();                     // net inside the macro
+            // An input pin is a sink of the internal net and shares it with sibling sinks (the
+            // macro port's fan-out); an output pin is the unique source and has no required
+            // siblings.
             boolean sink = ehpi.isInput();
 
             EDIFPortInst macroPortInst = null;
             List<EDIFHierPortInst> missing = null;
             for (EDIFPortInst pi : internalNet.getPortInsts()) {
                 if (pi.isTopLevelPort()) {
-                    macroPortInst = pi;                                // the macro's external port
+                    macroPortInst = pi; // the macro's external port
                     continue;
                 }
                 if (!sink || !pi.isInput()) {
@@ -164,13 +165,14 @@ public class ECOTools {
                 }
             }
             if (macroPortInst == null) {
-                throw new RuntimeException("ERROR: Cannot modify pin '" + ehpi + "': net '"
-                    + internalNet.getName() + "' is internal to macro '"
-                    + macroInst.getCellType().getName() + "' and is not exposed on a macro port.");
+                throw new RuntimeException("ERROR: Cannot modify pin '" + ehpi + "': net '" + internalNet.getName() +
+                                           "' is internal to macro '" + macroInst.getCellType().getName() +
+                                           "' and is not exposed on a macro port.");
             }
             if (missing != null) {
-                throw new RuntimeException("ERROR: Cannot modify the net of pin '" + ehpi
-                    + "' inside macro '" + macroInst.getCellType().getName() + "' unless all sibling "
+                throw new RuntimeException(
+                    "ERROR: Cannot modify the net of pin '" + ehpi + "' inside macro '" +
+                    macroInst.getCellType().getName() + "' unless all sibling "
                     + "macro pins are included in the same invocation. Please also include: " + missing);
             }
             ehpi = new EDIFHierPortInst(macroInst, macroPortInst).getPortInParent();
@@ -190,12 +192,11 @@ public class ECOTools {
      *                         without batching.  This map can also allow SitePinInst objects to be
      *                         reused by {@link #connectNet(Design, Map, Map)}.
      * By default, this method will unroute any intra-site routing associated with the disconnected
-     * pin. The Java property "rapidwright.ecotools.disconnectNet.skipUnrouteIntraSite" disables this
-     * behaviour which can be helpful for when disconnectNet() is followed by connectNet() that
+     * pin. The Java property "rapidwright.ecotools.disconnectNet.skipUnrouteIntraSite" disables
+     * this behaviour which can be helpful for when disconnectNet() is followed by connectNet() that
      * will re-use this intra-site routing.
      */
-    public static void disconnectNet(Design design,
-                                     List<EDIFHierPortInst> pins,
+    public static void disconnectNet(Design design, List<EDIFHierPortInst> pins,
                                      Map<Net, Set<SitePinInst>> deferredRemovals) {
         final boolean unrouteIntraSite = !Params.isParamSet("rapidwright.ecotools.disconnectNet.skipUnrouteIntraSite");
 
@@ -319,8 +320,7 @@ public class ECOTools {
      * @param design The design where the pin(s) are instantiated.
      * @param pins A list of hierarchical pins for disconnection.
      */
-    public static void disconnectNetPath(Design design,
-                                         List<String> pins) {
+    public static void disconnectNetPath(Design design, List<String> pins) {
         disconnectNetPath(design, pins, null);
     }
 
@@ -337,8 +337,7 @@ public class ECOTools {
      *                         without batching.  This map can also allow SitePinInst objects to be
      *                         reused by {@link #connectNet(Design, Map, Map)}.
      */
-    public static void disconnectNetPath(Design design,
-                                         List<String> pins,
+    public static void disconnectNetPath(Design design, List<String> pins,
                                          Map<Net, Set<SitePinInst>> deferredRemovals) {
         final EDIFNetlist netlist = design.getNetlist();
         List<EDIFHierPortInst> pinObjects = new ArrayList<>(pins.size());
@@ -350,7 +349,8 @@ public class ECOTools {
                     String path = pin.substring(0, pos);
                     EDIFHierCellInst ehci = netlist.getHierCellInstFromName(path);
                     if (ehci == null) {
-                        throw new RuntimeException("ERROR: Unable to find inst '" + path + "' corresponding to pin '" + pin + "'");
+                        throw new RuntimeException("ERROR: Unable to find inst '" + path + "' corresponding to pin '" +
+                                                   pin + "'");
                     }
                     String name = pin.substring(pos + 1);
                     EDIFCell cell = ehci.getCellType();
@@ -359,7 +359,8 @@ public class ECOTools {
                         ep = cell.getPort(EDIFTools.getRootBusName(name, false));
                     }
                     if (ep == null) {
-                        throw new RuntimeException("ERROR: Unable to find port '" + name + "' on inst '" + path + "' corresponding to pin '" + pin + "'");
+                        throw new RuntimeException("ERROR: Unable to find port '" + name + "' on inst '" + path +
+                                                   "' corresponding to pin '" + pin + "'");
                     }
 
                     // Cell inst exists, as does the port on its cell type, but port inst
@@ -386,19 +387,20 @@ public class ECOTools {
      * state, and is modelled on Vivado's <TT>connect_net -hier -net_object_list</TT> command.
      * @param design The design where the net(s) and pin(s) are instantiated.
      * @param netToPortInsts A map of hierarchical nets and pins for connection.
-     * @param deferredRemovals An optional map that, if passed in non-null will allow any SitePinInst
-     *                         objects deferred previously for removal to be reused for new connections.
-     *                         See {@link #disconnectNet(Design, List, Map)}.
+     * @param deferredRemovals An optional map that, if passed in non-null will allow any
+     *     SitePinInst
+     *                         objects deferred previously for removal to be reused for new
+     * connections. See {@link #disconnectNet(Design, List, Map)}.
      *
      * By default, this method will throw a RuntimeException if there is a mismatch between
-     * the net connected to logical pins (EDIFHierPortInst) and the net connected to its physical pin
-     * (SitePinInst). The Java property "rapidwright.ecotools.connectNet.warnIfCellInstStartsWith"
-     * allows such pins with an EDIFCellInst name that start with its value to be demoted from an
-     * RuntimeException to a printed warning. An example use case for this feature would be if
-     * it is known that the conflicting logical pin will be removed later.
+     * the net connected to logical pins (EDIFHierPortInst) and the net connected to its physical
+     * pin (SitePinInst). The Java property
+     * "rapidwright.ecotools.connectNet.warnIfCellInstStartsWith" allows such pins with an
+     * EDIFCellInst name that start with its value to be demoted from an RuntimeException to a
+     * printed warning. An example use case for this feature would be if it is known that the
+     * conflicting logical pin will be removed later.
      */
-    public static void connectNet(Design design,
-                                  Map<EDIFHierNet, List<EDIFHierPortInst>> netToPortInsts,
+    public static void connectNet(Design design, Map<EDIFHierNet, List<EDIFHierPortInst>> netToPortInsts,
                                   Map<Net, Set<SitePinInst>> deferredRemovals) {
         final Map<EDIFHierNet, EDIFHierPortInst> netToSourcePortInst = new HashMap<>();
         netToPortInsts.entrySet().removeIf((e) -> {
@@ -408,7 +410,7 @@ public class ECOTools {
                     return false;
                 }
                 EDIFHierPortInst oldValue = netToSourcePortInst.put(e.getKey(), ehpi);
-                assert(oldValue == null);
+                assert (oldValue == null);
                 return true;
             });
             // Keep an entry inside netToPortInsts, even if portInsts is empty, so that
@@ -422,7 +424,7 @@ public class ECOTools {
 
         // Modify the logical netlist
         final EDIFLibrary macros = Design.getMacroPrimitives(design.getSeries());
-        for (Map.Entry<EDIFHierNet,List<EDIFHierPortInst>> e : netToPortInsts.entrySet()) {
+        for (Map.Entry<EDIFHierNet, List<EDIFHierPortInst>> e : netToPortInsts.entrySet()) {
             EDIFHierNet ehn = e.getKey();
             EDIFNet en = ehn.getNet();
             List<EDIFHierPortInst> portInsts = e.getValue();
@@ -439,14 +441,15 @@ public class ECOTools {
                     continue;
                 }
                 if (ehpi.getNet() != null) {
-                    throw new RuntimeException("ERROR: Pin " + ehpi + " already connected to net "
-                            + ehpi.getHierarchicalNetName()
-                            + " please run ECOTools.disconnectNet() first.");
+                    throw new RuntimeException("ERROR: Pin " + ehpi + " already connected to net " +
+                                               ehpi.getHierarchicalNetName() +
+                                               " please run ECOTools.disconnectNet() first.");
                 }
                 if (ehpi.isOutput()) {
                     for (EDIFHierPortInst src : ehn.getLeafHierPortInsts(true, false)) {
-                        System.err.println("WARNING: Net '" + ehn.getHierarchicalNetName() + "' already has an output pin '" +
-                                src + "'. Replacing with new pin '" + ehpi + "'.");
+                        System.err.println("WARNING: Net '" + ehn.getHierarchicalNetName() +
+                                           "' already has an output pin '" + src + "'. Replacing with new pin '" +
+                                           ehpi + "'.");
                         Cell cell = src.getPhysicalCell(design);
                         for (SitePinInst spi : cell.getAllSitePinsFromLogicalPin(src.getPortInst().getName(), null)) {
                             DesignTools.handlePinRemovals(spi, deferredRemovals);
@@ -479,7 +482,8 @@ public class ECOTools {
         // Modify the physical netlist
         EDIFCell ecGnd = netlist.getHDIPrimitive(Unisim.GND);
         EDIFCell ecVcc = netlist.getHDIPrimitive(Unisim.VCC);
-        nextNet: for (Map.Entry<EDIFHierNet,List<EDIFHierPortInst>> e : netToPortInsts.entrySet()) {
+    nextNet:
+        for (Map.Entry<EDIFHierNet, List<EDIFHierPortInst>> e : netToPortInsts.entrySet()) {
             EDIFHierNet ehn = e.getKey();
             Net newPhysNet = null;
 
@@ -494,7 +498,8 @@ public class ECOTools {
                 }
 
                 if (sourceEhpi != null) {
-                    throw new RuntimeException("ERROR: More than one source pin found on net '" + ehn.getHierarchicalNetName() + "'.");
+                    throw new RuntimeException("ERROR: More than one source pin found on net '" +
+                                               ehn.getHierarchicalNetName() + "'.");
                 }
                 sourceEhpi = ehpi;
                 Cell sourceCell = sourceEhpi.getPhysicalCell(design);
@@ -514,9 +519,9 @@ public class ECOTools {
                     // (Check that these have been handled by connectNetSource())
                     Net oldPhysNet = design.getNet(ehn.getHierarchicalNetName());
                     if (oldPhysNet != null) {
-                        assert(oldPhysNet.isStaticNet());
-                        assert(oldPhysNet.getSource() == null);
-                        assert(oldPhysNet.getAlternateSource() == null);
+                        assert (oldPhysNet.isStaticNet());
+                        assert (oldPhysNet.getSource() == null);
+                        assert (oldPhysNet.getAlternateSource() == null);
                     }
                 } else {
                     sourceSi = sourceCell.getSiteInst();
@@ -530,8 +535,9 @@ public class ECOTools {
                 }
             }
 
-            // Now go through all sink pins
-            nextLeafPin: for (EDIFHierPortInst ehpi : leafEdifPins) {
+        // Now go through all sink pins
+        nextLeafPin:
+            for (EDIFHierPortInst ehpi : leafEdifPins) {
                 if (ehpi.isOutput()) {
                     continue;
                 }
@@ -555,7 +561,7 @@ public class ECOTools {
                         }
                         // Check that all port insts serviced by this SPI are on this net
                         List<EDIFHierPortInst> portInstsOnSpi = DesignTools.getPortInstsFromSitePinInst(spi);
-                        assert(portInstsOnSpi.contains(ehpi));
+                        assert (portInstsOnSpi.contains(ehpi));
                         EDIFHierNet parentNet = sourceEhpi.getHierarchicalNet();
                         for (EDIFHierPortInst otherEhpi : portInstsOnSpi) {
                             if (otherEhpi.equals(ehpi)) {
@@ -564,19 +570,22 @@ public class ECOTools {
                             // TODO: Use getLeafHierPortInst() to get parent net?
                             EDIFHierNet otherParentNet = netlist.getParentNet(otherEhpi.getHierarchicalNet());
                             if (!otherParentNet.equals(parentNet)) {
-                                // This SPI also services a different port inst that is connected to a
-                                // different net than the new one we're trying to connect up
+                                // This SPI also services a different port inst that is connected to
+                                // a different net than the new one we're trying to connect up
                                 if (LUTTools.isCellALUT(cell)) {
                                     // Check if we can map to a different physical pin
                                     if (createExitSitePinInst(design, ehpi, newPhysNet) != null) {
                                         continue nextLeafPin;
                                     }
                                 }
-                                String message = "Site pin " + spi.getSitePinName() + " cannot be used " +
-                                        "to connect to logical pin '" + ehpi + "' since it is also connected to pin '" +
-                                        otherEhpi + "'.";
-                                String warnIfCellInstStartsWith = Params.getParamValue("rapidwright.ecotools.connectNet.warnIfCellInstStartsWith");
-                                String cellInstName = (warnIfCellInstStartsWith != null) ? otherEhpi.getPortInst().getCellInst().getName() : null;
+                                String message = "Site pin " + spi.getSitePinName() + " cannot be used "
+                                                 + "to connect to logical pin '" + ehpi +
+                                                 "' since it is also connected to pin '" + otherEhpi + "'.";
+                                String warnIfCellInstStartsWith =
+                                    Params.getParamValue("rapidwright.ecotools.connectNet.warnIfCellInstStartsWith");
+                                String cellInstName = (warnIfCellInstStartsWith != null)
+                                                          ? otherEhpi.getPortInst().getCellInst().getName()
+                                                          : null;
                                 if (cellInstName != null && cellInstName.startsWith(warnIfCellInstStartsWith)) {
                                     System.err.println("WARNING: " + message);
                                 } else {
@@ -597,15 +606,16 @@ public class ECOTools {
                             BELPin snkBp = bel.getPin(physicalPinName);
                             if (!si.unrouteIntraSiteNet(spi.getBELPin(), snkBp)) {
                                 throw new RuntimeException("ERROR: Failed to unroute intra-site connection " +
-                                        spi.getSiteInst().getSiteName() + "/" + spi.getBELPin() + " to " + snkBp + ".");
+                                                           spi.getSiteInst().getSiteName() + "/" + spi.getBELPin() +
+                                                           " to " + snkBp + ".");
                             }
                             if (oldPhysNet != null) {
                                 boolean preserveOtherRoutes = true;
                                 oldPhysNet.removePin(spi, preserveOtherRoutes);
                                 if (RouterHelper.isLoadLessNet(oldPhysNet) && oldPhysNet.hasPIPs()) {
-                                    // Since oldPhysNet has no sink pins left, yet still has PIPs, then it may
-                                    // mean that a routing stub persevered. To handle such cases, unroute the
-                                    // whole net.
+                                    // Since oldPhysNet has no sink pins left, yet still has PIPs,
+                                    // then it may mean that a routing stub persevered. To handle
+                                    // such cases, unroute the whole net.
                                     oldPhysNet.unroute();
                                 }
                             }
@@ -613,7 +623,8 @@ public class ECOTools {
                             // Re-do intra-site routing and add pin to new net
                             if (!si.routeIntraSiteNet(newPhysNet, spi.getBELPin(), snkBp)) {
                                 throw new RuntimeException("ERROR: Failed to route intra-site connection " +
-                                        spi.getSiteInst().getSiteName() + "/" + spi.getBELPin() + " to " + snkBp + ".");
+                                                           spi.getSiteInst().getSiteName() + "/" + spi.getBELPin() +
+                                                           " to " + snkBp + ".");
                             }
                             newPhysNet.addPin(spi);
                             spi.setRouted(false);
@@ -629,7 +640,8 @@ public class ECOTools {
                             newPhysNet = design.createNet(hierNetName);
                         }
                     }
-                    // If source and sink pin happen to be in the same site, try intra-site routing first
+                    // If source and sink pin happen to be in the same site, try intra-site routing
+                    // first
                     if (si.equals(sourceSi) && si.routeIntraSiteNet(newPhysNet, sourceBELPin, cell.getBELPin(ehpi))) {
                         // Intra-site routing successful
                         continue;
@@ -639,19 +651,21 @@ public class ECOTools {
                     String logicalPinName = ehpi.getPortInst().getName();
                     if (cell.getAllPhysicalPinMappings(logicalPinName) != null) {
                         boolean isTopLevelPort = cell.getType().equals("IBUF") && logicalPinName.equals("I") ||
-                                                 cell.getType().equals("OBUF") && logicalPinName.equals("O"); 
+                                                 cell.getType().equals("OBUF") && logicalPinName.equals("O");
                         if (!isTopLevelPort) {
                             createExitSitePinInst(design, ehpi, newPhysNet);
                         }
                     } else {
                         if (LUTTools.isCellALUT(cell)) {
                             // TODO: Find a new physical pin mapping
-                            throw new RuntimeException("ERROR: No logical-physical pin mapping found for pin '" + ehpi + "'");
+                            throw new RuntimeException("ERROR: No logical-physical pin mapping found for pin '" + ehpi +
+                                                       "'");
                         } else {
-                            // Assume that sink does not need routing (e.g. CARRY8.CIN may already be connected to VCC
-                            //  but does not need physically routing, or RAMB36.WEBWE[2] which would have been covered by
-                            //  RAMB36.WEBWE[0])
-                            assert(!e.getValue().contains(ehpi));
+                            // Assume that sink does not need routing (e.g. CARRY8.CIN may already
+                            // be connected to VCC
+                            //  but does not need physically routing, or RAMB36.WEBWE[2] which would
+                            //  have been covered by RAMB36.WEBWE[0])
+                            assert (!e.getValue().contains(ehpi));
                         }
                     }
                 }
@@ -668,12 +682,11 @@ public class ECOTools {
         }
     }
 
-    private static void connectNetSource(Design design,
-                                         Map<EDIFHierNet, EDIFHierPortInst> netToSourcePortInst,
+    private static void connectNetSource(Design design, Map<EDIFHierNet, EDIFHierPortInst> netToSourcePortInst,
                                          Map<Net, Set<SitePinInst>> deferredRemovals) {
-        for (Map.Entry<EDIFHierNet,EDIFHierPortInst> e : netToSourcePortInst.entrySet()) {
+        for (Map.Entry<EDIFHierNet, EDIFHierPortInst> e : netToSourcePortInst.entrySet()) {
             EDIFHierPortInst ehpi = e.getValue();
-            assert(ehpi.isOutput());
+            assert (ehpi.isOutput());
 
             EDIFHierNet ehn = e.getKey();
             EDIFNet en = ehn.getNet();
@@ -681,14 +694,13 @@ public class ECOTools {
             // Modify the logical netlist
             for (EDIFHierPortInst src : ehn.getLeafHierPortInsts(true, false)) {
                 System.err.println("WARNING: Net '" + ehn.getHierarchicalNetName() + "' already has an output pin '" +
-                        src + "'. Replacing with new pin '" + ehpi + "'.");
+                                   src + "'. Replacing with new pin '" + ehpi + "'.");
                 Cell cell = src.getPhysicalCell(design);
                 for (SitePinInst spi : cell.getAllSitePinsFromLogicalPin(src.getPortInst().getName(), null)) {
-                    assert(spi.getNet() != null);
+                    assert (spi.getNet() != null);
                     if (deferredRemovals != null) {
                         deferredRemovals.computeIfAbsent(spi.getNet(), (p) -> new HashSet<>()).add(spi);
                     }
-
                 }
                 src.getNet().removePortInst(src.getPortInst());
             }
@@ -718,12 +730,13 @@ public class ECOTools {
         // Modify the physical netlist
         EDIFCell ecGnd = netlist.getHDIPrimitive(Unisim.GND);
         EDIFCell ecVcc = netlist.getHDIPrimitive(Unisim.VCC);
-        for (Map.Entry<EDIFHierNet,EDIFHierPortInst> e : netToSourcePortInst.entrySet()) {
+        for (Map.Entry<EDIFHierNet, EDIFHierPortInst> e : netToSourcePortInst.entrySet()) {
             EDIFHierNet ehn = e.getKey();
 
             List<EDIFHierPortInst> leafLogicalPins = ehn.getLeafHierPortInsts(true, false);
             if (leafLogicalPins.size() != 1) {
-                throw new RuntimeException("ERROR: Net '" + ehn.getHierarchicalNetName() + "' does not contain exactly one source pin.");
+                throw new RuntimeException("ERROR: Net '" + ehn.getHierarchicalNetName() +
+                                           "' does not contain exactly one source pin.");
             }
             EDIFHierPortInst sourceEhpi = leafLogicalPins.get(0);
 
@@ -788,7 +801,7 @@ public class ECOTools {
             if (!sitePins.isEmpty()) {
                 // This net's leaf pins already has some site pins
                 for (SitePinInst spi : sitePins) {
-                    assert(spi.isOutPin());
+                    assert (spi.isOutPin());
 
                     Net oldPhysNet = spi.getNet();
                     if (newPhysNet.equals(oldPhysNet)) {
@@ -797,8 +810,8 @@ public class ECOTools {
                     }
 
                     if (oldPhysNet != null) {
-                        // Site pin is attached to a different physical net, move them over to the new net
-                        // (erasing them from deferredRemovals if present)
+                        // Site pin is attached to a different physical net, move them over to the
+                        // new net (erasing them from deferredRemovals if present)
                         if (deferredRemovals != null) {
                             deferredRemovals.computeIfPresent(oldPhysNet, (k, v) -> {
                                 v.remove(spi);
@@ -820,8 +833,8 @@ public class ECOTools {
                     // Add existing site pin to new net, and update intra-site routing
                     SiteInst si = cell.getSiteInst();
                     Pair<SiteInst, BELPin> siteInstBelPin = sourceEhpi.getRoutedBELPin(design);
-                    assert(siteInstBelPin.getFirst() == si);
-                    assert(spi.getSiteInst() == null);
+                    assert (siteInstBelPin.getFirst() == si);
+                    assert (spi.getSiteInst() == null);
                     spi.setSiteInst(si);
                     newPhysNet.addPin(spi);
                     si.routeIntraSiteNet(newPhysNet, siteInstBelPin.getSecond(), spi.getBELPin());
@@ -833,7 +846,6 @@ public class ECOTools {
                         v.remove(k.getAlternateSource());
                         return v.isEmpty() ? null : v;
                     });
-
                 }
                 fullyUnrouteSources(newPhysNet);
 
@@ -847,7 +859,7 @@ public class ECOTools {
     /**
      * Convenience wrapper method to connectNet() that allows for minimal
      * specification of a single connection to be made.
-     * 
+     *
      * @param d      The design where the net exists.
      * @param cell   The cell on which the pin to be connected exists
      * @param logPin The logical name on the cell to connect
@@ -859,10 +871,10 @@ public class ECOTools {
         EDIFHierNet logicalNet = net.getLogicalHierNet();
         if (logicalNet == null && net.isStaticNet()) {
             logicalNet = EDIFTools.getStaticNet(net.isVCCNet() ? NetType.VCC : NetType.GND,
-                    cell.getEDIFHierCellInst().getParent(), d.getNetlist());
+                                                cell.getEDIFHierCellInst().getParent(), d.getNetlist());
         }
-        map.put(logicalNet, new ArrayList<>(Arrays.asList(
-                new EDIFHierPortInst(cell.getEDIFHierCellInst().getParent(), portInst))));
+        map.put(logicalNet,
+                new ArrayList<>(Arrays.asList(new EDIFHierPortInst(cell.getEDIFHierCellInst().getParent(), portInst))));
         ECOTools.connectNet(d, map, null);
     }
 
@@ -874,8 +886,7 @@ public class ECOTools {
      * @param design The design where the net(s) and pin(s) are instantiated.
      * @param netPinList A list of strings containing net and pin paths.
      */
-    public static void connectNet(Design design,
-                                  List<String> netPinList) {
+    public static void connectNet(Design design, List<String> netPinList) {
         connectNet(design, netPinList, null);
     }
 
@@ -886,13 +897,12 @@ public class ECOTools {
      * state, and is modelled on Vivado's <TT>connect_net -hier -net_object_list</TT> command.
      * @param design The design where the net(s) and pin(s) are instantiated.
      * @param netPinList A list of strings containing net and pin paths.
-     * @param deferredRemovals An optional map that, if passed in non-null will allow any SitePinInst
-     *                         objects deferred previously for removal to be reused for new connections.
-     *                         See {@link #disconnectNet(Design, List, Map)}.
+     * @param deferredRemovals An optional map that, if passed in non-null will allow any
+     *     SitePinInst
+     *                         objects deferred previously for removal to be reused for new
+     * connections. See {@link #disconnectNet(Design, List, Map)}.
      */
-    public static void connectNet(Design design,
-                                  List<String> netPinList,
-                                  Map<Net, Set<SitePinInst>> deferredRemovals) {
+    public static void connectNet(Design design, List<String> netPinList, Map<Net, Set<SitePinInst>> deferredRemovals) {
         final EDIFNetlist netlist = design.getNetlist();
         final Map<EDIFHierNet, List<EDIFHierPortInst>> netPortInsts = new HashMap<>(netPinList.size());
         for (String i : netPinList) {
@@ -903,7 +913,8 @@ public class ECOTools {
                 continue;
             }
             EDIFHierNet ehn = netlist.getHierNetFromName(net);
-            if (ehn == null) throw new RuntimeException("ERROR: Net " + net + " not found");
+            if (ehn == null)
+                throw new RuntimeException("ERROR: Net " + net + " not found");
 
             String[] pins = net_pins[1].split("[{} ]+");
             List<EDIFHierPortInst> portInsts = netPortInsts.computeIfAbsent(ehn, (n) -> new ArrayList<>(pins.length));
@@ -919,16 +930,18 @@ public class ECOTools {
                     String path = pin.substring(0, pos);
                     EDIFHierCellInst ehci = netlist.getHierCellInstFromName(path);
                     if (ehci == null) {
-                        throw new RuntimeException("ERROR: Unable to find inst '" + path + "' corresponding to pin '" + pin + "'");
+                        throw new RuntimeException("ERROR: Unable to find inst '" + path + "' corresponding to pin '" +
+                                                   pin + "'");
                     }
-                    String name = pin.substring(pos+1);
+                    String name = pin.substring(pos + 1);
                     EDIFCell cell = ehci.getCellType();
                     EDIFPort ep = cell.getPort(name);
                     if (ep == null) {
                         ep = cell.getPort(EDIFTools.getRootBusName(name, false));
                     }
                     if (ep == null) {
-                        throw new RuntimeException("ERROR: Unable to find port '" + name + "' on inst '" + path + "' corresponding to pin '" + pin + "'");
+                        throw new RuntimeException("ERROR: Unable to find port '" + name + "' on inst '" + path +
+                                                   "' corresponding to pin '" + pin + "'");
                     }
                     EDIFPortInst epi;
                     if (ep.isBus()) {
@@ -956,8 +969,7 @@ public class ECOTools {
      * @param newPhysNet The net to add the new source pin to
      * @return The newly created source site pin
      */
-    private static SitePinInst routeOutSitePinInstSource(Design design,
-                                                         EDIFHierPortInst targetHierSrc,
+    private static SitePinInst routeOutSitePinInstSource(Design design, EDIFHierPortInst targetHierSrc,
                                                          Net newPhysNet) {
         if (!targetHierSrc.isOutput()) {
             throw new RuntimeException("ERROR: Pin '" + targetHierSrc + "' is not an output pin.");
@@ -980,14 +992,15 @@ public class ECOTools {
         if (sitePinName == null) {
             BELPin output = srcCell.getBELPin(targetHierSrc);
             // Unroute single output path of slice
-            // Identify case (O5 -> MUX output must be blocked by O6, reroute O6 to _O pin, route O5 out MUX output)
+            // Identify case (O5 -> MUX output must be blocked by O6, reroute O6 to _O pin, route O5
+            // out MUX output)
             if (output.getName().equals("O5") && sitePins.isEmpty()) {
                 char lutID = output.getBELName().charAt(0);
 
                 // Remove OUTMUX SitePIP from O6
                 String rBELName = "OUTMUX" + lutID;
                 SitePIP sitePIP = si.getUsedSitePIP(rBELName);
-                assert(sitePIP.getInputPinName().equals("D6"));
+                assert (sitePIP.getInputPinName().equals("D6"));
                 // TODO: Use DesignTools.unrouteAlternativeOutputSitePin() instead
                 si.unrouteIntraSiteNet(sitePIP.getInputPin(), sitePIP.getOutputPin());
 
@@ -1009,7 +1022,7 @@ public class ECOTools {
                         lut6Net = lut6MainOutput.getNet();
                     } else {
                         // lut6Net already using the _O output
-                        assert(lut6MainOutput.getNet().equals(lut6Net));
+                        assert (lut6MainOutput.getNet().equals(lut6Net));
                     }
 
                     // Since unrouteIntraSiteNet() above removed the nets on the ?_O (sitePIP
@@ -1022,17 +1035,16 @@ public class ECOTools {
                 // Reconfigure OUTMUX SitePIP to use O5
                 sitePIP = si.getSitePIP(rBELName, "D5");
                 si.routeIntraSiteNet(newPhysNet, sitePIP.getInputPin(), sitePIP.getOutputPin());
-            }else {
-                System.err.println("ERROR: Unable to exit site for target src: "
-                        + targetHierSrc + " " + output + " -> " + sitePins);
+            } else {
+                System.err.println("ERROR: Unable to exit site for target src: " + targetHierSrc + " " + output +
+                                   " -> " + sitePins);
                 return null;
             }
         }
         SitePinInst srcPin = newPhysNet.createPin(sitePinName, si);
         BELPin belPinSrc = srcCell.getBELPin(targetHierSrc);
         if (!si.routeIntraSiteNet(newPhysNet, belPinSrc, srcPin.getBELPin())) {
-            System.err.println("ERROR: Failed to route to site pin from target src: "
-                    + targetHierSrc);
+            System.err.println("ERROR: Failed to route to site pin from target src: " + targetHierSrc);
         }
         return srcPin;
     }
@@ -1045,9 +1057,7 @@ public class ECOTools {
      * @param net The net to add the new SitePinInst to.
      * @return The newly created SitePinInst.
      */
-    public static SitePinInst createExitSitePinInst(Design design,
-                                                    EDIFHierPortInst ehpi,
-                                                    Net net) {
+    public static SitePinInst createExitSitePinInst(Design design, EDIFHierPortInst ehpi, Net net) {
         if (ehpi.isOutput()) {
             return routeOutSitePinInstSource(design, ehpi, net);
         }
@@ -1058,11 +1068,12 @@ public class ECOTools {
         String logicalPinName = ehpi.getPortInst().getName();
         List<String> siteWires = new ArrayList<>();
         final boolean considerLutRoutethru = true;
-        List<String> sitePinNames = cell.getAllCorrespondingSitePinNames(logicalPinName, siteWires, considerLutRoutethru);
+        List<String> sitePinNames =
+            cell.getAllCorrespondingSitePinNames(logicalPinName, siteWires, considerLutRoutethru);
         if (sitePinNames.isEmpty()) {
             // Following existing intra-site routing did not get us to a site pin
             // (e.g. previous driver of this BELPin could be a LUT)
-            assert(!siteWires.isEmpty());
+            assert (!siteWires.isEmpty());
 
             // Unroute the first SitePIP
             for (String sitewire : siteWires) {
@@ -1084,7 +1095,7 @@ public class ECOTools {
                     // Unroute SitePIP
                     if (!si.unrouteIntraSiteNet(inputBp, cellBp)) {
                         throw new RuntimeException("ERROR: Failed to unroute intra-site connection " +
-                                si.getSiteName() + "/" + inputBp + " to " + cellBp);
+                                                   si.getSiteName() + "/" + inputBp + " to " + cellBp);
                     }
 
                     // Restore inputBp's sitewire
@@ -1093,7 +1104,8 @@ public class ECOTools {
                     }
 
                     // Try again
-                    sitePinNames = cell.getAllCorrespondingSitePinNames(logicalPinName, siteWires, considerLutRoutethru);
+                    sitePinNames =
+                        cell.getAllCorrespondingSitePinNames(logicalPinName, siteWires, considerLutRoutethru);
                     break;
                 }
             }
@@ -1146,17 +1158,18 @@ public class ECOTools {
         }
 
         if (spi == null) {
-            throw new RuntimeException("ERROR: Unable to route pin '" + ehpi + "' out of site " + si.getSiteName() + ".");
+            throw new RuntimeException("ERROR: Unable to route pin '" + ehpi + "' out of site " + si.getSiteName() +
+                                       ".");
         }
 
         BELPin snkBp = cell.getBELPin(ehpi);
         if (!si.unrouteIntraSiteNet(spi.getBELPin(), snkBp)) {
             throw new RuntimeException("ERROR: Failed to unroute intra-site connection " +
-                    spi.getSiteInst().getSiteName() + "/" + spi.getBELPin() + " to " + snkBp + ".");
+                                       spi.getSiteInst().getSiteName() + "/" + spi.getBELPin() + " to " + snkBp + ".");
         }
         if (!si.routeIntraSiteNet(net, spi.getBELPin(), snkBp)) {
             throw new RuntimeException("ERROR: Failed to route intra-site connection " +
-                    spi.getSiteInst().getSiteName() + "/" + spi.getBELPin() + " to " + snkBp + ".");
+                                       spi.getSiteInst().getSiteName() + "/" + spi.getBELPin() + " to " + snkBp + ".");
         }
 
         return spi;
@@ -1167,7 +1180,8 @@ public class ECOTools {
     // Also rip up associated intra-site routing.
     private static void fullyUnrouteSources(Net net) {
         for (SitePinInst spi : Arrays.asList(net.getSource(), net.getAlternateSource())) {
-            if (spi == null) continue;
+            if (spi == null)
+                continue;
             BELPin srcBp = DesignTools.getLogicalBELPinDriver(spi);
             SiteInst si = spi.getSiteInst();
             si.unrouteIntraSiteNet(srcBp, spi.getBELPin());
@@ -1189,8 +1203,7 @@ public class ECOTools {
      *                         if this method is called many times as the process is expensive
      *                         without batching.
      */
-    public static void removeCell(Design design,
-                                  List<EDIFHierCellInst> insts,
+    public static void removeCell(Design design, List<EDIFHierCellInst> insts,
                                   Map<Net, Set<SitePinInst>> deferredRemovals) {
         final EDIFNetlist netlist = design.getNetlist();
         for (EDIFHierCellInst ehci : insts) {
@@ -1212,7 +1225,7 @@ public class ECOTools {
                 Cell physCell = design.getCell(leafEhci.getFullHierarchicalInstName());
                 if (physCell == null) {
                     throw new RuntimeException("ERROR: Cannot find physical cell corresponding to logical cell '" +
-                            leafEhci.getFullHierarchicalInstName() + "'.");
+                                               leafEhci.getFullHierarchicalInstName() + "'.");
                 }
 
                 DesignTools.fullyUnplaceCell(physCell, deferredRemovals);
@@ -1240,9 +1253,7 @@ public class ECOTools {
      *                         if this method is called many times as the process is expensive
      *                         without batching.
      */
-    public static void removeCellPath(Design design,
-                                      List<String> paths,
-                                      Map<Net, Set<SitePinInst>> deferredRemovals) {
+    public static void removeCellPath(Design design, List<String> paths, Map<Net, Set<SitePinInst>> deferredRemovals) {
         final EDIFNetlist netlist = design.getNetlist();
         List<EDIFHierCellInst> edifCellInsts = new ArrayList<>(paths.size());
         for (String instName : paths) {
@@ -1255,9 +1266,9 @@ public class ECOTools {
         removeCell(design, edifCellInsts, deferredRemovals);
     }
 
-    private static Pair<EDIFHierCellInst,String> getParentCellInstAndName(EDIFNetlist netlist, String path) {
+    private static Pair<EDIFHierCellInst, String> getParentCellInstAndName(EDIFNetlist netlist, String path) {
         int pos = path.lastIndexOf(EDIFTools.EDIF_HIER_SEP);
-        String name = path.substring(pos+1);
+        String name = path.substring(pos + 1);
         EDIFHierCellInst parentEhci;
         if (pos == -1) {
             parentEhci = netlist.getTopHierCellInst();
@@ -1284,7 +1295,7 @@ public class ECOTools {
         final EDIFNetlist netlist = design.getNetlist();
         for (String path : paths) {
             // Modify logical netlist
-            Pair<EDIFHierCellInst,String> p = getParentCellInstAndName(netlist, path);
+            Pair<EDIFHierCellInst, String> p = getParentCellInstAndName(netlist, path);
             EDIFHierCellInst parentEhci = p.getFirst();
             EDIFCell parentCell = parentEhci.getCellType();
             String cellName = p.getSecond();
@@ -1310,10 +1321,10 @@ public class ECOTools {
      * is 'FF/D' and reference is a LUT1, this will create a new cell instance of
      * type LUT1 where its input 'I0' will replace the connection 'D' on 'FF' and a
      * new net will be created that will connect 'LUT1/O' to 'FF/D'.
-     * 
+     *
      * This is useful for scenarios like inserting a LUT1 inline when routethru
      * instances are not possible.
-     * 
+     *
      * @param design    The existing design.
      * @param input     The reference logical input pin on which the new inline cell
      *                  should be created and connected.
@@ -1327,9 +1338,10 @@ public class ECOTools {
      *                  existing input.
      * @return A hierarchical reference to the newly created cell instance.
      */
-    public static Cell createAndPlaceInlineCellOnInputPin(Design design, EDIFHierPortInst input,
-            Unisim reference, Site site, BEL bel, String logInput, String logOutput) {
-        if (!input.isInput()) return null;
+    public static Cell createAndPlaceInlineCellOnInputPin(Design design, EDIFHierPortInst input, Unisim reference,
+                                                          Site site, BEL bel, String logInput, String logOutput) {
+        if (!input.isInput())
+            return null;
         EDIFHierNet net = input.getHierarchicalNet();
         EDIFCell parent = input.getPortInst().getParentCell();
         EDIFNet newNet = parent.createNet("inline_insertion_net_" + UNIQUE_COUNT++);
@@ -1341,22 +1353,21 @@ public class ECOTools {
             refCell = Design.getUnisimCell(reference);
             design.getNetlist().getHDIPrimitivesLibrary().addCell(refCell);
         }
-        EDIFCellInst newInst = refCell.createCellInst("inline_insertion_" + refCell.getName()
-                + "_" + UNIQUE_COUNT++, parent);
+        EDIFCellInst newInst =
+            refCell.createCellInst("inline_insertion_" + refCell.getName() + "_" + UNIQUE_COUNT++, parent);
         EDIFHierCellInst newHierInst = net.getHierarchicalInst().getChild(newInst);
         Cell cell = design.createCell(newHierInst.getFullHierarchicalInstName(), newInst);
         if (!design.placeCell(cell, site, bel)) {
-            throw new RuntimeException("ERROR: Unable to create new inline cell to be placed on " 
-                + site + "/" + bel);
+            throw new RuntimeException("ERROR: Unable to create new inline cell to be placed on " + site + "/" + bel);
         }
 
         EDIFPortInst newInput = new EDIFPortInst(refCell.getPort(logInput), null, newInst);
         EDIFPortInst newOutput = new EDIFPortInst(refCell.getPort(logOutput), null, newInst);
         EDIFHierPortInst newHierInput = newHierInst.getPortInst(newInput.getName());
         EDIFHierPortInst newHierOutput = newHierInst.getPortInst(newOutput.getName());
-        
+
         disconnectNet(design, input);
-        
+
         // Connect new cell input to existing net, output and existing input to new net
         Map<EDIFHierNet, List<EDIFHierPortInst>> connectMap = new HashMap<>();
         connectMap.put(net, new ArrayList<>(Arrays.asList(newHierInput)));
@@ -1364,7 +1375,7 @@ public class ECOTools {
         connectNet(design, connectMap, null);
         return cell;
     }
-    
+
     /**
      * Given list of net paths, create these nets in the design.
      * This method inserts nets into the EDIF (logical) netlist as well as corresponding nets
@@ -1376,14 +1387,14 @@ public class ECOTools {
         final EDIFNetlist netlist = design.getNetlist();
         for (String path : paths) {
             // Modify logical netlist
-            Pair<EDIFHierCellInst,String> p = getParentCellInstAndName(netlist, path);
+            Pair<EDIFHierCellInst, String> p = getParentCellInstAndName(netlist, path);
             EDIFHierCellInst parentEhci = p.getFirst();
             EDIFCell parentCell = parentEhci.getCellType();
             String netName = p.getSecond();
             parentCell.createNet(netName);
 
             // Modify physical netlist
-            assert(design.getNet(path) == null);
+            assert (design.getNet(path) == null);
             design.createNet(path);
         }
     }
@@ -1393,7 +1404,7 @@ public class ECOTools {
      * another. It keeps any placement and routing intact, but will refactor
      * {@link Net} names accordingly. Note that if any cells in the path of the
      * refactor are not unique, they will be made so in this process.
-     * 
+     *
      * @param design    The current design.
      * @param cell      The cell to refactor.
      * @param newParent The new parent hierarchical cell.
@@ -1402,7 +1413,8 @@ public class ECOTools {
     public static EDIFHierCellInst refactorCell(Design design, EDIFHierCellInst cell, EDIFHierCellInst newParent) {
         // TODO - Support non-leaf cells in implemented contexts
         if (!cell.getCellType().isLeafCellOrBlackBox() && design.getSiteInsts().size() > 0) {
-            throw new RuntimeException("ERROR: Refactor of a non-leaf cell in a placed/routed design not yet supported: " + cell);
+            throw new RuntimeException(
+                "ERROR: Refactor of a non-leaf cell in a placed/routed design not yet supported: " + cell);
         }
         EDIFHierCellInst currParent = cell.getParent();
         if (currParent.equals(newParent)) {
@@ -1413,7 +1425,8 @@ public class ECOTools {
         newParent.ensureAncestorsAreUniquified();
 
         // Create a copy of the instance in the destination, later delete the original
-        EDIFCellInst newInst = newParent.getCellType().addNewCellInstUniqueName(cell.getInst().getName(), cell.getCellType());
+        EDIFCellInst newInst =
+            newParent.getCellType().addNewCellInstUniqueName(cell.getInst().getName(), cell.getCellType());
         EDIFHierCellInst refactoredInst = newParent.getChild(newInst);
 
         for (EDIFHierPortInst portInst : cell.getHierPortInsts()) {

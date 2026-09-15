@@ -41,7 +41,6 @@ import com.xilinx.rapidwright.edif.EDIFPort;
  * Created on: Feb 7, 2018
  */
 public class RTLStubGenerator {
-
     public static final String VERILOG_COMMENT = "//";
     public static final String VHDL_COMMENT = "--";
 
@@ -53,7 +52,7 @@ public class RTLStubGenerator {
         }
         Arrays.sort(portNames);
         EDIFPort[] ports = new EDIFPort[portNames.length];
-        for (int i=0; i < portNames.length; i++) {
+        for (int i = 0; i < portNames.length; i++) {
             ports[i] = c.getPort(portNames[i]);
         }
         return ports;
@@ -68,15 +67,20 @@ public class RTLStubGenerator {
         try {
             out.write((VERILOG_COMMENT + " " + getHeaderCommentString() + "\n").getBytes());
             out.write("\n".getBytes());
-            out.write((VERILOG_COMMENT + " This empty module with port declaration file causes synthesis tools to infer a black box for IP.\n").getBytes());
-            out.write((VERILOG_COMMENT + " Please paste the declaration into a Verilog source file or add the file as an additional source.\n").getBytes());
-            out.write(("module " + d.getName() +"(").getBytes());
-            for (int i=0; i < ports.length; i++) {
-                if (i>0) out.write(", ".getBytes());
+            out.write((VERILOG_COMMENT + (" This empty module with port declaration file causes "
+                                          + "synthesis tools to infer a black box for IP.\n"))
+                          .getBytes());
+            out.write((VERILOG_COMMENT + (" Please paste the declaration into a Verilog source "
+                                          + "file or add the file as an additional source.\n"))
+                          .getBytes());
+            out.write(("module " + d.getName() + "(").getBytes());
+            for (int i = 0; i < ports.length; i++) {
+                if (i > 0)
+                    out.write(", ".getBytes());
                 out.write(ports[i].getBusName().getBytes());
             }
             out.write(");\n".getBytes());
-            for (int i=0; i < ports.length; i++) {
+            for (int i = 0; i < ports.length; i++) {
                 EDIFPort p = ports[i];
                 String dir = p.getDirection().name().toLowerCase();
                 String range = p.isBus() ? "[" + p.getLeft() + ":" + p.getRight() + "]" : "";
@@ -97,7 +101,7 @@ public class RTLStubGenerator {
             out.write("use IEEE.STD_LOGIC_1164.ALL;\n\n".getBytes());
             out.write(("entity " + topCellName + " is\n").getBytes());
             out.write("  Port (\n".getBytes());
-            for (int i=0; i < ports.length; i++) {
+            for (int i = 0; i < ports.length; i++) {
                 EDIFPort p = ports[i];
                 String dir = p.getDirection().name().toLowerCase().replace("put", "");
                 String type = " STD_LOGIC";
@@ -105,12 +109,12 @@ public class RTLStubGenerator {
                     String endian = p.getLeft() > p.getRight() ? " downto " : " to ";
                     type = " STD_LOGIC_VECTOR ( " + p.getLeft() + endian + p.getRight() + " )";
                 }
-                String semi = i == ports.length-1 ? "\n" : ";\n";
-                out.write(("    " + p.getBusName() + " : " + dir  + type + semi).getBytes());
+                String semi = i == ports.length - 1 ? "\n" : ";\n";
+                out.write(("    " + p.getBusName() + " : " + dir + type + semi).getBytes());
             }
             out.write("  );\n\n".getBytes());
-            out.write(("end "+ topCellName+";\n\n").getBytes());
-            out.write(("architecture stub of "+topCellName+" is\n").getBytes());
+            out.write(("end " + topCellName + ";\n\n").getBytes());
+            out.write(("architecture stub of " + topCellName + " is\n").getBytes());
             out.write("attribute syn_black_box : boolean;\n".getBytes());
             out.write("attribute black_box_pad_pin : string;\n".getBytes());
             out.write("attribute syn_black_box of stub : architecture is true;\n".getBytes());
@@ -119,6 +123,5 @@ public class RTLStubGenerator {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 }

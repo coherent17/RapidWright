@@ -27,7 +27,6 @@ package com.xilinx.rapidwright.design;
  *
  */
 public class BELAttr {
-
     private String name;
 
     private String value;
@@ -63,5 +62,4 @@ public class BELAttr {
     public void setNet(Net net) {
         this.net = net;
     }
-
 }

@@ -22,6 +22,11 @@
 
 package com.xilinx.rapidwright.eco;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.xilinx.rapidwright.design.Cell;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.DesignTools;
@@ -33,11 +38,6 @@ import com.xilinx.rapidwright.device.Site;
 import com.xilinx.rapidwright.support.RapidWrightDCP;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class TestECOPlacementHelper {
     @Test
@@ -97,7 +97,8 @@ public class TestECOPlacementHelper {
             BEL bel;
             while ((bel = eph.getUnusedFlop(si, clk, ce, rst)) != null) {
                 bels.add(bel);
-                Cell ff = design.createAndPlaceCell("cell" + (i++), Unisim.FDRE, si.getSiteName() + "/" + bel.getName());
+                Cell ff =
+                    design.createAndPlaceCell("cell" + (i++), Unisim.FDRE, si.getSiteName() + "/" + bel.getName());
                 clk.connect(ff, "C");
                 ce.connect(ff, "CE");
                 rst.connect(ff, "R");
@@ -111,7 +112,8 @@ public class TestECOPlacementHelper {
             BEL bel;
             while ((bel = eph.getUnusedFlop(si, clk, ce, rst)) != null) {
                 bels.add(bel);
-                Cell ff = design.createAndPlaceCell("cell" + (i++), Unisim.FDRE, si.getSiteName() + "/" + bel.getName());
+                Cell ff =
+                    design.createAndPlaceCell("cell" + (i++), Unisim.FDRE, si.getSiteName() + "/" + bel.getName());
                 clk.connect(ff, "C");
                 ce.connect(ff, "CE");
                 rst.connect(ff, "R");
@@ -125,7 +127,8 @@ public class TestECOPlacementHelper {
             BEL bel;
             while ((bel = eph.getUnusedFlop(si, clk, ce, rst)) != null) {
                 bels.add(bel);
-                Cell ff = design.createAndPlaceCell("cell" + (i++), Unisim.FDRE, si.getSiteName() + "/" + bel.getName());
+                Cell ff =
+                    design.createAndPlaceCell("cell" + (i++), Unisim.FDRE, si.getSiteName() + "/" + bel.getName());
                 clk.connect(ff, "C");
                 ce.connect(ff, "CE");
                 rst.connect(ff, "R");
@@ -142,7 +145,8 @@ public class TestECOPlacementHelper {
             BEL bel;
             while ((bel = eph.getUnusedFlop(si, clk, ce, rst)) != null) {
                 bels.add(bel);
-                Cell ff = design.createAndPlaceCell("cell" + (i++), Unisim.FDRE, si.getSiteName() + "/" + bel.getName());
+                Cell ff =
+                    design.createAndPlaceCell("cell" + (i++), Unisim.FDRE, si.getSiteName() + "/" + bel.getName());
                 clk.connect(ff, "C");
                 ce.connect(ff, "CE");
                 rst.connect(ff, "R");
@@ -168,9 +172,10 @@ public class TestECOPlacementHelper {
         // Test that all SLICE sites are ultimately visited
         Assertions.assertEquals(49260, sites.size());
         // Test that the first 10 are as expected
-        Assertions.assertEquals("[SLICE_X15Y239, SLICE_X14Y239, " +
-                "SLICE_X14Y238, SLICE_X15Y238, SLICE_X16Y238, " +
-                "SLICE_X16Y239, " +
-                "SLICE_X16Y240, SLICE_X15Y240, SLICE_X14Y240, SLICE_X13Y240]", sitesList.toString());
+        Assertions.assertEquals("[SLICE_X15Y239, SLICE_X14Y239, "
+                                    + "SLICE_X14Y238, SLICE_X15Y238, SLICE_X16Y238, "
+                                    + "SLICE_X16Y239, "
+                                    + "SLICE_X16Y240, SLICE_X15Y240, SLICE_X14Y240, SLICE_X13Y240]",
+                                sitesList.toString());
     }
 }

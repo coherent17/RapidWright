@@ -40,11 +40,11 @@ import com.xilinx.rapidwright.util.Pair;
  * A DSPTimingData instance stores logic delay of a DSP block in the design.
  * The logic delay of each DSP block is parsed from a text file that can obtained
  * by running Vivado with the Tcl script dump_all_dsp_delay.tcl under $RAPIDWRIGHT_PATH/tcl/rwroute.
- * For more information of how to generate DSP timing files of a design, please refer to the Tcl script.
- * When the DSP timing files are ready, please use "--dspTimingDataFolder" option (see {@link RWRouteConfig}),
- * so that the DSP timing info becomes accessible for RWRoute.
+ * For more information of how to generate DSP timing files of a design, please refer to the Tcl
+ * script. When the DSP timing files are ready, please use "--dspTimingDataFolder" option (see
+ * {@link RWRouteConfig}), so that the DSP timing info becomes accessible for RWRoute.
  */
-public class DSPTimingData{
+public class DSPTimingData {
     /** Full hierarchical name of the DSP block */
     private String blockName;
     /**
@@ -56,10 +56,10 @@ public class DSPTimingData{
      * Two separate lists of input and output EDIFPortInst names,
      * used for checking if an EDIFPortInst is included in the timing file
      */
-    private List<String> inputPorts;//two lists used for checking if port name included in delay info
+    private List<String> inputPorts; // two lists used for checking if port name included in delay info
     private List<String> outputPorts;
     /** A pin mapping from sub-block cell pin to top level dsp pin */
-    private Map<String, String> pinMapping;//from sub-block cell pin to top level dsp pin, string is enough
+    private Map<String, String> pinMapping; // from sub-block cell pin to top level dsp pin, string is enough
     /** A flag to indicate if the input file of the DSP is valid */
     private boolean valid;
 
@@ -76,69 +76,74 @@ public class DSPTimingData{
         this.outputPorts = new ArrayList<>();
 
         try {
-            if (this.valid) this.parse(dspTimingFile);
+            if (this.valid)
+                this.parse(dspTimingFile);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public static void generateWarningInfo() {
-        System.out.println("                  The tool continues in the timing-driven mode. Due to the missing DSP timing info, there could be unexpected critical path delay optimism.");
-        System.out.println("INFO: To obtain DSP logic delay files, please refer to dump_all_dsp_delay.tcl under $RAPIDWRIGHT_PATH/tcl/rwroute.");
-        System.out.println("INFO: Please use --dspTimingDataFolder <DSP delay files path> to grant the tool access to DSP timing files.");
+        System.out.println("                  The tool continues in the timing-driven mode. Due to the missing "
+                           + "DSP timing info, there could be unexpected critical path delay optimism.");
+        System.out.println("INFO: To obtain DSP logic delay files, please refer to "
+                           + "dump_all_dsp_delay.tcl under $RAPIDWRIGHT_PATH/tcl/rwroute.");
+        System.out.println("INFO: Please use --dspTimingDataFolder <DSP delay files path> to "
+                           + "grant the tool access to DSP timing files.");
     }
 
-    //Explicit:          PCOUT[47]
-    //Implicit:          PCOUT : 0 47
-    //Example:
-    //    A : 0 29    PCOUT : 0 47   1.527
-    //    A : 0 29    P     : 0 47   1.514
-    //    B : 0 17    PCOUT : 0 47   1.572
-    //    B : 0 17    P     : 0 47   1.559
-    //    A[31]    PCOUT[50]   1.527
+    // Explicit:          PCOUT[47]
+    // Implicit:          PCOUT : 0 47
+    // Example:
+    //     A : 0 29    PCOUT : 0 47   1.527
+    //     A : 0 29    P     : 0 47   1.514
+    //     B : 0 17    PCOUT : 0 47   1.572
+    //     B : 0 17    P     : 0 47   1.559
+    //     A[31]    PCOUT[50]   1.527
     /**
      * Parses the input file
      * @param file The input DSP timing file
      * @throws IOException
      */
     private void parse(File file) throws IOException {
-        @SuppressWarnings("resource")
-        BufferedReader reader = new BufferedReader(new FileReader(file));
+        @SuppressWarnings("resource") BufferedReader reader = new BufferedReader(new FileReader(file));
         String line;
         while ((line = reader.readLine()) != null) {
             if (line.length() == 0) {
                 return;
             }
 
-            if (!line.startsWith("#")) {// comment line starts with #
-                //explicit implicit
-                // delay with clk: clk-out and in-clk
+            if (!line.startsWith("#")) { // comment line starts with #
+                // explicit implicit
+                //  delay with clk: clk-out and in-clk
                 if (line.contains("clk")) {
                     String[] s = line.split("\\s+");
                     if (s.length == 3) {
                         // clk    P[10]            1.62
-                        this.addInputOutputPortDelay("CLK", s[1], (short) (Float.parseFloat(s[2])*1000));
+                        this.addInputOutputPortDelay("CLK", s[1], (short)(Float.parseFloat(s[2]) * 1000));
                     } else {
                         // CEA2     clk       0.00       0.16
-                        // introducing virtual clk: VCLK, which is connected to superSink in timing graph
-                        this.addInputOutputPortDelay(s[0], "VCLK", (short) (Float.parseFloat(s[2])*1000 + Float.parseFloat(s[3])*1000));
+                        // introducing virtual clk: VCLK, which is connected to superSink in timing
+                        // graph
+                        this.addInputOutputPortDelay(
+                            s[0], "VCLK", (short)(Float.parseFloat(s[2]) * 1000 + Float.parseFloat(s[3]) * 1000));
                     }
 
                 } else if (line.contains(":")) {
                     String[] s = line.replaceAll(":", " ").split("\\s+");
-                    //port index inclusive
+                    // port index inclusive
                     for (short idin = Short.parseShort(s[1]); idin <= Short.parseShort(s[2]); idin++) {
-                        //input pins
+                        // input pins
                         for (short ido = idin; ido <= Short.parseShort(s[5]); ido++) {
-                            String in = s[0]+"[" + idin + "]";
-                            String out = s[3]+"[" + ido + "]";
-                            this.addInputOutputPortDelay(in, out, (short) (Float.parseFloat(s[6])*1000));
+                            String in = s[0] + "[" + idin + "]";
+                            String out = s[3] + "[" + ido + "]";
+                            this.addInputOutputPortDelay(in, out, (short)(Float.parseFloat(s[6]) * 1000));
                         }
                     }
 
                 } else if (line.contains("[")) {
                     String[] s = line.split("\\s+");
-                    this.addInputOutputPortDelay(s[0], s[1], (short) (Float.parseFloat(s[2])*1000));
+                    this.addInputOutputPortDelay(s[0], s[1], (short)(Float.parseFloat(s[2]) * 1000));
                 }
             }
         }
@@ -187,8 +192,10 @@ public class DSPTimingData{
             this.setPinMapping(new HashMap<>());
         }
         // this.blockName + "/" + key + " -->> " +  this.blockName + "/" + value
-        // bd_0_i/hls_inst/inst/grp_rasterization1_fu_3239/ret_V_28_fu_206_p2/DSP_OUTPUT_INST/P[13] -->> bd_0_i/hls_inst/inst/grp_rasterization1_fu_3239/ret_V_28_fu_206_p2/P[13]
-        this.getPinMapping().put(this.getBlockName() + "/" + subblockPortName, this.getBlockName() + "/" + toplevelPortName);
+        // bd_0_i/hls_inst/inst/grp_rasterization1_fu_3239/ret_V_28_fu_206_p2/DSP_OUTPUT_INST/P[13]
+        // -->> bd_0_i/hls_inst/inst/grp_rasterization1_fu_3239/ret_V_28_fu_206_p2/P[13]
+        this.getPinMapping().put(this.getBlockName() + "/" + subblockPortName,
+                                 this.getBlockName() + "/" + toplevelPortName);
     }
 
     @Override
@@ -219,5 +226,4 @@ public class DSPTimingData{
     public void setPinMapping(Map<String, String> pinMapping) {
         this.pinMapping = pinMapping;
     }
-
 }

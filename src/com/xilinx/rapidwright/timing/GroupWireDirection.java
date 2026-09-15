@@ -24,7 +24,4 @@ package com.xilinx.rapidwright.timing;
 /**
  * The direction for the TimingGroup, which is basically either horizontal or vertical.
  */
-public enum GroupWireDirection {
-    HORIZONTAL,
-    VERTICAL
-}
+public enum GroupWireDirection { HORIZONTAL, VERTICAL }

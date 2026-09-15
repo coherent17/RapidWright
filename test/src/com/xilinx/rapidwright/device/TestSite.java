@@ -28,9 +28,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 public class TestSite {
     @ParameterizedTest
-    @CsvSource({
-            "xcvu3p,BUFG_GT_X0Y96,INT_X0Y256"
-    })
+    @CsvSource({"xcvu3p,BUFG_GT_X0Y96,INT_X0Y256"})
     public void testGetIntTile(String deviceName, String siteName, String intTileName) {
         Device device = Device.getDevice(deviceName);
         Site site = device.getSite(siteName);
@@ -39,12 +37,13 @@ public class TestSite {
 
     @ParameterizedTest
     @CsvSource({
-            "xcvp1902,SLICE_S0X36Y0,SLR0",
-            "xcvp1902,SLICE_S1X36Y0,SLR1",
-            "xcvp1902,SLICE_S2X36Y0,SLR2",
-            "xcvp1902,SLICE_S3X36Y0,SLR3",
+        "xcvp1902,SLICE_S0X36Y0,SLR0",
+        "xcvp1902,SLICE_S1X36Y0,SLR1",
+        "xcvp1902,SLICE_S2X36Y0,SLR2",
+        "xcvp1902,SLICE_S3X36Y0,SLR3",
     })
-    public void testGetSLR(String deviceName, String siteName, String slrName) {
+    public void
+    testGetSLR(String deviceName, String siteName, String slrName) {
         Device device = Device.getDevice(deviceName);
         Site site = device.getSite(siteName);
         Assertions.assertEquals(slrName, site.getTile().getSLR().getName());

@@ -34,11 +34,10 @@ package com.xilinx.rapidwright.design;
  * include an AltPinMapping that has the name of the CARRY8 cell (altCellName),
  * the AltPinMapping will have the CARRY8 type (altCellType) and it will have
  * the logical pin name on the CARRY8 cell (logicalName).
- * 
+ *
  * Created on: Jun 21, 2017
  */
 public class AltPinMapping {
-
     private String logicalName;
 
     private String altCellName;
@@ -48,7 +47,7 @@ public class AltPinMapping {
     /**
      * Creates a reference copy of this alternate pin mapping--a deep copy of the
      * object without this new instance being referenced in any cell of the design.
-     * 
+     *
      * @return The newly created reference copy.
      */
     public AltPinMapping getReferenceCopy() {
@@ -121,7 +120,7 @@ public class AltPinMapping {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        AltPinMapping other = (AltPinMapping) obj;
+        AltPinMapping other = (AltPinMapping)obj;
         if (altCellName == null) {
             if (other.altCellName != null)
                 return false;
@@ -153,7 +152,6 @@ public class AltPinMapping {
     }
 
     public AltPinMapping() {
-
     }
 
     public String toString() {

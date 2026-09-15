@@ -37,7 +37,6 @@ import com.xilinx.rapidwright.gui.TileScene;
  * Created on: Apr 26, 2017
  */
 public class BlockScene extends TileScene {
-
     private ImplGuide implGuide;
 
     private ArrayList<GUIPBlock> guiPBlocks;
@@ -70,7 +69,5 @@ public class BlockScene extends TileScene {
                 guiPb.show();
             }
         }
-
     }
-
 }

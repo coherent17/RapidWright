@@ -22,7 +22,6 @@
 
 package com.xilinx.rapidwright.design.blocks;
 
-
 /**
  * Enum representing different PBlock properties that may be set in XDC.
  * Created on: Nov 7, 2025

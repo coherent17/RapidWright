@@ -41,18 +41,14 @@ import tcl.lang.TclObject;
 /**
  * Lookup Cells for use in the XDC Parser.
  * <p>
- * Cells can have different names in the source XDC versus the actual objects in the design. This allows rewriting
- * constraints to match a possibly restructured design. Cells have an <i>original</i> and a <i>final</i> name to
- * support this.
- * <p>
- * A derived class can specify how to do this mapping. {@link RegularEdifCellLookup} operates on EDIF netlists without
- * rewriting.
+ * Cells can have different names in the source XDC versus the actual objects in the design. This
+ * allows rewriting constraints to match a possibly restructured design. Cells have an
+ * <i>original</i> and a <i>final</i> name to support this. <p> A derived class can specify how to
+ * do this mapping. {@link RegularEdifCellLookup} operates on EDIF netlists without rewriting.
  *
  * @param <T> Representation of Cells
  */
 public abstract class EdifCellLookup<T> {
-
-
     /**
      * Convert a cell to a Tcl Object
      * @param interp the interpreter
@@ -72,7 +68,8 @@ public abstract class EdifCellLookup<T> {
      */
     public Stream<T> allCellInsts(T ci) {
         Stream<T> self = Stream.of(ci);
-        Stream<? extends T> directChildren = getChildrenOf(ci);;
+        Stream<? extends T> directChildren = getChildrenOf(ci);
+        ;
         Stream<? extends T> allChildren = directChildren.flatMap(this::allCellInsts);
         return Stream.concat(self, allChildren);
     }
@@ -85,7 +82,8 @@ public abstract class EdifCellLookup<T> {
             }
             return Stream.of(res);
         }
-        return getChildBySomeAbsoluteName(cellName, (s, item) -> FilenameUtils.wildcardMatch(getRelativeOriginalName(item), s));
+        return getChildBySomeAbsoluteName(cellName,
+                                          (s, item) -> FilenameUtils.wildcardMatch(getRelativeOriginalName(item), s));
     }
 
     public Stream<T> getHierCellInstsFromRegexpName(String cellName) {
@@ -98,32 +96,29 @@ public abstract class EdifCellLookup<T> {
 
     public abstract T getChild(T cell, String name);
 
-    private Stream<T> getChildBySomeAbsoluteNameWorker(String[] parts, int level, T current, BiPredicate<String, T> filter) {
-        if (level==parts.length) {
+    private Stream<T> getChildBySomeAbsoluteNameWorker(String[] parts, int level, T current,
+                                                       BiPredicate<String, T> filter) {
+        if (level == parts.length) {
             return Stream.of(current);
         }
         return getChildrenOf(current)
-                .filter(child -> filter.test(parts[level], child))
-                .flatMap(c->getChildBySomeAbsoluteNameWorker(parts, level+1, c, filter));
+            .filter(child -> filter.test(parts[level], child))
+            .flatMap(c -> getChildBySomeAbsoluteNameWorker(parts, level + 1, c, filter));
     }
 
-
     public Stream<T> getChildBySomeAbsoluteName(String name, BiPredicate<String, T> filter) {
-
-        if (name.isEmpty()) return Stream.of(getRoot());
+        if (name.isEmpty())
+            return Stream.of(getRoot());
 
         String[] parts = name.split(EDIFTools.EDIF_HIER_SEP);
 
         // Sadly, cells can be named 'fred/' instead of 'fred', this code handles this situation
-        if (name.charAt(name.length()-1) == '/') {
-            parts[parts.length-1] = parts[parts.length-1] + EDIFTools.EDIF_HIER_SEP;
+        if (name.charAt(name.length() - 1) == '/') {
+            parts[parts.length - 1] = parts[parts.length - 1] + EDIFTools.EDIF_HIER_SEP;
         }
 
         return getChildBySomeAbsoluteNameWorker(parts, 0, getRoot(), filter);
     }
-
-
-
 
     public Predicate<T> getAbsoluteRegexFilter(String cellNames) {
         return eci -> getAbsoluteOriginalName(eci).matches(cellNames);

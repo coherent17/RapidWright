@@ -72,18 +72,29 @@ import com.xilinx.rapidwright.util.MessageGenerator;
  *
  */
 public class SATRouter {
-
     public static final String EV_ROUTER = "evRouter";
 
     /** evRouter Parameter: -v level:     specify verbosity (default 0) */
     private int verbosity = 2;
-    /** evRouter Parameter: -c maxConfl:  specify the maximum number of conflicts allowed before quitting */
+    /**
+     * evRouter Parameter: -c maxConfl:  specify the maximum number of conflicts allowed before
+     * quitting
+     */
     private Integer maxConflicts = null;
-    /** evRouter Parameter: -p maxPass:   specify the maximum number of passes allowed before quitting */
+    /**
+     * evRouter Parameter: -p maxPass:   specify the maximum number of passes allowed before
+     * quitting
+     */
     private Integer maxPasses = null;
-    /** evRouter Parameter: -o outFile:   output file were the routing solution is dumped when specified */
+    /**
+     * evRouter Parameter: -o outFile:   output file were the routing solution is dumped when
+     * specified
+     */
     private String outputFileName = "evRouter_output.txt";
-    /** evRouter Parameter: -dly k:       specify how many delays are initially used for each sink (default 1) */
+    /**
+     * evRouter Parameter: -dly k:       specify how many delays are initially used for each sink
+     * (default 1)
+     */
     private int delaysPerSink = 1;
     /** evRouter Parameter: -dot dotFile: dump a dot description of the routing solution */
     private String dottyFile = null;
@@ -91,11 +102,20 @@ public class SATRouter {
     private String cstFile = null;
     /** evRouter Parameter: -reg regFile: input file specifying node regions */
     private String regFile = null;
-    /** evRouter Parameter: -hierid chip:reg:loc: specify how many chip/region/local ID (default 16/64/16) */
+    /**
+     * evRouter Parameter: -hierid chip:reg:loc: specify how many chip/region/local ID (default
+     * 16/64/16)
+     */
     private Integer chipID = null;
-    /** evRouter Parameter: -hierid chip:reg:loc: specify how many chip/region/local ID (default 16/64/16) */
+    /**
+     * evRouter Parameter: -hierid chip:reg:loc: specify how many chip/region/local ID (default
+     * 16/64/16)
+     */
     private Integer regionID = null;
-    /** evRouter Parameter: -hierid chip:reg:loc: specify how many chip/region/local ID (default 16/64/16) */
+    /**
+     * evRouter Parameter: -hierid chip:reg:loc: specify how many chip/region/local ID (default
+     * 16/64/16)
+     */
     private Integer localID = null;
     /** evRouter Parameter: -egp egpFile: input file specifying edge groups */
     private String edgeGroupsFile = null;
@@ -105,9 +125,14 @@ public class SATRouter {
     private String vcNetAssignmentFile = null;
     /** evRouter Parameter: -opt:         optimize the route utilization */
     private boolean optRouteUtilization = false;
-    /** evRouter Parameter: -dopart:      try partition the graph into node clusters for better scalability */
+    /**
+     * evRouter Parameter: -dopart:      try partition the graph into node clusters for better
+     * scalability
+     */
     private boolean partitionGraph = false;
-    /** evRouter Parameter: pipFile:      pipulation file describing the interconnect architecture */
+    /**
+     * evRouter Parameter: pipFile:      pipulation file describing the interconnect architecture
+     */
     private String pipFile = "evRouter_pip.txt";
     /** evRouter Parameter: pbFile:       problem file describing the routing problem */
     private String pbFile = "evRouter_pb.txt";
@@ -130,7 +155,7 @@ public class SATRouter {
 
     public long SEED = 82;
 
-    private int[] lutInputWeights = new int[]{50, 45, 35, 30, 20, 10};
+    private int[] lutInputWeights = new int[] {50, 45, 35, 30, 20, 10};
     /**
      * Initialize the SAT router with a design and area constraint (pblock) to describe
      * the routing problem.
@@ -141,7 +166,7 @@ public class SATRouter {
      * the route attempt.
      */
     public SATRouter(Design design, PBlock pblock) {
-        init(design,pblock, true);
+        init(design, pblock, true);
         populateNetsToRoute();
     }
 
@@ -156,7 +181,7 @@ public class SATRouter {
      * @param unroute Unroutes the design before using the SAT solver (by default, always unroutes)
      */
     public SATRouter(Design design, PBlock pblock, boolean unroute) {
-        init(design,pblock, unroute);
+        init(design, pblock, unroute);
         populateNetsToRoute();
     }
 
@@ -169,7 +194,7 @@ public class SATRouter {
      * must be located within the pblock.
      */
     public SATRouter(Design design, PBlock pblock, Collection<Net> netsToRoute) {
-        init(design,pblock, true);
+        init(design, pblock, true);
         this.netsToRoute = new HashSet<>(netsToRoute);
     }
 
@@ -181,14 +206,15 @@ public class SATRouter {
             i.getCTagMap().clear();
             i.getSiteCTags().clear();
         }*/
-        if (unroute) design.unrouteDesign();
+        if (unroute)
+            design.unrouteDesign();
     }
 
     public void updateSitePinInsts() {
         EDIFNetlist n = design.getNetlist();
-        Map<EDIFHierNet,List<EDIFHierPortInst>> physNetPinMap = n.getPhysicalNetPinMap();
-        nextNet: for (Entry<EDIFHierNet,List<EDIFHierPortInst>> netPins : physNetPinMap.entrySet()) {
-
+        Map<EDIFHierNet, List<EDIFHierPortInst>> physNetPinMap = n.getPhysicalNetPinMap();
+    nextNet:
+        for (Entry<EDIFHierNet, List<EDIFHierPortInst>> netPins : physNetPinMap.entrySet()) {
             Net net = n.getPhysicalNetFromPin(netPins.getValue().iterator().next(), design);
             if (net == null) {
                 net = design.createNet(netPins.getKey().getHierarchicalNetName());
@@ -210,7 +236,7 @@ public class SATRouter {
                     }
                 }
             }
-            //if (output == null) continue;
+            // if (output == null) continue;
 
             for (EDIFHierPortInst p : netPins.getValue()) {
                 if (p.getPortInst().isPrimitiveStaticSource()) {
@@ -234,8 +260,10 @@ public class SATRouter {
                             String physName = otherCell.getPhysicalPinMapping(logPortName);
                             if (physName != null) {
                                 BELPin belPin = otherCell.getBEL().getPin(physName);
-                                pinName = belPin.getConnectedSitePinName(); // Needs to route thru RBELs but not LUTs
-                                if (pinName == null) continue;
+                                pinName = belPin.getConnectedSitePinName(); // Needs to route thru
+                                                                            // RBELs but not LUTs
+                                if (pinName == null)
+                                    continue;
                                 siteWireName = belPin.getSiteWireName();
                                 break;
                             }
@@ -254,7 +282,8 @@ public class SATRouter {
                 if (c.getType().contains("SRL16")) {
                     for (String name : new String[] {"WA7", "WA8"}) {
                         BELPin belPin = c.getBEL().getPin(name);
-                        if (belPin == null) continue;
+                        if (belPin == null)
+                            continue;
                         String sitePinName = belPin.getConnectedSitePinName();
                         SitePinInst pin = si.getSitePinInst(sitePinName);
                         if (pin == null) {
@@ -277,7 +306,6 @@ public class SATRouter {
                     net.createPin(pinName, si);
                 }
             }
-
         }
     }
 
@@ -288,18 +316,21 @@ public class SATRouter {
      * for the SAT solver.
      */
     private void populateNetsToRoute() {
-        Map<String,String> parentNetMap = design.getNetlist().getParentNetMapNames();
+        Map<String, String> parentNetMap = design.getNetlist().getParentNetMapNames();
         for (SiteInst i : design.getSiteInsts()) {
             for (Entry<String, Net> e : i.getSiteWireToNetMap().entrySet()) {
                 Net n = e.getValue();
-                if (e.getValue().isStaticNet()) continue;
-                if (n.getName().equals(Net.USED_NET)) continue;
+                if (e.getValue().isStaticNet())
+                    continue;
+                if (n.getName().equals(Net.USED_NET))
+                    continue;
                 String parentNetName = parentNetMap.get(n.getName());
                 if (parentNetName == null) {
                     // Try looking at the connected cell pin and use that net instead
                     int siteWireIdx = i.getSite().getSiteWireIndex(e.getKey());
                     parentNetName = DesignTools.resolveNetNameFromSiteWire(i, siteWireIdx);
-                    if (parentNetName == null) continue;
+                    if (parentNetName == null)
+                        continue;
                 } else if (!n.getName().equals(parentNetName)) {
                     Net parentNet = design.getNet(parentNetName);
                     if (parentNet == null) {
@@ -313,25 +344,30 @@ public class SATRouter {
             }
         }
         design.routeSites();
-        //updateSitePinInsts();
+        // updateSitePinInsts();
 
         // Find nets
         HashSet<Net> visitedNets = new HashSet<>();
         for (Tile t : pblock.getAllTiles()) {
             for (Site s : t.getSites()) {
                 SiteInst si = design.getSiteInstFromSite(s);
-                if (si == null) continue;
+                if (si == null)
+                    continue;
                 for (SitePinInst pin : si.getSitePinInsts()) {
-                    if (pin.getNet() == null) continue;
+                    if (pin.getNet() == null)
+                        continue;
                     visitedNets.add(pin.getNet());
                 }
             }
         }
         netsToRoute = new HashSet<>();
-        nextNet : for (Net n : visitedNets) {
+    nextNet:
+        for (Net n : visitedNets) {
             // TODO - Skip GND/VCC
-            if (n.isStaticNet()) continue;
-            if (n.getSource() == null) continue;
+            if (n.isStaticNet())
+                continue;
+            if (n.getSource() == null)
+                continue;
             for (SitePinInst pin : n.getPins()) {
                 if (!pblock.containsTile(pin.getTile())) {
                     continue nextNet;
@@ -359,15 +395,20 @@ public class SATRouter {
      * @return True if the node is safe to use, false otherwise.
      */
     private boolean includeNode(Node n) {
-        if (n == null) return false;
+        if (n == null)
+            return false;
         SitePin sp = n.getSitePin();
         if (sp != null) {
             SiteInst si = design.getSiteInstFromSite(sp.getSite());
-            if (si == null) return true;
+            if (si == null)
+                return true;
             Net connNet = si.getNetFromSiteWire(sp.getPinName());
-            if (connNet == null) return true;
-            if (netsToRoute.contains(connNet)) return true;
-            if (SitePinInst.isLUTInputPin(si,sp.getPinName())) return true;
+            if (connNet == null)
+                return true;
+            if (netsToRoute.contains(connNet))
+                return true;
+            if (SitePinInst.isLUTInputPin(si, sp.getPinName()))
+                return true;
             return false;
         }
         return true;
@@ -385,21 +426,26 @@ public class SATRouter {
             Set<Tile> tiles = pblock.getAllTiles();
             Set<Node> reported = new HashSet<>();
 
-            HashMap<String,Cell> luts = new HashMap<String,Cell>();
+            HashMap<String, Cell> luts = new HashMap<String, Cell>();
             for (Tile t : tiles) {
-                for (int i=0; i < t.getWireCount(); i++) {
-                    if (IntentCode.isUltraScaleClocking(t, i)) continue;
-                    Node n = Node.getNode(t,i);
-                    if (!includeNode(n)) continue;
-                    if (reported.contains(n)) continue;
-                    if (excludedNodes.contains(n)) continue;
+                for (int i = 0; i < t.getWireCount(); i++) {
+                    if (IntentCode.isUltraScaleClocking(t, i))
+                        continue;
+                    Node n = Node.getNode(t, i);
+                    if (!includeNode(n))
+                        continue;
+                    if (reported.contains(n))
+                        continue;
+                    if (excludedNodes.contains(n))
+                        continue;
                     bw.write(n.toString());
                     for (Wire w : n.getAllWiresInNode()) {
                         HashSet<Node> currNodes = new HashSet<Node>();
                         for (PIP p : w.getBackwardPIPs()) {
-                            if (p.isRouteThru()) continue;
+                            if (p.isRouteThru())
+                                continue;
                             String startWireName = p.getStartWireName();
-                            Node start = Node.getNode(w.getTile(),startWireName);
+                            Node start = Node.getNode(w.getTile(), startWireName);
                             if (start != null && !currNodes.contains(start) && tiles.contains(start.getTile())) {
                                 bw.write(" " + start + (useWeightsOnNodes ? ":" + commonNodeWeight : ""));
                                 currNodes.add(start);
@@ -409,16 +455,20 @@ public class SATRouter {
                     reported.add(n);
                     bw.write("\n");
                 }
-                if (t.getSites() == null) continue;
+                if (t.getSites() == null)
+                    continue;
                 for (Site s : t.getSites()) {
                     SiteInst si = design.getSiteInstFromSite(s);
-                    if (si == null) continue;
+                    if (si == null)
+                        continue;
                     for (Cell c : si.getCells()) {
                         if (c.getBELName().contains("LUT")) {
                             // Check if the 5LUT is used, if it is, we use that instead
                             Cell lut5 = si.getCell(si.getBEL(c.getBELName().replace("6", "5")).getName());
-                            if (lut5 != null) luts.put(lut5.toString(), lut5);
-                            else luts.put(c.toString(), c);
+                            if (lut5 != null)
+                                luts.put(lut5.toString(), lut5);
+                            else
+                                luts.put(c.toString(), c);
                         }
                     }
                 }
@@ -429,8 +479,8 @@ public class SATRouter {
                 int lutSize = lut.getBELName().charAt(1) - 48 /* ASCII 0 */;
                 Wire[] wires = new Wire[lutSize];
                 Node[] nodes = new Node[lutSize];
-                for (int i=0; i < lutSize; i++) {
-                    String physPinName = "A" + (i+1);
+                for (int i = 0; i < lutSize; i++) {
+                    String physPinName = "A" + (i + 1);
                     String pinName = lut.getSiteWireNameFromPhysicalPin(physPinName);
                     if (isVersal) {
                         BELPin[] pins = lut.getSiteInst().getSiteWirePins(pinName);
@@ -447,9 +497,9 @@ public class SATRouter {
                     wires[i] = new Wire(lut.getSite().getTile(), wire);
                     nodes[i] = Node.getNode(wires[i]);
                 }
-                for (int i=0; i < lutSize; i++) {
+                for (int i = 0; i < lutSize; i++) {
                     bw.write(wires[i].toString());
-                    for (int j=0; j < lutSize; j++) {
+                    for (int j = 0; j < lutSize; j++) {
                         bw.write(" " + nodes[j] + (useWeightsOnNodes ? ":" + lutInputWeights[j] : ""));
                     }
                     bw.write("\n");
@@ -472,24 +522,25 @@ public class SATRouter {
     public void createNetsFiles() {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(pbFile));
-            nextNet: for (Net n : netsToRoute) {
+        nextNet:
+            for (Net n : netsToRoute) {
                 if (n.getSource() == null || n.getPins().size() < 2) {
-                    //throw new RuntimeException("ERROR: Bad net " + n);
+                    // throw new RuntimeException("ERROR: Bad net " + n);
                     continue nextNet;
                 }
                 for (SitePinInst p : n.getPins()) {
-                    if (!pblock.containsTile(p.getTile())) continue nextNet;
+                    if (!pblock.containsTile(p.getTile()))
+                        continue nextNet;
                 }
 
                 bw.write(n.getName() + " " + n.getSource().getConnectedNode());
                 for (SitePinInst p : n.getSinkPins()) {
                     if (p.isLUTInputPin()) {
-                        Wire w = new Wire(p.getTile(),p.getConnectedWireIndex());
+                        Wire w = new Wire(p.getTile(), p.getConnectedWireIndex());
                         bw.write(" " + w);
                     } else {
                         bw.write(" " + p.getConnectedNode());
                     }
-
                 }
                 bw.write("\n");
             }
@@ -509,7 +560,8 @@ public class SATRouter {
     public int runEvRouter() {
         String vivadoPath = FileTools.getVivadoPath();
         if (vivadoPath == null || vivadoPath.length() == 0) {
-            throw new RuntimeException("ERROR: Couldn't find vivado, please set PATH environment variable accordingly.");
+            throw new RuntimeException(
+                "ERROR: Couldn't find vivado, please set PATH environment variable accordingly.");
         }
         String loaderPath = vivadoPath.replace("bin/vivado", "bin/loader");
         List<String> command = new ArrayList<>();
@@ -519,10 +571,12 @@ public class SATRouter {
         if (verbosity > 0) {
             command.add("-v");
             command.add(Integer.toString(getVerbosity()));
-        }if (maxConflicts != null) {
+        }
+        if (maxConflicts != null) {
             command.add("-c");
             command.add(maxConflicts.toString());
-        }if (maxPasses != null) {
+        }
+        if (maxPasses != null) {
             command.add("-p");
             command.add(maxPasses.toString());
         }
@@ -531,22 +585,28 @@ public class SATRouter {
         if (dottyFile != null) {
             command.add("-dot");
             command.add(dottyFile);
-        }if (cstFile != null) {
+        }
+        if (cstFile != null) {
             command.add("-cst");
             command.add(cstFile);
-        }if (regFile != null) {
+        }
+        if (regFile != null) {
             command.add("-reg");
             command.add(regFile);
-        }if (edgeGroupsFile != null) {
+        }
+        if (edgeGroupsFile != null) {
             command.add("-egp");
             command.add(edgeGroupsFile);
-        }if (netGroupsFile != null) {
+        }
+        if (netGroupsFile != null) {
             command.add("-ngp");
             command.add(netGroupsFile);
-        }if (vcNetAssignmentFile != null) {
+        }
+        if (vcNetAssignmentFile != null) {
             command.add("-vc");
             command.add(vcNetAssignmentFile);
-        }if (optRouteUtilization) {
+        }
+        if (optRouteUtilization) {
             command.add("-opt");
         }
         command.add(pipFile);
@@ -562,25 +622,27 @@ public class SATRouter {
     public void applyRoutingResult() {
         Device dev = design.getDevice();
         Net currNet = null;
-        HashMap<String,HashMap<String,PinSwap>> pinSwaps = new HashMap<>();
+        HashMap<String, HashMap<String, PinSwap>> pinSwaps = new HashMap<>();
         for (String line : FileTools.getLinesFromTextFile(outputFileName)) {
-            if (line.contains("{") || line.contains("}") || line.contains("\"tree\":")) continue;
+            if (line.contains("{") || line.contains("}") || line.contains("\"tree\":"))
+                continue;
             line = line.trim();
-            if (line.equals("[") || line.equals("]")) continue;
+            if (line.equals("[") || line.equals("]"))
+                continue;
             if (line.startsWith("[\"")) {
                 int comma = line.indexOf(',');
                 int rightBracket = line.indexOf(']');
-                String node0 = line.substring(2, comma-1);
-                String node1 = line.substring(comma+3, rightBracket-1);
-                Node n0 = Node.getNode(node0,dev);
-                Node n1 = Node.getNode(node1,dev);
+                String node0 = line.substring(2, comma - 1);
+                String node1 = line.substring(comma + 3, rightBracket - 1);
+                Node n0 = Node.getNode(node0, dev);
+                Node n1 = Node.getNode(node1, dev);
                 if (!node1.equals(n1.toString())) {
                     if (n0.equals(n1)) {
                         // No pin swapping, this is just a pass-thru
                         continue;
                     }
                     // This is a pin swap rather than a PIP
-                    Wire w = new Wire(dev,node1);
+                    Wire w = new Wire(dev, node1);
                     SitePin oldPin = w.getSitePin();
                     SitePinInst p = design.getSiteInstFromSite(oldPin.getSite()).getSitePinInst(oldPin.getPinName());
                     SitePin newPin = n0.getSitePin();
@@ -589,15 +651,17 @@ public class SATRouter {
                     // to wait before adding them
                     p.getSiteInst().unrouteIntraSiteNet(p.getBELPin(), p.getBELPin());
 
-                    // Update pin mappings on the cell, there may be more than once cell on a BEL site
-                    // (5LUT/6LUT sharing an input)
+                    // Update pin mappings on the cell, there may be more than once cell on a BEL
+                    // site (5LUT/6LUT sharing an input)
                     for (BELPin elePin : oldPin.getBELPin().getSiteConns()) {
                         String belName = elePin.getBEL().getName();
                         Cell c = p.getSiteInst().getCell(belName);
-                        if (c == null) continue;
+                        if (c == null)
+                            continue;
                         String oldPhysicalPinName = elePin.getName();
                         String logicalPinName = c.getLogicalPinMapping(oldPhysicalPinName);
-                        if (logicalPinName == null) continue;
+                        if (logicalPinName == null)
+                            continue;
                         BELPin newBELPin = null;
                         for (BELPin currCxn : newPin.getBELPin().getSiteConns()) {
                             if (elePin.getBEL().equals(currCxn.getBEL())) {
@@ -613,8 +677,8 @@ public class SATRouter {
                             }
                         }
                         String key = c.getSiteName() + "/" + c.getBELName().charAt(0);
-                        HashMap<String,PinSwap> ps = pinSwaps.get(key);
-                        String psKey = oldPhysicalPinName +">"+newBELPin.getName();
+                        HashMap<String, PinSwap> ps = pinSwaps.get(key);
+                        String psKey = oldPhysicalPinName + ">" + newBELPin.getName();
                         if (ps == null) {
                             ps = new HashMap<>();
                             pinSwaps.put(key, ps);
@@ -626,17 +690,19 @@ public class SATRouter {
                         } else {
                             // Create new entry
                             String depopulatedLogicalPinName = c.getLogicalPinMapping(newBELPin.getName());
-                            ps.put(psKey, new PinSwap(c, logicalPinName,oldPhysicalPinName,newBELPin.getName(), depopulatedLogicalPinName, newPin.getPinName()));
+                            ps.put(psKey, new PinSwap(c, logicalPinName, oldPhysicalPinName, newBELPin.getName(),
+                                                      depopulatedLogicalPinName, newPin.getPinName()));
                         }
                     }
                     continue;
                 }
                 boolean foundPIP = false;
-                outer: for (Wire w : n0.getAllWiresInNode()) {
+            outer:
+                for (Wire w : n0.getAllWiresInNode()) {
                     for (PIP p : w.getForwardPIPs()) {
                         Node n2 = p.getEndNode();
                         if (n1.equals(n2)) {
-                            PIP pip = new PIP(w.getTile(),w.getWireIndex(),p.getEndWireIndex());
+                            PIP pip = new PIP(w.getTile(), w.getWireIndex(), p.getEndWireIndex());
                             pip.setIsPIPFixed(fixRouting);
                             currNet.addPIP(pip);
                             foundPIP = true;
@@ -648,15 +714,14 @@ public class SATRouter {
                     throw new RuntimeException("ERROR: Couldn't find pip from line:\n'" + line + "'");
                 }
 
-            }
-            else if (line.startsWith("\"") && line.endsWith("\":")) {
-                String netName = line.substring(1, line.length()-2);
+            } else if (line.startsWith("\"") && line.endsWith("\":")) {
+                String netName = line.substring(1, line.length() - 2);
                 currNet = design.getNet(netName);
             }
         }
 
         // Make all pin swaps per LUT site simultaneously
-        for (Entry<String,HashMap<String,PinSwap>> e : pinSwaps.entrySet()) {
+        for (Entry<String, HashMap<String, PinSwap>> e : pinSwaps.entrySet()) {
             LUTTools.swapSingleLutPins(e.getKey(), e.getValue().values());
         }
     }
@@ -671,8 +736,9 @@ public class SATRouter {
         if (netsToRoute == null || netsToRoute.size() == 0) {
             populateNetsToRoute();
             if (netsToRoute.size() == 0) {
-                MessageGenerator.briefError("ERROR ("+this.getClass().getSimpleName()+".route()): No nets could be defined for the routing problem. "
-                    + " Please check your pblock and design accordingly.");
+                MessageGenerator.briefError("ERROR (" + this.getClass().getSimpleName() +
+                                            ".route()): No nets could be defined for the routing problem. "
+                                            + " Please check your pblock and design accordingly.");
                 return;
             }
         }
@@ -687,9 +753,10 @@ public class SATRouter {
             for (String line : lastLines) {
                 sb.append("  >> " + line + "\n");
             }
-            throw new RuntimeException("\n  ERROR: SAT Routing failed for design '"
-                    + design.getName() + "' with pblock '" + pblock.toString()
-                    + "'. \n  Here are the final "+lastLineCount+" lines of evRouter log ["+satLogFile+"] file:\n\n" + sb.toString());
+            throw new RuntimeException("\n  ERROR: SAT Routing failed for design '" + design.getName() +
+                                       "' with pblock '" + pblock.toString() + "'. \n  Here are the final " +
+                                       lastLineCount + " lines of evRouter log [" + satLogFile + "] file:\n\n" +
+                                       sb.toString());
         }
 
         // Check for errors in evRouter log
@@ -698,12 +765,14 @@ public class SATRouter {
             if (line.contains("ERROR")) {
                 sb = new StringBuilder();
             }
-            if (sb != null) sb.append("  >> " + line + "\n");
+            if (sb != null)
+                sb.append("  >> " + line + "\n");
         }
         if (sb != null) {
-            throw new RuntimeException("\n  ERROR: SAT Routing failed for design '"
-                    + design.getName() + "' with pblock '" + pblock.toString()
-                    + "'. \n  ERROR message lines of evRouter log ["+satLogFile+"] file:\n\n" + sb.toString());
+            throw new RuntimeException("\n  ERROR: SAT Routing failed for design '" + design.getName() +
+                                       "' with pblock '" + pblock.toString() +
+                                       "'. \n  ERROR message lines of evRouter log [" + satLogFile + "] file:\n\n" +
+                                       sb.toString());
         }
         applyRoutingResult();
     }

@@ -41,7 +41,6 @@ import com.xilinx.rapidwright.util.Pair;
  * Created on: Jun 29, 2016
  */
 public class CodePerfTracker {
-
     private String name;
 
     private ArrayList<Long> runtimes;
@@ -50,13 +49,13 @@ public class CodePerfTracker {
 
     private ArrayList<String> segmentNames;
 
-    private Map<String,Long> inflightTimes;
+    private Map<String, Long> inflightTimes;
 
     /** Stores the current (1st) and peak (2nd) total OS memory usage */
-    private List<Pair<Long,Long>> totalOSMemUsages;
+    private List<Pair<Long, Long>> totalOSMemUsages;
     /** If tracking memory, also print current OS memory usage if available */
     private boolean reportCurrOSMemUsage = false;
-    
+
     private Runtime rt;
 
     private int maxRuntimeSize = 9;
@@ -70,7 +69,7 @@ public class CodePerfTracker {
     public static final CodePerfTracker SILENT;
 
     static {
-        SILENT = new CodePerfTracker("",false);
+        SILENT = new CodePerfTracker("", false);
         SILENT.setVerbose(false);
     }
 
@@ -78,22 +77,22 @@ public class CodePerfTracker {
 
     private boolean verbose = true;
 
-
     public CodePerfTracker(String name) {
-        init(name,true);
+        init(name, true);
     }
 
     public CodePerfTracker(String name, boolean printProgress) {
-        init(name,printProgress);
+        init(name, printProgress);
     }
 
     public CodePerfTracker(String name, boolean printProgress, boolean isVerbose) {
         verbose = isVerbose;
-        init(name,printProgress);
+        init(name, printProgress);
     }
 
     public void init(String name, boolean printProgress) {
-        if (!GLOBAL_DEBUG) return;
+        if (!GLOBAL_DEBUG)
+            return;
         this.name = name;
         this.printProgress = printProgress;
         runtimes = new ArrayList<Long>();
@@ -111,7 +110,7 @@ public class CodePerfTracker {
     }
 
     private int getSegmentIndex(String segmentName) {
-        int i=0;
+        int i = 0;
         for (String name : segmentNames) {
             if (name.equals(segmentName)) {
                 return i;
@@ -140,8 +139,10 @@ public class CodePerfTracker {
     }
 
     public CodePerfTracker start(String segmentName) {
-        if (!GLOBAL_DEBUG || this == SILENT) return this;
-        if (isUsingGCCallsToTrackMemory()) System.gc();
+        if (!GLOBAL_DEBUG || this == SILENT)
+            return this;
+        if (isUsingGCCallsToTrackMemory())
+            System.gc();
         long currUsage = rt.totalMemory() - rt.freeMemory();
         segmentNames.add(segmentName);
         memUsages.add(currUsage);
@@ -153,17 +154,20 @@ public class CodePerfTracker {
     }
 
     public CodePerfTracker stop() {
-        if (!GLOBAL_DEBUG || this == SILENT) return this;
+        if (!GLOBAL_DEBUG || this == SILENT)
+            return this;
         long end = System.nanoTime();
-        int idx = runtimes.size()-1;
-        if (idx < 0) return null;
+        int idx = runtimes.size() - 1;
+        if (idx < 0)
+            return null;
         long start = runtimes.get(idx);
-        if (isUsingGCCallsToTrackMemory()) System.gc();
+        if (isUsingGCCallsToTrackMemory())
+            System.gc();
         long currUsage = (rt.totalMemory() - rt.freeMemory());
         long prevUsage = memUsages.get(idx);
 
-        runtimes.set(idx, end-start);
-        memUsages.set(idx,    currUsage-prevUsage);
+        runtimes.set(idx, end - start);
+        memUsages.set(idx, currUsage - prevUsage);
 
         if (linuxProcID != null) {
             totalOSMemUsages.set(idx, getTotalOSMemUsage());
@@ -178,16 +182,17 @@ public class CodePerfTracker {
     /**
      * Gets the current and total peak memory usage. Depends on Linux's /proc to get
      * values.
-     * 
+     *
      * @return A Pair where the first is current and second is peak memory usage.
      */
-    private Pair<Long,Long> getTotalOSMemUsage() {
-        if (linuxProcID == null) return null;
-        Pair<Long,Long> totalOSMemUsage = new Pair<>();
+    private Pair<Long, Long> getTotalOSMemUsage() {
+        if (linuxProcID == null)
+            return null;
+        Pair<Long, Long> totalOSMemUsage = new Pair<>();
         for (String line : FileTools.getLinesFromTextFile("/proc/" + linuxProcID + "/status")) {
             if (line.startsWith("VmHWM:")) {
                 totalOSMemUsage.setSecond(Long.parseLong(line.split("\\s+")[1]));
-            }else if (line.startsWith("VmRSS:")) {
+            } else if (line.startsWith("VmRSS:")) {
                 totalOSMemUsage.setFirst(Long.parseLong(line.split("\\s+")[1]));
             }
         }
@@ -211,40 +216,36 @@ public class CodePerfTracker {
 
         long end = System.nanoTime();
         if (printProgress && isVerbose()) {
-            print("(" + segmentName + ")", end - start, null,
-                    totalOSMemUsages != null ? getTotalOSMemUsage() : null, true);
+            print("(" + segmentName + ")", end - start, null, totalOSMemUsages != null ? getTotalOSMemUsage() : null,
+                  true);
         }
         return this;
     }
 
-    private void print(String segmentName, Long runtime, Long memUsage, Pair<Long,Long> totalOSMemUsage) {
+    private void print(String segmentName, Long runtime, Long memUsage, Pair<Long, Long> totalOSMemUsage) {
         print(segmentName, runtime, memUsage, totalOSMemUsage, false);
     }
 
-    private void print(String segmentName, Long runtime, Long memUsage, Pair<Long,Long> totalOSMemUsage, boolean nested) {
+    private void print(String segmentName, Long runtime, Long memUsage, Pair<Long, Long> totalOSMemUsage,
+                       boolean nested) {
         if (isUsingGCCallsToTrackMemory()) {
             if (nested) {
-                System.out.printf(
-                        "%" + maxSegmentNameSize + "s: %" + maxRuntimeSize + "s %" + maxUsageSize
-                                + "s (%" + maxRuntimeSize + ".3fs)",
-                        segmentName, "", "", (runtime) / 1000000000.0);
+                System.out.printf("%" + maxSegmentNameSize + "s: %" + maxRuntimeSize + "s %" + maxUsageSize + "s (%" +
+                                      maxRuntimeSize + ".3fs)",
+                                  segmentName, "", "", (runtime) / 1000000000.0);
             } else {
-                System.out.printf(
-                        "%" + maxSegmentNameSize + "s: %" + maxRuntimeSize + ".3fs %" + maxUsageSize
-                                + ".3fMBs",
-                        segmentName, (runtime)/1000000000.0, (memUsage)/(1024.0*1024.0));
+                System.out.printf("%" + maxSegmentNameSize + "s: %" + maxRuntimeSize + ".3fs %" + maxUsageSize +
+                                      ".3fMBs",
+                                  segmentName, (runtime) / 1000000000.0, (memUsage) / (1024.0 * 1024.0));
             }
         } else {
             if (nested) {
-                System.out.printf(
-                        "%" + maxSegmentNameSize + "s: %" + maxRuntimeSize + "s  (%" + maxRuntimeSize + ".3fs)",
-                        segmentName,
-                        "",
-                        (runtime) / 1000000000.0);
+                System.out.printf("%" + maxSegmentNameSize + "s: %" + maxRuntimeSize + "s  (%" + maxRuntimeSize +
+                                      ".3fs)",
+                                  segmentName, "", (runtime) / 1000000000.0);
             } else {
-                System.out.printf("%" + maxSegmentNameSize + "s: %" + maxRuntimeSize + ".3fs",
-                        segmentName,
-                        (runtime) / 1000000000.0);
+                System.out.printf("%" + maxSegmentNameSize + "s: %" + maxRuntimeSize + ".3fs", segmentName,
+                                  (runtime) / 1000000000.0);
             }
         }
         if (totalOSMemUsage != null) {
@@ -262,7 +263,7 @@ public class CodePerfTracker {
     }
 
     private void print(int idx) {
-        Pair<Long,Long> usages = totalOSMemUsages == null ? null : totalOSMemUsages.get(idx);
+        Pair<Long, Long> usages = totalOSMemUsages == null ? null : totalOSMemUsages.get(idx);
         print(segmentNames.get(idx), runtimes.get(idx), memUsages.get(idx), usages);
     }
 
@@ -289,11 +290,11 @@ public class CodePerfTracker {
         this.trackMemoryUsingGC = useGCCalls;
         setTrackOSMemUsage(useGCCalls);
     }
-    
+
     /**
      * Sets tracking of OS memory usage (in Linux only).
-     * @param trackOSMemUsage If true, will track curr and peak memory usage of the process as 
-     * reported by the OS. 
+     * @param trackOSMemUsage If true, will track curr and peak memory usage of the process as
+     * reported by the OS.
      */
     public void setTrackOSMemUsage(boolean trackOSMemUsage) {
         if (trackOSMemUsage && !FileTools.isWindows()) {
@@ -310,7 +311,7 @@ public class CodePerfTracker {
     }
 
     /**
-     * Checks a flag that indicates current OS memory usage should be reported alongside peak OS 
+     * Checks a flag that indicates current OS memory usage should be reported alongside peak OS
      * memory usage.  The default is false.
      * @return True if the flag is set, false otherwise.  Default is false.
      */
@@ -330,13 +331,14 @@ public class CodePerfTracker {
     private void addTotalEntry() {
         long totalRuntime = 0L;
         long totalUsage = 0L;
-//        maxSegmentNameSize = 0;
-        for (int i=0; i < runtimes.size(); i++) {
+        //        maxSegmentNameSize = 0;
+        for (int i = 0; i < runtimes.size(); i++) {
             totalRuntime += runtimes.get(i);
             totalUsage += memUsages.get(i);
             if (!printProgress) {
                 int len = segmentNames.get(i).length();
-                if (len > maxSegmentNameSize) maxSegmentNameSize = len;
+                if (len > maxSegmentNameSize)
+                    maxSegmentNameSize = len;
             }
         }
         runtimes.add(totalRuntime);
@@ -362,14 +364,18 @@ public class CodePerfTracker {
     }
 
     public void printSummary() {
-        if (!GLOBAL_DEBUG || this == SILENT) return;
-        if (!isVerbose()) return;
-        if (!printProgress) MessageGenerator.printHeader(name);
+        if (!GLOBAL_DEBUG || this == SILENT)
+            return;
+        if (!isVerbose())
+            return;
+        if (!printProgress)
+            MessageGenerator.printHeader(name);
         addTotalEntry();
-        int start = printProgress ? runtimes.size()-1 : 0;
-        for (int i=start; i < runtimes.size(); i++) {
-            if (i == runtimes.size()-1) {
-                System.out.println("------------------------------------------------------------------------------");
+        int start = printProgress ? runtimes.size() - 1 : 0;
+        for (int i = start; i < runtimes.size(); i++) {
+            if (i == runtimes.size() - 1) {
+                System.out.println("-------------------------------------------------------------"
+                                   + "-----------------");
             }
             print(i);
         }

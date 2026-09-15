@@ -67,7 +67,6 @@ import com.xilinx.rapidwright.placer.blockplacer.Point;
 import com.xilinx.rapidwright.util.FileTools;
 import com.xilinx.rapidwright.util.Pair;
 import com.xilinx.rapidwright.util.StringTools;
-
 import static com.xilinx.rapidwright.util.Utils.isCLB;
 
 /**
@@ -78,7 +77,6 @@ import static com.xilinx.rapidwright.util.Utils.isCLB;
  *
  */
 public class InlineFlopTools {
-
     private static final String CLK_OPT = "--clk";
     private static final String PBLOCK_OPT = "--pblock";
     private static final String REMOVE_FLOPS_OPT = "--remove_flops";
@@ -87,7 +85,7 @@ public class InlineFlopTools {
 
     private static final int MAX_FFS_PER_SLICE = 5;
     private static final Set<SiteTypeEnum> VALID_CENTROID_SITE_TYPES =
-            new HashSet<>(Arrays.asList(SiteTypeEnum.SLICEL, SiteTypeEnum.SLICEM));
+        new HashSet<>(Arrays.asList(SiteTypeEnum.SLICEL, SiteTypeEnum.SLICEM));
 
     /**
      * Add flip-flops inline on all the top-level ports of an out-of-context design.
@@ -172,7 +170,7 @@ public class InlineFlopTools {
      * @param portSideMap Map from ports to side of the pblock the flop should be placed on
      */
     public static void createAndPlacePortFlopsOnSide(Design design, String clkNet, PBlock keepOut,
-                                                      Map<EDIFPort, PBlockSide> portSideMap) {
+                                                     Map<EDIFPort, PBlockSide> portSideMap) {
         assert (design.getSiteInsts().isEmpty());
         Site start = keepOut.getAllSites("SLICE").iterator().next(); // TODO this is a bit wasteful
         boolean exclude = true;
@@ -210,8 +208,8 @@ public class InlineFlopTools {
             }
 
             if (internallyUnconnected) {
-                throw new RuntimeException("Port " + port.getName() + " is internally unconnected in design, either " +
-                        "fix the synthesized design or remove it from the side map");
+                throw new RuntimeException("Port " + port.getName() + " is internally unconnected in design, either "
+                                           + "fix the synthesized design or remove it from the side map");
             }
         }
         for (SiteInst si : siteInstsToRoute) {
@@ -230,7 +228,8 @@ public class InlineFlopTools {
      * @param clkNet            Name of the clock net to use for the flops
      * @param keepOut           The pblock used to contain the kernel and the added flops will
      *                          not be placed inside this area.
-     * @param centroidPlacement Places flip-flops based on the centroid of the top-level net pins. Should only be
+     * @param centroidPlacement Places flip-flops based on the centroid of the top-level net pins.
+     *     Should only be
      *                          used if a placement already exists.
      */
     private static void createAndPlaceFlopsInlineOnTopPorts(Design design, String clkNet, PBlock keepOut,
@@ -355,8 +354,8 @@ public class InlineFlopTools {
         }
 
         if (!points.isEmpty()) {
-            Site centroid = ECOPlacementHelper.getCentroidOfPoints(design.getDevice(), points,
-                    VALID_CENTROID_SITE_TYPES);
+            Site centroid =
+                ECOPlacementHelper.getCentroidOfPoints(design.getDevice(), points, VALID_CENTROID_SITE_TYPES);
             Site shiftedCentroid = getSiteOnPBlockEdgeClosestToSite(design.getDevice(), centroid, keepOut);
             Iterator<Site> siteItr = ECOPlacementHelper.spiralOutFrom(shiftedCentroid, keepOut, true).iterator();
             if (keepOut.containsTile(shiftedCentroid.getTile())) {
@@ -387,8 +386,9 @@ public class InlineFlopTools {
             }
             if (usedFFs.size() < MAX_FFS_PER_SLICE) {
                 // There is an FF available, use one of them
-                List<BEL> bels = Arrays.stream(curr.getBELs()).filter((BEL b) -> b.isFF() && !b.isAnyIMR())
-                        .collect(Collectors.toList());
+                List<BEL> bels = Arrays.stream(curr.getBELs())
+                                     .filter((BEL b) -> b.isFF() && !b.isAnyIMR())
+                                     .collect(Collectors.toList());
                 for (BEL b : bels) {
                     if (!usedFFs.contains(b)) {
                         return new Pair<>(curr, b);
@@ -413,8 +413,8 @@ public class InlineFlopTools {
     public static Cell createAndPlaceFlopInlineOnTopPortInst(Design design, EDIFPortInst portInst, Pair<Site, BEL> loc,
                                                              EDIFHierNet clk) {
         String name = portInst.getFullName() + INLINE_SUFFIX;
-        Cell flop = design.createAndPlaceCell(design.getTopEDIFCell(), name, Unisim.FDRE, loc.getFirst(),
-                loc.getSecond());
+        Cell flop =
+            design.createAndPlaceCell(design.getTopEDIFCell(), name, Unisim.FDRE, loc.getFirst(), loc.getSecond());
         Net net = design.createNet(name);
         net.connect(flop, portInst.isInput() ? "D" : "Q");
         design.getGndNet().connect(flop, "R");
@@ -472,7 +472,7 @@ public class InlineFlopTools {
             }
         }
 
-        String[] ctrlPins = new String[]{"C", "R", "CE"};
+        String[] ctrlPins = new String[] {"C", "R", "CE"};
         EDIFCell top = design.getTopEDIFCell();
         for (EDIFCellInst c : cellsToRemove) {
             // Remove control set pins
@@ -517,9 +517,9 @@ public class InlineFlopTools {
             Set<Cell> inlineCells = entry.getValue();
             for (Cell cell : new ArrayList<>(si.getCells())) {
                 if (!isInlineHarnessSiteCell(cell, inlineCells)) {
-                    throw new RuntimeException("Inline flop harness shares SiteInst " + si.getName()
-                            + " with non-harness cell " + cell.getName()
-                            + " (all cells: " + si.getCells() + ")");
+                    throw new RuntimeException("Inline flop harness shares SiteInst " + si.getName() +
+                                               " with non-harness cell " + cell.getName() +
+                                               " (all cells: " + si.getCells() + ")");
                 }
             }
             si.unrouteSite();
@@ -574,21 +574,19 @@ public class InlineFlopTools {
     private static void assertNoInlineFlopPhysicalState(Design design, Set<String> removedCellNames) {
         for (Cell cell : design.getCells()) {
             if (isInlineFlopName(cell.getName()) || removedCellNames.contains(cell.getName())) {
-                throw new RuntimeException("Inline flop physical cell remains after removal: "
-                        + cell.getName());
+                throw new RuntimeException("Inline flop physical cell remains after removal: " + cell.getName());
             }
         }
         for (Net net : design.getNets()) {
             if (isInlineFlopName(net.getName())) {
-                throw new RuntimeException("Inline flop physical net remains after removal: "
-                        + net.getName());
+                throw new RuntimeException("Inline flop physical net remains after removal: " + net.getName());
             }
         }
         for (SiteInst si : design.getSiteInsts()) {
             for (Cell cell : si.getCells()) {
                 if (isInlineFlopName(cell.getName()) || removedCellNames.contains(cell.getName())) {
-                    throw new RuntimeException("Inline flop site cell remains after removal: "
-                            + cell.getName() + " in " + si.getName());
+                    throw new RuntimeException("Inline flop site cell remains after removal: " + cell.getName() +
+                                               " in " + si.getName());
                 }
             }
         }
@@ -605,7 +603,8 @@ public class InlineFlopTools {
     public static void removeInlineFlopConstraints(Design design) {
         for (ConstraintGroup cg : ConstraintGroup.values()) {
             List<String> constraints = design.getXDCConstraints(cg);
-            if (constraints.isEmpty()) continue;
+            if (constraints.isEmpty())
+                continue;
             List<String> filtered = filterInlineFlopConstraints(design.getDevice(), constraints);
             if (filtered != null) {
                 design.setXDCConstraints(filtered, cg);
@@ -628,9 +627,8 @@ public class InlineFlopTools {
         } catch (RuntimeException e) {
             // The parser covers a subset of Tcl; on failure fall back to
             // dropping raw lines that mention the inline flop suffix
-            List<String> filtered = constraints.stream()
-                    .filter(line -> !line.contains(INLINE_SUFFIX))
-                    .collect(Collectors.toList());
+            List<String> filtered =
+                constraints.stream().filter(line -> !line.contains(INLINE_SUFFIX)).collect(Collectors.toList());
             return filtered.size() == constraints.size() ? null : filtered;
         }
         boolean removed = false;
@@ -638,8 +636,8 @@ public class InlineFlopTools {
         removed |= parsed.getCellProperties().keySet().removeIf(InlineFlopTools::isInlineFlopName);
         // Inline flop net (and cell) references in constraints the parser does
         // not model, e.g. set_property on the result of get_nets
-        removed |= parsed.getUnsupportedConstraints().removeIf(elements ->
-                elements.stream().anyMatch(e -> e.toXdc().contains(INLINE_SUFFIX)));
+        removed |= parsed.getUnsupportedConstraints().removeIf(
+            elements -> elements.stream().anyMatch(e -> e.toXdc().contains(INLINE_SUFFIX)));
         if (!removed) {
             // Preserve the original lines verbatim when nothing referenced an
             // inline flop, avoiding the parser's reformatting on round-trip
@@ -660,10 +658,10 @@ public class InlineFlopTools {
 
     static {
         staticPinsMap = new HashMap<>();
-        staticPinsMap.put(Series.Series7, new String[]{"CE", "SR"});
-        staticPinsMap.put(Series.UltraScale, new String[]{"CKEN1", "CKEN2", "CKEN3", "CKEN4", "SRST1", "SRST2"});
+        staticPinsMap.put(Series.Series7, new String[] {"CE", "SR"});
+        staticPinsMap.put(Series.UltraScale, new String[] {"CKEN1", "CKEN2", "CKEN3", "CKEN4", "SRST1", "SRST2"});
         staticPinsMap.put(Series.UltraScalePlus, staticPinsMap.get(Series.UltraScale));
-        staticPinsMap.put(Series.Versal, new String[]{"CKEN1", "CKEN2", "CKEN3", "CKEN4", "RST"});
+        staticPinsMap.put(Series.Versal, new String[] {"CKEN1", "CKEN2", "CKEN3", "CKEN4", "RST"});
     }
 
     private static String[] getStaticPins(Design design) {
@@ -675,12 +673,9 @@ public class InlineFlopTools {
     }
 
     /**
-     * Parses the PBlock side map into a map from EDIFPorts to PBlockSide enums. The input file should be made up of
-     * some number of lines where each line contains a port name regex and a PBlockSide separated by a space. An
-     * example file:
-     * <pre>
-     * example_inputs.* TOP
-     * reset LEFT
+     * Parses the PBlock side map into a map from EDIFPorts to PBlockSide enums. The input file
+     * should be made up of some number of lines where each line contains a port name regex and a
+     * PBlockSide separated by a space. An example file: <pre> example_inputs.* TOP reset LEFT
      * example_outputs.* BOTTOM
      * </pre>
      *
@@ -694,12 +689,9 @@ public class InlineFlopTools {
     }
 
     /**
-     * Parses the PBlock side map into a map from EDIFPorts to PBlockSide enums. The input file should be made up of
-     * some number of lines where each line contains a port name regex and a PBlockSide separated by a space. An
-     * example file:
-     * <pre>
-     * example_inputs.* TOP
-     * reset LEFT
+     * Parses the PBlock side map into a map from EDIFPorts to PBlockSide enums. The input file
+     * should be made up of some number of lines where each line contains a port name regex and a
+     * PBlockSide separated by a space. An example file: <pre> example_inputs.* TOP reset LEFT
      * example_outputs.* BOTTOM
      * </pre>
      *
@@ -716,7 +708,7 @@ public class InlineFlopTools {
             String pblockSide = splitLine[1].toUpperCase();
             for (EDIFPort port : netlist.getTopCell().getPorts()) {
                 if (port.getBusName().matches(portRegex) ||
-                        port.getName().matches("\\" + EDIFTools.VIVADO_PRESERVE_PORT_INTERFACE + portRegex)) {
+                    port.getName().matches("\\" + EDIFTools.VIVADO_PRESERVE_PORT_INTERFACE + portRegex)) {
                     if (externalRoutabilitySideMap.containsKey(port)) {
                         throw new RuntimeException("Port " + port + " matches multiple expressions in side map");
                     }
@@ -728,11 +720,10 @@ public class InlineFlopTools {
         return externalRoutabilitySideMap;
     }
 
-
     public static void main(String[] args) {
         if (args.length < 3 || args.length > 4) {
-            System.out.println(
-                    "USAGE (to add flops)   : <input.dcp> <output.dcp> " + CLK_OPT + "=<clkName> " + PBLOCK_OPT + "=<pblock range(s)>");
+            System.out.println("USAGE (to add flops)   : <input.dcp> <output.dcp> " + CLK_OPT + "=<clkName> " +
+                               PBLOCK_OPT + "=<pblock range(s)>");
             System.out.println("USAGE (to remove flops): <input.dcp> <output.dcp> " + REMOVE_FLOPS_OPT);
             return;
         }
@@ -744,8 +735,8 @@ public class InlineFlopTools {
             String clkName = StringTools.getOptionValue(CLK_OPT, args);
             String pblockRange = StringTools.getOptionValue(PBLOCK_OPT, args);
             if (clkName == null || pblockRange == null) {
-                throw new RuntimeException("ERROR: Missing value(s) for option(s): "
-                        + CLK_OPT + "=" + clkName + ", " + PBLOCK_OPT + "=" + pblockRange);
+                throw new RuntimeException("ERROR: Missing value(s) for option(s): " + CLK_OPT + "=" + clkName + ", " +
+                                           PBLOCK_OPT + "=" + pblockRange);
             }
             PBlock pblock = new PBlock(d.getDevice(), pblockRange);
             createAndPlaceFlopsInlineOnTopPortsArbitrarily(d, clkName, pblock);

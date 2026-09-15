@@ -51,10 +51,10 @@ import com.xilinx.rapidwright.device.Node;
 import com.xilinx.rapidwright.device.PIP;
 import com.xilinx.rapidwright.device.Tile;
 import com.xilinx.rapidwright.edif.EDIFPropertyValue;
+import com.xilinx.rapidwright.router.VTreeType;
 import com.xilinx.rapidwright.rwroute.NodeStatus;
 import com.xilinx.rapidwright.rwroute.RouterHelper;
 import com.xilinx.rapidwright.rwroute.RouterHelper.NodeWithPrev;
-import com.xilinx.rapidwright.router.VTreeType;
 import com.xilinx.rapidwright.util.FileTools;
 import com.xilinx.rapidwright.util.Pair;
 import com.xilinx.rapidwright.util.Utils;
@@ -66,30 +66,23 @@ import com.xilinx.rapidwright.util.Utils;
  * Created on: Nov 1, 2024
  */
 public class VersalClockRouting {
-
     public static final String USER_CLOCK_VTREE_TYPE = "USER_CLOCK_VTREE_TYPE";
 
     private static final EnumSet<IntentCode> hRouteTypes;
     private static final EnumSet<IntentCode> vRouteTypes;
     private static final EnumSet<IntentCode> allRouteTypes;
-    
+
     private static Map<String, Map<Integer, VersalClockTree>> vdistrTrees;
-    
+
     static {
-        hRouteTypes = EnumSet.of(
-                IntentCode.NODE_GLOBAL_HROUTE,
-                IntentCode.NODE_GLOBAL_HROUTE_HSR, 
-                IntentCode.NODE_GLOBAL_HROUTE_MED, 
-                IntentCode.NODE_GLOBAL_HROUTE_SLOW); 
+        hRouteTypes = EnumSet.of(IntentCode.NODE_GLOBAL_HROUTE, IntentCode.NODE_GLOBAL_HROUTE_HSR,
+                                 IntentCode.NODE_GLOBAL_HROUTE_MED, IntentCode.NODE_GLOBAL_HROUTE_SLOW);
         vRouteTypes = EnumSet.of(IntentCode.NODE_GLOBAL_VROUTE);
-        allRouteTypes = EnumSet.of(
-                IntentCode.NODE_GLOBAL_VROUTE, 
-                IntentCode.NODE_GLOBAL_HROUTE,
-                IntentCode.NODE_GLOBAL_HROUTE_HSR, 
-                IntentCode.NODE_GLOBAL_HROUTE_MED,
-                IntentCode.NODE_GLOBAL_HROUTE_SLOW);
+        allRouteTypes =
+            EnumSet.of(IntentCode.NODE_GLOBAL_VROUTE, IntentCode.NODE_GLOBAL_HROUTE, IntentCode.NODE_GLOBAL_HROUTE_HSR,
+                       IntentCode.NODE_GLOBAL_HROUTE_MED, IntentCode.NODE_GLOBAL_HROUTE_SLOW);
     }
-    
+
     public static class NodeWithPrevAndCost extends NodeWithPrev implements Comparable<NodeWithPrevAndCost> {
         private static final long serialVersionUID = 2103669135320260630L;
         protected int cost;
@@ -140,14 +133,14 @@ public class VersalClockRouting {
             if (getNodeStatus.apply(curr) != NodeStatus.AVAILABLE) {
                 continue;
             }
-            
+
             IntentCode c = curr.getIntentCode();
             if (c == IntentCode.NODE_GLOBAL_HROUTE_HSR || c == IntentCode.NODE_GLOBAL_HROUTE) {
                 List<Node> path = curr.getPrevPath();
                 clk.getPIPs().addAll(RouterHelper.getPIPsFromNodes(path));
                 return curr;
             }
-            for (Node downhill: curr.getAllDownhillNodes()) {
+            for (Node downhill : curr.getAllDownhillNodes()) {
                 q.add(new NodeWithPrev(downhill, curr));
             }
             if (watchDog-- == 0) {
@@ -158,7 +151,7 @@ public class VersalClockRouting {
     }
 
     private static final String VROUTE = "VROUTE";
-    
+
     public static Integer getRoutingTrackIndex(Node node) {
         if (node.getIntentCode() == IntentCode.NODE_GLOBAL_VROUTE) {
             String wireName = node.getWireName();
@@ -166,17 +159,18 @@ public class VersalClockRouting {
         }
         return null;
     }
-    
+
     private static boolean isCentroidCandidateAvailable(Node node, Set<Integer> unavailableTracks) {
         Integer idx = getRoutingTrackIndex(node);
-        if (idx == null) return false;
+        if (idx == null)
+            return false;
         return !unavailableTracks.contains(idx);
     }
-    
+
     /**
      * Routes a clock from a routing track to a transition point where the clock.
      * fans out and transitions from clock routing tracks to clock distribution.
-     * 
+     *
      * @param clk                The current clock net to contribute routing.
      * @param startingNode       The intermediate start point of the clock route.
      * @param targetCR        The center clock region or the clock region that is
@@ -187,16 +181,15 @@ public class VersalClockRouting {
      * @param usedRoutingTracks  A map to keep track of which routing tracks are
      *                           used for each region
      */
-    public static Node routeToCentroid(Net clk, Node startingNode, ClockRegion targetCR,
-            boolean findCentroidHroute, Function<Node, NodeStatus> getNodeStatus,
-            Set<Integer> unavailableTracks) {
+    public static Node routeToCentroid(Net clk, Node startingNode, ClockRegion targetCR, boolean findCentroidHroute,
+                                       Function<Node, NodeStatus> getNodeStatus, Set<Integer> unavailableTracks) {
         Queue<NodeWithPrevAndCost> q = new PriorityQueue<>();
         q.add(new NodeWithPrevAndCost(startingNode));
         int watchDog = 10000;
         Set<Node> visited = new HashSet<>();
         Tile crApproxCenterTile = targetCR.getApproximateCenter();
         EnumSet<IntentCode> targetCodes = findCentroidHroute ? allRouteTypes : vRouteTypes;
-        
+
         // In Vivado solutions, we can always find the pattern:
         // ... -> NODE_GLOBAL_GCLK -> NODE_GLOBAL_VROUTE -> NODE_GLOBAL_VDISTR_LVL2 -> ...
         // and this is how we locate the VROUTE node
@@ -223,8 +216,8 @@ public class VersalClockRouting {
                     continue;
                 }
 
-                if (targetCR.equals(downhill.getTile().getClockRegion())
-                        && downhillIntentCode == IntentCode.NODE_GLOBAL_VDISTR) {
+                if (targetCR.equals(downhill.getTile().getClockRegion()) &&
+                    downhillIntentCode == IntentCode.NODE_GLOBAL_VDISTR) {
                     NodeWithPrev centroid = curr;
                     while (!targetCodes.contains(centroid.getIntentCode())) {
                         centroid = centroid.getPrev();
@@ -254,23 +247,18 @@ public class VersalClockRouting {
         return null;
     }
 
-    public static Map<ClockRegion, Node> routeVrouteToVerticalDistributionLines(Net clk,
-                                                                                Node vroute,
-                                                                                Collection<ClockRegion> clockRegions,
-                                                                                Function<Node, NodeStatus> getNodeStatus) {
+    public static Map<ClockRegion, Node>
+    routeVrouteToVerticalDistributionLines(Net clk, Node vroute, Collection<ClockRegion> clockRegions,
+                                           Function<Node, NodeStatus> getNodeStatus) {
         Map<ClockRegion, Node> crToVdist = new HashMap<>();
         Queue<NodeWithPrevAndCost> q = new PriorityQueue<>();
         Set<Node> visited = new HashSet<>();
         Set<PIP> allPIPs = new HashSet<>();
 
         Set<IntentCode> allowedIntentCodes = EnumSet.of(
-                IntentCode.NODE_GLOBAL_VDISTR,
-                IntentCode.NODE_GLOBAL_VDISTR_LVL1, 
-                IntentCode.NODE_GLOBAL_VDISTR_LVL2,
-                IntentCode.NODE_GLOBAL_VDISTR_LVL21,
-                IntentCode.NODE_GLOBAL_VDISTR_LVL3, 
-                IntentCode.NODE_GLOBAL_VDISTR_SHARED,
-                IntentCode.NODE_GLOBAL_GCLK);
+            IntentCode.NODE_GLOBAL_VDISTR, IntentCode.NODE_GLOBAL_VDISTR_LVL1, IntentCode.NODE_GLOBAL_VDISTR_LVL2,
+            IntentCode.NODE_GLOBAL_VDISTR_LVL21, IntentCode.NODE_GLOBAL_VDISTR_LVL3,
+            IntentCode.NODE_GLOBAL_VDISTR_SHARED, IntentCode.NODE_GLOBAL_GCLK);
 
         // The VROUTE node is the precursor to the clock root, technically the first
         // VDISTR node is the center point. If we have more than one VROUTE->VDISTR
@@ -294,8 +282,8 @@ public class VersalClockRouting {
         VersalClockTree clkTree = getVersalClockTree(clk, device, minY, maxY);
         assert (clkTree != null);
         if (clkTree == null) {
-            System.err.println("ERROR: No clock tree found for " + device + " Y" + minY + "-Y" + maxY
-                    + " while routing clock " + clk + ", skew will be suboptimal.");
+            System.err.println("ERROR: No clock tree found for " + device + " Y" + minY + "-Y" + maxY +
+                               " while routing clock " + clk + ", skew will be suboptimal.");
         }
 
         for (ClockRegion cr : verticalSpineCRs) {
@@ -304,11 +292,12 @@ public class VersalClockRouting {
             q.add(clockRootNode);
 
             List<Pair<IntentCode, ClockRegion>> distrPath = getVDistrPath(clkTree, cr);
-            nextDistrLevel: for (Pair<IntentCode, ClockRegion> target : distrPath) {
+        nextDistrLevel:
+            for (Pair<IntentCode, ClockRegion> target : distrPath) {
                 IntentCode targetIC = target.getFirst();
                 ClockRegion targetCR = target.getSecond();
                 Tile crApproxCenterTile = targetCR.getApproximateCenter();
-                
+
                 while (!q.isEmpty()) {
                     NodeWithPrevAndCost curr = q.poll();
                     if (getNodeStatus.apply(curr) != NodeStatus.AVAILABLE) {
@@ -326,7 +315,7 @@ public class VersalClockRouting {
                         }
                         continue nextDistrLevel;
                     }
-    
+
                     for (Node downhill : curr.getAllDownhillNodes()) {
                         if (!allowedIntentCodes.contains(downhill.getIntentCode())) {
                             continue;
@@ -361,10 +350,9 @@ public class VersalClockRouting {
         return crToVdist;
     }
 
-    private static List<Pair<IntentCode, ClockRegion>> getVDistrPath(VersalClockTree clkTree,
-            ClockRegion target) {
+    private static List<Pair<IntentCode, ClockRegion>> getVDistrPath(VersalClockTree clkTree, ClockRegion target) {
         return clkTree == null ? Arrays.asList(new Pair<>(IntentCode.NODE_GLOBAL_VDISTR, target))
-                : clkTree.getClockRegionVDistrPath(target);
+                               : clkTree.getClockRegionVDistrPath(target);
     }
 
     /**
@@ -375,21 +363,22 @@ public class VersalClockRouting {
      * @param crMap A map of target clock regions and their respective vertical distribution lines
      * @return The map of target clock regions and their respective horizontal distribution lines.
      */
-    public static Map<ClockRegion, Node> routeVerticalToHorizontalDistributionLines(Net clk,
-                                                                                    Map<ClockRegion, Node> crMap,
-                                                                                    Function<Node, NodeStatus> getNodeStatus) {
+    public static Map<ClockRegion, Node>
+    routeVerticalToHorizontalDistributionLines(Net clk, Map<ClockRegion, Node> crMap,
+                                               Function<Node, NodeStatus> getNodeStatus) {
         Map<ClockRegion, Node> distLines = new HashMap<>();
         Queue<NodeWithPrev> q = new ArrayDeque<>();
         Set<PIP> allPIPs = new HashSet<>();
         Set<Node> visited = new HashSet<>();
-        nextClockRegion: for (Entry<ClockRegion,Node> e : crMap.entrySet()) {
+    nextClockRegion:
+        for (Entry<ClockRegion, Node> e : crMap.entrySet()) {
             q.clear();
             Node vertDistLine = e.getValue();
             q.add(new NodeWithPrev(vertDistLine));
             ClockRegion targetCR = e.getKey();
             visited.clear();
             visited.add(vertDistLine);
-            
+
             while (!q.isEmpty()) {
                 NodeWithPrev curr = q.poll();
                 if (getNodeStatus.apply(curr) != NodeStatus.AVAILABLE) {
@@ -403,14 +392,14 @@ public class VersalClockRouting {
                     for (int i = 1; i < path.size(); i++) {
                         Node node = path.get(i);
                         if (i > 1) {
-                            allPIPs.add(PIP.getArbitraryPIP(node, path.get(i-1)));
+                            allPIPs.add(PIP.getArbitraryPIP(node, path.get(i - 1)));
                         }
                     }
                     distLines.put(targetCR, parent);
                     continue nextClockRegion;
                 }
 
-                for (Node downhill: curr.getAllDownhillNodes()) {
+                for (Node downhill : curr.getAllDownhillNodes()) {
                     IntentCode intentCode = downhill.getIntentCode();
                     if (intentCode != IntentCode.NODE_PINFEED && !intentCode.isVersalClocking()) {
                         continue;
@@ -430,11 +419,13 @@ public class VersalClockRouting {
     /**
      * Routes from distribution lines to the leaf clock buffers (LCBs)
      * @param clk The current clock net
-     * @param distLines A map of target clock regions and their respective horizontal distribution lines
+     * @param distLines A map of target clock regions and their respective horizontal distribution
+     *     lines
      * @param lcbTargets The target LCB nodes to route the clock
      */
     public static void routeDistributionToLCBs(Net clk, Map<ClockRegion, Node> distLines,
-            Map<Node, List<SitePinInst>> lcbTargets, Function<Node, NodeStatus> getNodeStatus) {
+                                               Map<Node, List<SitePinInst>> lcbTargets,
+                                               Function<Node, NodeStatus> getNodeStatus) {
         Map<ClockRegion, Set<NodeWithPrevAndCost>> startingPoints = getStartingPoints(distLines);
         routeToLCBs(clk, startingPoints, lcbTargets, getNodeStatus);
     }
@@ -444,19 +435,19 @@ public class VersalClockRouting {
         for (Entry<ClockRegion, Node> e : distLines.entrySet()) {
             ClockRegion cr = e.getKey();
             Node distLine = e.getValue();
-            startingPoints.computeIfAbsent(cr, k -> new HashSet<>())
-                    .add(new NodeWithPrevAndCost(distLine));
+            startingPoints.computeIfAbsent(cr, k -> new HashSet<>()).add(new NodeWithPrevAndCost(distLine));
         }
         return startingPoints;
     }
 
     public static void routeToLCBs(Net clk, Map<ClockRegion, Set<NodeWithPrevAndCost>> startingPoints,
-            Map<Node, List<SitePinInst>> lcbTargets, Function<Node, NodeStatus> getNodeStatus) {
+                                   Map<Node, List<SitePinInst>> lcbTargets, Function<Node, NodeStatus> getNodeStatus) {
         Queue<NodeWithPrevAndCost> q = new PriorityQueue<>();
         Set<PIP> allPIPs = new HashSet<>();
         Set<Node> visited = new HashSet<>();
 
-        nextLCB: for (Entry<Node, List<SitePinInst>> e : lcbTargets.entrySet()) {
+    nextLCB:
+        for (Entry<Node, List<SitePinInst>> e : lcbTargets.entrySet()) {
             Node lcb = e.getKey();
             q.clear();
             visited.clear();
@@ -464,14 +455,14 @@ public class VersalClockRouting {
             ClockRegion currCR = lcbTile.getClockRegion();
             Set<NodeWithPrevAndCost> starts = startingPoints.getOrDefault(currCR, Collections.emptySet());
             for (NodeWithPrev n : starts) {
-                assert(n.getPrev() == null);
+                assert (n.getPrev() == null);
             }
             q.addAll(starts);
             while (!q.isEmpty()) {
                 NodeWithPrevAndCost curr = q.poll();
                 if (getNodeStatus.apply(curr) != NodeStatus.AVAILABLE) {
                     continue;
-                }  
+                }
 
                 if (lcb.equals(curr)) {
                     List<Node> path = curr.getPrevPath();
@@ -497,7 +488,8 @@ public class VersalClockRouting {
                     if (intentCode != IntentCode.NODE_PINFEED && !intentCode.isVersalClocking()) {
                         continue;
                     }
-                    if (downhill.getWireName().endsWith("_I_CASC_PIN") || downhill.getWireName().endsWith("_CLR_B_PIN")) {
+                    if (downhill.getWireName().endsWith("_I_CASC_PIN") ||
+                        downhill.getWireName().endsWith("_CLR_B_PIN")) {
                         continue;
                     }
                     if (!visited.add(downhill)) {
@@ -520,16 +512,18 @@ public class VersalClockRouting {
      * @param down To indicate if it is routing to the group of top clock regions.
      * @return The map of target clock regions and their respective horizontal distribution lines.
      */
-    public static Map<ClockRegion, Node> routeToHorizontalDistributionLines(Net clk,
-                                                                            Node vroute,
+    public static Map<ClockRegion, Node> routeToHorizontalDistributionLines(Net clk, Node vroute,
                                                                             Collection<ClockRegion> clockRegions,
                                                                             boolean down,
                                                                             Function<Node, NodeStatus> getNodeStatus) {
-        // First step: map each clock region to a VDISTR node. 
-        // The clock region of this VDISTR node should be in the same column of the centroid (X) and the same row of the target clock region (Y). 
-        Map<ClockRegion, Node> vertDistLines = routeVrouteToVerticalDistributionLines(clk, vroute, clockRegions, getNodeStatus);
+        // First step: map each clock region to a VDISTR node.
+        // The clock region of this VDISTR node should be in the same column of the centroid (X) and
+        // the same row of the target clock region (Y).
+        Map<ClockRegion, Node> vertDistLines =
+            routeVrouteToVerticalDistributionLines(clk, vroute, clockRegions, getNodeStatus);
 
-        // Second step: start from the VDISTR node and try to find a HDISTR node in the target clock region.
+        // Second step: start from the VDISTR node and try to find a HDISTR node in the target clock
+        // region.
         return routeVerticalToHorizontalDistributionLines(clk, vertDistLines, getNodeStatus);
     }
 
@@ -541,11 +535,10 @@ public class VersalClockRouting {
      * @param design  The current design
      * @param clkNet The partially routed clock net to make fully routed
      * @param getNodeStatus Lambda for indicating the status of a Node: available, in-use (preserved
-     *                      for same net as we're routing), or unavailable (preserved for other net).
+     *                      for same net as we're routing), or unavailable (preserved for other
+     * net).
      */
-    public static void incrementalClockRouter(Design design,
-                                              Net clkNet,
-                                              Function<Node,NodeStatus> getNodeStatus) {
+    public static void incrementalClockRouter(Design design, Net clkNet, Function<Node, NodeStatus> getNodeStatus) {
         // TODO:
         throw new RuntimeException("ERROR: Incremental clock routing not yet supported for Versal devices.");
     }
@@ -555,38 +548,28 @@ public class VersalClockRouting {
      * @param clkNet The partially routed clock net to make fully routed
      * @param clkPins A list of unrouted pins on the clock net to route
      * @param getNodeStatus Lambda for indicating the status of a Node: available, in-use (preserved
-     *                      for same net as we're routing), or unavailable (preserved for other net).
+     *                      for same net as we're routing), or unavailable (preserved for other
+     * net).
      */
-    public static void incrementalClockRouter(Net clkNet,
-                                              List<SitePinInst> clkPins,
-                                              Function<Node,NodeStatus> getNodeStatus) {
+    public static void incrementalClockRouter(Net clkNet, List<SitePinInst> clkPins,
+                                              Function<Node, NodeStatus> getNodeStatus) {
         // TODO:
         throw new RuntimeException("ERROR: Incremental clock routing not yet supported for Versal devices.");
     }
 
-    public static Map<Node, List<SitePinInst>> routeLCBsToSinks(Net clk,
-                                                                Function<Node,NodeStatus> getNodeStatus) {
+    public static Map<Node, List<SitePinInst>> routeLCBsToSinks(Net clk, Function<Node, NodeStatus> getNodeStatus) {
         Map<Node, List<SitePinInst>> lcbMappings = new HashMap<>();
         Set<IntentCode> allowedIntentCodes = EnumSet.of(
-            IntentCode.NODE_CLE_CNODE,
-            IntentCode.NODE_INTF_CNODE,
-            IntentCode.NODE_INODE,
-            IntentCode.NODE_PINBOUNCE,
-            IntentCode.NODE_CLE_BNODE,
-            IntentCode.NODE_INTF_BNODE,
-            IntentCode.NODE_IMUX,
-            IntentCode.NODE_CLE_CTRL,
-            IntentCode.NODE_INTF_CTRL,
-            IntentCode.NODE_IRI,
-            IntentCode.NODE_PINFEED,
-            IntentCode.NODE_GLOBAL_LEAF
-        );
+            IntentCode.NODE_CLE_CNODE, IntentCode.NODE_INTF_CNODE, IntentCode.NODE_INODE, IntentCode.NODE_PINBOUNCE,
+            IntentCode.NODE_CLE_BNODE, IntentCode.NODE_INTF_BNODE, IntentCode.NODE_IMUX, IntentCode.NODE_CLE_CTRL,
+            IntentCode.NODE_INTF_CTRL, IntentCode.NODE_IRI, IntentCode.NODE_PINFEED, IntentCode.NODE_GLOBAL_LEAF);
         Set<Node> visited = new HashSet<>();
         Queue<NodeWithPrev> q = new ArrayDeque<>();
         Predicate<Node> isNodeUnavailable = (node) -> getNodeStatus.apply(node) == NodeStatus.UNAVAILABLE;
         RouteThruHelper routeThruHelper = new RouteThruHelper(clk.getDesign().getDevice());
 
-        nextPin: for (SitePinInst p: clk.getPins()) {
+    nextPin:
+        for (SitePinInst p : clk.getPins()) {
             if (p.isOutPin() || p.isRouted() || Utils.isIOB(p.getSiteInst())) {
                 continue;
             }
@@ -633,12 +616,12 @@ public class VersalClockRouting {
         return lcbMappings;
     }
 
-    public static void routeNonLCBPins(Net clk, List<SitePinInst> sinks,
-            Function<Node, NodeStatus> getNodeStatus) {
+    public static void routeNonLCBPins(Net clk, List<SitePinInst> sinks, Function<Node, NodeStatus> getNodeStatus) {
         Set<Node> visited = new HashSet<>();
         Queue<NodeWithPrevAndCost> q = new PriorityQueue<>();
         Set<PIP> allPIPs = new HashSet<>(clk.getPIPs());
-        nextPin: for (SitePinInst p : sinks) {
+    nextPin:
+        for (SitePinInst p : sinks) {
             q.clear();
             visited.clear();
             NodeWithPrev sink = new NodeWithPrev(p.getConnectedNode());
@@ -692,7 +675,7 @@ public class VersalClockRouting {
     @SuppressWarnings("unchecked")
     public static Map<String, Map<Integer, VersalClockTree>> readVersalVDistrTrees() {
         InputStream is = FileTools.getRapidWrightResourceInputStream(FileTools.VERSAL_VDISTR_TREES_FILE_NAME);
-        return (Map<String, Map<Integer, VersalClockTree>>) FileTools.readObjectFromKryoFile(is);
+        return (Map<String, Map<Integer, VersalClockTree>>)FileTools.readObjectFromKryoFile(is);
     }
 
     public static void writeVersalVDistrTreesFile() {
@@ -726,7 +709,7 @@ public class VersalClockRouting {
     /**
      * Given a range of occupied clock region Y coordinates, get the preferred clock
      * root Y coordinate.
-     * 
+     *
      * @param device The current device to target.
      * @param minY   The smallest Y coordinate of the clock region range.
      * @param maxY   The largest Y coordinate of the clock region range.

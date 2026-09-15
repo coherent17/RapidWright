@@ -28,7 +28,6 @@ package com.xilinx.rapidwright.device;
  * as a key for a map of PIP types.
  */
 public class PIPWires {
-
     private int startWire;
 
     private int endWire;
@@ -72,7 +71,7 @@ public class PIPWires {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        PIPWires other = (PIPWires) obj;
+        PIPWires other = (PIPWires)obj;
         if (endWire != other.endWire)
             return false;
         if (startWire != other.startWire)

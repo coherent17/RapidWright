@@ -22,22 +22,22 @@
 
 package com.xilinx.rapidwright.edif;
 
+import java.nio.file.Path;
+import java.util.Collection;
+
 import com.xilinx.rapidwright.util.FileTools;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.Path;
-import java.util.Collection;
-
 public class TestYosysTools {
-    final String verilogFd = "" +
-            "module top(input clk, input d, output q);\n" +
-            "always @(posedge clk)\n" +
-            "    q <= d;\n" +
-            "endmodule\n" +
-            "";
+    final String verilogFd = ""
+                             + "module top(input clk, input d, output q);\n"
+                             + "always @(posedge clk)\n"
+                             + "    q <= d;\n"
+                             + "endmodule\n"
+                             + "";
 
     @Test
     void testSynthXilinx(@TempDir Path workDir) {
@@ -74,19 +74,19 @@ public class TestYosysTools {
         }
     }
 
-    final String verilogHier1 = "" +
-            "module top(input [5:0] i, output o);\n" +
-            "wire a;\n" +
-            "foo f(i, a);\n" +
-            "assign o = ~a;\n" +
-            "endmodule\n" +
-            "";
+    final String verilogHier1 = ""
+                                + "module top(input [5:0] i, output o);\n"
+                                + "wire a;\n"
+                                + "foo f(i, a);\n"
+                                + "assign o = ~a;\n"
+                                + "endmodule\n"
+                                + "";
 
-    final String verilogHier2 = "" +
-            "module foo(input [5:0] i, output o);\n" +
-            "assign o = &i;\n" +
-            "endmodule\n" +
-            "";
+    final String verilogHier2 = ""
+                                + "module foo(input [5:0] i, output o);\n"
+                                + "assign o = &i;\n"
+                                + "endmodule\n"
+                                + "";
 
     @Test
     void testSynthXilinxMultiFile(@TempDir Path workDir) {
@@ -100,9 +100,9 @@ public class TestYosysTools {
         FileTools.writeStringToTextFile(verilogHier2, input2.toString());
 
         EDIFNetlist netlist = YosysTools.synthXilinxWithWorkDir(YosysTools.SYNTH_XILINX_FLAG_FAMILY_XCUP +
-                YosysTools.SYNTH_XILINX_FLAG_FLATTEN +
-                YosysTools.SYNTH_XILINX_FLAG_OUT_OF_CONTEXT,
-                workDir, input2, input1);
+                                                                    YosysTools.SYNTH_XILINX_FLAG_FLATTEN +
+                                                                    YosysTools.SYNTH_XILINX_FLAG_OUT_OF_CONTEXT,
+                                                                workDir, input2, input1);
         EDIFCell top = netlist.getTopCell();
         Assertions.assertEquals("top", top.getName());
         Collection<EDIFCellInst> cellInsts = top.getCellInsts();

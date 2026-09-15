@@ -24,16 +24,15 @@
 
 package com.xilinx.rapidwright.timing;
 
-
 import java.util.List;
 
 import com.xilinx.rapidwright.device.SiteTypeEnum;
 
-
 /**
  * Provide delay lookup for logic and intra site delay.
  *
- * Never construct DelayModel directly. Use DelayModelBuilder to guarantee that there is at most one DelayModel.
+ * Never construct DelayModel directly. Use DelayModelBuilder to guarantee that there is at most one
+ * DelayModel.
  *
  * Conventions:
  * A user see a cell with all its input and output pins. But, the user do NOT know
@@ -47,18 +46,19 @@ import com.xilinx.rapidwright.device.SiteTypeEnum;
  * When the user see an input pin connected to VCC or GND, the user have to assume the
  * responsibility of replacing the delay with 0.
  *
- * TODO: change interaction with user to reduce runtime. In particular, a list of timing arcs will be
- * returned for the cell passed in by a user.
+ * TODO: change interaction with user to reduce runtime. In particular, a list of timing arcs will
+ * be returned for the cell passed in by a user.
  */
 public interface DelayModel {
-
     /**
      * Get the delay in ps between two bel pins within the given site name.
      *
      * @param siteTypeName The name of the site type, such as SLICEL and SLICEM.
-     * @param frBelPin The bel pin which is the driver of the connection.  Thus, it must be a bel output pin.
+     * @param frBelPin The bel pin which is the driver of the connection.  Thus, it must be a bel
+     *     output pin.
      * The bel name must be included, ie., AFF2/D. An input site pin is considered a valid frBelPin.
-     * @param toBelPin The bel pin which is the sink of the connection (a bel input pin, or an output site pin).
+     * @param toBelPin The bel pin which is the sink of the connection (a bel input pin, or an
+     *     output site pin).
      * @return Intra-site delay in ps. Return -1 if the connection does not exist.
      * @throws  IllegalArgumentException if the given siteTypeName is not recognized by the model.
      */
@@ -70,12 +70,13 @@ public interface DelayModel {
      * @param belIdx  The unique BEL timing model index, see {@link #getBELIndex(String)}.
      * @param frBelPin An input bel pin. It must NOT include bel name.
      * @param toBelPin An output bel pin. It must NOT include bel name.
-     * @param encodedConfig  A list of config_name:value of the bel, ie., {CYINIT_BOT:GND, CARRY_TYPE:SINGLE_CY8}.
+     * @param encodedConfig  A list of config_name:value of the bel, ie., {CYINIT_BOT:GND,
+     *     CARRY_TYPE:SINGLE_CY8}.
      *                What is the possible config_name and its value?
-     *                Ones need to look at the logic delay files used for DelayModelSource_text to find that out.
-     *                Where to get the config's value from the design?
-     *                There is no uniform way to find the value. It is to determined per case.
-     *                For example, some configs of carry8 is from bel, while some from cell.
+     *                Ones need to look at the logic delay files used for DelayModelSource_text to
+     * find that out. Where to get the config's value from the design? There is no uniform way to
+     * find the value. It is to determined per case. For example, some configs of carry8 is from
+     * bel, while some from cell.
      * @return Logic delay in ps. Return -1 if the connection does not exist.
      * @throws  IllegalArgumentException if the given bel is not recognized by the model.
      */
@@ -90,29 +91,20 @@ public interface DelayModel {
      * @return Logic delay in ps. Return -1 if the connection does not exist.
      * @throws  IllegalArgumentException if the given bel is not recognized by the model.
      */
-     public short getLogicDelay(short belIdx, String frBelPin, String toBelPin);
+    public short getLogicDelay(short belIdx, String frBelPin, String toBelPin);
 
-     /**
-      * TODO - Revisit this as part of the DelayModel
-      * Gets the encoded config code for the value (belname:paramsetting)
-      * @return The encoded value
-      */
-     public int getEncodedConfigCode(String value);
+    /**
+     * TODO - Revisit this as part of the DelayModel
+     * Gets the encoded config code for the value (belname:paramsetting)
+     * @return The encoded value
+     */
+    public int getEncodedConfigCode(String value);
 
-     /**
-      * TODO - Revisit this is part of the DelayModel
-      * Gets the equivalent timing model index for this BEL
-      * @param belName Name of the BEL
-      * @return The unique BEL timing model index
-      */
-     public short getBELIndex(String belName);
+    /**
+     * TODO - Revisit this is part of the DelayModel
+     * Gets the equivalent timing model index for this BEL
+     * @param belName Name of the BEL
+     * @return The unique BEL timing model index
+     */
+    public short getBELIndex(String belName);
 }
-
-
-
-
-
-
-
-
-

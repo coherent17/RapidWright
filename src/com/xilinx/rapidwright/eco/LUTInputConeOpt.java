@@ -57,12 +57,11 @@ import com.xilinx.rapidwright.util.Utils;
  * logic depth.
  */
 public class LUTInputConeOpt {
-
     /**
      * Optimizes the LUT input cone being driven by the provided pin such that
      * chained small LUTs can be replaced by a larger LUT instance. Limited to a
      * single replacement LUT at a time (up to 6 inputs).
-     * 
+     *
      * @param design The current design
      * @param input  Input pin driven by a series of LUTs that should be optimized
      *               into a single LUT.
@@ -91,8 +90,8 @@ public class LUTInputConeOpt {
                 }
                 EDIFHierNet currNet = lutPin.getHierarchicalNet();
                 if (currNet == null) {
-                    throw new RuntimeException("ERROR: Unconnected input on LUT: "
-                            + lutOutput.getFullHierarchicalInstName());
+                    throw new RuntimeException("ERROR: Unconnected input on LUT: " +
+                                               lutOutput.getFullHierarchicalInstName());
                 }
                 srcs = currNet.getLeafHierPortInsts(true, false);
                 assert (srcs.size() == 1);
@@ -104,11 +103,11 @@ public class LUTInputConeOpt {
                 }
             }
         }
-        
+
         int lutSize = sourceNets.size();
         if (lutSize > 6) {
             throw new RuntimeException("ERROR: Unsupported LUT optimization, 6 maximum inputs "
-                    + "supported, found " + sourceNets.size());
+                                       + "supported, found " + sourceNets.size());
         }
         if (lutSize < 2) {
             // Do nothing, only a LUT1 in path
@@ -125,8 +124,7 @@ public class LUTInputConeOpt {
             targetParent = input.getFullHierarchicalInst().getParent().getParent().getCellType();
         }
         input.getFullHierarchicalInst().ensureAncestorsAreUniquified();
-        EDIFCellInst lutInst = optLut.createCellInst("optimized_lut" + EDIFTools.getUniqueSuffix(),
-                targetParent);
+        EDIFCellInst lutInst = optLut.createCellInst("optimized_lut" + EDIFTools.getUniqueSuffix(), targetParent);
         EDIFHierCellInst hierLutInst = input.getHierarchicalInst().getChild(lutInst);
 
         int inputIdx = 0;
@@ -146,7 +144,7 @@ public class LUTInputConeOpt {
         LUTTools.configureLUT(lutInst, eq);
 
         ECOTools.disconnectNet(design, input);
-        
+
         // Place the new LUT near the centroid of its sources
         List<Point> points = new ArrayList<>();
         for (Entry<EDIFHierPortInst, EDIFHierNet> e : sourceNets.entrySet()) {
@@ -191,8 +189,7 @@ public class LUTInputConeOpt {
                 if (otherCell != null && !otherCell.isRoutethru() && c != otherCell) {
                     String logPinName = otherCell.getLogicalPinMapping(pin.getName());
                     if (logPinName != null) {
-                        EDIFHierPortInst ehpi = otherCell.getEDIFHierCellInst()
-                                .getPortInst(logPinName);
+                        EDIFHierPortInst ehpi = otherCell.getEDIFHierCellInst().getPortInst(logPinName);
                         sharedPortInsts.add(ehpi);
                     }
                 }
@@ -203,7 +200,7 @@ public class LUTInputConeOpt {
     }
 
     private static Cell createAndConnectCell(Design design, EDIFHierCellInst hierLutInst, EDIFCellInst lutInst,
-            EDIFHierPortInst input, Site site) {
+                                             EDIFHierPortInst input, Site site) {
         Cell physCell = design.createCell(hierLutInst.getFullHierarchicalInstName(), lutInst);
         if (site != null)
             design.placeCell(physCell, site, site.getBEL("A6LUT"));
@@ -219,8 +216,8 @@ public class LUTInputConeOpt {
             // Include other sinks in the optimization by disconnecting them also and
             // connecting them to the optimized LUT output
             for (EDIFHierPortInst ehpi : otherPins) {
-                System.out.println("[INFO]: Optimized pin is sharing a site pin with " + ehpi
-                        + " and will also have its source swapped.");
+                System.out.println("[INFO]: Optimized pin is sharing a site pin with " + ehpi +
+                                   " and will also have its source swapped.");
             }
             ECOTools.disconnectNet(design, otherPins);
             pinsToConnect.addAll(otherPins);
@@ -235,7 +232,7 @@ public class LUTInputConeOpt {
     /**
      * This method will recursively explore the inputs and combine the LUT equations
      * into a single one.
-     * 
+     *
      * @param lut         The top or root LUT to start from.
      * @param sourceNets  A map of all LUT inputs participating in the LUT reduction
      *                    optimization to their respective nets.
@@ -243,9 +240,8 @@ public class LUTInputConeOpt {
      *                    input on the combined LUT.
      * @return The combined LUT equation for the provided LUT.
      */
-    private static String getCombinedEquation(EDIFHierCellInst lut,
-            Map<EDIFHierPortInst, EDIFHierNet> sourceNets,
-            Map<EDIFHierPortInst, String> newLutInput) {
+    private static String getCombinedEquation(EDIFHierCellInst lut, Map<EDIFHierPortInst, EDIFHierNet> sourceNets,
+                                              Map<EDIFHierPortInst, String> newLutInput) {
         String eq = LUTTools.getLUTEquation(lut);
         for (EDIFHierPortInst lutPin : lut.getHierPortInsts()) {
             if (lutPin.isOutput())
@@ -258,10 +254,8 @@ public class LUTInputConeOpt {
                 newPin = newPin.replace("I", "Q");
                 eq = eq.replace(oldPinName, newPin);
             } else {
-                EDIFHierPortInst lutOutput = lutPin.getHierarchicalNet()
-                        .getLeafHierPortInsts(true, false).get(0);
-                String pinEq = getCombinedEquation(lutOutput.getFullHierarchicalInst(), sourceNets,
-                        newLutInput);
+                EDIFHierPortInst lutOutput = lutPin.getHierarchicalNet().getLeafHierPortInsts(true, false).get(0);
+                String pinEq = getCombinedEquation(lutOutput.getFullHierarchicalInst(), sourceNets, newLutInput);
                 pinEq = pinEq.replace("I", "Q");
                 pinEq = "(" + pinEq.substring(pinEq.indexOf('=') + 1) + ")";
                 eq = eq.replace(oldPinName, pinEq);
@@ -272,8 +266,7 @@ public class LUTInputConeOpt {
 
     public static void main(String[] args) {
         if (args.length < 3) {
-            System.out.println(
-                    "USAGE: <input.dcp> <output> <Hierarchical input pin> [Hierarchical input pin...]");
+            System.out.println("USAGE: <input.dcp> <output> <Hierarchical input pin> [Hierarchical input pin...]");
             return;
         }
 

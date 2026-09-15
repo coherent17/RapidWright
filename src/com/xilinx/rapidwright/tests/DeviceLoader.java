@@ -36,7 +36,6 @@ import com.xilinx.rapidwright.util.MessageGenerator;
  * Created on: Jun 29, 2016
  */
 public class DeviceLoader {
-
     public static void main(String[] args) {
         if (args.length != 1) {
             System.out.println("USAGE: <partname>");
@@ -50,6 +49,5 @@ public class DeviceLoader {
         track.start("Load file");
         Device d = Device.getDevice(p);
         track.stop().printSummary();
-
     }
 }

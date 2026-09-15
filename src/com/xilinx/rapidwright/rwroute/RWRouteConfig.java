@@ -27,9 +27,10 @@ package com.xilinx.rapidwright.rwroute;
 import com.xilinx.rapidwright.util.MessageGenerator;
 
 /**
- * A collection of customizable parameters for a {@link RWRoute} Object or a {@link TimingAndWirelengthReport} Object.
- * Modifications of default parameter values can be done by adding corresponding options with values to the arguments.
- * Each option (i.e. one of the parameters) name must start with two dashes. Values of parameters do not need dashes.
+ * A collection of customizable parameters for a {@link RWRoute} Object or a {@link
+ * TimingAndWirelengthReport} Object. Modifications of default parameter values can be done by
+ * adding corresponding options with values to the arguments. Each option (i.e. one of the
+ * parameters) name must start with two dashes. Values of parameters do not need dashes.
  */
 public class RWRouteConfig {
     /** Allowed max number of routing iterations */
@@ -40,11 +41,16 @@ public class RWRouteConfig {
     private short boundingBoxExtensionX;
     /** Initial bounding box extension range to the top and bottom */
     private short boundingBoxExtensionY;
-    /** Further enlarge the bounding box along with routing iterations by the extension X and Y increments */
+    /**
+     * Further enlarge the bounding box along with routing iterations by the extension X and Y
+     * increments
+     */
     private boolean enlargeBoundingBox;
     /** Incremental extension of the bounding box in the vertical direction to the top and bottom */
     private short extensionYIncrement;
-    /** Incremental extension of the bounding box in the horizontal direction to the left and right */
+    /**
+     * Incremental extension of the bounding box in the horizontal direction to the left and right
+     */
     private short extensionXIncrement;
     /** Wirelength-driven weighting factor */
     private float wirelengthWeight;
@@ -109,10 +115,10 @@ public class RWRouteConfig {
 
     /** Constructs a Configuration Object */
     public RWRouteConfig(String[] arguments) {
-        maxIterations = (short) 100;
+        maxIterations = (short)100;
         useBoundingBox = true;
-        boundingBoxExtensionX = (short) 3;
-        boundingBoxExtensionY = (short) 15;
+        boundingBoxExtensionX = (short)3;
+        boundingBoxExtensionY = (short)15;
         enlargeBoundingBox = false;
         extensionYIncrement = 2;
         extensionXIncrement = 1;
@@ -122,14 +128,14 @@ public class RWRouteConfig {
         shareExponent = 2;
         criticalityExponent = 3;
         minRerouteCriticality = 0.85f;
-        reroutePercentage = (short) 3;
+        reroutePercentage = (short)3;
         initialPresentCongestionFactor = 0.5f;
         presentCongestionMultiplier = 2f;
         historicalCongestionFactor = 1f;
         timingDriven = true;
         clkRouteTiming = null;
         pessimismA = 1.03f;
-        pessimismB = (short) 100;
+        pessimismB = (short)100;
         maskNodesCrossRCLK = false;
         useUTurnNodes = false;
         verbose = false;
@@ -150,126 +156,126 @@ public class RWRouteConfig {
     private void parseArguments(String[] arguments) {
         for (int i = 0; i < arguments.length; i++) {
             String arg = arguments[i];
-            switch(arg) {
-            case "--maxIterations":
-                setMaxIterations(Short.parseShort(arguments[++i]));
-                break;
-            case "--noBoundingBox":
-                setUseBoundingBox(false);
-                break;
-            case "--boundingBoxExtensionX":
-                setBoundingBoxExtensionX(Short.parseShort(arguments[++i]));
-                break;
-            case "--boundingBoxExtensionY":
-                setBoundingBoxExtensionY(Short.parseShort(arguments[++i]));
-                break;
-            case "--enlargeBoundingBox":
-                setEnlargeBoundingBox(true);
-                break;
-            case "--fixBoundingBox":
-                setEnlargeBoundingBox(false);
-                break;
-            case "--extensionYIncrement":
-                setExtensionYIncrement(Short.parseShort(arguments[++i]));
-                break;
-            case "--extensionXIncrement":
-                setExtensionXIncrement(Short.parseShort(arguments[++i]));
-                break;
-            case "--wirelengthWeight":
-                setWirelengthWeight(Float.parseFloat(arguments[++i]));
-                break;
-            case "--shareExponent":
-                setShareExponent(Float.parseFloat(arguments[++i]));
-                break;
-            case "--timingWeight":
-                setTimingWeight(Float.parseFloat(arguments[++i]));
-                break;
-            case "--timingMultiplier":
-                setTimingMultiplier(Float.parseFloat(arguments[++i]));
-                break;
-            case "--criticalityExponent":
-                setCriticalityExponent(Float.parseFloat(arguments[++i]));
-                break;
-            case "--minRerouteCriticality":
-                setMinRerouteCriticality(Float.parseFloat(arguments[++i]));
-                break;
-            case "--reroutePercentage":
-                setReroutePercentage(Short.parseShort(arguments[++i]));
-                break;
-            case "--initialPresentCongestionFactor":
-                setInitialPresentCongestionFactor(Float.parseFloat(arguments[++i]));
-                break;
-            case "--presentCongestionMultiplier":
-                setPresentCongestionMultiplier(Float.parseFloat(arguments[++i]));
-                break;
-            case "--historicalCongestionFactor":
-                setHistoricalCongestionFactor(Float.parseFloat(arguments[++i]));
-                break;
-            case "--timingDriven":
-                setTimingDriven(true);
-                break;
-            case "--nonTimingDriven":
-                setTimingDriven(false);
-                break;
-            case "--dspTimingDataFolder":
-                setDspTimingDataFolder(arguments[++i]);
-                break;
-            case "--clkRouteTiming":
-                setClkRouteTiming(arguments[++i]);
-                break;
-            case "--pessimismA":
-                setPessimismA(Float.parseFloat(arguments[++i]));
-                break;
-            case "--pessimismB":
-                setPessimismB(Short.parseShort(arguments[++i]));
-                break;
-            case "--maskNodesCrossRCLK":
-                setMaskNodesCrossRCLK(true);
-                break;
-            case "--maskUTurnNodes":
-                setUseUTurnNodes(false);
-                break;
-            case "--useUTurnNodes":
-                setUseUTurnNodes(true);
-                break;
-            case "--verbose":
-                setVerbose(true);
-                break;
-            case "--printConnectionSpan":
-                setPrintConnectionSpan(true);
-                break;
-            case "--outOfContext":
-                setExportDesignOutOfContext(true);
-                break;
-            case "--lutPinSwapping":
-                setLutPinSwapping(true);
-                break;
-            case "--lutRoutethru":
-                setLutRoutethru(true);
-                break;
-            case "--noInvertGndToVccForLutInputs":
-                setInvertGndToVccForLutInputs(false);
-                break;
-            case "--hus":
-                setHus(true);
-                break;
-            case "--husAlpha":
-                setHusAlpha(Float.parseFloat(arguments[++i]));
-                break;
-            case "--husBeta":
-                setHusBeta(Float.parseFloat(arguments[++i]));
-                break;
-            case "--husInitialCongestedThreshold":
-                setHusInitialCongestedThreshold(Float.parseFloat(arguments[++i]));
-                break;
-            case "--husActivateThreshold":
-                setHusActivateThreshold(Float.parseFloat(arguments[++i]));
-                break;
-            case "--pblock":
-                setPBlock(arguments[++i]);
-                break;
-            default:
-                throw new IllegalArgumentException("ERROR: RWRoute argument '" + arg + "' not recognized.");
+            switch (arg) {
+                case "--maxIterations":
+                    setMaxIterations(Short.parseShort(arguments[++i]));
+                    break;
+                case "--noBoundingBox":
+                    setUseBoundingBox(false);
+                    break;
+                case "--boundingBoxExtensionX":
+                    setBoundingBoxExtensionX(Short.parseShort(arguments[++i]));
+                    break;
+                case "--boundingBoxExtensionY":
+                    setBoundingBoxExtensionY(Short.parseShort(arguments[++i]));
+                    break;
+                case "--enlargeBoundingBox":
+                    setEnlargeBoundingBox(true);
+                    break;
+                case "--fixBoundingBox":
+                    setEnlargeBoundingBox(false);
+                    break;
+                case "--extensionYIncrement":
+                    setExtensionYIncrement(Short.parseShort(arguments[++i]));
+                    break;
+                case "--extensionXIncrement":
+                    setExtensionXIncrement(Short.parseShort(arguments[++i]));
+                    break;
+                case "--wirelengthWeight":
+                    setWirelengthWeight(Float.parseFloat(arguments[++i]));
+                    break;
+                case "--shareExponent":
+                    setShareExponent(Float.parseFloat(arguments[++i]));
+                    break;
+                case "--timingWeight":
+                    setTimingWeight(Float.parseFloat(arguments[++i]));
+                    break;
+                case "--timingMultiplier":
+                    setTimingMultiplier(Float.parseFloat(arguments[++i]));
+                    break;
+                case "--criticalityExponent":
+                    setCriticalityExponent(Float.parseFloat(arguments[++i]));
+                    break;
+                case "--minRerouteCriticality":
+                    setMinRerouteCriticality(Float.parseFloat(arguments[++i]));
+                    break;
+                case "--reroutePercentage":
+                    setReroutePercentage(Short.parseShort(arguments[++i]));
+                    break;
+                case "--initialPresentCongestionFactor":
+                    setInitialPresentCongestionFactor(Float.parseFloat(arguments[++i]));
+                    break;
+                case "--presentCongestionMultiplier":
+                    setPresentCongestionMultiplier(Float.parseFloat(arguments[++i]));
+                    break;
+                case "--historicalCongestionFactor":
+                    setHistoricalCongestionFactor(Float.parseFloat(arguments[++i]));
+                    break;
+                case "--timingDriven":
+                    setTimingDriven(true);
+                    break;
+                case "--nonTimingDriven":
+                    setTimingDriven(false);
+                    break;
+                case "--dspTimingDataFolder":
+                    setDspTimingDataFolder(arguments[++i]);
+                    break;
+                case "--clkRouteTiming":
+                    setClkRouteTiming(arguments[++i]);
+                    break;
+                case "--pessimismA":
+                    setPessimismA(Float.parseFloat(arguments[++i]));
+                    break;
+                case "--pessimismB":
+                    setPessimismB(Short.parseShort(arguments[++i]));
+                    break;
+                case "--maskNodesCrossRCLK":
+                    setMaskNodesCrossRCLK(true);
+                    break;
+                case "--maskUTurnNodes":
+                    setUseUTurnNodes(false);
+                    break;
+                case "--useUTurnNodes":
+                    setUseUTurnNodes(true);
+                    break;
+                case "--verbose":
+                    setVerbose(true);
+                    break;
+                case "--printConnectionSpan":
+                    setPrintConnectionSpan(true);
+                    break;
+                case "--outOfContext":
+                    setExportDesignOutOfContext(true);
+                    break;
+                case "--lutPinSwapping":
+                    setLutPinSwapping(true);
+                    break;
+                case "--lutRoutethru":
+                    setLutRoutethru(true);
+                    break;
+                case "--noInvertGndToVccForLutInputs":
+                    setInvertGndToVccForLutInputs(false);
+                    break;
+                case "--hus":
+                    setHus(true);
+                    break;
+                case "--husAlpha":
+                    setHusAlpha(Float.parseFloat(arguments[++i]));
+                    break;
+                case "--husBeta":
+                    setHusBeta(Float.parseFloat(arguments[++i]));
+                    break;
+                case "--husInitialCongestedThreshold":
+                    setHusInitialCongestedThreshold(Float.parseFloat(arguments[++i]));
+                    break;
+                case "--husActivateThreshold":
+                    setHusActivateThreshold(Float.parseFloat(arguments[++i]));
+                    break;
+                case "--pblock":
+                    setPBlock(arguments[++i]);
+                    break;
+                default:
+                    throw new IllegalArgumentException("ERROR: RWRoute argument '" + arg + "' not recognized.");
             }
         }
     }
@@ -296,7 +302,8 @@ public class RWRouteConfig {
 
     /**
      * Checks if the routing bounding box constraint is used.
-     * Default: true. To disable the bounding box constraint, please add "--noBoundingBox" to the arguments.
+     * Default: true. To disable the bounding box constraint, please add "--noBoundingBox" to the
+     * arguments.
      * @return true, if the routing bounding box constraint is used.
      */
     public boolean isUseBoundingBox() {
@@ -305,8 +312,10 @@ public class RWRouteConfig {
 
     /**
      * Sets if the router should route connections with the routing bounding box constraint.
-     * Default: true. To disable the bounding box constraint, please add "--noBoundingBox" option to the arguments.
-     * @param useBoundingBox true to let the router use the bounding box constraint to route connections.
+     * Default: true. To disable the bounding box constraint, please add "--noBoundingBox" option to
+     * the arguments.
+     * @param useBoundingBox true to let the router use the bounding box constraint to route
+     *     connections.
      */
     public void setUseBoundingBox(boolean useBoundingBox) {
         this.useBoundingBox = useBoundingBox;
@@ -314,7 +323,8 @@ public class RWRouteConfig {
 
     /**
      * Gets the initial bounding box extension range in the horizontal direction.
-     * Default: 3. Can be modified by using use "--boundingBoxExtensionX" option, e.g. "--boundingBoxExtensionX 5".
+     * Default: 3. Can be modified by using use "--boundingBoxExtensionX" option, e.g.
+     * "--boundingBoxExtensionX 5".
      * @return The bounding box extension range in the horizontal direction.
      */
     public short getBoundingBoxExtensionX() {
@@ -323,7 +333,8 @@ public class RWRouteConfig {
 
     /**
      * Sets the initial bounding box extension range in the horizontal direction.
-     * Default: 3. Can be modified by using use "--boundingBoxExtensionX" option, e.g. "--boundingBoxExtensionX 5".
+     * Default: 3. Can be modified by using use "--boundingBoxExtensionX" option, e.g.
+     * "--boundingBoxExtensionX 5".
      * @param boundingBoxExtensionX
      */
     public void setBoundingBoxExtensionX(short boundingBoxExtensionX) {
@@ -332,7 +343,8 @@ public class RWRouteConfig {
 
     /**
      * Gets the initial bounding box extension range in the vertical direction.
-     * Default: 15. Can be modified by using use "--boundingBoxExtensionY" option, e.g. "--boundingBoxExtensionY 5".
+     * Default: 15. Can be modified by using use "--boundingBoxExtensionY" option, e.g.
+     * "--boundingBoxExtensionY 5".
      * @return The bounding box extension range in the vertical direction.
      */
     public short getBoundingBoxExtensionY() {
@@ -341,7 +353,8 @@ public class RWRouteConfig {
 
     /**
      * Sets the initial bounding box extension range in the vertical direction.
-     * Default: 15. Can be modified by using use "--boundingBoxExtensionY" option, e.g. "--boundingBoxExtensionY 5".
+     * Default: 15. Can be modified by using use "--boundingBoxExtensionY" option, e.g.
+     * "--boundingBoxExtensionY 5".
      * @param boundingBoxExtensionY
      */
     public void setBoundingBoxExtensionY(short boundingBoxExtensionY) {
@@ -350,10 +363,10 @@ public class RWRouteConfig {
 
     /**
      * Checks if the bounding boxes of connections would be expanded during routing.
-     * Enlarging bounding boxes of connections helps resolve routability problems for some scenarios,
-     * such as partial routing and very congested placement of designs.
-     * Default: false for full routing, true for partial routing.
-     * To enable enlarging bounding boxes, please add "--enlargeBoundingBox" to the arguments.
+     * Enlarging bounding boxes of connections helps resolve routability problems for some
+     * scenarios, such as partial routing and very congested placement of designs. Default: false
+     * for full routing, true for partial routing. To enable enlarging bounding boxes, please add
+     * "--enlargeBoundingBox" to the arguments.
      * @return true, if enlarging bounding boxes of connections is allowed.
      */
     public boolean isEnlargeBoundingBox() {
@@ -362,47 +375,56 @@ public class RWRouteConfig {
 
     /**
      * Sets enlargeBoundingBox.
-     * Enlarging bounding boxes of connections helps resolve routability problems for some scenarios,
-     * such as partial routing and very congested designs.
-     * Default: false for full routing, true for partial routing.
-     * To enable enlarging bounding boxes, please add "--enlargeBoundingBox" to the arguments.
-     * @param enlargeBoundingBox A flag to indicate if connections' bounding boxes are allowed to be enlarged for routing.
+     * Enlarging bounding boxes of connections helps resolve routability problems for some
+     * scenarios, such as partial routing and very congested designs. Default: false for full
+     * routing, true for partial routing. To enable enlarging bounding boxes, please add
+     * "--enlargeBoundingBox" to the arguments.
+     * @param enlargeBoundingBox A flag to indicate if connections' bounding boxes are allowed to be
+     *     enlarged for routing.
      */
     public void setEnlargeBoundingBox(boolean enlargeBoundingBox) {
         this.enlargeBoundingBox = enlargeBoundingBox;
     }
 
     /**
-     * Gets the extension increment that connections' bounding boxes should be enlarged by vertically.
-     * Default: 2. Can be modified by using "--extensionYIncrement" option, e.g. "--extensionYIncrement 3".
-     * @return The number of INT Tiles that connections' bounding boxes should be enlarged by vertically.
+     * Gets the extension increment that connections' bounding boxes should be enlarged by
+     * vertically. Default: 2. Can be modified by using "--extensionYIncrement" option, e.g.
+     * "--extensionYIncrement 3".
+     * @return The number of INT Tiles that connections' bounding boxes should be enlarged by
+     *     vertically.
      */
     public short getExtensionYIncrement() {
         return extensionYIncrement;
     }
 
     /**
-     * Sets the extension increment that connections' bounding boxes should be enlarged by vertically.
-     * Default: 2. Can be modified by using "--extensionYIncrement" option, e.g. "--extensionYIncrement 3".
-     * @param extensionYIncrement The number of INT Tiles that connections' bounding boxes should be enlarged by vertically.
+     * Sets the extension increment that connections' bounding boxes should be enlarged by
+     * vertically. Default: 2. Can be modified by using "--extensionYIncrement" option, e.g.
+     * "--extensionYIncrement 3".
+     * @param extensionYIncrement The number of INT Tiles that connections' bounding boxes should be
+     *     enlarged by vertically.
      */
     public void setExtensionYIncrement(short extensionYIncrement) {
         this.extensionYIncrement = extensionYIncrement;
     }
 
     /**
-     * Gets the extension increment that connections' bounding boxes should be enlarged by horizontally.
-     * Default: 1. Can be modified by using "--extensionXIncrement" option, e.g. "--extensionXIncrement 2".
-     * @return The number of INT Tiles that connections' bounding boxes should be enlarged by horizontally.
+     * Gets the extension increment that connections' bounding boxes should be enlarged by
+     * horizontally. Default: 1. Can be modified by using "--extensionXIncrement" option, e.g.
+     * "--extensionXIncrement 2".
+     * @return The number of INT Tiles that connections' bounding boxes should be enlarged by
+     *     horizontally.
      */
     public short getExtensionXIncrement() {
         return extensionXIncrement;
     }
 
     /**
-     * Sets the extension increment that connections' bounding boxes should be enlarged by horizontally.
-     * Default: 1. Can be modified by using "--extensionXIncrement" option, e.g. "--extensionXIncrement 2".
-     * @param extensionXIncrement The number of INT Tiles that connections' bounding boxes should be enlarged by horizontally.
+     * Sets the extension increment that connections' bounding boxes should be enlarged by
+     * horizontally. Default: 1. Can be modified by using "--extensionXIncrement" option, e.g.
+     * "--extensionXIncrement 2".
+     * @param extensionXIncrement The number of INT Tiles that connections' bounding boxes should be
+     *     enlarged by horizontally.
      */
     public void setExtensionXIncrement(short extensionXIncrement) {
         this.extensionXIncrement = extensionXIncrement;
@@ -410,8 +432,9 @@ public class RWRouteConfig {
 
     /**
      * Gets the wirelength-driven weighting factor used in the cost function.
-     * It should be within [0, 1]. The greater it is, the faster the router will run, at the cost of a greater total wirelength.
-     * Default: 0.8. Can be modified by using "--wirelengthWeight", e.g. "--wirelengthWeight 0.7".
+     * It should be within [0, 1]. The greater it is, the faster the router will run, at the cost of
+     * a greater total wirelength. Default: 0.8. Can be modified by using "--wirelengthWeight", e.g.
+     * "--wirelengthWeight 0.7".
      * @return The wirelength-driven weighting factor used in the cost function
      */
     public float getWirelengthWeight() {
@@ -420,18 +443,21 @@ public class RWRouteConfig {
 
     /**
      * Sets the wirelength-driven weighting factor used in the cost function.
-     * It should be within [0, 1]. The greater it is, the faster the router will run, at the cost of a greater total wirelength.
-     * Default: 0.8. Can be modified by using "--wirelengthWeight", e.g. "--wirelengthWeight 0.7".
+     * It should be within [0, 1]. The greater it is, the faster the router will run, at the cost of
+     * a greater total wirelength. Default: 0.8. Can be modified by using "--wirelengthWeight", e.g.
+     * "--wirelengthWeight 0.7".
      * @param wirelengthWeight The wirelength-driven weighting factor used in the cost function
      */
     public void setWirelengthWeight(float wirelengthWeight) {
         if (wirelengthWeight < 0 || wirelengthWeight > 1)
-            throw new IllegalArgumentException("ERROR: wirelength-driven weighting factor wirelengthWeight should be within [0, 1].");
+            throw new IllegalArgumentException("ERROR: wirelength-driven weighting factor "
+                                               + "wirelengthWeight should be within [0, 1].");
         this.wirelengthWeight = wirelengthWeight;
 
         // Assume that the minimum unit we want to observe is 1/8th of the wirelengthWeight
-        // (since during RWRoute.evaluateCostAndPush(), distanceToSink is scaled by wirelengthWeight)
-        // compute the largest floating-point value that results in this Units-in-the-Last-Place value.
+        // (since during RWRoute.evaluateCostAndPush(), distanceToSink is scaled by
+        // wirelengthWeight) compute the largest floating-point value that results in this
+        // Units-in-the-Last-Place value.
         final float maxUlp = wirelengthWeight / 8;
         float maxPresentCongestionFactor = Float.MAX_VALUE;
         while (Math.ulp(maxPresentCongestionFactor) >= maxUlp) {
@@ -442,8 +468,9 @@ public class RWRouteConfig {
 
     /**
      * Gets the timing-driven weighting factor used in the cost function.
-     * It should be within [0, 1]. The greater it is, the faster the router will run, at the cost of a greater critical path delay.
-     * Default: 0.35. Can be modified by using "--timingWeight" option, e.g. "--timingWeight 0.4".
+     * It should be within [0, 1]. The greater it is, the faster the router will run, at the cost of
+     * a greater critical path delay. Default: 0.35. Can be modified by using "--timingWeight"
+     * option, e.g. "--timingWeight 0.4".
      * @return The timing-driven weighting factor used in the cost function
      */
     public float getTimingWeight() {
@@ -452,19 +479,23 @@ public class RWRouteConfig {
 
     /**
      * Sets the timing-driven weighting factor used in the cost function.
-     * It should be within [0, 1]. The greater it is, the faster the router will run, at the cost of a greater critical path delay.
-     * Default: 0.35. Can be modified by using "--timingWeight" option, e.g. "--timingWeight 0.4".
+     * It should be within [0, 1]. The greater it is, the faster the router will run, at the cost of
+     * a greater critical path delay. Default: 0.35. Can be modified by using "--timingWeight"
+     * option, e.g. "--timingWeight 0.4".
      * @param timingWeight The timing-driven weighting factor used in the cost function.
      */
     public void setTimingWeight(float timingWeight) {
         if (timingWeight < 0 || timingWeight > 1)
-            throw new IllegalArgumentException("ERROR: timing-driven weighting factor timingWeight cannot be negative or greater than 1.");
+            throw new IllegalArgumentException(
+                "ERROR: timing-driven weighting factor timingWeight cannot be negative or "
+                + "greater than 1.");
         this.timingWeight = timingWeight;
     }
 
     /**
      * Gets the timing-driven weighting factor multiplier.
-     * Default: 1. Can be modified by using "--timingMultiplier" option, e.g. "--timingMultiplier 1.02".
+     * Default: 1. Can be modified by using "--timingMultiplier" option, e.g.
+     * "--timingMultiplier 1.02".
      * @return The timing-driven weighting factor multiplier.
      */
     public float getTimingMultiplier() {
@@ -472,12 +503,13 @@ public class RWRouteConfig {
     }
 
     /**
-     * Sets the multiplier for timingWeight. This is an experimental feature for future adaptive timingWeight.
-     * The idea is to have less timingWeight in early routing iterations for faster runtime and put more weight on the timing cost
-     * in late iterations for better timing performance.
-     * Currently, the default timingMultiplier is 1.
-     * Can be modified by using "--timingMultiplier" option, e.g. "--timingMultiplier 1.02".
-     * @param timingMultiplier A multiplier greater than 1 to increase timingWeight along routing iterations.
+     * Sets the multiplier for timingWeight. This is an experimental feature for future adaptive
+     * timingWeight. The idea is to have less timingWeight in early routing iterations for faster
+     * runtime and put more weight on the timing cost in late iterations for better timing
+     * performance. Currently, the default timingMultiplier is 1. Can be modified by using
+     * "--timingMultiplier" option, e.g. "--timingMultiplier 1.02".
+     * @param timingMultiplier A multiplier greater than 1 to increase timingWeight along routing
+     *     iterations.
      */
     public void setTimingMultiplier(float timingMultiplier) {
         if (timingMultiplier < 1)
@@ -486,20 +518,22 @@ public class RWRouteConfig {
     }
 
     /**
-     * Gets the sharing exponent that discourages resource sharing for timing-driven routing of critical connections.
-     * It is no less than 0. Default: 2.
-     * Can be modified by using "--shareExponent" option, e.g. "--shareExponent 4".
-     * @return The sharing exponent that discourages resource sharing for timing-driven routing of critical connections.
+     * Gets the sharing exponent that discourages resource sharing for timing-driven routing of
+     * critical connections. It is no less than 0. Default: 2. Can be modified by using
+     * "--shareExponent" option, e.g. "--shareExponent 4".
+     * @return The sharing exponent that discourages resource sharing for timing-driven routing of
+     *     critical connections.
      */
     public float getShareExponent() {
         return shareExponent;
     }
 
     /**
-     * Sets the sharing exponent that discourages resource sharing for timing-driven routing of critical connections.
-     * It is no less than 0. Default: 2.
-     * Can be modified by using "--shareExponent" option, e.g. "--shareExponent 4".
-     * @param shareExponent The sharing exponent that discourages resource sharing for timing-driven routing of critical connections.
+     * Sets the sharing exponent that discourages resource sharing for timing-driven routing of
+     * critical connections. It is no less than 0. Default: 2. Can be modified by using
+     * "--shareExponent" option, e.g. "--shareExponent 4".
+     * @param shareExponent The sharing exponent that discourages resource sharing for timing-driven
+     *     routing of critical connections.
      */
     public void setShareExponent(float shareExponent) {
         if (shareExponent < 0)
@@ -533,8 +567,9 @@ public class RWRouteConfig {
 
     /**
      * Gets the criticality threshold for re-routing critical connections.
-     * It should be within (0.5, 0.99). A greater value means less critical connections to be ripped up and re-routed.
-     * Default: 0.85. Can be modified by using "--minRerouteCriticality" option, e.g. "--minRerouteCriticality 0.9".
+     * It should be within (0.5, 0.99). A greater value means less critical connections to be ripped
+     * up and re-routed. Default: 0.85. Can be modified by using "--minRerouteCriticality" option,
+     * e.g. "--minRerouteCriticality 0.9".
      * @return
      */
     public float getMinRerouteCriticality() {
@@ -543,8 +578,9 @@ public class RWRouteConfig {
 
     /**
      * Sets the criticality threshold for re-routing critical connections.
-     * It should be within (0.5, 0.99). A greater value means less critical connections to be ripped up and re-routed.
-     * Default: 0.85. Can be modified by using "--minRerouteCriticality" option, e.g. "--minRerouteCriticality 0.9".
+     * It should be within (0.5, 0.99). A greater value means less critical connections to be ripped
+     * up and re-routed. Default: 0.85. Can be modified by using "--minRerouteCriticality" option,
+     * e.g. "--minRerouteCriticality 0.9".
      * @param minRerouteCriticality
      */
     public void setMinRerouteCriticality(float minRerouteCriticality) {
@@ -578,7 +614,8 @@ public class RWRouteConfig {
     /**
      * Gets the initial present congestion cost penalty factor.
      * It should be greater than 0. Default: 0.5.
-     * Can be modified by using "--initialPresentCongestionFactor" option, e.g. "--initialPresentCongestionFactor 1".
+     * Can be modified by using "--initialPresentCongestionFactor" option, e.g.
+     * "--initialPresentCongestionFactor 1".
      * @return The initial present congestion cost penalty factor.
      */
     public float getInitialPresentCongestionFactor() {
@@ -588,7 +625,8 @@ public class RWRouteConfig {
     /**
      * Sets the initial present congestion cost penalty factor.
      * It should be greater than 0. Default: 0.5.
-     * Can be modified by using "--initialPresentCongestionFactor" option, e.g. "--initialPresentCongestionFactor 1".
+     * Can be modified by using "--initialPresentCongestionFactor" option, e.g.
+     * "--initialPresentCongestionFactor 1".
      * @param initialPresentCongestionFactor The value to set.
      */
     public void setInitialPresentCongestionFactor(float initialPresentCongestionFactor) {
@@ -600,7 +638,8 @@ public class RWRouteConfig {
     /**
      * Gets the present congestion factor multiplier.
      * It should be greater than 1. Default: 2.
-     * Can be modified by using "--presentCongestionMultiplier" option, e.g. "--presentCongestionMultiplier 3".
+     * Can be modified by using "--presentCongestionMultiplier" option, e.g.
+     * "--presentCongestionMultiplier 3".
      * @return
      */
     public float getPresentCongestionMultiplier() {
@@ -610,12 +649,14 @@ public class RWRouteConfig {
     /**
      * Sets the present congestion factor multiplier.
      * It should be greater than 1. Default: 2.
-     * Can be modified by using "--presentCongestionMultiplier" option, e.g. "--presentCongestionMultiplier 3".
+     * Can be modified by using "--presentCongestionMultiplier" option, e.g.
+     * "--presentCongestionMultiplier 3".
      * @param presentCongestionMultiplier
      */
     public void setPresentCongestionMultiplier(float presentCongestionMultiplier) {
         if (presentCongestionMultiplier <= 1)
-            throw new IllegalArgumentException("ERROR: the present congestion factor multiplier cannot be less than 1.");
+            throw new IllegalArgumentException(
+                "ERROR: the present congestion factor multiplier cannot be less than 1.");
         this.presentCongestionMultiplier = presentCongestionMultiplier;
     }
 
@@ -631,7 +672,8 @@ public class RWRouteConfig {
     /**
      * Gets the historical congestion cost penalty factor.
      * It should be greater than 0. Default: 1.
-     * Can be modified by using "--historicalCongestionFactor" option, e.g. "--historicalCongestionFactor 2".
+     * Can be modified by using "--historicalCongestionFactor" option, e.g.
+     * "--historicalCongestionFactor 2".
      * @return
      */
     public float getHistoricalCongestionFactor() {
@@ -641,7 +683,8 @@ public class RWRouteConfig {
     /**
      * Sets the historical congestion cost penalty factor.
      * It should be greater than 0. Default: 1.
-     * Can be modified by using "--historicalCongestionFactor" option, e.g. "--historicalCongestionFactor 2".
+     * Can be modified by using "--historicalCongestionFactor" option, e.g.
+     * "--historicalCongestionFactor 2".
      * @param historicalCongestionFactor
      */
     public void setHistoricalCongestionFactor(float historicalCongestionFactor) {
@@ -653,7 +696,8 @@ public class RWRouteConfig {
     /**
      * Checks if the router should run in the timing-driven mode.
      * Default: true.
-     * For wirelength-driven routing only, please use "--nonTimingDriven" option to disable timing-driven routing.
+     * For wirelength-driven routing only, please use "--nonTimingDriven" option to disable
+     * timing-driven routing.
      * @return true, if the router runs in the timing-driven mode.
      */
     public boolean isTimingDriven() {
@@ -663,7 +707,8 @@ public class RWRouteConfig {
     /**
      * Sets timingDriven.
      * Default: true.
-     * For wirelength-driven routing only, please use "--nonTimingDriven" option to disable timing-driven routing.
+     * For wirelength-driven routing only, please use "--nonTimingDriven" option to disable
+     * timing-driven routing.
      * @param timingDriven
      */
     public void setTimingDriven(boolean timingDriven) {
@@ -671,9 +716,9 @@ public class RWRouteConfig {
     }
 
     /**
-     * Gets the DSP timing data folder that contains DSP timing data files for the current design to be routed.
-     * They are used for timing-driven routing of designs with DSPs.
-     * They can be generated by running Vivado with the Tcl script provided under $RAPIDWRIGHT_PATH/tcl/rwroute.
+     * Gets the DSP timing data folder that contains DSP timing data files for the current design to
+     * be routed. They are used for timing-driven routing of designs with DSPs. They can be
+     * generated by running Vivado with the Tcl script provided under $RAPIDWRIGHT_PATH/tcl/rwroute.
      * Default: null.
      * @return
      */
@@ -682,13 +727,15 @@ public class RWRouteConfig {
     }
 
     /**
-     * Sets the DSP timing data folder that contains DSP timing data files for the current design to be routed.
-     * They are used for more accurate delay calculation during timing-driven routing of designs with DSPs.
-     * They can be generated by running Vivado with the Tcl script provided under $RAPIDWRIGHT_PATH/tcl/rwroute.
-     * Default: null. Can be specified by using "--dspTimingDataFolder" option, e.g. "--dspTimingDataFolder $RAPIDWRIGHT_PATH/DSPTimingFilesOfDesign/".
-     * Without DSP timing files supplied, the router still continues timing-aware routing.
-     * Yet there could be unexpected delay optimism.
-     * @param dspTimingDataFolder The directory that contains DSP timing data files for the current design to be routed.
+     * Sets the DSP timing data folder that contains DSP timing data files for the current design to
+     * be routed. They are used for more accurate delay calculation during timing-driven routing of
+     * designs with DSPs. They can be generated by running Vivado with the Tcl script provided under
+     * $RAPIDWRIGHT_PATH/tcl/rwroute. Default: null. Can be specified by using
+     * "--dspTimingDataFolder" option, e.g. "--dspTimingDataFolder
+     * $RAPIDWRIGHT_PATH/DSPTimingFilesOfDesign/". Without DSP timing files supplied, the router
+     * still continues timing-aware routing. Yet there could be unexpected delay optimism.
+     * @param dspTimingDataFolder The directory that contains DSP timing data files for the current
+     *     design to be routed.
      */
     public void setDspTimingDataFolder(String dspTimingDataFolder) {
         this.dspTimingDataFolder = dspTimingDataFolder;
@@ -696,9 +743,9 @@ public class RWRouteConfig {
 
     /**
      * Sets the clock enable net timing data file.
-     * The file can be generated by running Vivado with the Tcl script provided under $RAPIDWRIGHT_PATH/tcl/rwroute.
-     * Default: null.
-     * Can be modified by using "--clkRouteTiming" option, e.g. "--clkRouteTiming $RAPIDWRIGHT_PATH/ceroute.txt".
+     * The file can be generated by running Vivado with the Tcl script provided under
+     * $RAPIDWRIGHT_PATH/tcl/rwroute. Default: null. Can be modified by using "--clkRouteTiming"
+     * option, e.g. "--clkRouteTiming $RAPIDWRIGHT_PATH/ceroute.txt".
      * @return
      */
     public String getClkRouteTiming() {
@@ -707,9 +754,9 @@ public class RWRouteConfig {
 
     /**
      * Sets the clock enable net timing data file.
-     * The file can be generated by running Vivado with the Tcl script provided under $RAPIDWRIGHT_PATH/tcl/rwroute.
-     * Default: null.
-     * Can be modified by using "--clkRouteTiming" option, e.g. "--clkRouteTiming $RAPIDWRIGHT_PATH/clkroute.txt".
+     * The file can be generated by running Vivado with the Tcl script provided under
+     * $RAPIDWRIGHT_PATH/tcl/rwroute. Default: null. Can be modified by using "--clkRouteTiming"
+     * option, e.g. "--clkRouteTiming $RAPIDWRIGHT_PATH/clkroute.txt".
      * @param clkRouteTiming
      */
     public void setClkRouteTiming(String clkRouteTiming) {
@@ -751,7 +798,7 @@ public class RWRouteConfig {
     /**
      * Gets the flag indicating if the design returned after routing should be
      * marked out of context. Default: false.
-     * 
+     *
      * @return True if the flag is set, false otherwise.
      */
     public boolean getExportOutOfContext() {
@@ -792,7 +839,7 @@ public class RWRouteConfig {
      * Sets critical path delay pessimism factor b. It should be greater than 0.
      * Default: 100. Can be modified by using "--pessimismB" option, e.g.
      * "--pessimismB 50".
-     * 
+     *
      * @param pessimismB
      */
     public void setPessimismB(short pessimismB) {
@@ -803,8 +850,9 @@ public class RWRouteConfig {
 
     /**
      * Checks if nodes cross RCLK are masked.
-     * If should be set to true for full timing-driven routing to avoid delay optimism and false for partial timing-driven routing for routability.
-     * Default: false. Can be modified by adding "--maskNodesCrossRCLK" to the arguments.
+     * If should be set to true for full timing-driven routing to avoid delay optimism and false for
+     * partial timing-driven routing for routability. Default: false. Can be modified by adding
+     * "--maskNodesCrossRCLK" to the arguments.
      * @return true, if nodes cross RCLK are masked
      */
     public boolean isMaskNodesCrossRCLK() {
@@ -813,8 +861,9 @@ public class RWRouteConfig {
 
     /**
      * Sets maskNodesCrossRCLK.
-     * If should be set to true for full timing-driven routing to avoid delay optimism and false for partial timing-driven routing for routability.
-     * Default: false. Can be modified by adding "--maskNodesCrossRCLK" to the arguments.
+     * If should be set to true for full timing-driven routing to avoid delay optimism and false for
+     * partial timing-driven routing for routability. Default: false. Can be modified by adding
+     * "--maskNodesCrossRCLK" to the arguments.
      * @param maskNodesCrossRCLK A flag to indicate if masking nodes cross RCLK.
      */
     public void setMaskNodesCrossRCLK(boolean maskNodesCrossRCLK) {
@@ -823,8 +872,9 @@ public class RWRouteConfig {
 
     /**
      * Checks if U-turn nodes at the device boundaries are considered to be used.
-     * If the design is placed near the device boundaries, U-turn nodes should be considered to be used. Otherwise, there could be routability problems.
-     * Default: false. Can be modified by adding "--useUTurnNodes" to the arguments.
+     * If the design is placed near the device boundaries, U-turn nodes should be considered to be
+     * used. Otherwise, there could be routability problems. Default: false. Can be modified by
+     * adding "--useUTurnNodes" to the arguments.
      * @return true, if U-turn nodes are considered to be used
      */
     public boolean isUseUTurnNodes() {
@@ -833,9 +883,11 @@ public class RWRouteConfig {
 
     /**
      * Sets useUTurnNodes.
-     * If the design is placed near the device boundaries, U-turn nodes should be considered to be used. Otherwise, there could be routability problems.
-     * Default: false. Can be modified by adding "--useUTurnNodes" to the arguments.
-     * @param useUTurnNodes A flag to indicate if U-turn nodes are considered to be used for routing.
+     * If the design is placed near the device boundaries, U-turn nodes should be considered to be
+     * used. Otherwise, there could be routability problems. Default: false. Can be modified by
+     * adding "--useUTurnNodes" to the arguments.
+     * @param useUTurnNodes A flag to indicate if U-turn nodes are considered to be used for
+     *     routing.
      */
     public void setUseUTurnNodes(boolean useUTurnNodes) {
         this.useUTurnNodes = useUTurnNodes;
@@ -843,8 +895,9 @@ public class RWRouteConfig {
 
     /**
      * Checks if verbose is enabled.
-     * If enabled, there will be more info in the routing log file regarding design netlist, routing statistics, and timing report.
-     * Default: false. Can be modified by adding "--verbose" to the arguments.
+     * If enabled, there will be more info in the routing log file regarding design netlist, routing
+     * statistics, and timing report. Default: false. Can be modified by adding "--verbose" to the
+     * arguments.
      * @return true, if verbose is enabled.
      */
     public boolean isVerbose() {
@@ -874,7 +927,7 @@ public class RWRouteConfig {
     /**
      * Sets a flag indicating the design should be exported as out of context.
      * Default: false.
-     * 
+     *
      * @param exportOutOfContext true to export design as out of context.
      */
     public void setExportDesignOutOfContext(boolean exportOutOfContext) {
@@ -913,17 +966,19 @@ public class RWRouteConfig {
 
     /**
      * Sets verbose.
-     * If true, there will be more info in the routing log file regarding design netlist, routing statistics, and timing report.
-     * Default: false. Can be modified by adding "--verbose" to the arguments.
+     * If true, there will be more info in the routing log file regarding design netlist, routing
+     * statistics, and timing report. Default: false. Can be modified by adding "--verbose" to the
+     * arguments.
      * @param verbose true to print more info in the routing log file.
      */
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
 
-    /** Checks if the hybrid updating strategy (HUS) is enabled.
-     *  HUS will, once its user-configurable thresholds are met, slow down the growth of present costs of used nodes and
-     *  instead increases the growth of overused nodes' historical costs.
+    /**
+     * Checks if the hybrid updating strategy (HUS) is enabled.
+     *  HUS will, once its user-configurable thresholds are met, slow down the growth of present
+     * costs of used nodes and instead increases the growth of overused nodes' historical costs.
      *  Default: false.
      */
     public boolean isHus() {
@@ -932,8 +987,8 @@ public class RWRouteConfig {
 
     /**
      * Sets whether hybrid updating strategy (HUS) is enabled.
-     * HUS will, once its user-configurable thresholds are met, slow down the growth of present costs of used nodes and
-     *  instead increases the growth of overused nodes' historical costs.
+     * HUS will, once its user-configurable thresholds are met, slow down the growth of present
+     * costs of used nodes and instead increases the growth of overused nodes' historical costs.
      * Default: false.
      * @param hus true to enable the hybrid updating strategy (HUS)
      */
@@ -979,8 +1034,8 @@ public class RWRouteConfig {
 
     /**
      * Gets the threshold (number of overused nodes at the end of routing iteration 1 divided by
-     * total number of connections to be routed) above which a design is congested enough to consider HUS
-     * Default: 0.5
+     * total number of connections to be routed) above which a design is congested enough to
+     * consider HUS Default: 0.5
      * @return the threshold for determining whether a design is congested enough to consider HUS
      */
     public float getHusInitialCongestedThreshold() {
@@ -989,17 +1044,18 @@ public class RWRouteConfig {
 
     /**
      * Sets the threshold (number of overused nodes at the end of routing iteration 1 divided by
-     * total number of connections to be routed) above which a design is congested enough to consider HUS
-     * Default: 0.5
-     * @param husInitialCongestedThreshold the threshold for determining whether a design is congested enough to consider HUS
+     * total number of connections to be routed) above which a design is congested enough to
+     * consider HUS Default: 0.5
+     * @param husInitialCongestedThreshold the threshold for determining whether a design is
+     *     congested enough to consider HUS
      */
     public void setHusInitialCongestedThreshold(float husInitialCongestedThreshold) {
         this.husInitialCongestedThreshold = husInitialCongestedThreshold;
     }
 
     /**
-     * Gets the threshold (number of congested connections at the end of the routing iteration divided by
-     * total number of connections to be routed) below which HUS will be activated
+     * Gets the threshold (number of congested connections at the end of the routing iteration
+     * divided by total number of connections to be routed) below which HUS will be activated
      * Default: 0.4
      * @return the threshold for determining whether to activate HUS
      */
@@ -1008,8 +1064,8 @@ public class RWRouteConfig {
     }
 
     /**
-     * Sets the threshold (number of congested connections at the end of the routing iteration divided by
-     * total number of connections to be routed) below which HUS will be activated
+     * Sets the threshold (number of congested connections at the end of the routing iteration
+     * divided by total number of connections to be routed) below which HUS will be activated
      * Default: 0.4
      * @param husActivateThreshold the threshold for determining whether to activate HUS
      */

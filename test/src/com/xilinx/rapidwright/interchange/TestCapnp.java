@@ -33,7 +33,8 @@ public class TestCapnp {
     @ValueSource(ints = {0, 1, 10})
     public void testStructList(int size) {
         MessageBuilder message = new MessageBuilder();
-        PhysicalNetlist.PhysNetlist.RouteBranch.Builder routeBranch = message.initRoot(PhysicalNetlist.PhysNetlist.RouteBranch.factory);
+        PhysicalNetlist.PhysNetlist.RouteBranch.Builder routeBranch =
+            message.initRoot(PhysicalNetlist.PhysNetlist.RouteBranch.factory);
 
         long beforeWords = Serialize.computeSerializedSizeInWords(message);
         routeBranch.initBranches(size);
@@ -45,8 +46,8 @@ public class TestCapnp {
             // than it is to initialize one with zero elements due to the struct tag
         } else {
             Assertions.assertEquals(beforeWords + 1 /* struct tag */ +
-                            size * PhysicalNetlist.PhysNetlist.RouteBranch.STRUCT_SIZE.total(),
-                    afterWords);
+                                        size * PhysicalNetlist.PhysNetlist.RouteBranch.STRUCT_SIZE.total(),
+                                    afterWords);
         }
     }
 
@@ -64,8 +65,7 @@ public class TestCapnp {
             // No size difference between initializing or not
         } else {
             // Bitstring is a List(UInt8) thus round up to next 8-byte word
-            Assertions.assertEquals(beforeWords + (size + 7) / 8,
-                    afterWords);
+            Assertions.assertEquals(beforeWords + (size + 7) / 8, afterWords);
         }
     }
 }

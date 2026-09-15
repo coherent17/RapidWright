@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class TestDeviceTools {
-
     @Test
     public void testGetIntTileVersal() {
         Device d = Device.getDevice("xcve2002-sbva484-1LHP-i-L");

@@ -25,14 +25,12 @@ package com.xilinx.rapidwright.design.blocks;
 
 import java.util.Map;
 
+import com.xilinx.rapidwright.design.Design;
+import com.xilinx.rapidwright.support.RapidWrightDCP;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.xilinx.rapidwright.design.Design;
-import com.xilinx.rapidwright.support.RapidWrightDCP;
-
 public class TestUtilizationType {
-
     @Test
     public void testComputeUtilization() {
         Design design = RapidWrightDCP.loadDCP("optical-flow.dcp");
@@ -48,6 +46,5 @@ public class TestUtilizationType {
         Assertions.assertEquals(287, utilization.get(UtilizationType.LUTS_AS_MEMORY));
         Assertions.assertEquals(64, utilization.get(UtilizationType.BRAMS));
         Assertions.assertEquals(30239, utilization.get(UtilizationType.CLB_LUTS));
-
     }
 }
